@@ -1,0 +1,16 @@
+{
+  "name": "ficha-dnd",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Ficha de personagem D&D 2024 para web — modelo de dados, dados estáticos e motor de regras.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^5.0.2"
+  }
+}
