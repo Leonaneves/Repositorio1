@@ -177,12 +177,14 @@ describe("getSpellSlots — progressão de espaços de magia", () => {
     expect([slots[1], slots[2], slots[3]]).toEqual([4, 2, 0]);
   });
 
-  it("meio-conjurador (Artífice) nível 1 ainda não tem espaços (ceil(1/2)=1, mas Artífice só conjura de fato a partir do nível 2 na regra oficial — aqui a tabela usa o nível de conjurador bruto)", () => {
-    const character = createBlankCharacter("t");
-    character.classId = "artifice";
-    character.level = 1;
-    const slots = getSpellSlots(character);
-    expect(slots[1]).toBe(2); // ceil(1/2) = 1 → linha do nível 1 da tabela completa
+  it("meio-conjuradores (Artífice, Paladino, Patrulheiro) já têm 2 espaços de 1º círculo no nível 1 — confirmado como correto para o ruleset 2024 (ceil(1/2)=1)", () => {
+    for (const classId of ["artifice", "paladino", "patrulheiro"] as const) {
+      const character = createBlankCharacter("t");
+      character.classId = classId;
+      character.level = 1;
+      const slots = getSpellSlots(character);
+      expect(slots[1]).toBe(2);
+    }
   });
 
   it("terço-conjurador (Guerreiro/Cavaleiro Místico) nível 3 → 2 espaços de 1º círculo", () => {

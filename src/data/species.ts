@@ -5,12 +5,14 @@ export interface SpeciesDefinition {
   name: string;
   size: SizeId;
   /**
-   * Deslocamento base em metros. ⚠️ NÃO estava automatizado no PDF
-   * original (Deslocamento era 100% manual lá) — o valor `9` abaixo é
-   * o padrão do PHB 2024 (que unificou o deslocamento base da maioria
-   * das espécies em 9m/30pés), mas isso PRECISA da sua confirmação
-   * antes de ser tratado como regra definitiva. Ver pergunta pendente
-   * no relatório desta etapa.
+   * Deslocamento base em metros (PHB 2024). O PDF original NÃO
+   * automatizava este campo (Deslocamento era 100% manual lá); estes
+   * valores foram confirmados por você: 9m para as espécies-base em
+   * geral, e 10,5m (35 pés) para o Golias — a exceção do grupo.
+   * Modificadores de deslocamento por linhagem (ex.: Elfo da Floresta,
+   * que sobe para 10,5m) ficam para quando a seleção explícita de
+   * linhagem for implementada; por ora as 10 espécies usam apenas o
+   * deslocamento base.
    */
   baseSpeed: number;
   /**
@@ -115,7 +117,7 @@ export const species: Record<SpeciesId, SpeciesDefinition> = {
     id: "golias",
     name: "Golias",
     size: "Médio",
-    baseSpeed: 9,
+    baseSpeed: 10.5,
     traitsText:
       "# FORMA GRANDE (nvl 5)\n" +
       "- Dura 10min | Ação Bônus | 1 p/ DL\n" +

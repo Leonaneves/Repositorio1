@@ -1,19 +1,25 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import type { ClassId } from "../domain/ids.js";
 import { species } from "../data/species.js";
 
 /**
- * ⚠️ PENDENTE DE CONFIRMAÇÃO (ver relatório desta etapa): o PDF
- * original NÃO calculava deslocamento por classe (era campo 100%
- * manual). Sei que Monge (Movimento sem Armadura) altera o
- * deslocamento por nível no D&D 2024, mas não tenho a tabela exata
- * (nível inicial e incrementos) confirmada nos materiais fornecidos, e
- * não quero inventar números de regra. Por ora esta função devolve
- * sempre 0 (nenhuma classe altera o deslocamento automático) — assim
- * que os valores forem confirmados, preencher aqui.
+ * Bônus de deslocamento concedido pela classe. Hoje só o Monge altera o
+ * deslocamento (traço "Movimento sem Armadura", PHB 2024), e apenas
+ * enquanto ele não estiver usando armadura nem escudo:
+ *
+ * nível 1 → +0m · 2–5 → +3m · 6–9 → +4,5m · 10–13 → +6m · 14–17 → +7,5m · 18–20 → +9m
  */
-export function getClassSpeedBonus(_classId: ClassId | null, _level: number): number {
+export function getClassSpeedBonus(character: Character): number {
+  if (character.classId !== "monge") return 0;
+  if (character.armor.equipped !== "unarmed") return 0;
+  if (character.armor.shield) return 0;
+
+  const level = character.level;
+  if (level >= 18) return 9;
+  if (level >= 14) return 7.5;
+  if (level >= 10) return 6;
+  if (level >= 6) return 4.5;
+  if (level >= 2) return 3;
   return 0;
 }
 
@@ -25,7 +31,7 @@ export function getClassSpeedBonus(_classId: ClassId | null, _level: number): nu
  */
 export function getSpeed(character: Character): ComputedValue {
   const speciesSpeed = character.speciesId ? species[character.speciesId].baseSpeed : 0;
-  const classBonus = getClassSpeedBonus(character.classId, character.level);
+  const classBonus = getClassSpeedBonus(character);
   const auto = speciesSpeed + classBonus;
   return computedValue(auto, character.speed.manualAdjustment);
 }

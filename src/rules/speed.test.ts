@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import { getSpeed } from "./speed.js";
+import { getClassSpeedBonus, getSpeed } from "./speed.js";
 
-describe("getSpeed", () => {
-  it("usa o deslocamento base da espécie", () => {
+describe("getSpeed — deslocamento base por espécie", () => {
+  it("espécie-base usa 9m", () => {
     const character = createBlankCharacter("speed-test");
     character.speciesId = "elfo";
     expect(getSpeed(character).auto).toBe(9);
+  });
+
+  it("Golias usa 10,5m (35 pés), a exceção confirmada entre as espécies-base", () => {
+    const character = createBlankCharacter("speed-test");
+    character.speciesId = "golias";
+    expect(getSpeed(character).auto).toBe(10.5);
   });
 
   it("é 0 sem espécie definida", () => {
@@ -20,17 +26,56 @@ describe("getSpeed", () => {
     character.speed.manualAdjustment = 3; // ex.: efeito de magia
     expect(getSpeed(character)).toEqual({ auto: 9, manual: 3, total: 12 });
   });
+});
 
-  // ⚠️ Bônus de deslocamento por classe/nível (ex.: Movimento sem Armadura
-  // do Monge) ainda não está confirmado — ver `getClassSpeedBonus` e o
-  // relatório desta etapa. Este teste documenta o comportamento atual
-  // (0 para todas as classes) e deve ser atualizado assim que os
-  // valores forem confirmados.
-  it("bônus de classe ainda não implementado (pendente de confirmação) — hoje é sempre 0", () => {
-    const character = createBlankCharacter("speed-test");
-    character.speciesId = "humano";
+describe("getClassSpeedBonus — Movimento sem Armadura do Monge", () => {
+  function monkAt(level: number) {
+    const character = createBlankCharacter("monk-speed-test");
     character.classId = "monge";
-    character.level = 18;
-    expect(getSpeed(character).auto).toBe(9);
+    character.level = level;
+    return character;
+  }
+
+  it.each([
+    [1, 0],
+    [2, 3],
+    [5, 3],
+    [6, 4.5],
+    [9, 4.5],
+    [10, 6],
+    [13, 6],
+    [14, 7.5],
+    [17, 7.5],
+    [18, 9],
+    [20, 9],
+  ])("nível %i → +%sm", (level, expected) => {
+    expect(getClassSpeedBonus(monkAt(level))).toBe(expected);
+  });
+
+  it("não se aplica usando armadura", () => {
+    const character = monkAt(18);
+    character.armor.equipped = "couro";
+    expect(getClassSpeedBonus(character)).toBe(0);
+  });
+
+  it("não se aplica usando escudo", () => {
+    const character = monkAt(18);
+    character.armor.shield = true;
+    expect(getClassSpeedBonus(character)).toBe(0);
+  });
+
+  it("não se aplica a outras classes", () => {
+    const character = createBlankCharacter("other-class-speed-test");
+    character.classId = "guerreiro";
+    character.level = 20;
+    expect(getClassSpeedBonus(character)).toBe(0);
+  });
+
+  it("getSpeed soma espécie + bônus de classe + ajuste manual", () => {
+    const character = monkAt(18);
+    character.speciesId = "golias"; // 10,5m
+    character.speed.manualAdjustment = 1;
+    // 10,5 (espécie) + 9 (Monge nível 18) + 1 (manual) = 20,5
+    expect(getSpeed(character)).toEqual({ auto: 19.5, manual: 1, total: 20.5 });
   });
 });
