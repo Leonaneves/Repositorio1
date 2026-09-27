@@ -1,0 +1,9761 @@
+[
+  {
+    "name": "Nome ",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      25.5338,
+      812.141,
+      244.935,
+      826.881
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "ANTECEDENTE",
+    "ft": "choice",
+    "flags": 72220672,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "- Selecione -",
+    "default": "- Selecione -",
+    "options": [
+      "- Selecione -",
+      "Acólito",
+      "Andarilho",
+      "Artesão",
+      "Artista",
+      "Charlatão",
+      "Criminoso",
+      "Eremita",
+      "Escriba",
+      "Fazendeiro",
+      "Guarda",
+      "Guia",
+      "Marinheiro",
+      "Mercador",
+      "Nobre",
+      "Sábio",
+      "Soldado"
+    ],
+    "rect": [
+      25.309,
+      790.953,
+      143.127,
+      806.662
+    ],
+    "actions": {
+      "validate": {
+        "file": "ANTECEDENTE__validate.js",
+        "chars": 5349,
+        "preview": "var antecedente = String(event.value).replace(/^\\s+|\\s+$/g, \"\");\r\n\r\nvar campoTalentos = this.getField(\"Talentos\");\r\nvar campoAutoTalento = this.getFie"
+      }
+    },
+    "multiline": null
+  },
+  {
+    "name": "CLASSE",
+    "ft": "choice",
+    "flags": 72220672,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "- Selecione -",
+    "default": "- Selecione -",
+    "options": [
+      "- Selecione -",
+      "Artífice",
+      "Bárbaro",
+      "Bardo",
+      "Bruxo",
+      "Clérigo",
+      "Druida",
+      "Feiticeiro",
+      "Guerreiro",
+      "Ladino",
+      "Mago",
+      "Monge",
+      "Paladino",
+      "Patrulheiro"
+    ],
+    "rect": [
+      146.278,
+      790.525,
+      245.114,
+      806.01
+    ],
+    "actions": {
+      "validate": {
+        "file": "CLASSE__validate.js",
+        "chars": 15900,
+        "preview": "var classe = String(event.value).replace(/^\\s+|\\s+$/g, \"\");\r\n\r\nvar campoAtributo = this.getField(\"ATRIBUTO.conju\");\r\n\r\nvar atributoConjuracao = {\r\n\r\n "
+      }
+    },
+    "multiline": null
+  },
+  {
+    "name": "ESPECIE",
+    "ft": "choice",
+    "flags": 72220672,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "- Selecione -",
+    "default": "- Selecione -",
+    "options": [
+      "- Selecione -",
+      "Aasimar",
+      "Anão",
+      "Draconato",
+      "Elfo",
+      "Gnomo",
+      "Golias",
+      "Halfling",
+      "Humano",
+      "Orc",
+      "Tiefling"
+    ],
+    "rect": [
+      25.7651,
+      769.92,
+      142.032,
+      784.32
+    ],
+    "actions": {
+      "validate": {
+        "file": "ESPECIE__validate.js",
+        "chars": 5078,
+        "preview": "var especie = event.value;\r\n\r\nvar campoHabilidades = this.getField(\"HABILIDADES.ESPECIE\");\r\nvar campoAutomatico = this.getField(\"AUTO.ESPECIE\");\r\n\r\n\r\n"
+      }
+    },
+    "multiline": null
+  },
+  {
+    "name": "Nível",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      254.715,
+      778.692,
+      290.431,
+      805.905
+    ],
+    "actions": {
+      "validate": {
+        "file": "N_vel__validate.js",
+        "chars": 288,
+        "preview": "if (event.value != \"\") {\r\n\r\n    var nivel = Number(event.value);\r\n\r\n    if (\r\n        isNaN(nivel) ||\r\n        nivel < 1 ||\r\n        nivel > 20 ||\r\n  "
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CA",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": "10",
+    "default": null,
+    "options": null,
+    "rect": [
+      316.935,
+      781.243,
+      352.652,
+      808.456
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CA__calculate.js",
+        "chars": 5851,
+        "preview": "var campoArmadura = this.getField(\"ARMADURA.ATUAL\");\r\nvar campoClasse = this.getField(\"CLASSE\");\r\n\r\nvar campoDex = this.getField(\"DEX.MOD\");\r\nvar camp"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Escudo",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      331.463,
+      763.456,
+      339.329,
+      771.322
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "HP.atual",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      375.329,
+      771.322,
+      422.384,
+      814.409
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "HP.temp",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      430.888,
+      792.865,
+      477.943,
+      808.456
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "HP.max",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      430.888,
+      772.456,
+      477.943,
+      787.196
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "HP.Dados.Gasto",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      486.447,
+      792.865,
+      524.431,
+      808.456
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "HP.Dados.max",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      486.447,
+      772.031,
+      524.431,
+      787.621
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Morte.suc.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      535.345,
+      793.716,
+      543.211,
+      801.582
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Morte.suc.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      546.116,
+      793.716,
+      553.983,
+      801.582
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Morte.suc.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      556.888,
+      793.432,
+      565.024,
+      801.44
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Morte.fal.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      535.345,
+      772.413,
+      543.211,
+      780.28
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Morte.fal.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      546.116,
+      772.413,
+      553.983,
+      780.28
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Morte.fal.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      556.888,
+      772.413,
+      565.024,
+      780.28
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "PROFICIENCIA",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      39.707,
+      678.629,
+      73.7228,
+      705.842
+    ],
+    "actions": {
+      "calculate": {
+        "file": "PROFICIENCIA__calculate.js",
+        "chars": 559,
+        "preview": "var nivelCampo = this.getField(\"N�vel\");\r\nvar nivel = Number(nivelCampo.valueAsString);\r\n\r\nif (nivelCampo.valueAsString == \"\" || isNaN(nivel)) {\r\n\r\n  "
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.MOD",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      130.983,
+      684.298,
+      164.998,
+      711.511
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.MOD__calculate.js",
+        "chars": 402,
+        "preview": "var nomeValor = event.target.name.replace(\".MOD\", \".val\");\r\nvar campo = this.getField(nomeValor);\r\nvar valor = campo.valueAsString;\r\n\r\nif (valor == \"\""
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.val",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      168.683,
+      684.865,
+      189.943,
+      699.606
+    ],
+    "actions": {
+      "validate": {
+        "file": "INT.val__validate.js",
+        "chars": 254,
+        "preview": "javascript\r\nif (event.value != \"\") {\r\n    var valor = Number(event.value);\r\n\r\n    if (isNaN(valor) || valor < 1 || valor > 30 || valor != Math.floor(v"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.res",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      652.55,
+      149.691,
+      665.023
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.res__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.arc",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      633.7,
+      149.691,
+      646.172
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.arc__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.hist",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      619.669,
+      149.691,
+      632.141
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.hist__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.inv",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      605.637,
+      149.691,
+      618.109
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.inv__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.nat",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      591.606,
+      149.691,
+      604.078
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.nat__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "INT.rel",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      577.574,
+      149.691,
+      590.046
+    ],
+    "actions": {
+      "calculate": {
+        "file": "INT.rel__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "FOR.MOD",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      26.1007,
+      609.18,
+      60.1165,
+      636.393
+    ],
+    "actions": {
+      "calculate": {
+        "file": "FOR.MOD__calculate.js",
+        "chars": 402,
+        "preview": "var nomeValor = event.target.name.replace(\".MOD\", \".val\");\r\nvar campo = this.getField(nomeValor);\r\nvar valor = campo.valueAsString;\r\n\r\nif (valor == \"\""
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "FOR.val",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      63.8015,
+      609.18,
+      85.0614,
+      623.921
+    ],
+    "actions": {
+      "validate": {
+        "file": "FOR.val__validate.js",
+        "chars": 254,
+        "preview": "javascript\r\nif (event.value != \"\") {\r\n    var valor = Number(event.value);\r\n\r\n    if (isNaN(valor) || valor < 1 || valor > 30 || valor != Math.floor(v"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "FOR.res",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      576.724,
+      44.8803,
+      589.196
+    ],
+    "actions": {
+      "calculate": {
+        "file": "FOR.res__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "FOR.atl",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      556.172,
+      44.8803,
+      568.645
+    ],
+    "actions": {
+      "calculate": {
+        "file": "FOR.atl__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "O.DEX.res",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      17.0015,
+      458.993,
+      26.2503,
+      468.242
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.DEX.acr",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      17.0015,
+      439.774,
+      26.2503,
+      449.023
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.DEX.fur",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      17.0015,
+      425.743,
+      26.2503,
+      434.991
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.DEX.pre",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      17.0015,
+      412.221,
+      26.2503,
+      421.47
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.FOR.res",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      17.0015,
+      575.165,
+      26.2503,
+      584.413
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.FOR.atl",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      17.0015,
+      555.824,
+      26.2503,
+      565.073
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.CON.res",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.9653,
+      314.887,
+      26.2141,
+      324.136
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.CAR.pers",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      247.48,
+      130.841,
+      256.728
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.CAR.inti",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      261.333,
+      130.841,
+      270.582
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.CAR.eng",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      275.187,
+      130.841,
+      284.435
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.CAR.atu",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      289.04,
+      130.841,
+      298.289
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.CAR.res",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      308.105,
+      130.841,
+      317.354
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.SAB.sob",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      405.9,
+      130.841,
+      415.149
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.SAB.perc",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      419.435,
+      130.841,
+      428.684
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.SAB.med",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      433.432,
+      130.841,
+      442.681
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.SAB.lidar",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      446.968,
+      130.841,
+      456.217
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.SAB.int",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      461.062,
+      130.841,
+      470.311
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.SAB.res",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.592,
+      480.168,
+      130.841,
+      489.417
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.INT.rel",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.628,
+      576.971,
+      130.877,
+      586.22
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.INT.nat",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.628,
+      590.755,
+      130.877,
+      600.004
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.INT.inv",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.628,
+      604.467,
+      130.877,
+      613.716
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.INT.hist",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.628,
+      618.179,
+      130.877,
+      627.428
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.INT.res",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.628,
+      651.38,
+      130.877,
+      660.629
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.item.magico.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      413.766,
+      59.4578,
+      422.164,
+      67.8562
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.item.magico.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      413.766,
+      39.668,
+      422.164,
+      48.0664
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "O.item.magico.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      413.766,
+      20.109,
+      422.164,
+      28.5074
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "CON.MOD",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      26.1007,
+      348.393,
+      60.1165,
+      375.606
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CON.MOD__calculate.js",
+        "chars": 402,
+        "preview": "var nomeValor = event.target.name.replace(\".MOD\", \".val\");\r\nvar campo = this.getField(nomeValor);\r\nvar valor = campo.valueAsString;\r\n\r\nif (valor == \"\""
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CON.res",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      316.078,
+      44.8803,
+      328.55
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CON.res__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CON.val",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      63.8015,
+      347.543,
+      85.0614,
+      362.283
+    ],
+    "actions": {
+      "validate": {
+        "file": "CON.val__validate.js",
+        "chars": 254,
+        "preview": "javascript\r\nif (event.value != \"\") {\r\n    var valor = Number(event.value);\r\n\r\n    if (isNaN(valor) || valor < 1 || valor > 30 || valor != Math.floor(v"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "o.INT.arc",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      121.628,
+      631.891,
+      130.877,
+      641.139
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "DEX.res",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      460.489,
+      44.8803,
+      471.984
+    ],
+    "actions": {
+      "calculate": {
+        "file": "DEX.res__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "DEX.acr",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      440.732,
+      44.8803,
+      453.204
+    ],
+    "actions": {
+      "calculate": {
+        "file": "DEX.acr__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "DEX.fur",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      426.842,
+      44.8803,
+      439.314
+    ],
+    "actions": {
+      "calculate": {
+        "file": "DEX.fur__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "DEX.pre",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      27.1637,
+      412.952,
+      44.8803,
+      425.424
+    ],
+    "actions": {
+      "calculate": {
+        "file": "DEX.pre__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "DEX.MOD",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      26.1007,
+      492.393,
+      60.1165,
+      519.606
+    ],
+    "actions": {
+      "calculate": {
+        "file": "DEX.MOD__calculate.js",
+        "chars": 402,
+        "preview": "var nomeValor = event.target.name.replace(\".MOD\", \".val\");\r\nvar campo = this.getField(nomeValor);\r\nvar valor = campo.valueAsString;\r\n\r\nif (valor == \"\""
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "DEX.val",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      63.8015,
+      492.109,
+      85.0614,
+      506.85
+    ],
+    "actions": {
+      "validate": {
+        "file": "DEX.val__validate.js",
+        "chars": 254,
+        "preview": "javascript\r\nif (event.value != \"\") {\r\n    var valor = Number(event.value);\r\n\r\n    if (isNaN(valor) || valor < 1 || valor > 30 || valor != Math.floor(v"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CAR.res",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      309.275,
+      149.691,
+      321.747
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CAR.res__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CAR.atu",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      289.858,
+      149.691,
+      302.33
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CAR.atu__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CAR.eng",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      275.968,
+      149.691,
+      288.44
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CAR.eng__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CAR.inti",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      262.078,
+      149.691,
+      274.55
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CAR.inti__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CAR.pers",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      248.188,
+      149.691,
+      260.661
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CAR.pers__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CAR.val",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      168.683,
+      341.306,
+      189.943,
+      356.046
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "CAR.MOD",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      130.983,
+      341.306,
+      164.998,
+      368.519
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CAR.MOD__calculate.js",
+        "chars": 402,
+        "preview": "var nomeValor = event.target.name.replace(\".MOD\", \".val\");\r\nvar campo = this.getField(nomeValor);\r\nvar valor = campo.valueAsString;\r\n\r\nif (valor == \"\""
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.res",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      481.338,
+      149.691,
+      493.81
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.res__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.int",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      461.495,
+      149.691,
+      473.968
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.int__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.lidar",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      447.747,
+      149.691,
+      460.22
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.lidar__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.med",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      433.999,
+      149.691,
+      446.472
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.med__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.perc",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      420.251,
+      149.691,
+      432.724
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.perc__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.sob",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      131.975,
+      406.503,
+      149.691,
+      418.976
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.sob__calculate.js",
+        "chars": 3746,
+        "preview": "var nomePericia = event.target.name;\r\n\r\n// Exemplo:\r\n// SAB.lidar -> SAB\r\nvar partes = nomePericia.split(\".\");\r\nvar atributo = partes[0];\r\n\r\n// Campos"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.MOD",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      130.983,
+      512.802,
+      164.998,
+      540.015
+    ],
+    "actions": {
+      "calculate": {
+        "file": "SAB.MOD__calculate.js",
+        "chars": 402,
+        "preview": "var nomeValor = event.target.name.replace(\".MOD\", \".val\");\r\nvar campo = this.getField(nomeValor);\r\nvar valor = campo.valueAsString;\r\n\r\nif (valor == \"\""
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SAB.val",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      168.683,
+      512.235,
+      189.943,
+      526.976
+    ],
+    "actions": {
+      "validate": {
+        "file": "SAB.val__validate.js",
+        "chars": 254,
+        "preview": "javascript\r\nif (event.value != \"\") {\r\n    var valor = Number(event.value);\r\n\r\n    if (isNaN(valor) || valor < 1 || valor > 30 || valor != Math.floor(v"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "C5",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      49.274,
+      250.073,
+      64.6809,
+      265.48
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "PROF.leve",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      58.8409,
+      197.944,
+      66.707,
+      205.81
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "PROF.med",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      92.3606,
+      197.944,
+      100.227,
+      205.81
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "PROF.pesa",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      136.014,
+      197.944,
+      143.88,
+      205.81
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "PROF.Escudo",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      172.935,
+      197.944,
+      180.802,
+      205.81
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "PROF.armas",
+    "ft": "text",
+    "flags": 12587008,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      15.4708,
+      113.117,
+      202.416,
+      181.149
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "PROF.ferramentas",
+    "ft": "text",
+    "flags": 12587008,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      15.4708,
+      27.5111,
+      202.416,
+      101.779
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "AUTO.PERICIAS.ANTECEDENTE",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      58.5672,
+      5.89001,
+      173.127,
+      21.3363
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.ARMAS",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      208.525,
+      105.004,
+      220.753,
+      142.332
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.FERRAMENTAS",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      208.525,
+      54.8032,
+      220.753,
+      83.765
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.ESPECIE",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      228.876,
+      4.3121,
+      383.785,
+      22.203
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.ANTECEDENTE",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      419.104,
+      4.58548,
+      556.833,
+      23.8934
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.INICIATIVA",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      231.051,
+      672.654,
+      294.767,
+      688.101
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.PASSIVA",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      504.579,
+      666.862,
+      576.661,
+      687.457
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "AUTO.CA",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": "10",
+    "default": null,
+    "options": null,
+    "rect": [
+      299.856,
+      764.06,
+      317.23,
+      778.217
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "HABILIDADES.ESPECIE",
+    "ft": "text",
+    "flags": 12587008,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      223.937,
+      11.3386,
+      387.802,
+      212.598
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "Talentos",
+    "ft": "text",
+    "flags": 8392704,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      406.227,
+      11.3386,
+      579.14,
+      212.598
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "Carac.Classe.1",
+    "ft": "text",
+    "flags": 12587008,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      223.959,
+      246.629,
+      396.872,
+      495.795
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "Carac.Classe.2",
+    "ft": "text",
+    "flags": 12587008,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      406.227,
+      246.629,
+      579.14,
+      495.795
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "Iniciativa",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": "DES",
+    "options": null,
+    "rect": [
+      239.833,
+      692.235,
+      280.085,
+      714.346
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Iniciativa__calculate.js",
+        "chars": 1819,
+        "preview": "var campoDestreza = this.getField(\"DEX.MOD\");\r\nvar campoMemoria = this.getField(\"AUTO.INICIATIVA\");\r\n\r\nvar textoDestreza = campoDestreza.valueAsString"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Deslocamento",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      318.455,
+      692.235,
+      387.066,
+      714.346
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Tamanho",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      414.529,
+      692.235,
+      477.816,
+      714.346
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "PERCEPCAO.PASSIVA",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      515.928,
+      692.235,
+      564.116,
+      714.346
+    ],
+    "actions": {
+      "calculate": {
+        "file": "PERCEPCAO.PASSIVA__calculate.js",
+        "chars": 1596,
+        "preview": "var campoPercepcao = this.getField(\"SAB.perc\");\r\nvar campoMemoria = this.getField(\"AUTO.PASSIVA\");\r\n\r\nvar textoPercepcao = campoPercepcao.valueAsStrin"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Arma.Truque",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      225.376,
+      632.141,
+      329.975,
+      647.732
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Arma.Truque2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      225.376,
+      613.149,
+      329.975,
+      628.739
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Arma.Truque3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      225.376,
+      594.157,
+      329.975,
+      609.747
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Arma.Truque4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      225.376,
+      575.165,
+      329.975,
+      590.755
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Arma.Truque5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      225.376,
+      556.172,
+      329.975,
+      571.763
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Arma.Truque6",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      225.376,
+      537.18,
+      329.975,
+      552.771
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Bonus de atk",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      332.951,
+      632.141,
+      375.187,
+      647.732
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Dano e Tipo",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      379.298,
+      632.141,
+      451.865,
+      647.732
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Notas da Arma",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.975,
+      632.141,
+      579.14,
+      647.732
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Bonus de atk 1",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      332.951,
+      613.149,
+      375.187,
+      628.739
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Dano e Tipo 1",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      379.298,
+      613.149,
+      451.865,
+      628.739
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Notas da Arma 1",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.975,
+      613.149,
+      579.14,
+      628.739
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Bonus de atk 2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      332.951,
+      594.157,
+      375.187,
+      609.747
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Bonus de atk 3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      332.951,
+      575.165,
+      375.187,
+      590.755
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Bonus de atk 4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      332.951,
+      556.172,
+      375.187,
+      571.763
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Bonus de atk 5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      332.951,
+      537.18,
+      375.187,
+      552.771
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Dano e Tipo 2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      379.298,
+      594.157,
+      451.865,
+      609.747
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Dano e Tipo 3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      379.298,
+      575.165,
+      451.865,
+      590.755
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Dano e Tipo 4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      379.298,
+      556.172,
+      451.865,
+      571.763
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Dano e Tipo 5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      379.298,
+      537.18,
+      451.865,
+      552.771
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Notas da Arma 2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.975,
+      594.157,
+      579.14,
+      609.747
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Notas da Arma 3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.975,
+      575.165,
+      579.14,
+      590.755
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Notas da Arma 4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.975,
+      556.172,
+      579.14,
+      571.763
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Notas da Arma 5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.975,
+      537.18,
+      579.14,
+      552.771
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "MOD.CONJ",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      12.8466,
+      770.487,
+      47.388,
+      797.699
+    ],
+    "actions": {
+      "calculate": {
+        "file": "MOD.CONJ__calculate.js",
+        "chars": 393,
+        "preview": "var atributo = this.getField(\"ATRIBUTO.conju\").valueAsString;\r\n\r\nif (atributo == \"INTELIG�NCIA\") {\r\n    event.value = this.getField(\"INT.MOD\").valueAs"
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "MOD.magia",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      12.8054,
+      715.625,
+      47.388,
+      742.838
+    ],
+    "actions": {
+      "calculate": {
+        "file": "MOD.magia__calculate.js",
+        "chars": 950,
+        "preview": "var atributo = this.getField(\"ATRIBUTO.conju\").valueAsString;\r\nvar prof = this.getField(\"PROFICIENCIA\").valueAsString;\r\n\r\nif (atributo == \"\" || prof ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "CD.magia",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      12.8054,
+      742.838,
+      47.388,
+      770.051
+    ],
+    "actions": {
+      "calculate": {
+        "file": "CD.magia__calculate.js",
+        "chars": 806,
+        "preview": "var atributo = this.getField(\"ATRIBUTO.conju\").valueAsString;\r\nvar prof = this.getField(\"PROFICIENCIA\").valueAsString;\r\n\r\nif (atributo == \"\" || prof ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "ATRIBUTO.conju",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      24.7109,
+      809.169,
+      131.577,
+      827.169
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "1o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      205.383,
+      747.904,
+      213.782,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "1o.circ.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      214.841,
+      747.904,
+      223.239,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "1o.circ.4",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      224.298,
+      747.904,
+      232.697,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "1o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      196.136,
+      747.904,
+      204.535,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "2o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      196.136,
+      734.44,
+      204.535,
+      742.838
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "2o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      205.383,
+      734.44,
+      213.782,
+      742.838
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "2o.circ.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      214.841,
+      734.44,
+      223.239,
+      742.838
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "3o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      196.264,
+      720.04,
+      204.662,
+      728.438
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "3o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      205.383,
+      720.04,
+      213.782,
+      728.438
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "3o.circ.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      214.841,
+      720.04,
+      223.239,
+      728.438
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "4o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      282.947,
+      747.904,
+      291.346,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "4o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      292.301,
+      747.904,
+      300.7,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "4o.circ.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      301.656,
+      747.904,
+      310.054,
+      756.303
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "5o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      282.947,
+      734.383,
+      291.346,
+      742.781
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "5o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      292.26,
+      734.409,
+      300.659,
+      742.808
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "5o.circ.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      301.656,
+      734.383,
+      310.054,
+      742.781
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "6o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      282.947,
+      720.21,
+      291.346,
+      728.608
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "6o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      292.26,
+      720.21,
+      300.659,
+      728.608
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "7o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      360.722,
+      748.281,
+      369.12,
+      756.679
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "7o.circ.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      370.112,
+      748.167,
+      378.511,
+      756.566
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "8o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      360.722,
+      734.156,
+      369.12,
+      742.555
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "9o.circ.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      360.722,
+      720.153,
+      369.12,
+      728.551
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "aparência",
+    "ft": "text",
+    "flags": 8392704,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      406.254,
+      739.712,
+      578.601,
+      809.169
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "idiomas",
+    "ft": "text",
+    "flags": 8392704,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      406.254,
+      672.822,
+      578.601,
+      705.421
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "cobre",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      412.207,
+      599.972,
+      442.821,
+      624.066
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "prata",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      455.86,
+      599.972,
+      486.475,
+      624.066
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "ouro",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      499.514,
+      599.972,
+      530.128,
+      624.066
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "platina",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      542.657,
+      599.972,
+      573.272,
+      624.066
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Equipamentos",
+    "ft": "text",
+    "flags": 4198400,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      406.254,
+      81.0901,
+      578.601,
+      505.53
+    ],
+    "actions": {},
+    "multiline": true
+  },
+  {
+    "name": "Item.magico.1",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      427.089,
+      55.72,
+      577.467,
+      71.594
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Item.magico.2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      427.089,
+      36.7279,
+      577.467,
+      52.6019
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Item.magico.3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      427.089,
+      17.7357,
+      577.467,
+      33.6097
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "Concentracao.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      654.616,
+      244.46,
+      663.014
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      635.369,
+      244.46,
+      643.767
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      616.122,
+      244.46,
+      624.52
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.4",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      596.874,
+      244.46,
+      605.273
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.5",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      577.825,
+      244.46,
+      586.224
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.6",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      558.303,
+      244.46,
+      566.701
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.7",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      539.877,
+      244.46,
+      548.276
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.8",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      520.651,
+      244.46,
+      529.049
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.9",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      501.205,
+      244.46,
+      509.603
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.10",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      481.986,
+      244.46,
+      490.385
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.11",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      462.711,
+      244.46,
+      471.109
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.12",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      443.662,
+      244.46,
+      452.06
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.13",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      424.613,
+      244.46,
+      433.011
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.14",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      405.232,
+      244.46,
+      413.63
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.15",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      386.345,
+      244.46,
+      394.744
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.16",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      367.07,
+      244.46,
+      375.468
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.17",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      347.681,
+      244.46,
+      356.079
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.18",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      328.462,
+      244.46,
+      336.86
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.19",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      309.243,
+      244.46,
+      317.641
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.20",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      290.024,
+      244.46,
+      298.422
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.21",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      270.805,
+      244.46,
+      279.203
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.22",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      251.586,
+      244.46,
+      259.985
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.23",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      232.537,
+      244.46,
+      240.936
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.24",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      213.148,
+      244.46,
+      221.547
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.25",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      194.383,
+      244.46,
+      202.781
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.26",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      174.881,
+      244.46,
+      183.279
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.27",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      155.888,
+      244.46,
+      164.287
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.28",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      136.613,
+      244.46,
+      145.011
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.29",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      117.232,
+      244.46,
+      125.63
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.30",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      96.9279,
+      244.46,
+      105.326
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.31",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      77.7656,
+      244.46,
+      86.1641
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.32",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      58.3767,
+      244.46,
+      66.7751
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.33",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      39.3846,
+      244.46,
+      47.783
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Concentracao.34",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      236.062,
+      20.3924,
+      244.46,
+      28.7909
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      654.616,
+      265.834,
+      663.014
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      635.369,
+      265.834,
+      643.767
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      616.122,
+      265.834,
+      624.52
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.4",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      596.874,
+      265.834,
+      605.273
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.5",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      577.825,
+      265.834,
+      586.224
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.6",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      558.303,
+      265.834,
+      566.701
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.7",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      539.877,
+      265.834,
+      548.276
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.8",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      520.651,
+      265.834,
+      529.049
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.9",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      501.205,
+      265.834,
+      509.603
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.10",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      481.986,
+      265.834,
+      490.385
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.11",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      462.711,
+      265.834,
+      471.109
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.12",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      443.662,
+      265.834,
+      452.06
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.13",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      424.613,
+      265.834,
+      433.011
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.14",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      405.232,
+      265.834,
+      413.63
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.15",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      386.345,
+      265.834,
+      394.744
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.16",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      367.07,
+      265.834,
+      375.468
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.17",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      347.681,
+      265.834,
+      356.079
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.18",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      328.462,
+      265.834,
+      336.86
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.19",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      309.243,
+      265.834,
+      317.641
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.20",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      290.024,
+      265.834,
+      298.422
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.21",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      270.805,
+      265.834,
+      279.203
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.22",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      251.586,
+      265.834,
+      259.985
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.23",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      232.537,
+      265.834,
+      240.936
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.24",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      213.148,
+      265.834,
+      221.547
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.25",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      194.383,
+      265.834,
+      202.781
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.26",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      174.881,
+      265.834,
+      183.279
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.27",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      155.888,
+      265.834,
+      164.287
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.28",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      136.613,
+      265.834,
+      145.011
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.29",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      117.232,
+      265.834,
+      125.63
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.30",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      96.9279,
+      265.834,
+      105.326
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.31",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      77.7656,
+      265.834,
+      86.1641
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.32",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      58.3767,
+      265.834,
+      66.7751
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.33",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      39.3846,
+      265.834,
+      47.783
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Ritual.34",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      257.435,
+      20.3924,
+      265.834,
+      28.7909
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.1",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      654.616,
+      287.377,
+      663.014
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.2",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      635.369,
+      287.377,
+      643.767
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.3",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      616.122,
+      287.377,
+      624.52
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.4",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      596.874,
+      287.377,
+      605.273
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.5",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      577.825,
+      287.377,
+      586.224
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.6",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      558.303,
+      287.377,
+      566.701
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.7",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      539.877,
+      287.377,
+      548.276
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.8",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      520.651,
+      287.377,
+      529.049
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.9",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      501.205,
+      287.377,
+      509.603
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.10",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      481.986,
+      287.377,
+      490.385
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.11",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      462.711,
+      287.377,
+      471.109
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.12",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      443.662,
+      287.377,
+      452.06
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.13",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      424.613,
+      287.377,
+      433.011
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.14",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      405.232,
+      287.377,
+      413.63
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.15",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      386.345,
+      287.377,
+      394.744
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.16",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      367.07,
+      287.377,
+      375.468
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.17",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      347.681,
+      287.377,
+      356.079
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.18",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      328.462,
+      287.377,
+      336.86
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.19",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      309.243,
+      287.377,
+      317.641
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.20",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      290.024,
+      287.377,
+      298.422
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.21",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      270.805,
+      287.377,
+      279.203
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.22",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      251.586,
+      287.377,
+      259.985
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.23",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      232.537,
+      287.377,
+      240.936
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.24",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      213.148,
+      287.377,
+      221.547
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.25",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      194.383,
+      287.377,
+      202.781
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.26",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      174.881,
+      287.377,
+      183.279
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.27",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      155.888,
+      287.377,
+      164.287
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.28",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      136.613,
+      287.377,
+      145.011
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.29",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      117.232,
+      287.377,
+      125.63
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.30",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      96.9279,
+      287.377,
+      105.326
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.31",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      77.7656,
+      287.377,
+      86.1641
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.32",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      58.3767,
+      287.377,
+      66.7751
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.33",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      39.3846,
+      287.377,
+      47.783
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Material.34",
+    "ft": "button",
+    "flags": 0,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      278.979,
+      20.3924,
+      287.377,
+      28.7909
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Esp.mag.1",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      179.199,
+      748.167,
+      193.486,
+      758.825
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.1__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.2",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      179.199,
+      734.383,
+      193.486,
+      745.041
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.2__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.3",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      179.199,
+      720.599,
+      193.486,
+      731.257
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.3__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.4",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      266.109,
+      748.167,
+      280.396,
+      758.825
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.4__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.5",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      266.109,
+      734.383,
+      280.396,
+      745.041
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.5__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.6",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      266.109,
+      720.599,
+      280.396,
+      731.257
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.6__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.7",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      343.892,
+      748.167,
+      358.179,
+      758.825
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.7__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.8",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      343.892,
+      734.383,
+      358.179,
+      745.041
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.8__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "Esp.mag.9",
+    "ft": "text",
+    "flags": 12582912,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      343.892,
+      721.577,
+      358.179,
+      731.257
+    ],
+    "actions": {
+      "calculate": {
+        "file": "Esp.mag.9__calculate.js",
+        "chars": 6407,
+        "preview": "var campoClasse = this.getField(\"CLASSE\");\r\nvar campoNivel = this.getField(\"N�vel\");\r\nvar campoSubclasse = this.getField(\"SUBCLASSE\");\r\n\r\nvar classe ="
+      }
+    },
+    "multiline": false
+  },
+  {
+    "name": "SUBCLASSE",
+    "ft": "choice",
+    "flags": 71434240,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "Selecione...",
+    "default": "Selecione...",
+    "options": [
+      [
+        "Selecione...",
+        "Selecione..."
+      ]
+    ],
+    "rect": [
+      146.618,
+      769.593,
+      252.982,
+      784.32
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "circulo1.0",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      651.12,
+      37.6363,
+      665.52
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.1",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      632.466,
+      37.6363,
+      646.865
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      613.156,
+      37.6363,
+      627.556
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      594.011,
+      37.6363,
+      608.411
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      574.538,
+      37.6363,
+      588.938
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      555.72,
+      37.6363,
+      570.12
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.33",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      17.5204,
+      37.6363,
+      31.9204
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.6",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      536.575,
+      37.6363,
+      550.975
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.7",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      517.429,
+      37.6363,
+      531.829
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.8",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      497.956,
+      37.6363,
+      512.356
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.9",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      478.484,
+      37.6363,
+      492.884
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.10",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      459.666,
+      37.6363,
+      474.065
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.11",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      440.193,
+      37.6363,
+      454.593
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.12",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      421.538,
+      37.6363,
+      435.938
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.13",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      401.738,
+      37.6363,
+      416.138
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.14",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      382.92,
+      37.6363,
+      397.32
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.15",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      363.447,
+      37.6363,
+      377.847
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.16",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      344.629,
+      37.6363,
+      359.029
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.17",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      325.484,
+      37.6363,
+      339.884
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.18",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      306.011,
+      37.6363,
+      320.411
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.19",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      287.029,
+      37.6363,
+      301.429
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.20",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      267.393,
+      37.6363,
+      281.793
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.21",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      247.92,
+      37.6363,
+      262.32
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.22",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      229.429,
+      37.6363,
+      243.829
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.23",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      210.611,
+      37.6363,
+      225.011
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.24",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      191.302,
+      37.6363,
+      205.702
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.25",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      171.502,
+      37.6363,
+      185.902
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.26",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      152.684,
+      37.6363,
+      167.084
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.27",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      133.211,
+      37.6363,
+      147.611
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.28",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      114.393,
+      37.6363,
+      128.793
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.29",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      93.7748,
+      37.6363,
+      108.175
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.30",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      74.793,
+      37.6363,
+      89.193
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.31",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      55.4839,
+      37.6363,
+      69.8839
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "circulo1.32",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      16.6909,
+      36.6658,
+      37.6363,
+      51.0657
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.0",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      651.12,
+      147.927,
+      665.52
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.1",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      632.356,
+      147.927,
+      646.756
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      612.938,
+      147.927,
+      627.338
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      593.738,
+      147.927,
+      608.138
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      574.756,
+      147.927,
+      589.156
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      555.338,
+      147.927,
+      569.738
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.6",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      536.357,
+      147.927,
+      550.756
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.7",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      517.156,
+      147.927,
+      531.556
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.8",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      498.175,
+      147.927,
+      512.575
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.9",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      478.538,
+      147.927,
+      492.938
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.10",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      459.993,
+      147.927,
+      474.393
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.11",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      440.138,
+      147.927,
+      454.538
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.12",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      421.375,
+      147.927,
+      435.775
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.13",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      401.956,
+      147.927,
+      416.356
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.14",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      382.756,
+      147.927,
+      397.156
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.15",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      363.556,
+      147.927,
+      377.956
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.16",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      344.575,
+      147.927,
+      358.975
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.17",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      325.156,
+      147.927,
+      339.556
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.18",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      306.175,
+      147.927,
+      320.575
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.19",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      286.975,
+      147.927,
+      301.375
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.20",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      267.556,
+      147.927,
+      281.956
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.21",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      247.702,
+      147.927,
+      262.102
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.22",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      229.156,
+      147.927,
+      243.556
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.23",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      210.393,
+      147.927,
+      224.793
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.24",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      190.756,
+      147.927,
+      205.156
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.25",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      171.775,
+      147.927,
+      186.175
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.26",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      153.011,
+      147.927,
+      167.411
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.27",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      133.375,
+      147.927,
+      147.775
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.28",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      114.393,
+      147.927,
+      128.793
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.29",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      93.6656,
+      147.927,
+      108.066
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.30",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      74.4656,
+      147.927,
+      88.8656
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.31",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      55.702,
+      147.927,
+      70.102
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.32",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      36.2838,
+      147.927,
+      50.6838
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "nome.magia.1.33",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      42.2182,
+      17.7384,
+      147.927,
+      32.1383
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "tempo.mag.0",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      651.229,
+      183.273,
+      665.847
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.1",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      632.465,
+      183.273,
+      647.083
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.2",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      612.829,
+      183.273,
+      627.447
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.3",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      593.847,
+      183.273,
+      608.465
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.4",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      574.865,
+      183.273,
+      589.483
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.5",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      555.229,
+      183.273,
+      569.847
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.6",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      536.465,
+      183.273,
+      551.083
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.7",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      517.483,
+      183.273,
+      532.102
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.8",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      498.065,
+      183.273,
+      512.683
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.9",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      478.647,
+      183.273,
+      493.265
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.10",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      459.665,
+      183.273,
+      474.283
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.11",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      440.465,
+      183.273,
+      455.083
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.12",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      421.483,
+      183.273,
+      436.101
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.13",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      401.847,
+      183.273,
+      416.465
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.14",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      382.647,
+      183.273,
+      397.265
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.15",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      363.447,
+      183.273,
+      378.065
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.16",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      344.465,
+      183.273,
+      359.083
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.17",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      325.047,
+      183.273,
+      339.665
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.18",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      306.065,
+      183.273,
+      320.683
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.19",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      287.083,
+      183.273,
+      301.701
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.20",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      267.447,
+      183.273,
+      282.065
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.21",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      247.81,
+      183.273,
+      262.428
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.22",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      229.265,
+      183.273,
+      243.883
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.23",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      210.501,
+      183.273,
+      225.119
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.24",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      190.647,
+      183.273,
+      205.265
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.25",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      171.447,
+      183.273,
+      186.065
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.26",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      152.901,
+      183.273,
+      167.519
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.27",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      133.701,
+      183.273,
+      148.319
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.28",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      114.501,
+      183.273,
+      129.119
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.29",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      93.7737,
+      183.273,
+      108.392
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.30",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      74.3555,
+      183.273,
+      88.9737
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.31",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      55.1555,
+      183.273,
+      69.7737
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.32",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      36.61,
+      183.273,
+      51.2282
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "tempo.mag.33",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "-",
+    "default": "-",
+    "options": [
+      "-",
+      "Ação",
+      "AB",
+      "Reação",
+      "1min",
+      "10min",
+      "1h",
+      "8h",
+      "12h",
+      "24h"
+    ],
+    "rect": [
+      150.546,
+      17.1918,
+      183.273,
+      31.81
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "alcance.magia.0",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      651.284,
+      227.291,
+      665.847
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.1",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      632.247,
+      227.291,
+      646.811
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.2",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      612.775,
+      227.291,
+      627.338
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.3",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      593.52,
+      227.291,
+      608.084
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.4",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      575.356,
+      227.291,
+      589.92
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.5",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      555.229,
+      227.291,
+      569.793
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.6",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      535.975,
+      227.291,
+      550.538
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.7",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      517.375,
+      227.291,
+      531.938
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.8",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      497.902,
+      227.291,
+      512.466
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.9",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      478.647,
+      227.291,
+      493.211
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.10",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      459.611,
+      227.291,
+      474.175
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.11",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      440.575,
+      227.291,
+      455.138
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.12",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      421.538,
+      227.291,
+      436.102
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.13",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      401.847,
+      227.291,
+      416.411
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.14",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      382.375,
+      227.291,
+      396.938
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.15",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      363.556,
+      227.291,
+      378.12
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.16",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      344.52,
+      227.291,
+      359.084
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.17",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      324.829,
+      227.291,
+      339.393
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.18",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      305.793,
+      227.291,
+      320.356
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.19",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      286.975,
+      227.291,
+      301.538
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.20",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      267.502,
+      227.291,
+      282.066
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.21",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      247.811,
+      227.291,
+      262.375
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.22",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      228.993,
+      227.291,
+      243.556
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.23",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      210.611,
+      227.291,
+      225.175
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.24",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      190.702,
+      227.291,
+      205.266
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.25",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      171.447,
+      227.291,
+      186.011
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.26",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      152.847,
+      227.291,
+      167.411
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.27",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      133.157,
+      227.291,
+      147.72
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.28",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      114.12,
+      227.291,
+      128.684
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.29",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      93.3383,
+      227.291,
+      107.902
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.30",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      74.302,
+      227.291,
+      88.8656
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.31",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      55.0474,
+      227.291,
+      69.611
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.32",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      186.054,
+      36.4474,
+      227.291,
+      51.011
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "alcance.magia.33",
+    "ft": "text",
+    "flags": 8388608,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      185.836,
+      17.1929,
+      227.073,
+      31.7565
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.0",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      651.453,
+      386.081,
+      665.609
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.1",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      632.083,
+      386.081,
+      646.239
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.2",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      612.712,
+      386.081,
+      626.869
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.3",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      594.323,
+      386.081,
+      608.48
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.4",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      574.953,
+      386.081,
+      589.109
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.5",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      555.582,
+      386.081,
+      569.739
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.6",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      536.212,
+      386.081,
+      550.368
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.7",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      517.169,
+      386.081,
+      531.325
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.8",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      497.798,
+      386.081,
+      511.954
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.9",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      478.755,
+      386.081,
+      492.911
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.10",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      459.712,
+      386.081,
+      473.868
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.11",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      440.014,
+      386.081,
+      454.17
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.12",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      420.971,
+      386.081,
+      435.127
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.13",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      401.927,
+      386.081,
+      416.084
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.14",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      382.884,
+      386.081,
+      397.04
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.15",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      363.514,
+      386.081,
+      377.67
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.16",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      344.143,
+      386.081,
+      358.299
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.17",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      324.773,
+      386.081,
+      338.929
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.18",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      305.729,
+      386.081,
+      319.886
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.19",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      286.686,
+      386.081,
+      300.842
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.20",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      267.316,
+      386.081,
+      281.472
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.21",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      248.163,
+      386.081,
+      262.32
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.22",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      228.793,
+      386.081,
+      242.949
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.23",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      209.422,
+      386.081,
+      223.579
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.24",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      190.052,
+      386.081,
+      204.208
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.25",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      171.118,
+      386.081,
+      185.274
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.26",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      152.183,
+      386.081,
+      166.34
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.27",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      132.813,
+      386.081,
+      146.969
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.28",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      113.442,
+      386.081,
+      127.599
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.29",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      93.1993,
+      386.081,
+      107.356
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.30",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      74.2651,
+      386.081,
+      88.4214
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.31",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      55.3309,
+      386.081,
+      69.4872
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.32",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      35.9604,
+      386.081,
+      50.1168
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "notas.magia.1.33",
+    "ft": "text",
+    "flags": 0,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      300.5,
+      17.4626,
+      386.081,
+      31.619
+    ],
+    "actions": {},
+    "multiline": false
+  },
+  {
+    "name": "ARMADURA.ATUAL",
+    "ft": "choice",
+    "flags": 4325376,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": true,
+    "is_listbox": false,
+    "value": "Sem Armadura",
+    "default": "Sem Armadura",
+    "options": [
+      [
+        "Sem Armadura",
+        "Sem Armadura = 10 + DEX"
+      ]
+    ],
+    "rect": [
+      405.817,
+      529.484,
+      580.362,
+      552.612
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Reset",
+    "ft": "button",
+    "flags": 65536,
+    "is_checkbox": true,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": null,
+    "default": null,
+    "options": null,
+    "rect": [
+      267.224,
+      797.521,
+      326.873,
+      832.268
+    ],
+    "actions": {},
+    "multiline": null
+  },
+  {
+    "name": "Assinatura",
+    "ft": "text",
+    "flags": 1,
+    "is_checkbox": false,
+    "is_radio": false,
+    "is_combo": false,
+    "is_listbox": false,
+    "value": "Ficha Interativa por Sr Stuart III",
+    "default": "Ficha Interativa por Sr Stuart III",
+    "options": null,
+    "rect": [
+      309.356,
+      516.121,
+      490.447,
+      528.689
+    ],
+    "actions": {},
+    "multiline": false
+  }
+]
