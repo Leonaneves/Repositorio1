@@ -79,3 +79,39 @@ describe("getClassSpeedBonus — Movimento sem Armadura do Monge", () => {
     expect(getSpeed(character)).toEqual({ auto: 19.5, manual: 1, total: 20.5 });
   });
 });
+
+describe("getClassSpeedBonus — Movimento Rápido do Bárbaro", () => {
+  function barbarianAt(level: number) {
+    const character = createBlankCharacter("barbarian-speed-test");
+    character.classId = "barbaro";
+    character.level = level;
+    return character;
+  }
+
+  it("nada antes do nível 5", () => {
+    expect(getClassSpeedBonus(barbarianAt(4))).toBe(0);
+  });
+
+  it("+3m a partir do nível 5, sem armadura", () => {
+    expect(getClassSpeedBonus(barbarianAt(5))).toBe(3);
+    expect(getClassSpeedBonus(barbarianAt(20))).toBe(3);
+  });
+
+  it("não se aplica usando armadura", () => {
+    const character = barbarianAt(10);
+    character.armor.equipped = "couro";
+    expect(getClassSpeedBonus(character)).toBe(0);
+  });
+
+  it("continua se aplicando com escudo (escudo não é armadura)", () => {
+    const character = barbarianAt(10);
+    character.armor.shield = true;
+    expect(getClassSpeedBonus(character)).toBe(3);
+  });
+
+  it("getSpeed soma espécie + bônus de Bárbaro", () => {
+    const character = barbarianAt(5);
+    character.speciesId = "humano"; // 9m
+    expect(getSpeed(character).auto).toBe(12);
+  });
+});

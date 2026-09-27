@@ -3,23 +3,36 @@ import type { Character } from "../domain/character.js";
 import { species } from "../data/species.js";
 
 /**
- * Bônus de deslocamento concedido pela classe. Hoje só o Monge altera o
- * deslocamento (traço "Movimento sem Armadura", PHB 2024), e apenas
- * enquanto ele não estiver usando armadura nem escudo:
+ * Bônus de deslocamento concedido pela classe.
  *
- * nível 1 → +0m · 2–5 → +3m · 6–9 → +4,5m · 10–13 → +6m · 14–17 → +7,5m · 18–20 → +9m
+ * - Monge ("Movimento sem Armadura", PHB 2024): só enquanto ele não
+ *   estiver usando armadura nem escudo.
+ *   nível 1 → +0m · 2–5 → +3m · 6–9 → +4,5m · 10–13 → +6m · 14–17 → +7,5m · 18–20 → +9m
+ * - Bárbaro ("Movimento Rápido"): +3m a partir do nível 5, enquanto
+ *   estiver sem armadura. Confirmado por você; a regra não menciona
+ *   restrição de escudo, então aqui o bônus vale com ou sem escudo —
+ *   sinalize se isso precisar mudar.
  */
 export function getClassSpeedBonus(character: Character): number {
-  if (character.classId !== "monge") return 0;
-  if (character.armor.equipped !== "unarmed") return 0;
-  if (character.armor.shield) return 0;
+  const usingArmor = character.armor.equipped !== "unarmed";
 
-  const level = character.level;
-  if (level >= 18) return 9;
-  if (level >= 14) return 7.5;
-  if (level >= 10) return 6;
-  if (level >= 6) return 4.5;
-  if (level >= 2) return 3;
+  if (character.classId === "monge") {
+    if (usingArmor || character.armor.shield) return 0;
+
+    const level = character.level;
+    if (level >= 18) return 9;
+    if (level >= 14) return 7.5;
+    if (level >= 10) return 6;
+    if (level >= 6) return 4.5;
+    if (level >= 2) return 3;
+    return 0;
+  }
+
+  if (character.classId === "barbaro") {
+    if (usingArmor) return 0;
+    return character.level >= 5 ? 3 : 0;
+  }
+
   return 0;
 }
 
