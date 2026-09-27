@@ -11,6 +11,7 @@ function toParams(filter: BuildFilter) {
     p_background_id: filter.backgroundId ?? null,
     p_min_level: filter.minLevel ?? null,
     p_max_level: filter.maxLevel ?? null,
+    p_highest_ability: filter.highestAbility ?? null,
   };
 }
 

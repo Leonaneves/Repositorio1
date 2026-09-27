@@ -3,6 +3,7 @@ import type { Character } from "../domain/character.js";
 import type { CharacterBuild } from "../domain/characterBuild.js";
 import { SKILL_KEYS } from "../domain/ids.js";
 import { getSpellcastingAbility } from "../rules/spellcasting.js";
+import { getSkillProficiency } from "../rules/skills.js";
 
 /**
  * Converte o personagem em edição (estado completo, incluindo tudo o
@@ -34,7 +35,7 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
     number
   >;
 
-  const skillProficiencies = SKILL_KEYS.filter((skill) => character.skills[skill].proficient);
+  const skillProficiencies = SKILL_KEYS.filter((skill) => getSkillProficiency(character, skill));
   const skillExpertise = SKILL_KEYS.filter((skill) => character.skills[skill].expertise);
   const savingThrowProficiencies = ABILITY_KEYS.filter((ability) => character.savingThrows[ability].proficient);
 

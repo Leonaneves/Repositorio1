@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { InMemoryBuildStore } from "../repositories/inMemory/InMemoryBuildStore.js";
 import type { CharacterBuild } from "../domain/characterBuild.js";
+import type { ArmorId } from "../domain/ids.js";
 import { computeInsight, insightMetricDefinitions } from "./insightRules.js";
 
 function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
@@ -153,5 +154,104 @@ describe("computeInsight — rótulos legíveis por métrica", () => {
 
     const ability = await computeInsight(definitionFor("abilityHighest"), store, { classId: "bardo" }, { minSampleSize: 20 });
     expect(ability?.items[0]?.label).toBe("Carisma");
+  });
+});
+
+describe("computeInsight — dimensão highestAbility em armorPopularity (§1.2)", () => {
+  function withHighestDex(buildId: string, armorId: ArmorId) {
+    return build({
+      buildId,
+      classId: "mago",
+      armorId,
+      abilityScores: { FOR: 8, DEX: 18, CON: 8, INT: 12, SAB: 8, CAR: 8 },
+    });
+  }
+
+  function withHighestInt(buildId: string, armorId: ArmorId) {
+    return build({
+      buildId,
+      classId: "mago",
+      armorId,
+      abilityScores: { FOR: 8, DEX: 8, CON: 8, INT: 18, SAB: 8, CAR: 8 },
+    });
+  }
+
+  it("usa o contexto classe+highestAbility quando a amostra é suficiente", async () => {
+    for (let i = 0; i < 25; i++) {
+      await store.upsert(withHighestDex(`dex-${i}`, "couroBatido"));
+    }
+    for (let i = 0; i < 25; i++) {
+      await store.upsert(withHighestInt(`int-${i}`, "placas"));
+    }
+
+    const insight = await computeInsight(
+      definitionFor("armorPopularity"),
+      store,
+      { classId: "mago", highestAbility: "DEX" },
+      { minSampleSize: 20 },
+    );
+
+    expect(insight?.sampleSize).toBe(25);
+    expect(insight?.items).toEqual([{ label: "Couro Batido", percentage: 100 }]);
+  });
+
+  it("calcula o percentual corretamente dentro do contexto highestAbility", async () => {
+    for (let i = 0; i < 15; i++) {
+      await store.upsert(withHighestDex(`a-${i}`, "couroBatido"));
+    }
+    for (let i = 0; i < 5; i++) {
+      await store.upsert(withHighestDex(`b-${i}`, "couro"));
+    }
+
+    const insight = await computeInsight(
+      definitionFor("armorPopularity"),
+      store,
+      { classId: "mago", highestAbility: "DEX" },
+      { minSampleSize: 20 },
+    );
+
+    expect(insight?.sampleSize).toBe(20);
+    expect(insight?.items).toEqual(
+      expect.arrayContaining([
+        { label: "Couro Batido", percentage: 75 },
+        { label: "Couro", percentage: 25 },
+      ]),
+    );
+  });
+
+  it("cai para um contexto mais amplo quando highestAbility não tem amostra suficiente", async () => {
+    // Só 3 Magos com DEX como maior atributo — insuficiente sozinho.
+    for (let i = 0; i < 3; i++) {
+      await store.upsert(withHighestDex(`dex-${i}`, "couroBatido"));
+    }
+    // Mas 25 Magos no total (incluindo os 3 acima) — suficiente sem o filtro de atributo.
+    for (let i = 0; i < 22; i++) {
+      await store.upsert(withHighestInt(`int-${i}`, "placas"));
+    }
+
+    const insight = await computeInsight(
+      definitionFor("armorPopularity"),
+      store,
+      { classId: "mago", highestAbility: "DEX" },
+      { minSampleSize: 20 },
+    );
+
+    expect(insight).not.toBeNull();
+    expect(insight?.sampleSize).toBe(25); // caiu para "todos os Magos"
+  });
+
+  it("não inventa resultado quando nem o contexto amplo tem amostra suficiente", async () => {
+    for (let i = 0; i < 3; i++) {
+      await store.upsert(withHighestDex(`dex-${i}`, "couroBatido"));
+    }
+
+    const insight = await computeInsight(
+      definitionFor("armorPopularity"),
+      store,
+      { classId: "mago", highestAbility: "DEX" },
+      { minSampleSize: 20 },
+    );
+
+    expect(insight).toBeNull();
   });
 });

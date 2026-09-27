@@ -16,6 +16,9 @@ function matchesFilter(build: CharacterBuild, filter: BuildFilter): boolean {
   if (filter.backgroundId && build.backgroundId !== filter.backgroundId) return false;
   if (filter.minLevel !== undefined && build.level < filter.minLevel) return false;
   if (filter.maxLevel !== undefined && build.level > filter.maxLevel) return false;
+  if (filter.highestAbility && highestAbility(build.abilityScores as Record<AbilityKey, number>) !== filter.highestAbility) {
+    return false;
+  }
   return true;
 }
 

@@ -1,3 +1,4 @@
+import type { AbilityKey } from "../domain/common.js";
 import type { BackgroundId, ClassId, SpeciesId } from "../domain/ids.js";
 
 /** O que o usuário já escolheu até agora — quanto mais preenchido, mais específica a análise pode tentar ser (ver §10). */
@@ -7,6 +8,8 @@ export interface InsightContext {
   speciesId?: SpeciesId;
   backgroundId?: BackgroundId;
   level?: number;
+  /** Qual atributo é o maior do PRÓPRIO personagem em edição (derivado, nunca escolhido diretamente pelo jogador) — ver §1.2. */
+  highestAbility?: AbilityKey;
 }
 
 export type InsightMetric =

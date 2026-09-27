@@ -23,7 +23,7 @@ describe("getPassivePerception", () => {
     const character = createBlankCharacter("perc-test");
     character.level = 5; // proficiência +3
     character.abilities.SAB.score = 14; // +2
-    character.skills.percepcao.proficient = true;
+    character.skills.percepcao.manualOverride = true;
     const result = getPassivePerception(character);
     expect(result.auto).toBe(15); // 10 + (2 + 3)
   });

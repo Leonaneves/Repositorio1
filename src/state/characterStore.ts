@@ -7,7 +7,6 @@ import {
 } from "../domain/character.js";
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
-import { backgrounds } from "../data/backgrounds.js";
 import { getAvailableArmor } from "../rules/armor.js";
 import { getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
@@ -59,11 +58,13 @@ function clampSpellSlotsExpended(character: Character): Character {
 /**
  * Efeitos colaterais da troca de classe, extraídos do comportamento do
  * PDF original: zera TODAS as salvaguardas e proficiências de armadura
- * e marca só as da nova classe (única fonte possível dessas duas
- * proficiências neste sistema sem multiclasse — por isso a
- * substituição completa é segura, ao contrário de perícias, ver
- * `setBackground`). A subclasse é limpa se não pertencer à nova
- * classe; a armadura equipada é limpa se deixar de ser permitida.
+ * e marca só as da nova classe. Isso permanece seguro porque, neste
+ * sistema sem multiclasse, a classe é a ÚNICA fonte dessas duas
+ * proficiências (ao contrário das perícias, cuja proficiência final
+ * agora é sempre derivada via `getSkillProficiency` — ver
+ * `setBackground` abaixo, que não precisa mais tocar em `skills`). A
+ * subclasse é limpa se não pertencer à nova classe; a armadura
+ * equipada é limpa se deixar de ser permitida.
  */
 function applyClassChange(character: Character, classId: ClassId | null): Character {
   const savingThrows = { ...character.savingThrows };
@@ -96,28 +97,6 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
   return next;
 }
 
-/**
- * Efeitos colaterais da troca de antecedente: soma (nunca subtrai) a
- * proficiência das 2 perícias concedidas pelo novo antecedente. Ao
- * contrário da classe, isto é ADITIVO — nunca desmarca uma perícia que
- * o jogador já tinha marcado (mesmo que tenha vindo de um antecedente
- * anterior), para não apagar silenciosamente uma escolha manual do
- * jogador. Trocar de antecedente e voltar pode deixar uma perícia
- * "sobrando" marcada — decisão consciente, o jogador sempre pode
- * desmarcar manualmente.
- */
-function applyBackgroundChange(character: Character, backgroundId: BackgroundId | null): Character {
-  if (!backgroundId) return { ...character, backgroundId };
-
-  const grantedSkills = backgrounds[backgroundId].grantedSkills;
-  const skills = { ...character.skills };
-  for (const skill of grantedSkills) {
-    skills[skill] = { ...skills[skill], proficient: true };
-  }
-
-  return { ...character, backgroundId, skills };
-}
-
 interface CharacterStore {
   character: Character;
 
@@ -130,7 +109,7 @@ interface CharacterStore {
 
   setAbilityScore: (ability: AbilityKey, score: number) => void;
 
-  setSkillProficient: (skill: SkillKey, proficient: boolean) => void;
+  setSkillManualOverride: (skill: SkillKey, value: boolean | null) => void;
   setSkillExpertise: (skill: SkillKey, expertise: boolean) => void;
   setSkillManualAdjustment: (skill: SkillKey, value: number) => void;
 
@@ -176,18 +155,27 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
 
   setSpecies: (speciesId) => set((state) => ({ character: { ...state.character, speciesId } })),
 
-  setBackground: (backgroundId) => set((state) => ({ character: applyBackgroundChange(state.character, backgroundId) })),
+  /**
+   * Trocar de antecedente é agora uma escrita trivial: nenhuma perícia
+   * precisa ser marcada/desmarcada aqui. `getSkillProficiency` (em
+   * `rules/skills.ts`) já recalcula sozinha quais perícias o
+   * antecedente ATUAL concede; qualquer `manualOverride` que o
+   * jogador tenha definido continua intocado, seja qual for o
+   * antecedente (ver §1.1 do pedido: Nobre → Soldado troca as
+   * proficiências automáticas sem apagar escolhas manuais).
+   */
+  setBackground: (backgroundId) => set((state) => ({ character: { ...state.character, backgroundId } })),
 
   setAbilityScore: (ability, score) =>
     set((state) => ({
       character: { ...state.character, abilities: { ...state.character.abilities, [ability]: { score } } },
     })),
 
-  setSkillProficient: (skill, proficient) =>
+  setSkillManualOverride: (skill, value) =>
     set((state) => ({
       character: {
         ...state.character,
-        skills: { ...state.character.skills, [skill]: { ...state.character.skills[skill], proficient } },
+        skills: { ...state.character.skills, [skill]: { ...state.character.skills[skill], manualOverride: value } },
       },
     })),
 

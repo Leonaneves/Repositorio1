@@ -9,6 +9,13 @@ export interface BuildFilter {
   backgroundId?: BackgroundId;
   minLevel?: number;
   maxLevel?: number;
+  /**
+   * Qual atributo é o maior no build (FOR/DEX/CON/INT/SAB/CAR) — ver
+   * §1.2: permite insights como "entre personagens cujo maior atributo
+   * é DEX, Couro Batido foi o mais usado", sem definir um limiar
+   * arbitrário de "DEX alta".
+   */
+  highestAbility?: AbilityKey;
 }
 
 /** Uma linha de distribuição: um valor observado e quantos builds o têm. */

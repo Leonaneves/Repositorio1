@@ -11,7 +11,7 @@ describe("createBlankCharacter", () => {
       expect(ability.score).toBe(10);
     }
     for (const skill of Object.values(character.skills)) {
-      expect(skill.proficient).toBe(false);
+      expect(skill.manualOverride).toBeNull();
       expect(skill.expertise).toBe(false);
       expect(skill.manualAdjustment).toBe(0);
     }

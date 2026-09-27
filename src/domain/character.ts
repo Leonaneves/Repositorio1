@@ -7,9 +7,16 @@ export interface AbilityScoreState {
 }
 
 export interface SkillState {
-  /** Proficiência marcada (herdada do antecedente, mas sempre editável). */
-  proficient: boolean;
-  /** Perícia com especialização (dobra o bônus de proficiência). Só é válida se `proficient` for `true`. */
+  /**
+   * Override explícito do jogador sobre a proficiência: `null` =
+   * segue o antecedente atual (`rules/skills.ts#isSkillGrantedByBackground`);
+   * `true`/`false` = decisão manual, que sobrevive a trocas de
+   * antecedente (ver `rules/skills.ts#getSkillProficiency` — a
+   * proficiência final é sempre derivada, nunca lida diretamente
+   * daqui).
+   */
+  manualOverride: boolean | null;
+  /** Perícia com especialização (dobra o bônus de proficiência). Só é válida se a proficiência final for `true`. */
   expertise: boolean;
   /** Ajuste manual somado ao bônus automático. */
   manualAdjustment: number;
@@ -140,7 +147,7 @@ export function createBlankCharacter(id: string): Character {
   ) as Record<AbilityKey, AbilityScoreState>;
 
   const skills = Object.fromEntries(
-    SKILL_KEYS.map((key) => [key, { proficient: false, expertise: false, manualAdjustment: 0 }]),
+    SKILL_KEYS.map((key) => [key, { manualOverride: null, expertise: false, manualAdjustment: 0 }]),
   ) as Record<SkillKey, SkillState>;
 
   const savingThrows = Object.fromEntries(

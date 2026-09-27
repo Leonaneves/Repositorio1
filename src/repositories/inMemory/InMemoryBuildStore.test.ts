@@ -104,3 +104,40 @@ describe("InMemoryBuildStore — distribuições diversas", () => {
     );
   });
 });
+
+describe("InMemoryBuildStore — filtro por highestAbility (§1.2)", () => {
+  it("countBuilds/getArmorDistribution só consideram builds cujo maior atributo bate com o filtro", async () => {
+    // Dois Magos com DEX como maior atributo, usando Couro Batido.
+    await store.upsert(
+      build({
+        buildId: "dex1",
+        classId: "mago",
+        armorId: "couroBatido",
+        abilityScores: { FOR: 8, DEX: 18, CON: 8, INT: 12, SAB: 8, CAR: 8 },
+      }),
+    );
+    await store.upsert(
+      build({
+        buildId: "dex2",
+        classId: "mago",
+        armorId: "couroBatido",
+        abilityScores: { FOR: 8, DEX: 17, CON: 8, INT: 12, SAB: 8, CAR: 8 },
+      }),
+    );
+    // Um Mago com INT como maior atributo, sem armadura.
+    await store.upsert(
+      build({
+        buildId: "int1",
+        classId: "mago",
+        armorId: null,
+        abilityScores: { FOR: 8, DEX: 8, CON: 8, INT: 18, SAB: 8, CAR: 8 },
+      }),
+    );
+
+    expect(await store.countBuilds({ classId: "mago", highestAbility: "DEX" })).toBe(2);
+    expect(await store.countBuilds({ classId: "mago", highestAbility: "INT" })).toBe(1);
+
+    const armorForDex = await store.getArmorDistribution({ classId: "mago", highestAbility: "DEX" });
+    expect(armorForDex).toEqual([{ value: "couroBatido", count: 2 }]);
+  });
+});

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useCharacterStore } from "./characterStore.js";
+import { getSkillProficiency } from "../rules/skills.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -92,26 +93,46 @@ describe("useCharacterStore — limpeza de escolhas inválidas (§4)", () => {
   });
 });
 
-describe("useCharacterStore — antecedente é aditivo, não subtrativo (decisão explícita)", () => {
+describe("useCharacterStore — antecedente (fontes de proficiência, §1.1)", () => {
   it("marca as 2 perícias do antecedente escolhido", () => {
     const store = useCharacterStore.getState();
     store.setBackground("sabio"); // Arcanismo, História
     const { character } = useCharacterStore.getState();
-    expect(character.skills.arcanismo.proficient).toBe(true);
-    expect(character.skills.historia.proficient).toBe(true);
+    expect(getSkillProficiency(character, "arcanismo")).toBe(true);
+    expect(getSkillProficiency(character, "historia")).toBe(true);
   });
 
-  it("trocar de antecedente NÃO desmarca as perícias do antecedente anterior", () => {
+  it("trocar de antecedente REMOVE apenas as proficiências da fonte antiga", () => {
     const store = useCharacterStore.getState();
-    store.setBackground("sabio"); // Arcanismo, História
+    store.setBackground("nobre"); // História, Persuasão
     store.setBackground("soldado"); // Atletismo, Intimidação
     const { character } = useCharacterStore.getState();
-    // Continuam marcadas, mesmo vindas do antecedente anterior.
-    expect(character.skills.arcanismo.proficient).toBe(true);
-    expect(character.skills.historia.proficient).toBe(true);
-    // E as novas também.
-    expect(character.skills.atletismo.proficient).toBe(true);
-    expect(character.skills.intimidacao.proficient).toBe(true);
+
+    expect(getSkillProficiency(character, "historia")).toBe(false);
+    expect(getSkillProficiency(character, "persuasao")).toBe(false);
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+    expect(getSkillProficiency(character, "intimidacao")).toBe(true);
+  });
+
+  it("uma proficiência marcada manualmente permanece após trocar de antecedente", () => {
+    const store = useCharacterStore.getState();
+    store.setBackground("nobre");
+    store.setSkillManualOverride("furtividade", true); // nada a ver com o antecedente
+
+    store.setBackground("soldado");
+    store.setBackground("sabio");
+
+    expect(getSkillProficiency(useCharacterStore.getState().character, "furtividade")).toBe(true);
+  });
+
+  it("perícia concedida por antecedente E marcada manualmente continua enquanto ao menos uma fonte existir", () => {
+    const store = useCharacterStore.getState();
+    store.setBackground("guarda"); // Atletismo, Percepção
+    store.setSkillManualOverride("percepcao", true); // jogador também confirma manualmente
+
+    store.setBackground("sabio"); // não concede mais Percepção — só a fonte "manual" resta
+
+    expect(getSkillProficiency(useCharacterStore.getState().character, "percepcao")).toBe(true);
   });
 });
 

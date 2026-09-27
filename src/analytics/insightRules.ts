@@ -141,6 +141,13 @@ const METRICS: MetricDefinition[] = [
     candidates: (context) => {
       const base: BuildFilter = context.classId ? { classId: context.classId } : {};
       const candidates: BuildFilter[] = [];
+      // Mais específico primeiro: classe + maior atributo do próprio
+      // personagem (§1.2 — ex.: "entre Magos cujo maior atributo é
+      // INT"), depois classe + faixa de nível, depois só a classe.
+      // Nunca combina os dois com a classe ao mesmo tempo — evitaria
+      // amostras pequenas demais, e o pedido só especifica a
+      // combinação classe+highestAbility como um passo próprio.
+      if (context.highestAbility) candidates.push({ ...base, highestAbility: context.highestAbility });
       if (context.level !== undefined) candidates.push({ ...base, ...levelBracket(context.level) });
       candidates.push(base);
       return dedupeFilters(candidates);

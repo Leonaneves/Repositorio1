@@ -35,12 +35,41 @@ beforeEach(() => {
 describe("useInsightContext — muda quando a classe (ou outro campo relevante) muda", () => {
   it("reflete classId/subclassId/speciesId/backgroundId/level do personagem", () => {
     const { result } = renderHook(() => useInsightContext());
-    expect(result.current).toEqual({ classId: undefined, subclassId: undefined, speciesId: undefined, backgroundId: undefined, level: 1 });
+    // Todos os atributos começam em 10 (empate) — o desempate FOR > DEX > ... escolhe FOR.
+    expect(result.current).toEqual({
+      classId: undefined,
+      subclassId: undefined,
+      speciesId: undefined,
+      backgroundId: undefined,
+      level: 1,
+      highestAbility: "FOR",
+    });
 
     act(() => {
       useCharacterStore.getState().setClass("mago");
     });
     expect(result.current.classId).toBe("mago");
+  });
+
+  it("highestAbility é debounced: não muda imediatamente a cada tecla, mas reflete o valor final", async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useInsightContext());
+      expect(result.current.highestAbility).toBe("FOR");
+
+      act(() => {
+        useCharacterStore.getState().setAbilityScore("DEX", 18);
+      });
+      // Ainda não passou o tempo de debounce.
+      expect(result.current.highestAbility).toBe("FOR");
+
+      act(() => {
+        vi.advanceTimersByTime(400);
+      });
+      expect(result.current.highestAbility).toBe("DEX");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
