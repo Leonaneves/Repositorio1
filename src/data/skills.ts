@@ -34,3 +34,13 @@ export const skills: Record<SkillKey, SkillDefinition> = {
 };
 
 export const skillList: SkillDefinition[] = SKILL_KEYS.map((key) => skills[key]);
+
+/** As perícias de cada atributo, na ordem em que aparecem na ficha original (usado para agrupar perícias dentro do card de cada atributo). */
+export const skillsByAbility: Record<AbilityKey, SkillDefinition[]> = {
+  FOR: skillList.filter((s) => s.ability === "FOR"),
+  DEX: skillList.filter((s) => s.ability === "DEX"),
+  CON: skillList.filter((s) => s.ability === "CON"),
+  INT: skillList.filter((s) => s.ability === "INT"),
+  SAB: skillList.filter((s) => s.ability === "SAB"),
+  CAR: skillList.filter((s) => s.ability === "CAR"),
+};

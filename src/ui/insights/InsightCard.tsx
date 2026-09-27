@@ -14,23 +14,26 @@ export interface InsightCardProps {
  * volta um card equivalente, de propósito: é referência contínua, não
  * um aviso único).
  *
- * Nunca apresenta um percentual sem o tamanho da amostra por perto
- * (§16), e o texto é sempre descritivo — nunca uma recomendação
- * (§5/§17): "escolha frequente", nunca "a melhor escolha".
+ * Selo "ESCOLHAS DA COMUNIDADE" sempre visível — nunca confundível com
+ * uma dica de regra (`.insight--rule-tip`, reservado para quando esse
+ * sistema separado existir; ver §1.3/§12). Texto sempre descritivo,
+ * nunca prescritivo (§5/§17): "escolheram", nunca "a melhor escolha".
  */
 export function InsightCard({ insight }: InsightCardProps) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed) return null;
 
   return (
-    <aside className="insight insight-card" role="note" aria-label="Escolhas da comunidade">
+    <aside className="insight insight--community insight-card" role="note">
       <header className="insight__header">
-        <span className="insight__badge">💡 Escolhas da comunidade</span>
+        <span className="insight__badge">Escolhas da comunidade</span>
         <button type="button" className="insight__close" aria-label="Dispensar" onClick={() => setDismissed(true)}>
           ×
         </button>
       </header>
-      <p className="insight__scope">Entre {insight.sampleSize} {insight.scopeLabel.toLowerCase()}:</p>
+      <p className="insight__lede">
+        Entre {insight.sampleSize} {insight.scopeLabel.toLowerCase()}:
+      </p>
       <ul className="insight__items">
         {insight.items.map((item) => (
           <li key={item.label}>
@@ -38,9 +41,7 @@ export function InsightCard({ insight }: InsightCardProps) {
           </li>
         ))}
       </ul>
-      <p className="insight__footnote">
-        Baseado em {insight.sampleSize} personagens registrados — informação descritiva, não uma recomendação.
-      </p>
+      <p className="insight__footnote">{insight.sampleSize} builds analisados</p>
     </aside>
   );
 }

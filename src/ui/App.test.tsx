@@ -13,14 +13,32 @@ describe("App — fumaça (critério de conclusão §23: abrir o site e criar um
   it("monta sem erros e mostra todos os blocos pedidos", () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /Ficha de Personagem/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Identificação" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Atributos" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Perícias" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Salvaguardas" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Iniciativa/ })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Armadura / CA" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome do personagem")).toBeInTheDocument();
+    expect(screen.getByLabelText("Classe")).toBeInTheDocument();
+    expect(screen.getByLabelText("Subclasse")).toBeInTheDocument();
+    expect(screen.getByLabelText("Espécie")).toBeInTheDocument();
+    expect(screen.getByLabelText("Antecedente")).toBeInTheDocument();
+    expect(screen.getByText("Iniciativa")).toBeInTheDocument();
+    expect(screen.getByText("Percepção Passiva")).toBeInTheDocument();
+    expect(screen.getAllByText("Salvaguarda")).toHaveLength(6); // uma por atributo
+    expect(screen.getByText("Atletismo")).toBeInTheDocument(); // perícia de FOR, dentro do mesmo card
     expect(screen.getByRole("heading", { name: "Conjuração" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Armadura equipada")).toBeInTheDocument();
+  });
+
+  it("nunca mostra undefined/null/NaN em nenhum campo (empty states corretos)", () => {
+    const { container } = render(<App />);
+    expect(container.textContent).not.toMatch(/undefined|NaN/);
+    // "null" pode aparecer legitimamente dentro de atributos HTML (ex.: value={null} vira ausência),
+    // então checamos apenas o texto visível, não o HTML bruto.
+    expect(container.textContent?.includes("null")).toBe(false);
+  });
+
+  it("Bárbaro (sem conjuração) mostra a seção de Conjuração compacta, não uma área grande vazia", () => {
+    useCharacterStore.getState().setClass("barbaro");
+    render(<App />);
+    expect(screen.getByText("Este personagem não tem uma fonte de conjuração.")).toBeInTheDocument();
   });
 
   it("escolher uma classe atualiza a lista de subclasses disponíveis, sem recarregar a página", async () => {

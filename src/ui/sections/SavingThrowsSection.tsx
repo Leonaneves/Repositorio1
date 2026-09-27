@@ -1,38 +1,31 @@
 import { useCharacterStore } from "../../state/characterStore.js";
-import { ABILITY_KEYS } from "../../domain/common.js";
+import type { AbilityKey } from "../../domain/common.js";
 import { getSavingThrow } from "../../rules/savingThrows.js";
 import { ComputedField } from "../components/ComputedField.js";
 
-export function SavingThrowsSection() {
+export interface SavingThrowRowProps {
+  ability: AbilityKey;
+}
+
+/**
+ * Uma linha de salvaguarda — usada dentro do card de cada atributo
+ * (ver AbilitiesSection), como na ficha original, onde "Salvaguarda"
+ * é sempre a primeira caixa de perícia de cada atributo, não uma
+ * seção separada.
+ */
+export function SavingThrowRow({ ability }: SavingThrowRowProps) {
   const character = useCharacterStore((s) => s.character);
   const setSavingThrowProficient = useCharacterStore((s) => s.setSavingThrowProficient);
   const setSavingThrowManualAdjustment = useCharacterStore((s) => s.setSavingThrowManualAdjustment);
+  const state = character.savingThrows[ability];
 
   return (
-    <section className="sheet-section" aria-label="Salvaguardas">
-      <h2>Salvaguardas</h2>
-      <ul className="skill-list">
-        {ABILITY_KEYS.map((ability) => {
-          const state = character.savingThrows[ability];
-          return (
-            <li key={ability} className="skill-row">
-              <label className="skill-row__proficient">
-                <input
-                  type="checkbox"
-                  checked={state.proficient}
-                  onChange={(e) => setSavingThrowProficient(ability, e.target.checked)}
-                />
-                <span>{ability}</span>
-              </label>
-              <ComputedField
-                label=""
-                computed={getSavingThrow(character, ability)}
-                onManualChange={(value) => setSavingThrowManualAdjustment(ability, value)}
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <li className="trait-row trait-row--save">
+      <label className="trait-row__check">
+        <input type="checkbox" checked={state.proficient} onChange={(e) => setSavingThrowProficient(ability, e.target.checked)} />
+        <span>Salvaguarda</span>
+      </label>
+      <ComputedField label={`salvaguarda de ${ability}`} computed={getSavingThrow(character, ability)} onManualChange={(v) => setSavingThrowManualAdjustment(ability, v)} />
+    </li>
   );
 }

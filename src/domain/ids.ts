@@ -101,7 +101,8 @@ export type SkillKey = (typeof SKILL_KEYS)[number];
  * tamanhos do 5e (Miúdo/Grande/Enorme/Imenso) para não travar extensões
  * futuras, mas os dados estáticos atuais só usam estes dois.
  */
-export type SizeId = "Miúdo" | "Pequeno" | "Médio" | "Grande" | "Enorme" | "Imenso";
+export const SIZE_OPTIONS = ["Miúdo", "Pequeno", "Médio", "Grande", "Enorme", "Imenso"] as const;
+export type SizeId = (typeof SIZE_OPTIONS)[number];
 
 export const SPELL_CIRCLES = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export type SpellCircle = (typeof SPELL_CIRCLES)[number];

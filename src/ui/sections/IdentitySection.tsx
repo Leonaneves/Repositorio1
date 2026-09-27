@@ -16,6 +16,12 @@ export interface IdentitySectionProps {
   backgroundPopularity?: ChoiceInsight;
 }
 
+/**
+ * Cabeçalho da ficha: nome, antecedente, classe, subclasse e nível —
+ * o bloco superior-esquerdo da referência. O selo de CA e o "dado de
+ * vida"/PV/salvaguarda contra morte da referência ficam fora desta
+ * etapa (PV ainda não tem input funcional no domínio — ver relatório).
+ */
 export function IdentitySection({ subclassPopularity, speciesPopularity, backgroundPopularity }: IdentitySectionProps) {
   const character = useCharacterStore((s) => s.character);
   const setName = useCharacterStore((s) => s.setName);
@@ -26,21 +32,88 @@ export function IdentitySection({ subclassPopularity, speciesPopularity, backgro
   const setBackground = useCharacterStore((s) => s.setBackground);
 
   const availableSubclasses = character.classId ? getAvailableSubclasses(character.classId) : [];
-
   const speciesName = character.speciesId ? species[character.speciesId].name : undefined;
   const backgroundName = character.backgroundId ? backgrounds[character.backgroundId].name : undefined;
 
   return (
-    <section className="sheet-section" aria-label="Identificação">
-      <h2>Identificação</h2>
+    <header className="sheet-header" aria-label="Identificação">
+      <div className="sheet-header__identity">
+        <label className="field field--name">
+          <span>Nome do personagem</span>
+          <input type="text" value={character.name} placeholder="—" onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} />
+        </label>
 
-      <label className="field">
-        <span>Nome do personagem</span>
-        <input type="text" value={character.name} onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} />
-      </label>
+        <div className="sheet-header__row">
+          <label className="field">
+            <span>Antecedente</span>
+            <select value={character.backgroundId ?? ""} onChange={(e) => setBackground(e.target.value ? (e.target.value as (typeof BACKGROUND_IDS)[number]) : null)}>
+              <option value="">- Selecione -</option>
+              {BACKGROUND_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {backgrounds[id].name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-      <label className="field">
-        <span>Nível</span>
+          <label className="field">
+            <span>Classe</span>
+            <select value={character.classId ?? ""} onChange={(e) => setClass(e.target.value ? (e.target.value as (typeof CLASS_IDS)[number]) : null)}>
+              <option value="">- Selecione -</option>
+              {CLASS_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {classes[id].name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {subclassPopularity && <InsightPopover insight={subclassPopularity} />}
+
+        <div className="sheet-header__row">
+          <label className="field">
+            <span>Espécie</span>
+            <select value={character.speciesId ?? ""} onChange={(e) => setSpecies(e.target.value ? (e.target.value as (typeof SPECIES_IDS)[number]) : null)}>
+              <option value="">- Selecione -</option>
+              {SPECIES_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {species[id].name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Subclasse</span>
+            <select
+              value={character.subclassId ?? ""}
+              disabled={!character.classId}
+              onChange={(e) => setSubclass(e.target.value ? e.target.value : null)}
+            >
+              <option value="">{character.classId ? "Selecione..." : "—"}</option>
+              {availableSubclasses.map((s) => (
+                <option key={s.fullName} value={s.fullName}>
+                  {s.shortName}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {character.subclassId && <InsightTooltip insight={subclassPopularity} chosenLabel={character.subclassId} />}
+        {speciesName && findInsightItem(speciesPopularity, speciesName) && <InsightTooltip insight={speciesPopularity} chosenLabel={speciesName} />}
+        {backgroundName && findInsightItem(backgroundPopularity, backgroundName) && (
+          <InsightTooltip
+            insight={backgroundPopularity}
+            chosenLabel={backgroundName}
+            scopePhrase={character.classId ? `dos ${classes[character.classId].name}s registrados` : undefined}
+          />
+        )}
+      </div>
+
+      <div className="sheet-header__level">
+        <span className="sheet-header__level-label">Nível</span>
         <input
           type="number"
           min={1}
@@ -51,80 +124,7 @@ export function IdentitySection({ subclassPopularity, speciesPopularity, backgro
             if (value >= 1 && value <= 20) setLevel(value);
           }}
         />
-      </label>
-
-      <label className="field">
-        <span>Classe</span>
-        <select value={character.classId ?? ""} onChange={(e) => setClass(e.target.value ? (e.target.value as typeof CLASS_IDS[number]) : null)}>
-          <option value="">- Selecione -</option>
-          {CLASS_IDS.map((id) => (
-            <option key={id} value={id}>
-              {classes[id].name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {subclassPopularity && <InsightPopover insight={subclassPopularity} />}
-
-      <label className="field">
-        <span>Subclasse</span>
-        <select
-          value={character.subclassId ?? ""}
-          disabled={!character.classId}
-          onChange={(e) => setSubclass(e.target.value ? e.target.value : null)}
-        >
-          <option value="">{character.classId ? "Selecione..." : "Escolha uma classe primeiro"}</option>
-          {availableSubclasses.map((s) => (
-            <option key={s.fullName} value={s.fullName}>
-              {s.shortName}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {character.subclassId && (
-        <InsightTooltip insight={subclassPopularity} chosenLabel={character.subclassId} phrase="escolhido por" />
-      )}
-
-      <label className="field">
-        <span>Espécie</span>
-        <select value={character.speciesId ?? ""} onChange={(e) => setSpecies(e.target.value ? (e.target.value as typeof SPECIES_IDS[number]) : null)}>
-          <option value="">- Selecione -</option>
-          {SPECIES_IDS.map((id) => (
-            <option key={id} value={id}>
-              {species[id].name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {speciesName && findInsightItem(speciesPopularity, speciesName) && (
-        <InsightTooltip insight={speciesPopularity} chosenLabel={speciesName} phrase="escolhida por" />
-      )}
-
-      <label className="field">
-        <span>Antecedente</span>
-        <select
-          value={character.backgroundId ?? ""}
-          onChange={(e) => setBackground(e.target.value ? (e.target.value as typeof BACKGROUND_IDS[number]) : null)}
-        >
-          <option value="">- Selecione -</option>
-          {BACKGROUND_IDS.map((id) => (
-            <option key={id} value={id}>
-              {backgrounds[id].name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {backgroundName && findInsightItem(backgroundPopularity, backgroundName) && (
-        <InsightTooltip
-          insight={backgroundPopularity}
-          chosenLabel={backgroundName}
-          phrase={character.classId ? `combinado com ${classes[character.classId].name} em` : "combinado em"}
-        />
-      )}
-    </section>
+      </div>
+    </header>
   );
 }

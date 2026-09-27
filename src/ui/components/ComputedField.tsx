@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { ComputedValue } from "../../domain/common.js";
 
 function formatSigned(n: number): string {
@@ -8,34 +9,61 @@ export interface ComputedFieldProps {
   label: string;
   computed: ComputedValue;
   onManualChange: (value: number) => void;
+  /** "value" (padrão): mostra só o número, sem sinal (ex.: CD, CA). "modifier": mostra com sinal (+/-, ex.: perícias, iniciativa). */
+  variant?: "value" | "modifier";
 }
 
 /**
- * Visualização única para qualquer valor "auto + manual = total" do
- * motor de regras — usada por perícias, salvaguardas, iniciativa,
- * percepção passiva, CA, CD de magia, ataque mágico e deslocamento.
- * Mostra as três partes lado a lado de propósito: o valor automático
- * NUNCA é substituído pelo ajuste manual, os dois convivem e o total
- * é sempre derivado (nunca digitado diretamente).
+ * Continua guardando internamente `auto`/`manual`/`total` — nada disso
+ * muda — mas a apresentação é compacta (§6): o total é o que domina
+ * visualmente; o ajuste manual só aparece como um selo pequeno quando
+ * existe, e fica editável por trás de uma ação contextual pequena
+ * (ícone de lápis), não por três caixas grandes lado a lado.
  */
-export function ComputedField({ label, computed, onManualChange }: ComputedFieldProps) {
+export function ComputedField({ label, computed, onManualChange, variant = "modifier" }: ComputedFieldProps) {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
+  const display = variant === "modifier" ? formatSigned(computed.total) : String(computed.total);
+  const title = `Automático: ${formatSigned(computed.auto)}${computed.manual !== 0 ? ` · Ajuste manual: ${formatSigned(computed.manual)}` : ""}`;
+
   return (
-    <div className="computed-field">
-      <span className="computed-field__label">{label}</span>
-      <span className="computed-field__auto" title="Valor automático (calculado pelo motor de regras)">
-        auto {formatSigned(computed.auto)}
+    <span className="cv" title={title}>
+      <span className="cv__total" aria-live="polite">
+        {display}
       </span>
-      <span className="computed-field__sign">+</span>
-      <input
-        type="number"
-        className="computed-field__manual"
-        value={computed.manual}
-        onChange={(event) => onManualChange(Number(event.target.value) || 0)}
-        title="Ajuste manual"
-        aria-label={`Ajuste manual de ${label}`}
-      />
-      <span className="computed-field__sign">=</span>
-      <span className="computed-field__total">{formatSigned(computed.total)}</span>
-    </div>
+      {computed.manual !== 0 && !editing && (
+        <span className="cv__manual-badge" aria-hidden="true">
+          {formatSigned(computed.manual)}
+        </span>
+      )}
+      {editing ? (
+        <input
+          ref={inputRef}
+          type="number"
+          className="cv__input"
+          value={computed.manual}
+          aria-label={label ? `Ajuste manual de ${label}` : "Ajuste manual"}
+          onChange={(e) => onManualChange(Number(e.target.value) || 0)}
+          onBlur={() => setEditing(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === "Escape") setEditing(false);
+          }}
+        />
+      ) : (
+        <button
+          type="button"
+          className="cv__adjust"
+          aria-label={label ? `Ajustar ${label} manualmente` : "Ajustar manualmente"}
+          onClick={() => setEditing(true)}
+        >
+          ✎
+        </button>
+      )}
+    </span>
   );
 }

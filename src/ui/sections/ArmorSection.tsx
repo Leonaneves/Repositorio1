@@ -1,5 +1,4 @@
 import { useCharacterStore } from "../../state/characterStore.js";
-import { armors } from "../../data/armors.js";
 import { getArmorClass, getAvailableArmor } from "../../rules/armor.js";
 import { ComputedField } from "../components/ComputedField.js";
 import type { ChoiceInsight } from "../../analytics/types.js";
@@ -10,9 +9,9 @@ export interface ArmorSectionProps {
 }
 
 const PROFICIENCY_LABELS = {
-  light: "Armaduras Leves",
-  medium: "Armaduras Médias",
-  heavy: "Armaduras Pesadas",
+  light: "Leve",
+  medium: "Média",
+  heavy: "Pesada",
   shield: "Escudos",
 } as const;
 
@@ -24,15 +23,40 @@ export function ArmorSection({ armorPopularity }: ArmorSectionProps) {
   const setArmorManualAdjustment = useCharacterStore((s) => s.setArmorManualAdjustment);
 
   const available = getAvailableArmor(character);
+  const ac = getArmorClass(character);
 
   return (
-    <section className="sheet-section" aria-label="Armadura e Classe de Armadura">
-      <h2>Armadura / CA</h2>
+    <section className="sheet-section sheet-section--armor" aria-label="Armadura e Classe de Armadura">
+      <div className="ac-badge">
+        <span className="ac-badge__label">Classe de Armadura</span>
+        <span className="ac-badge__value">
+          <ComputedField label="Classe de Armadura" computed={ac} onManualChange={setArmorManualAdjustment} variant="value" />
+        </span>
+      </div>
+
+      <div className="armor-controls">
+        <label className="field">
+          <span>Armadura equipada</span>
+          <select value={character.armor.equipped} onChange={(e) => setArmorEquipped(e.target.value as typeof character.armor.equipped)}>
+            <option value="unarmed">Sem Armadura</option>
+            {available.map((armor) => (
+              <option key={armor.id} value={armor.id}>
+                {armor.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="checkbox-field checkbox-field--shield">
+          <input type="checkbox" checked={character.armor.shield} onChange={(e) => setShield(e.target.checked)} />
+          <span>Escudo equipado</span>
+        </label>
+      </div>
 
       <fieldset className="armor-proficiencies">
-        <legend>Treinamento em armaduras</legend>
+        <legend>Treinamento</legend>
         {(Object.keys(PROFICIENCY_LABELS) as (keyof typeof PROFICIENCY_LABELS)[]).map((category) => (
-          <label key={category} className="checkbox-field">
+          <label key={category} className="checkbox-field checkbox-field--compact">
             <input
               type="checkbox"
               checked={character.armor.proficiencies[category]}
@@ -42,25 +66,6 @@ export function ArmorSection({ armorPopularity }: ArmorSectionProps) {
           </label>
         ))}
       </fieldset>
-
-      <label className="field">
-        <span>Armadura equipada</span>
-        <select value={character.armor.equipped} onChange={(e) => setArmorEquipped(e.target.value as typeof character.armor.equipped)}>
-          <option value="unarmed">Sem Armadura</option>
-          {available.map((armor) => (
-            <option key={armor.id} value={armor.id}>
-              {armor.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="checkbox-field">
-        <input type="checkbox" checked={character.armor.shield} onChange={(e) => setShield(e.target.checked)} />
-        <span>Usando escudo agora</span>
-      </label>
-
-      <ComputedField label="Classe de Armadura" computed={getArmorClass(character)} onManualChange={setArmorManualAdjustment} />
 
       {armorPopularity && <InsightCard insight={armorPopularity} />}
     </section>

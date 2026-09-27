@@ -1,53 +1,57 @@
 import { useCharacterStore } from "../../state/characterStore.js";
-import { skillList } from "../../data/skills.js";
+import type { SkillKey } from "../../domain/ids.js";
+import { skills } from "../../data/skills.js";
 import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground } from "../../rules/skills.js";
 import { ComputedField } from "../components/ComputedField.js";
 
-export function SkillsSection() {
+export interface SkillRowProps {
+  skillId: SkillKey;
+}
+
+/** Uma linha de perícia — usada dentro do card do atributo que a governa (ver AbilitiesSection). */
+export function SkillRow({ skillId }: SkillRowProps) {
   const character = useCharacterStore((s) => s.character);
   const setSkillManualOverride = useCharacterStore((s) => s.setSkillManualOverride);
   const setSkillExpertise = useCharacterStore((s) => s.setSkillExpertise);
   const setSkillManualAdjustment = useCharacterStore((s) => s.setSkillManualAdjustment);
 
+  const definition = skills[skillId];
+  const state = character.skills[skillId];
+  const proficient = getSkillProficiency(character, skillId);
+  const grantedByBackground = isSkillGrantedByBackground(character, skillId);
+
   return (
-    <section className="sheet-section" aria-label="Perícias">
-      <h2>Perícias</h2>
-      <ul className="skill-list">
-        {skillList.map((skill) => {
-          const state = character.skills[skill.id];
-          const proficient = getSkillProficiency(character, skill.id);
-          const grantedByBackground = isSkillGrantedByBackground(character, skill.id);
-          return (
-            <li key={skill.id} className="skill-row">
-              <label className="skill-row__proficient" title={grantedByBackground ? "Concedida pelo antecedente atual" : undefined}>
-                <input
-                  type="checkbox"
-                  checked={proficient}
-                  onChange={(e) => setSkillManualOverride(skill.id, e.target.checked)}
-                />
-                <span>
-                  {skill.name} ({skill.ability})
-                  {grantedByBackground && <span aria-hidden="true"> •</span>}
-                </span>
-              </label>
-              <label className="skill-row__expertise">
-                <input
-                  type="checkbox"
-                  checked={state.expertise}
-                  disabled={!proficient}
-                  onChange={(e) => setSkillExpertise(skill.id, e.target.checked)}
-                />
-                <span>Especialização</span>
-              </label>
-              <ComputedField
-                label=""
-                computed={getSkillBonus(character, skill.id)}
-                onManualChange={(value) => setSkillManualAdjustment(skill.id, value)}
-              />
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <li className="trait-row">
+      <label
+        className="trait-row__check"
+        title={grantedByBackground ? "Concedida pelo antecedente atual (ainda editável)" : undefined}
+      >
+        <input type="checkbox" checked={proficient} onChange={(e) => setSkillManualOverride(skillId, e.target.checked)} />
+        <span>
+          {definition.name}
+          {grantedByBackground && (
+            <span className="trait-row__origin-dot" aria-hidden="true">
+              {" "}
+              •
+            </span>
+          )}
+        </span>
+      </label>
+      <label className="trait-row__expertise" title="Especialização (dobra a proficiência)">
+        <input
+          type="checkbox"
+          checked={state.expertise}
+          disabled={!proficient}
+          onChange={(e) => setSkillExpertise(skillId, e.target.checked)}
+          aria-label={`Especialização em ${definition.name}`}
+        />
+        <span aria-hidden="true">E</span>
+      </label>
+      <ComputedField
+        label={definition.name}
+        computed={getSkillBonus(character, skillId)}
+        onManualChange={(value) => setSkillManualAdjustment(skillId, value)}
+      />
+    </li>
   );
 }

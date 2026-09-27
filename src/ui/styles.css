@@ -1,144 +1,678 @@
+@import "./theme.css";
 @import "./insights/insights.css";
 
-:root {
-  color-scheme: light;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--sheet-bg);
 }
 
 body {
   margin: 0;
-  background: #f4f3f1;
-  color: #1a1a1a;
+  background: var(--sheet-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
 }
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-label);
+  margin: 0;
+}
+
+/* ============================================================
+   Moldura geral da ficha
+   ============================================================ */
 
 .sheet {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--space-lg);
+  display: flex;
+  justify-content: center;
 }
 
-.sheet-section {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
+.sheet-frame {
+  width: 100%;
+  max-width: 1180px;
+  background: var(--card-bg);
+  border: var(--border-width-strong) solid var(--border-color-strong);
+  border-radius: var(--radius-page);
+  padding: var(--space-lg) var(--space-xl);
+  box-shadow: var(--shadow-card);
+  position: relative;
 }
 
-.sheet-section h2 {
-  margin-top: 0;
-  font-size: 1.1rem;
+/* Cantos decorativos discretos — ecoam os círculos das quinas da ficha original, sem tentar replicar o ornamento completo. */
+.sheet-frame::before,
+.sheet-frame::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: var(--border-width) solid var(--border-color-strong);
+  background: var(--card-bg);
 }
+.sheet-frame::before {
+  top: 10px;
+  left: 10px;
+}
+.sheet-frame::after {
+  bottom: 10px;
+  right: 10px;
+}
+
+/* ============================================================
+   Cabeçalho: identidade + nível
+   ============================================================ */
+
+.sheet-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.sheet-header__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.sheet-header__row {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.sheet-header__row .field {
+  flex: 1 1 220px;
+}
+
+.sheet-header__level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  border: var(--border-width-strong) solid var(--border-color-strong);
+  background: var(--field-bg-readonly);
+  justify-self: end;
+}
+
+.sheet-header__level-label {
+  font-family: var(--font-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.sheet-header__level input {
+  width: 3.2rem;
+  text-align: center;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.sheet-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+  color: var(--text-secondary);
+}
+
+.sheet-divider::before,
+.sheet-divider::after {
+  content: "";
+  flex: 1;
+  border-top: var(--border-width) solid var(--divider-color);
+}
+
+.sheet-divider span {
+  font-family: var(--font-label);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Campos genéricos
+   ============================================================ */
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  margin-bottom: 0.6rem;
-  max-width: 320px;
+  gap: var(--space-3xs);
 }
 
-.field span:first-child {
-  font-size: 0.8rem;
-  opacity: 0.75;
+.field > span:first-child {
+  font-family: var(--font-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field select {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  background: var(--field-bg);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2xs) var(--space-xs);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.field input:hover,
+.field select:hover {
+  border-color: var(--text-secondary);
+}
+
+.field input:focus-visible,
+.field select:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 25%, transparent);
+}
+
+.field--name input {
+  font-size: var(--text-lg);
+  font-weight: 500;
 }
 
 .checkbox-field {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.3rem;
+  gap: var(--space-2xs);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2xs);
 }
 
-.ability-grid {
+.checkbox-field--compact {
+  display: inline-flex;
+  margin-right: var(--space-sm);
+}
+
+.empty-note {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+/* ============================================================
+   Tira de vitais: Iniciativa / Deslocamento / Tamanho / Percepção
+   ============================================================ */
+
+.vitals-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
 }
 
-.ability-box {
+.vital-box {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--field-bg-readonly);
+  padding: var(--space-xs) var(--space-sm);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.ability-box__name {
-  font-size: 0.75rem;
-  opacity: 0.75;
-}
-
-.ability-box input {
-  width: 4rem;
+  gap: var(--space-3xs);
   text-align: center;
 }
 
-.ability-box__modifier {
-  font-weight: 700;
-  font-size: 1.1rem;
+.vital-box__label {
+  font-family: var(--font-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
-.skill-list {
+.vital-box__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.vital-box__unit {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.vital-box__select {
+  border: none;
+  background: transparent;
+  font-size: var(--text-md);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ============================================================
+   Corpo principal: atributos (esquerda) + armadura/conjuração (direita)
+   ============================================================ */
+
+.sheet-main {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(380px, 1.35fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.sheet-column-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.sheet-section {
+  background: var(--card-bg);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+}
+
+.sheet-section h2 {
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  border-bottom: var(--border-width) solid var(--divider-color);
+  padding-bottom: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+}
+
+.sheet-section--empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+/* ---- Atributos ---- */
+
+.ability-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.ability-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.ability-card {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  background: var(--card-bg);
+}
+
+.ability-card__name {
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0 0 var(--space-xs);
+}
+
+.ability-card__score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.ability-card__score label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  gap: var(--space-3xs);
+}
+
+.ability-card__score input {
+  width: 3.4rem;
+  text-align: center;
+  font-size: var(--text-md);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3xs);
+  background: var(--field-bg);
+}
+
+.ability-card__modifier {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: var(--border-width-strong) solid var(--border-color-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  background: var(--field-bg-readonly);
+}
+
+.trait-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.skill-row {
+.trait-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  gap: var(--space-2xs);
+  padding: var(--space-3xs) 0;
+  border-top: var(--border-width) solid var(--divider-color);
+  font-size: var(--text-sm);
 }
 
-.skill-row__proficient,
-.skill-row__expertise {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.9rem;
+.trait-row:first-child {
+  border-top: none;
 }
 
-.computed-field {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-}
-
-.computed-field__manual {
-  width: 3.5rem;
-}
-
-.computed-field__total {
+.trait-row--save {
   font-weight: 700;
+}
+
+.trait-row__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex: 1;
+  min-width: 0;
+}
+
+.trait-row__check span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trait-row__origin-dot {
+  color: var(--accent);
+}
+
+.trait-row__expertise {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+}
+
+/* ---- Valor calculado compacto (ComputedField) ---- */
+
+.cv {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+}
+
+.cv__total {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.6em;
+  text-align: right;
+}
+
+.cv__manual-badge {
+  font-size: var(--text-2xs);
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 0 0.35em;
+}
+
+.cv__adjust {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  padding: 0 0.15em;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.trait-row:hover .cv__adjust,
+.cv__adjust:focus-visible {
+  opacity: 1;
+}
+
+.cv__input {
+  width: 3.2rem;
+  font-size: var(--text-xs);
+  border: var(--border-width) solid var(--focus-ring);
+  border-radius: var(--radius-sm);
+  padding: 0 0.2em;
+}
+
+/* ---- Armadura / CA ---- */
+
+.sheet-section--armor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.ac-badge {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xs);
+  border: var(--border-width-strong) solid var(--border-color-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--field-bg-readonly);
+}
+
+.ac-badge__label {
+  font-family: var(--font-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.ac-badge__value {
+  font-size: var(--text-display);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ac-badge__value .cv__total {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.armor-controls {
+  display: flex;
+  gap: var(--space-md);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.checkbox-field--shield {
+  margin-bottom: 0.4rem;
 }
 
 .armor-proficiencies {
   border: none;
+  padding: var(--space-xs) 0 0;
+  margin: 0;
+  border-top: var(--border-width) solid var(--divider-color);
+}
+
+.armor-proficiencies legend {
+  font-family: var(--font-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
   padding: 0;
-  margin: 0 0 0.75rem;
+}
+
+/* ---- Conjuração ---- */
+
+.spellcasting-grid {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: var(--space-md);
+}
+
+.spellcasting-stats {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.spellcasting-stats > div {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2xs) var(--space-xs);
+}
+
+.spellcasting-stats dt {
+  font-family: var(--font-label);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.spellcasting-stats dd {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
 }
 
 .spell-slot-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
 }
 
 .spell-slot-row {
   display: flex;
-  gap: 1rem;
   align-items: center;
-  padding: 0.3rem 0;
+  gap: var(--space-2xs);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--text-sm);
 }
 
-.spell-slot-row input {
-  width: 3.5rem;
-  margin-left: 0.3rem;
+.spell-slot-row__circle {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.spell-slot-row__total {
+  font-weight: 700;
+  margin-left: auto;
+}
+
+.spell-slot-row__expended {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+}
+
+.spell-slot-row__expended input {
+  width: 2.4rem;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0 0.2em;
+}
+
+/* ============================================================
+   Responsividade (§14) — desktop prioritário; tablet reorganiza
+   colunas; mobile empilha sem reduzir tipografia indefinidamente.
+   ============================================================ */
+
+@media (max-width: 1024px) {
+  .sheet-main {
+    grid-template-columns: 1fr;
+  }
+
+  .spellcasting-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .sheet {
+    padding: var(--space-sm);
+  }
+
+  .sheet-frame {
+    padding: var(--space-md);
+  }
+
+  .sheet-header {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-header__level {
+    justify-self: center;
+  }
+
+  .vitals-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ability-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .spell-slot-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .spell-slot-list {
+    grid-template-columns: 1fr;
+  }
 }
