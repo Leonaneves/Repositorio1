@@ -1,0 +1,144 @@
+@import "./insights/insights.css";
+
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f4f3f1;
+  color: #1a1a1a;
+}
+
+.sheet {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.sheet-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.sheet-section h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.6rem;
+  max-width: 320px;
+}
+
+.field span:first-child {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.ability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+}
+
+.ability-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.ability-box__name {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.ability-box input {
+  width: 4rem;
+  text-align: center;
+}
+
+.ability-box__modifier {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.skill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.skill-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.skill-row__proficient,
+.skill-row__expertise {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.computed-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.computed-field__manual {
+  width: 3.5rem;
+}
+
+.computed-field__total {
+  font-weight: 700;
+}
+
+.armor-proficiencies {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.spell-slot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.spell-slot-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.3rem 0;
+}
+
+.spell-slot-row input {
+  width: 3.5rem;
+  margin-left: 0.3rem;
+}

@@ -23,27 +23,10 @@ export interface SavingThrowState {
 
 export type ProficiencyTextSource = "class" | "species" | "background";
 
-/** Um bloco de texto auto-gerado a partir de uma origem do personagem. */
+/** Uma entrada de texto auto-gerada a partir de uma origem do personagem — NUNCA armazenada em `Character` (ver nota abaixo). */
 export interface AutoTextEntry {
   text: string;
   source: ProficiencyTextSource;
-}
-
-/**
- * Substitui a técnica do PDF original de concatenar texto automático +
- * texto do jogador numa única string e tentar separá-los depois por
- * `indexOf/substring`. Aqui `entries` é sempre recalculado do zero a
- * partir da classe/espécie/antecedente atuais (nunca lido de volta do
- * texto), e `manualNotes` é propriedade exclusiva do jogador — o motor
- * de regras nunca toca nele.
- */
-export interface AutoTextBlock {
-  entries: AutoTextEntry[];
-  manualNotes: string;
-}
-
-export function emptyAutoTextBlock(): AutoTextBlock {
-  return { entries: [], manualNotes: "" };
 }
 
 export interface ArmorProficiencies {
@@ -114,10 +97,21 @@ export interface Character {
     slots: Record<SpellCircle, SpellSlotState>;
   };
 
-  weaponProficienciesText: AutoTextBlock;
-  toolProficienciesText: AutoTextBlock;
-  speciesTraits: AutoTextBlock;
-  talents: AutoTextBlock;
+  /**
+   * Notas manuais que acompanham os blocos de texto auto-gerados
+   * (proficiência de armas/ferramentas, traços de espécie, talento de
+   * origem). As partes AUTOMÁTICAS desses blocos NÃO ficam guardadas
+   * aqui — são sempre recalculadas a partir de `classId`/`speciesId`/
+   * `backgroundId` pelas funções de `rules/proficiencyText.ts`
+   * (`getClassWeaponProficiencyEntries` etc.). Isso é o que a
+   * arquitetura pede: o Character guarda só input/ajuste manual, nunca
+   * um resultado derivado gravado "como se fosse" input — e evita por
+   * completo a técnica frágil de diff de string do PDF original.
+   */
+  weaponProficienciesNotes: string;
+  toolProficienciesNotes: string;
+  speciesTraitsNotes: string;
+  talentsNotes: string;
 
   classFeatures: { column1: string; column2: string };
 
@@ -183,10 +177,10 @@ export function createBlankCharacter(id: string): Character {
       manualAttackBonusAdjustment: 0,
       slots,
     },
-    weaponProficienciesText: emptyAutoTextBlock(),
-    toolProficienciesText: emptyAutoTextBlock(),
-    speciesTraits: emptyAutoTextBlock(),
-    talents: emptyAutoTextBlock(),
+    weaponProficienciesNotes: "",
+    toolProficienciesNotes: "",
+    speciesTraitsNotes: "",
+    talentsNotes: "",
     classFeatures: { column1: "", column2: "" },
     attacks: [],
     hp: { current: 0, max: 0, temp: 0, hitDiceMax: 0, hitDiceSpent: 0 },
