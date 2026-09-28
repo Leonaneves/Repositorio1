@@ -67,3 +67,18 @@ Concentração/Ritual/Material das magias preparadas — o Character já
 tem os dados correspondentes (`inventory.attunedItems`,
 `spellcasting.slots[].expended`, `spellsPrepared[].concentration/
 ritual/material`), só falta o mapeamento campo-a-campo linha a linha.
+
+## Verificação
+
+`pdf/exporter.ts` foi separado em `fillPdfForm` (preenche sem achatar)
+e `buildExportedPdf` (chama `fillPdfForm` e só então achata)
+especificamente para permitir testar o estado de cada checkbox com
+`form.getCheckBox(nome).isChecked()` **antes** do `flatten()` remover
+os campos do AcroForm — o achatamento em si não pode ser inspecionado
+depois (os campos deixam de existir). Ver `pdf/exporter.test.ts`,
+bloco "fillPdfForm — checkboxes": cobre perícia com `manualOverride`
+(incluindo a exceção `o.INT.arc`), salvaguarda proficiente,
+salvaguardas contra morte cumulativas (2 sucessos marca `suc.1`/`suc.2`
+mas não `suc.3`), treinamento de armadura + escudo equipado, o caso
+"nunca escreve no campo anômalo `C5`" e o caso "personagem em branco
+não marca nada".

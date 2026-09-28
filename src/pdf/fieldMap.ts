@@ -26,6 +26,7 @@ import {
   getSpeciesTraitEntries,
   renderAutoTextBlock,
 } from "../rules/proficiencyText.js";
+import { getSkillProficiency } from "../rules/skills.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
 /**
@@ -102,7 +103,22 @@ export interface PdfOverlayFieldMapping {
   getValue: (character: Character) => string;
 }
 
-export type PdfFieldMapping = PdfTextFieldMapping | PdfDropdownFieldMapping | PdfOverlayFieldMapping;
+/**
+ * Checkbox simples (todos os 163 do molde usam o mesmo par de estados
+ * — /Sim ligado, /Off desligado — ver
+ * `docs/referencia/pdf-exportacao/checkboxes-diagnostico.md`). O
+ * exportador nunca hardcoda esse valor: `pdf-lib` já lê o estado
+ * "ligado" real do próprio dicionário de aparência do campo
+ * (`form.getCheckBox(nome).check()`), então `getValue` só precisa
+ * devolver `true`/`false`.
+ */
+export interface PdfCheckboxFieldMapping {
+  kind: "checkbox";
+  pdfField: string;
+  getValue: (character: Character) => boolean;
+}
+
+export type PdfFieldMapping = PdfTextFieldMapping | PdfDropdownFieldMapping | PdfOverlayFieldMapping | PdfCheckboxFieldMapping;
 
 export const pdfDropdownFields: PdfDropdownFieldMapping[] = [
   { kind: "dropdown", pdfField: "CLASSE", getValue: (c) => (c.classId ? classDisplayName(c) : null) },
@@ -249,13 +265,9 @@ const spellPreparedFields: PdfTextFieldMapping[] = Array.from({ length: MAX_SPEL
  * Mapeamento completo de campos de TEXTO simples — cobre identidade,
  * atributos/perícias/salvaguardas, PV/CA/Dados de Vida, textos
  * automáticos de proficiência, conjuração, ataques, inventário e
- * magias preparadas. NÃO inclui (pendente — ver relatório da Etapa 26):
- * os campos de botão/checkbox (pontos de proficiência `O.*`,
- * salvaguardas contra morte, treinamento de armadura, Escudo) — exigem
- * confirmar o nome do estado "ligado" de cada um antes de marcar com
- * segurança, e os 4 campos ocultos `AUTO.*` (usados só pelo JavaScript
- * do PDF original para diffing interno — nunca visíveis, não precisam
- * de valor no export estático).
+ * magias preparadas. NÃO inclui os 4 campos ocultos `AUTO.*` (usados só
+ * pelo JavaScript do PDF original para diffing interno — nunca
+ * visíveis, não precisam de valor no export estático).
  */
 export const pdfTextFields: PdfTextFieldMapping[] = [
   ...identityAndDerived,
@@ -266,4 +278,54 @@ export const pdfTextFields: PdfTextFieldMapping[] = [
   ...attackFields,
   ...inventoryFields,
   ...spellPreparedFields,
+];
+
+/** Nome do checkbox de proficiência da perícia — "o.INT.arc" é a única exceção com "o" minúsculo (mesma inconsistência já documentada em data/skills.ts). */
+function skillProficiencyCheckboxField(skillKey: SkillKey): string {
+  if (skillKey === "arcanismo") return "o.INT.arc";
+  return `O.${SKILL_FIELD_SUFFIX[skillKey]}`;
+}
+
+const skillProficiencyCheckboxes: PdfCheckboxFieldMapping[] = SKILL_KEYS.map((skillKey) => ({
+  kind: "checkbox",
+  pdfField: skillProficiencyCheckboxField(skillKey),
+  getValue: (c) => getSkillProficiency(c, skillKey),
+}));
+
+const saveProficiencyCheckboxes: PdfCheckboxFieldMapping[] = ABILITY_ORDER.map((ability) => ({
+  kind: "checkbox",
+  pdfField: `O.${ability}.res`,
+  getValue: (c) => c.savingThrows[ability].proficient,
+}));
+
+/** Cada caixa marca "pelo menos N" sucessos/falhas — leitura visual padrão de salvaguarda contra morte (caixas preenchidas da esquerda pra direita). */
+const deathSaveCheckboxes: PdfCheckboxFieldMapping[] = [1, 2, 3].flatMap((n) => [
+  { kind: "checkbox" as const, pdfField: `Morte.suc.${n}`, getValue: (c: Character) => c.deathSaves.successes >= n },
+  { kind: "checkbox" as const, pdfField: `Morte.fal.${n}`, getValue: (c: Character) => c.deathSaves.failures >= n },
+]);
+
+const armorTrainingCheckboxes: PdfCheckboxFieldMapping[] = [
+  { kind: "checkbox", pdfField: "PROF.leve", getValue: (c) => c.armor.proficiencies.light },
+  { kind: "checkbox", pdfField: "PROF.med", getValue: (c) => c.armor.proficiencies.medium },
+  { kind: "checkbox", pdfField: "PROF.pesa", getValue: (c) => c.armor.proficiencies.heavy },
+  { kind: "checkbox", pdfField: "PROF.Escudo", getValue: (c) => c.armor.proficiencies.shield },
+  { kind: "checkbox", pdfField: "Escudo", getValue: (c) => c.armor.shield },
+];
+
+/**
+ * Checkboxes implementados nesta etapa (diagnóstico completo em
+ * `docs/referencia/pdf-exportacao/checkboxes-diagnostico.md`):
+ * proficiência de perícia/salvaguarda, salvaguardas contra morte,
+ * treinamento de armadura, escudo equipado. Ainda NÃO implementados
+ * (documentados no mesmo relatório, dados já existem em `Character`,
+ * só falta o mapeamento linha a linha): itens mágicos sintonizados,
+ * espaços de magia gastos por círculo, Concentração/Ritual/Material
+ * das 34 linhas de magia preparada. `C5` (anomalia sem estado /Off)
+ * nunca é escrito.
+ */
+export const pdfCheckboxFields: PdfCheckboxFieldMapping[] = [
+  ...skillProficiencyCheckboxes,
+  ...saveProficiencyCheckboxes,
+  ...deathSaveCheckboxes,
+  ...armorTrainingCheckboxes,
 ];
