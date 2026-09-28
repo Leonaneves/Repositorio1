@@ -8,7 +8,7 @@ import {
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
 import { getAvailableArmor } from "../rules/armor.js";
-import { getAvailableSubclasses } from "../rules/subclasses.js";
+import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
 
 /**
@@ -145,13 +145,25 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
 
   setName: (name) => set((state) => ({ character: { ...state.character, name } })),
 
+  /**
+   * A escolha de subclasse só existe a partir do nível 3 (regra fixa
+   * para todas as classes — `rules/subclasses.ts#canChooseSubclass`).
+   * Cair de 3+ para 1–2 limpa `subclassId` (e, quando a camada de
+   * features existir, as features vindas da subclasse com ela).
+   */
   setLevel: (level) =>
-    set((state) => ({ character: clampSpellSlotsExpended({ ...state.character, level }) })),
+    set((state) => {
+      const subclassId = canChooseSubclass(level) ? state.character.subclassId : null;
+      return { character: clampSpellSlotsExpended({ ...state.character, level, subclassId }) };
+    }),
 
   setClass: (classId) => set((state) => ({ character: applyClassChange(state.character, classId) })),
 
   setSubclass: (subclassId) =>
-    set((state) => ({ character: clampSpellSlotsExpended({ ...state.character, subclassId }) })),
+    set((state) => {
+      if (!canChooseSubclass(state.character.level)) return state;
+      return { character: clampSpellSlotsExpended({ ...state.character, subclassId }) };
+    }),
 
   setSpecies: (speciesId) => set((state) => ({ character: { ...state.character, speciesId } })),
 

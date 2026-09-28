@@ -124,7 +124,12 @@ export interface Character {
 
   attacks: AttackEntry[];
 
-  hp: { current: number; max: number; temp: number; hitDiceMax: number; hitDiceSpent: number };
+  /**
+   * PV máximo é derivado (ver `rules/hp.ts#getMaxHitPoints`): aqui só o
+   * ajuste manual sobrevive, nunca o total calculado. `hitDiceMax`
+   * também é sempre derivado (1 por nível) — não é armazenado.
+   */
+  hp: { current: number; maxManualAdjustment: number; temp: number; hitDiceSpent: number };
   deathSaves: { successes: number; failures: number };
   heroicInspiration: boolean;
 
@@ -190,7 +195,7 @@ export function createBlankCharacter(id: string): Character {
     talentsNotes: "",
     classFeatures: { column1: "", column2: "" },
     attacks: [],
-    hp: { current: 0, max: 0, temp: 0, hitDiceMax: 0, hitDiceSpent: 0 },
+    hp: { current: 0, maxManualAdjustment: 0, temp: 0, hitDiceSpent: 0 },
     deathSaves: { successes: 0, failures: 0 },
     heroicInspiration: false,
     spellsPrepared: [],

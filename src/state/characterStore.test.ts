@@ -30,6 +30,7 @@ describe("useCharacterStore — inputs básicos", () => {
 describe("useCharacterStore — limpeza de escolhas inválidas (§4)", () => {
   it("Mago + Evocador → muda para Bárbaro → subclasse volta para vazio (nunca escolhe outra no lugar)", () => {
     const store = useCharacterStore.getState();
+    store.setLevel(3); // subclasse só existe a partir do nível 3
     store.setClass("mago");
     store.setSubclass("Evocador");
     expect(useCharacterStore.getState().character.subclassId).toBe("Evocador");
@@ -41,6 +42,7 @@ describe("useCharacterStore — limpeza de escolhas inválidas (§4)", () => {
   it("mantém a subclasse se ela ainda existir na nova classe (não limpa à toa)", () => {
     // Cenário hipotético: trocar entre duas classes não deve limpar se o valor coincidir.
     const store = useCharacterStore.getState();
+    store.setLevel(3);
     store.setClass("mago");
     store.setSubclass("Necromante");
     store.setClass("mago"); // "troca" para a mesma classe
@@ -90,6 +92,44 @@ describe("useCharacterStore — limpeza de escolhas inválidas (§4)", () => {
 
     store.setLevel(1); // 1º círculo cai para 2 espaços totais
     expect(useCharacterStore.getState().character.spellcasting.slots[1].expended).toBe(2);
+  });
+});
+
+describe("useCharacterStore — subclasse só a partir do nível 3 (regra fixa, aprovada)", () => {
+  it("setSubclass é ignorado enquanto o nível é 1 ou 2", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setSubclass("Evocador");
+    expect(useCharacterStore.getState().character.subclassId).toBeNull();
+
+    store.setLevel(2);
+    store.setSubclass("Evocador");
+    expect(useCharacterStore.getState().character.subclassId).toBeNull();
+  });
+
+  it("setSubclass funciona normalmente a partir do nível 3", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(3);
+    store.setSubclass("Evocador");
+    expect(useCharacterStore.getState().character.subclassId).toBe("Evocador");
+  });
+
+  it("cair de nível 3+ para 1–2 limpa a subclasse escolhida", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(3);
+    store.setSubclass("Evocador");
+
+    store.setLevel(2);
+    expect(useCharacterStore.getState().character.subclassId).toBeNull();
+  });
+
+  it("subir de nível 2 para 5 não escolhe subclasse nenhuma sozinho (continua null até o jogador escolher)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(5);
+    expect(useCharacterStore.getState().character.subclassId).toBeNull();
   });
 });
 

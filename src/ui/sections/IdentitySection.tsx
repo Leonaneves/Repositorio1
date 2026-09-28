@@ -4,7 +4,7 @@ import { CLASS_IDS, BACKGROUND_IDS, SPECIES_IDS } from "../../domain/ids.js";
 import { classes } from "../../data/classes.js";
 import { species } from "../../data/species.js";
 import { backgrounds } from "../../data/backgrounds.js";
-import { getAvailableSubclasses } from "../../rules/subclasses.js";
+import { canChooseSubclass, getAvailableSubclasses } from "../../rules/subclasses.js";
 import type { ChoiceInsight } from "../../analytics/types.js";
 import { findInsightItem } from "../../services/useInsights.js";
 import { InsightPopover } from "../insights/InsightPopover.js";
@@ -31,6 +31,7 @@ export function IdentitySection({ subclassPopularity, speciesPopularity, backgro
   const setSpecies = useCharacterStore((s) => s.setSpecies);
   const setBackground = useCharacterStore((s) => s.setBackground);
 
+  const subclassAvailable = character.classId !== null && canChooseSubclass(character.level);
   const availableSubclasses = character.classId ? getAvailableSubclasses(character.classId) : [];
   const speciesName = character.speciesId ? species[character.speciesId].name : undefined;
   const backgroundName = character.backgroundId ? backgrounds[character.backgroundId].name : undefined;
@@ -88,10 +89,12 @@ export function IdentitySection({ subclassPopularity, speciesPopularity, backgro
             <span>Subclasse</span>
             <select
               value={character.subclassId ?? ""}
-              disabled={!character.classId}
+              disabled={!subclassAvailable}
               onChange={(e) => setSubclass(e.target.value ? e.target.value : null)}
             >
-              <option value="">{character.classId ? "Selecione..." : "—"}</option>
+              <option value="">
+                {!character.classId ? "—" : subclassAvailable ? "Selecione..." : "Disponível a partir do nível 3"}
+              </option>
               {availableSubclasses.map((s) => (
                 <option key={s.fullName} value={s.fullName}>
                   {s.shortName}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAvailableSubclasses } from "./subclasses.js";
+import { canChooseSubclass, getAvailableSubclasses } from "./subclasses.js";
 import { CLASS_IDS } from "../domain/ids.js";
 
 describe("getAvailableSubclasses", () => {
@@ -43,5 +43,15 @@ describe("getAvailableSubclasses", () => {
   it("Artífice inclui a subclasse de Ravenloft (Reanimador)", () => {
     const names = getAvailableSubclasses("artifice").map((s) => s.fullName);
     expect(names).toContain("Reanimador");
+  });
+});
+
+describe("canChooseSubclass — regra fixa de nível 3 para todas as classes", () => {
+  it.each([1, 2])("nível %i: sem escolha de subclasse", (level) => {
+    expect(canChooseSubclass(level)).toBe(false);
+  });
+
+  it.each([3, 4, 20])("nível %i: escolha de subclasse disponível", (level) => {
+    expect(canChooseSubclass(level)).toBe(true);
   });
 });
