@@ -1,5 +1,6 @@
 import { ABILITY_KEYS, type AbilityKey } from "./common.js";
 import { SKILL_KEYS, type ArmorId, type BackgroundId, type ClassId, type SizeId, type SkillKey, type SpeciesId, type SpellCircle } from "./ids.js";
+import type { FeatureChoiceSelection } from "./features.js";
 
 export interface AbilityScoreState {
   /** Valor bruto do atributo (1–30), entrada manual do jogador. */
@@ -143,6 +144,17 @@ export interface Character {
 
   appearance: string;
   languages: string;
+
+  /**
+   * Respostas a escolhas de feature (`FeatureChoice.id` → seleção do
+   * jogador) e talentos gerais escolhidos pelo jogador (ids de
+   * `FeatureDefinition` com `sourceType: "feat"`). Ver `rules/features.ts`
+   * — a lista de features em si nunca é armazenada aqui, só as escolhas;
+   * `getCharacterFeatures` sempre recalcula a partir de
+   * classId/subclassId/speciesId/backgroundId/level + estes campos.
+   */
+  featureChoiceSelections: Record<string, FeatureChoiceSelection>;
+  chosenFeatIds: string[];
 }
 
 /** Cria um personagem em branco, pronto para ser preenchido pela UI/estado (fora do escopo desta etapa). */
@@ -202,5 +214,7 @@ export function createBlankCharacter(id: string): Character {
     inventory: { equipment: "", coins: { cp: 0, sp: 0, gp: 0, pp: 0 }, attunedItems: [] },
     appearance: "",
     languages: "",
+    featureChoiceSelections: {},
+    chosenFeatIds: [],
   };
 }

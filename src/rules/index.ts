@@ -11,3 +11,4 @@ export * from "./attack.js";
 export * from "./proficiencyText.js";
 export * from "./hp.js";
 export * from "./weapons.js";
+export * from "./features.js";
