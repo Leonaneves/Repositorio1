@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useCharacterStore } from "../../../state/characterStore.js";
 import { useBuilderStore } from "../../../state/builderStore.js";
 import { classes } from "../../../data/classes.js";
@@ -9,6 +10,7 @@ import { getMaxHitPoints } from "../../../rules/hp.js";
 import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import type { BuilderStepId } from "../../../rules/builderSteps.js";
+import type { Character } from "../../../domain/character.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -23,10 +25,22 @@ function formatSigned(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`;
 }
 
+function downloadPdfFile(character: Character, bytes: Uint8Array) {
+  const safeName = character.name.trim().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "") || "personagem";
+  const blob = new Blob([bytes.slice().buffer], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `ficha-${safeName}.pdf`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 /** Etapa 11 — resumo compacto de tudo, com "Editar" voltando à etapa relevante (mesmo useCharacterStore, sem recomeçar do zero). */
 export function Step11Review() {
   const character = useCharacterStore((s) => s.character);
   const goToStep = useBuilderStore((s) => s.goToStep);
+  const [exportState, setExportState] = useState<"idle" | "exporting" | "error">("idle");
 
   const ac = getArmorClass(character);
   const hp = getMaxHitPoints(character);
@@ -38,8 +52,28 @@ export function Step11Review() {
     </button>
   );
 
+  async function handleExport() {
+    setExportState("exporting");
+    try {
+      // Import dinâmico: pdf-lib e o molde de ~2,3MB só carregam quando o jogador realmente exporta.
+      const { exportCharacterToPdf } = await import("../../../pdf/exporter.js");
+      const bytes = await exportCharacterToPdf(character);
+      downloadPdfFile(character, bytes);
+      setExportState("idle");
+    } catch {
+      setExportState("error");
+    }
+  }
+
   return (
     <div className="builder-step builder-step--review" aria-label="Revisão">
+      <section className="review-block">
+        <button type="button" onClick={handleExport} disabled={exportState === "exporting"}>
+          {exportState === "exporting" ? "Gerando PDF…" : "Exportar PDF"}
+        </button>
+        {exportState === "error" && <p className="empty-note">Não foi possível gerar o PDF. Tente novamente.</p>}
+      </section>
+
       <section className="review-block">
         <h3>Identidade {editButton("identidade", "basicInfo")}</h3>
         <p>
