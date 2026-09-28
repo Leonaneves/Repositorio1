@@ -4,7 +4,7 @@ import { useCharacterStore } from "./characterStore.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
-  useBuilderStore.setState({ abilityGenerationMode: "standardArray", draftScores: {} });
+  useBuilderStore.setState({ abilityGenerationMode: "standardArray", draftScores: {}, currentStepId: "basicInfo" });
 });
 
 describe("useBuilderStore — modo de geração de atributos", () => {
@@ -87,5 +87,56 @@ describe("useBuilderStore — commitDraftScores grava no Character ativo", () =>
     store.setDraftScore("FOR", 18);
     store.commitDraftScores();
     expect(useCharacterStore.getState().character.abilities.DEX.score).toBe(10); // valor padrão do personagem em branco
+  });
+});
+
+describe("useBuilderStore — navegação por etapas (sempre recalculada a partir do Character atual)", () => {
+  it("começa na etapa 'basicInfo', primeira da lista", () => {
+    expect(useBuilderStore.getState().currentStepId).toBe("basicInfo");
+    expect(useBuilderStore.getState().isFirstStep()).toBe(true);
+  });
+
+  it("goNext avança para a próxima etapa visível", () => {
+    const store = useBuilderStore.getState();
+    store.goToStep("background");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("abilities");
+  });
+
+  it("goNext não passa da última etapa visível ('review')", () => {
+    const store = useBuilderStore.getState();
+    store.goToStep("review");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("review");
+    expect(useBuilderStore.getState().isLastStep()).toBe(true);
+  });
+
+  it("goBack não volta antes da primeira etapa", () => {
+    const store = useBuilderStore.getState();
+    store.goBack();
+    expect(useBuilderStore.getState().currentStepId).toBe("basicInfo");
+  });
+
+  it("pula etapas condicionais que desapareceram (ex.: Subclasse ao avançar de 'species' num Bárbaro nível 1)", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("barbaro"); // nível 1, sem acesso a Subclasse ainda
+    store.goToStep("species");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("background"); // pula "subclass"
+  });
+
+  it("Mago nível 3: goNext de 'class' vai para 'subclass' (agora visível)", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("mago");
+    useCharacterStore.getState().setLevel(3);
+    store.goToStep("class");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("subclass");
+  });
+
+  it("goToStep salta direto para qualquer etapa (usado pelo botão 'Editar' da Revisão)", () => {
+    const store = useBuilderStore.getState();
+    store.goToStep("equipment");
+    expect(useBuilderStore.getState().currentStepId).toBe("equipment");
   });
 });
