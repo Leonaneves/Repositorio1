@@ -58,15 +58,23 @@ significa que, se um campo específico tiver um valor "ligado"
 diferente (nenhum caso encontrado aqui, mas por precaução), o código
 continua correto sem alteração.
 
-Implementados nesta etapa (ver `pdf/fieldMap.ts`/`pdf/exporter.ts`):
+Implementados (ver `pdf/fieldMap.ts`/`pdf/exporter.ts`):
 Perícias/Salvaguardas, Salvaguardas contra morte, Treinamento de
-armadura, Escudo equipado. **Não implementados ainda** (fora do pedido
-desta etapa, mas já mapeados/documentados aqui para quando for a
-vez): Itens mágicos sintonizados, Espaços de magia gastos,
-Concentração/Ritual/Material das magias preparadas — o Character já
-tem os dados correspondentes (`inventory.attunedItems`,
-`spellcasting.slots[].expended`, `spellsPrepared[].concentration/
-ritual/material`), só falta o mapeamento campo-a-campo linha a linha.
+armadura, Escudo equipado, Itens mágicos sintonizados (3 caixas,
+`inventory.attunedItems[].attuned`), Espaços de magia gastos por
+círculo (22 caixas, leitura cumulativa de
+`spellcasting.slots[circulo].expended`, mesmo padrão das
+salvaguardas contra morte).
+
+**Deliberadamente não implementado ainda** (decisão explícita — não é
+falta de mapeamento): Concentração/Ritual/Material das 34 linhas de
+magia preparada. Embora `SpellPreparedEntry` já tenha os booleanos
+`concentration`/`ritual`/`material`, `spellsPrepared` continua sendo
+uma entrada manual sem metadados estruturados de magia (não há
+catálogo de magias ainda) — a escrita desses 3 grupos de checkbox
+fica reservada para quando a base de magias for fornecida, para
+evitar qualquer inferência sobre dado que ainda não tem uma fonte
+estruturada por trás.
 
 ## Verificação
 

@@ -154,6 +154,35 @@ describe("fillPdfForm — checkboxes (chamado antes do flatten, ver docstring da
     expect(form.getCheckBox("Escudo").isChecked()).toBe(true);
   });
 
+  it("marca itens mágicos sintonizados só nos slots realmente sintonizados", async () => {
+    const form = await loadFormWithCharacter((c) => {
+      c.inventory.attunedItems = [
+        { description: "Anel de Proteção", attuned: true },
+        { description: "Adaga +1 (guardada, não sintonizada)", attuned: false },
+        { description: "Manto de Elfo", attuned: true },
+      ];
+    });
+    expect(form.getCheckBox("O.item.magico.1").isChecked()).toBe(true);
+    expect(form.getCheckBox("O.item.magico.2").isChecked()).toBe(false);
+    expect(form.getCheckBox("O.item.magico.3").isChecked()).toBe(true);
+  });
+
+  it("marca espaços de magia gastos cumulativamente por círculo (2 gastos no 1º círculo marca 1 e 2, não 3 ou 4)", async () => {
+    const form = await loadFormWithCharacter((c) => {
+      c.spellcasting.slots[1].expended = 2;
+      c.spellcasting.slots[3].expended = 1;
+    });
+    expect(form.getCheckBox("1o.circ.1").isChecked()).toBe(true);
+    expect(form.getCheckBox("1o.circ.2").isChecked()).toBe(true);
+    expect(form.getCheckBox("1o.circ.3").isChecked()).toBe(false);
+    expect(form.getCheckBox("1o.circ.4").isChecked()).toBe(false);
+    expect(form.getCheckBox("3o.circ.1").isChecked()).toBe(true);
+    expect(form.getCheckBox("3o.circ.2").isChecked()).toBe(false);
+    // Círculos com só 1 caixa no molde (8º/9º) continuam endereçáveis.
+    expect(form.getCheckBox("8o.circ.1").isChecked()).toBe(false);
+    expect(form.getCheckBox("9o.circ.1").isChecked()).toBe(false);
+  });
+
   it("nunca escreve no campo anômalo C5 (sem estado /Off definido — ver checkboxes-diagnostico.md)", async () => {
     const pdfDoc = await PDFDocument.load(readTemplateBytes());
     const form = pdfDoc.getForm();

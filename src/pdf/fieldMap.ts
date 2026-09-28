@@ -1,6 +1,6 @@
 import type { AbilityKey } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import { SKILL_KEYS, type SkillKey } from "../domain/ids.js";
+import { SKILL_KEYS, SPELL_CIRCLES, type SkillKey, type SpellCircle } from "../domain/ids.js";
 import { armors } from "../data/armors.js";
 import {
   getAbilityModifier,
@@ -312,20 +312,45 @@ const armorTrainingCheckboxes: PdfCheckboxFieldMapping[] = [
   { kind: "checkbox", pdfField: "Escudo", getValue: (c) => c.armor.shield },
 ];
 
+/** Até 3 itens sintonizados — mesmo limite/índice de `attunedItemFields` (texto) acima. */
+const attunedItemCheckboxes: PdfCheckboxFieldMapping[] = [1, 2, 3].map((n) => ({
+  kind: "checkbox" as const,
+  pdfField: `O.item.magico.${n}`,
+  getValue: (c: Character) => c.inventory.attunedItems[n - 1]?.attuned ?? false,
+}));
+
+/** Quantidade real de caixas de espaço de magia por círculo no molde (`Nº.circ.M`) — 1º tem 4, 6º–9º têm menos. */
+const SPELL_SLOT_BOX_COUNT: Record<SpellCircle, number> = { 1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1 };
+
+/** Cada caixa marca "pelo menos M espaços gastos" — mesma leitura cumulativa das salvaguardas contra morte. */
+const spellSlotExpendedCheckboxes: PdfCheckboxFieldMapping[] = SPELL_CIRCLES.flatMap((circle) =>
+  Array.from({ length: SPELL_SLOT_BOX_COUNT[circle] }, (_, i) => {
+    const boxNumber = i + 1;
+    return {
+      kind: "checkbox" as const,
+      pdfField: `${circle}o.circ.${boxNumber}`,
+      getValue: (c: Character) => c.spellcasting.slots[circle].expended >= boxNumber,
+    };
+  }),
+);
+
 /**
  * Checkboxes implementados nesta etapa (diagnóstico completo em
  * `docs/referencia/pdf-exportacao/checkboxes-diagnostico.md`):
  * proficiência de perícia/salvaguarda, salvaguardas contra morte,
- * treinamento de armadura, escudo equipado. Ainda NÃO implementados
- * (documentados no mesmo relatório, dados já existem em `Character`,
- * só falta o mapeamento linha a linha): itens mágicos sintonizados,
- * espaços de magia gastos por círculo, Concentração/Ritual/Material
- * das 34 linhas de magia preparada. `C5` (anomalia sem estado /Off)
- * nunca é escrito.
+ * treinamento de armadura, escudo equipado, itens mágicos
+ * sintonizados, espaços de magia gastos por círculo. Ainda NÃO
+ * implementado (o `Character` não tem metadado estruturado de
+ * Concentração/Ritual/Material por magia enquanto `spellsPrepared`
+ * for entrada manual — ver `data/spells/`): Concentração/Ritual/
+ * Material das 34 linhas de magia preparada. `C5` (anomalia sem
+ * estado /Off, função não identificada) nunca é escrito.
  */
 export const pdfCheckboxFields: PdfCheckboxFieldMapping[] = [
   ...skillProficiencyCheckboxes,
   ...saveProficiencyCheckboxes,
   ...deathSaveCheckboxes,
   ...armorTrainingCheckboxes,
+  ...attunedItemCheckboxes,
+  ...spellSlotExpendedCheckboxes,
 ];
