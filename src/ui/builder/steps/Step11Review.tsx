@@ -4,9 +4,19 @@ import { useBuilderStore } from "../../../state/builderStore.js";
 import { classes } from "../../../data/classes.js";
 import { species } from "../../../data/species.js";
 import { backgrounds } from "../../../data/backgrounds.js";
-import { getAbilityModifier } from "../../../rules/abilities.js";
+import { armors } from "../../../data/armors.js";
+import { skills } from "../../../data/skills.js";
+import { SKILL_KEYS } from "../../../domain/ids.js";
+import { getAbilityModifier, getProficiencyBonus } from "../../../rules/abilities.js";
 import { getArmorClass } from "../../../rules/armor.js";
-import { getMaxHitPoints } from "../../../rules/hp.js";
+import { getMaxHitPoints, getMaxHitDice } from "../../../rules/hp.js";
+import { getInitiative, getPassivePerception } from "../../../rules/derived.js";
+import { getSpeed } from "../../../rules/speed.js";
+import { getSize } from "../../../rules/size.js";
+import { getSavingThrow } from "../../../rules/savingThrows.js";
+import { getSkillProficiency, getSkillBonus } from "../../../rules/skills.js";
+import { getSpellcastingAbility, getSpellAttackBonus, getSpellSaveDC } from "../../../rules/spellcasting.js";
+import { getClassProgression } from "../../../rules/classProgression.js";
 import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import type { BuilderStepId } from "../../../rules/builderSteps.js";
@@ -45,6 +55,9 @@ export function Step11Review() {
   const ac = getArmorClass(character);
   const hp = getMaxHitPoints(character);
   const features = getCharacterFeatures(character);
+  const spellcastingAbility = getSpellcastingAbility(character);
+  const progression = getClassProgression(character);
+  const armorName = character.armor.equipped === "unarmed" ? "Sem Armadura" : armors[character.armor.equipped].name;
 
   const editButton = (label: string, stepId: BuilderStepId) => (
     <button type="button" className="review-edit-button" onClick={() => goToStep(stepId)} aria-label={`Editar ${label}`}>
@@ -100,13 +113,57 @@ export function Step11Review() {
 
       <section className="review-block">
         <h3>Combate {editButton("equipamento", "equipment")}</h3>
-        <p>
-          CA {ac.total} · PV máximo {hp.total}
-        </p>
+        <ul className="review-inline-list">
+          <li>PV {hp.total}</li>
+          <li>CA {ac.total}</li>
+          <li>Iniciativa {formatSigned(getInitiative(character).total)}</li>
+          <li>Proficiência {formatSigned(getProficiencyBonus(character.level))}</li>
+          <li>Percepção Passiva {getPassivePerception(character).total}</li>
+          <li>Deslocamento {getSpeed(character).total}m</li>
+          <li>Tamanho {getSize(character).total ?? "—"}</li>
+          <li>Dado de Vida {character.classId ? `d${classes[character.classId].hitDie}` : "—"} ({getMaxHitDice(character)})</li>
+          <li>
+            {armorName}
+            {character.armor.shield ? " + Escudo" : ""}
+          </li>
+        </ul>
       </section>
 
       <section className="review-block">
-        <h3>Features</h3>
+        <h3>Salvaguardas</h3>
+        <ul className="review-inline-list">
+          {ABILITY_KEYS.map((ability) => (
+            <li key={ability}>
+              {character.savingThrows[ability].proficient ? "● " : "○ "}
+              {ABILITY_NAMES[ability]} {formatSigned(getSavingThrow(character, ability).total)}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="review-block">
+        <h3>Perícias {editButton("perícias", "skills")}</h3>
+        <ul className="review-inline-list">
+          {SKILL_KEYS.map((skillId) => (
+            <li key={skillId}>
+              {getSkillProficiency(character, skillId) ? "● " : "○ "}
+              {skills[skillId].name} {formatSigned(getSkillBonus(character, skillId).total)}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="review-block">
+        <h3>Equipamento {editButton("equipamento", "equipment")}</h3>
+        {character.inventory.equipment.trim() ? (
+          <p style={{ whiteSpace: "pre-line" }}>{character.inventory.equipment}</p>
+        ) : (
+          <p className="empty-note">Nenhum equipamento escolhido ainda.</p>
+        )}
+      </section>
+
+      <section className="review-block">
+        <h3>Características</h3>
         {features.length === 0 && <p className="empty-note">Nenhuma feature ainda.</p>}
         <ul className="review-feature-list">
           {features.map((feature) => {
@@ -119,6 +176,27 @@ export function Step11Review() {
           })}
         </ul>
       </section>
+
+      {spellcastingAbility && (
+        <section className="review-block">
+          <h3>Conjuração {editButton("conjuração", "spellcasting")}</h3>
+          <ul className="review-inline-list">
+            <li>Atributo {ABILITY_NAMES[spellcastingAbility]}</li>
+            <li>CD {getSpellSaveDC(character)?.total ?? "—"}</li>
+            <li>Ataque {formatSigned(getSpellAttackBonus(character)?.total ?? 0)}</li>
+            {progression.cantripsKnown !== null && <li>Truques conhecidos {progression.cantripsKnown}</li>}
+            {progression.spellsPreparedMax !== null && <li>Magias preparadas {progression.spellsPreparedMax}</li>}
+          </ul>
+          <p className="review-spell-slots">
+            Espaços de magia:{" "}
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9]
+              .map((circle) => progression.spellSlots[circle as 1])
+              .map((count, i) => (count > 0 ? `${i + 1}º: ${count}` : null))
+              .filter(Boolean)
+              .join(" · ") || "nenhum neste nível"}
+          </p>
+        </section>
+      )}
     </div>
   );
 }

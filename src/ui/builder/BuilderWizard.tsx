@@ -1,6 +1,12 @@
 import { useCharacterStore } from "../../state/characterStore.js";
 import { useBuilderStore } from "../../state/builderStore.js";
 import { BUILDER_STEP_LABELS, type BuilderStepId } from "../../rules/builderSteps.js";
+import { DEMO_CHARACTERS, loadDemoCharacter } from "../../dev/demoCharacters.js";
+
+/** Mesmo padrão de `repositories/supabase/client.ts` — evita depender dos tipos ambientes `vite/client`. */
+function isDevMode(): boolean {
+  return Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV);
+}
 import { Step1BasicInfo } from "./steps/Step1BasicInfo.js";
 import { Step2Class } from "./steps/Step2Class.js";
 import { Step3Subclass } from "./steps/Step3Subclass.js";
@@ -50,6 +56,24 @@ export function BuilderWizard() {
 
   return (
     <div className="builder-wizard" aria-label="Criação de Personagem">
+      {isDevMode() && (
+        <div className="builder-wizard__dev-demo" aria-label="Carregar exemplo (dev)">
+          <span>Carregar exemplo:</span>
+          {DEMO_CHARACTERS.map(({ kind, label }) => (
+            <button
+              key={kind}
+              type="button"
+              onClick={() => {
+                loadDemoCharacter(kind);
+                goToStep("basicInfo");
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <nav className="builder-wizard__steps" aria-label="Etapas">
         <ol>
           {visibleSteps.map((stepId, index) => (
