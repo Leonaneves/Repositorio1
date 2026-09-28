@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canChooseSubclass, getAvailableSubclasses } from "./subclasses.js";
 import { CLASS_IDS } from "../domain/ids.js";
+import { SUBCLASS_FEATURE_LEVELS } from "../data/subclasses.js";
 
 describe("getAvailableSubclasses", () => {
   it("toda classe do escopo tem ao menos 4 subclasses cadastradas", () => {
@@ -53,5 +54,36 @@ describe("canChooseSubclass — regra fixa de nível 3 para todas as classes", (
 
   it.each([3, 4, 20])("nível %i: escolha de subclasse disponível", (level) => {
     expect(canChooseSubclass(level)).toBe(true);
+  });
+});
+
+describe("SUBCLASS_FEATURE_LEVELS — níveis de Característica de Subclasse (base consolidada de classes)", () => {
+  it("as 12 classes confirmadas têm nível 3 na lista (aquisição da subclasse)", () => {
+    for (const classId of CLASS_IDS.filter((id) => id !== "artifice")) {
+      expect(SUBCLASS_FEATURE_LEVELS[classId]).toBeDefined();
+      expect(SUBCLASS_FEATURE_LEVELS[classId]).toContain(3);
+    }
+  });
+
+  it("Artífice fica sem níveis confirmados (fora da base fornecida)", () => {
+    expect(SUBCLASS_FEATURE_LEVELS.artifice).toBeUndefined();
+  });
+
+  it("Clérigo: 3, 6 e 17 (só 2 características de subclasse além da aquisição)", () => {
+    expect(SUBCLASS_FEATURE_LEVELS.clerigo).toEqual([3, 6, 17]);
+  });
+
+  it("Guerreiro: 3, 7, 10, 15 e 18 (a classe com mais características de subclasse)", () => {
+    expect(SUBCLASS_FEATURE_LEVELS.guerreiro).toEqual([3, 7, 10, 15, 18]);
+  });
+
+  it("todo nível está em ordem crescente e dentro de 1–20", () => {
+    for (const levels of Object.values(SUBCLASS_FEATURE_LEVELS)) {
+      expect(levels).toEqual([...levels!].sort((a, b) => a - b));
+      for (const level of levels!) {
+        expect(level).toBeGreaterThanOrEqual(1);
+        expect(level).toBeLessThanOrEqual(20);
+      }
+    }
   });
 });

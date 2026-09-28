@@ -122,3 +122,28 @@ export const SUBCLASS_SPELLCASTERS: ReadonlyArray<{ classId: ClassId; fullName: 
   { classId: "guerreiro", fullName: "Cavaleiro Místico", grantedFromLevel: 3 },
   { classId: "ladino", fullName: "Trapaceiro Arcano", grantedFromLevel: 3 },
 ];
+
+/**
+ * Níveis em que cada classe recebe uma "Característica de Subclasse"
+ * (linhas marcadas assim nas tabelas de progressão da base consolidada
+ * de classes — sempre incluindo o nível 3, quando a subclasse em si é
+ * adquirida). O CONTEÚDO de cada característica (o que ela faz, por
+ * subclasse) ainda não foi confirmado — só o "quando" já é conhecido.
+ * Guardado à parte de `subclassFeatures` (`data/features/subclasses.ts`,
+ * ainda vazio) para não fabricar uma feature sem saber o que ela é;
+ * serve de guia para quando o conteúdo real chegar.
+ */
+export const SUBCLASS_FEATURE_LEVELS: Partial<Record<ClassId, number[]>> = {
+  bardo: [3, 6, 14],
+  barbaro: [3, 6, 10, 14],
+  bruxo: [3, 6, 10, 14],
+  clerigo: [3, 6, 17],
+  druida: [3, 6, 10, 14],
+  feiticeiro: [3, 6, 14, 18],
+  guerreiro: [3, 7, 10, 15, 18],
+  ladino: [3, 9, 13, 17],
+  mago: [3, 6, 10, 14],
+  monge: [3, 6, 11, 17],
+  paladino: [3, 7, 15, 20],
+  patrulheiro: [3, 7, 11, 15],
+};
