@@ -1,7 +1,7 @@
 import { useCharacterStore } from "../../state/characterStore.js";
 import type { SkillKey } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
-import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground } from "../../rules/skills.js";
+import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground, isSkillGrantedByClassChoice } from "../../rules/skills.js";
 import { ComputedField } from "../components/ComputedField.js";
 
 export interface SkillRowProps {
@@ -19,17 +19,27 @@ export function SkillRow({ skillId }: SkillRowProps) {
   const state = character.skills[skillId];
   const proficient = getSkillProficiency(character, skillId);
   const grantedByBackground = isSkillGrantedByBackground(character, skillId);
+  const grantedByClassChoice = isSkillGrantedByClassChoice(character, skillId);
+  const grantedByOrigin = grantedByBackground || grantedByClassChoice;
 
   return (
     <li className="trait-row">
       <label
         className="trait-row__check"
-        title={grantedByBackground ? "Concedida pelo antecedente atual (ainda editável)" : undefined}
+        title={
+          grantedByBackground && grantedByClassChoice
+            ? "Concedida pelo antecedente e pela escolha de perícias de classe (ainda editável)"
+            : grantedByBackground
+              ? "Concedida pelo antecedente atual (ainda editável)"
+              : grantedByClassChoice
+                ? "Concedida pela escolha de perícias de classe (ainda editável)"
+                : undefined
+        }
       >
         <input type="checkbox" checked={proficient} onChange={(e) => setSkillManualOverride(skillId, e.target.checked)} />
         <span>
           {definition.name}
-          {grantedByBackground && (
+          {grantedByOrigin && (
             <span className="trait-row__origin-dot" aria-hidden="true">
               {" "}
               •

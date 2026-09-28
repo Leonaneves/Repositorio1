@@ -1,4 +1,6 @@
+import { CLASS_IDS } from "../../domain/ids.js";
 import type { FeatureDefinition } from "../../domain/features.js";
+import { classes, getClassSkillChoiceId } from "../classes.js";
 
 /**
  * Features de CLASSE já confirmadas nesta etapa: só as duas cujos
@@ -10,7 +12,7 @@ import type { FeatureDefinition } from "../../domain/features.js";
  * de pendências). `getClassFeatures` (rules/features.ts) já está pronta
  * para receber o restante sem precisar mudar de formato.
  */
-export const classFeatures: FeatureDefinition[] = [
+const mechanicalClassFeatures: FeatureDefinition[] = [
   {
     id: "barbaro-movimento-rapido",
     name: "Movimento Rápido",
@@ -31,3 +33,38 @@ export const classFeatures: FeatureDefinition[] = [
       "Bônus de deslocamento sem armadura nem escudo, crescente por nível (+3m no 2º, +4,5m no 6º, +6m no 10º, +7,5m no 14º, +9m no 18º — já calculado por rules/speed.ts).",
   },
 ];
+
+/**
+ * Uma feature "Perícias de Classe" por classe com `skillChoice`
+ * confirmado (base consolidada de classes) — sempre no nível 1,
+ * sempre com uma única `FeatureChoice` do tipo `skillProficiency`. A
+ * seleção do jogador (`character.featureChoiceSelections[choiceId]`)
+ * é lida por `rules/skills.ts#isSkillGrantedByClassChoice`, que usa o
+ * mesmo id (`getClassSkillChoiceId`) — nunca duplicamos a escolha em
+ * dois lugares.
+ */
+const classSkillChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId) => classes[classId].skillChoice !== undefined).map(
+  (classId) => {
+    const skillChoice = classes[classId].skillChoice!;
+    return {
+      id: `${classId}-pericias-de-classe`,
+      name: "Perícias de Classe",
+      sourceType: "class",
+      classId,
+      level: 1,
+      autoGranted: false,
+      summary: `Escolha ${skillChoice.count} ${skillChoice.count === 1 ? "perícia" : "perícias"}${
+        skillChoice.from === "any" ? " quaisquer" : ""
+      }.`,
+      choices: [
+        {
+          id: getClassSkillChoiceId(classId),
+          prompt: `Escolha ${skillChoice.count} ${skillChoice.count === 1 ? "perícia" : "perícias"} de ${classes[classId].name}`,
+          effect: { kind: "skillProficiency", options: skillChoice.from, count: skillChoice.count },
+        },
+      ],
+    } satisfies FeatureDefinition;
+  },
+);
+
+export const classFeatures: FeatureDefinition[] = [...mechanicalClassFeatures, ...classSkillChoiceFeatures];

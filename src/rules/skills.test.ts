@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground } from "./skills.js";
+import { getClassSkillChoiceId } from "../data/classes.js";
+import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground, isSkillGrantedByClassChoice } from "./skills.js";
 
 function characterAt(level: number) {
   const character = createBlankCharacter("skills-test");
@@ -105,5 +106,47 @@ describe("isSkillGrantedByBackground / getSkillProficiency (§1.1 — fontes de 
   it("sem antecedente escolhido, nenhuma perícia é concedida automaticamente", () => {
     const character = createBlankCharacter("t");
     expect(isSkillGrantedByBackground(character, "arcanismo")).toBe(false);
+  });
+});
+
+describe("isSkillGrantedByClassChoice / getSkillProficiency — escolha de Perícias de Classe (base consolidada)", () => {
+  it("perícia escolhida na feature de classe conta como proficiente", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro"; // escolhe 2 entre uma lista, sem relação com "any"
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo", "intimidacao"] };
+
+    expect(isSkillGrantedByClassChoice(character, "atletismo")).toBe(true);
+    expect(isSkillGrantedByClassChoice(character, "intimidacao")).toBe(true);
+    expect(isSkillGrantedByClassChoice(character, "historia")).toBe(false);
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+  });
+
+  it("sem classe, ou classe sem skillChoice confirmado (Artífice), nunca concede nada por essa fonte", () => {
+    const semClasse = createBlankCharacter("t");
+    expect(isSkillGrantedByClassChoice(semClasse, "atletismo")).toBe(false);
+
+    const artifice = createBlankCharacter("t");
+    artifice.classId = "artifice";
+    expect(isSkillGrantedByClassChoice(artifice, "arcanismo")).toBe(false);
+  });
+
+  it("trocar de classe some com a proficiência da classe anterior, sem apagar override manual nem a do antecedente", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+
+    character.classId = "mago"; // não escolheu Atletismo para o Mago
+    expect(getSkillProficiency(character, "atletismo")).toBe(false);
+  });
+
+  it("antecedente E escolha de classe apontando para a mesma perícia continuam sendo só uma fonte 'true' (nunca dobra nada)", () => {
+    const character = createBlankCharacter("t");
+    character.backgroundId = "guarda"; // Atletismo, Percepção
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+    expect(character.skills.atletismo.expertise).toBe(false); // expertise continua exigindo escolha explícita do jogador
   });
 });

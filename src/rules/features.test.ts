@@ -11,33 +11,35 @@ import {
 } from "./features.js";
 
 describe("getClassFeatures — progressão por nível", () => {
-  it("Bárbaro nível 4 ainda não tem Movimento Rápido (chega no 5)", () => {
+  it("Bárbaro nível 4 já tem a escolha de Perícias de Classe (nível 1), mas ainda não Movimento Rápido (chega no 5)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "barbaro";
     character.level = 4;
-    expect(getClassFeatures(character)).toHaveLength(0);
+    expect(getClassFeatures(character).map((f) => f.id)).toEqual(["barbaro-pericias-de-classe"]);
   });
 
-  it("Bárbaro nível 5 já tem Movimento Rápido", () => {
+  it("Bárbaro nível 5 já tem Movimento Rápido, além da escolha de Perícias de Classe", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "barbaro";
     character.level = 5;
     const features = getClassFeatures(character);
-    expect(features.map((f) => f.id)).toEqual(["barbaro-movimento-rapido"]);
+    expect(features.map((f) => f.id).sort()).toEqual(["barbaro-movimento-rapido", "barbaro-pericias-de-classe"].sort());
   });
 
-  it("Monge nível 1 ainda não tem Movimento sem Armadura (chega no 2)", () => {
+  it("Monge nível 1 já tem a escolha de Perícias de Classe, mas ainda não Movimento sem Armadura (chega no 2)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "monge";
     character.level = 1;
-    expect(getClassFeatures(character)).toHaveLength(0);
+    expect(getClassFeatures(character).map((f) => f.id)).toEqual(["monge-pericias-de-classe"]);
   });
 
-  it("Monge nível 2+ tem Movimento sem Armadura", () => {
+  it("Monge nível 2+ tem Movimento sem Armadura, além da escolha de Perícias de Classe", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "monge";
     character.level = 20;
-    expect(getClassFeatures(character).map((f) => f.id)).toEqual(["monge-movimento-sem-armadura"]);
+    expect(getClassFeatures(character).map((f) => f.id).sort()).toEqual(
+      ["monge-movimento-sem-armadura", "monge-pericias-de-classe"].sort(),
+    );
   });
 
   it("sem classe definida, nenhuma feature", () => {
@@ -45,9 +47,9 @@ describe("getClassFeatures — progressão por nível", () => {
     expect(getClassFeatures(character)).toHaveLength(0);
   });
 
-  it("classe sem features cadastradas (ex.: Guerreiro) não quebra, só devolve vazio", () => {
+  it("classe sem dados confirmados (Artífice, fora da base consolidada) não quebra, só devolve vazio", () => {
     const character = createBlankCharacter("features-test");
-    character.classId = "guerreiro";
+    character.classId = "artifice";
     character.level = 10;
     expect(getClassFeatures(character)).toEqual([]);
   });
@@ -106,7 +108,12 @@ describe("getCharacterFeatures — junta todas as fontes sem duplicar", () => {
     character.backgroundId = "soldado";
     const features = getCharacterFeatures(character);
     expect(features.map((f) => f.id).sort()).toEqual(
-      ["barbaro-movimento-rapido", "antecedente-soldado-talento-origem", "especie-golias-tracos"].sort(),
+      [
+        "barbaro-movimento-rapido",
+        "barbaro-pericias-de-classe",
+        "antecedente-soldado-talento-origem",
+        "especie-golias-tracos",
+      ].sort(),
     );
   });
 });

@@ -47,11 +47,18 @@ describe("isStepVisible — Conjuração (condicional, depende do atributo de co
 });
 
 describe("isStepVisible — Características e Talentos (condicional, precisa de FeatureChoice pendente)", () => {
-  it("some quando nenhuma feature atual tem escolha (nenhuma feature cadastrada tem choices ainda)", () => {
+  it("some quando a classe não tem nenhuma escolha de feature confirmada (Artífice, fora da base consolidada)", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "artifice";
+    character.level = 5;
+    expect(isStepVisible("featuresAndTalents", character)).toBe(false);
+  });
+
+  it("aparece quando a classe tem a escolha de Perícias de Classe (Bárbaro, sempre desde o nível 1)", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "barbaro";
-    character.level = 5; // já tem Movimento Rápido, mas sem escolha
-    expect(isStepVisible("featuresAndTalents", character)).toBe(false);
+    character.level = 5;
+    expect(isStepVisible("featuresAndTalents", character)).toBe(true);
   });
 });
 
@@ -70,14 +77,15 @@ describe("getVisibleSteps", () => {
     ]);
   });
 
-  it("Mago nível 3: soma Subclasse e Conjuração (10 etapas)", () => {
+  it("Mago nível 3: soma Subclasse, Conjuração e Características e Talentos (a escolha de Perícias de Classe do Mago) — as 11 etapas", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "mago";
     character.level = 3;
     const steps = getVisibleSteps(character);
     expect(steps).toContain("subclass");
     expect(steps).toContain("spellcasting");
-    expect(steps).toHaveLength(10);
+    expect(steps).toContain("featuresAndTalents");
+    expect(steps).toHaveLength(11);
   });
 
   it("respeita sempre a ordem canônica das 11 etapas", () => {
