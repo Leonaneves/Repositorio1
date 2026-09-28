@@ -20,6 +20,22 @@ export interface ClassSkillChoice {
 }
 
 /**
+ * Escolha de FERRAMENTA/INSTRUMENTO de classe (Bardo: 3 Instrumentos
+ * Musicais; Monge: 1 Ferramenta de Artesão OU Instrumento Musical) —
+ * distinta de uma concessão automática fixa (`toolProficiencyText`
+ * sozinho, ex.: Druida → Kit de Herbalismo, Ladino → Ferramentas de
+ * Ladrão). Sem catálogo de instrumentos/ferramentas ainda, então
+ * `optionsText` descreve o universo permitido em texto — a escolha em
+ * si (uma `FeatureChoice` de `data/features/classes.ts`) é sempre uma
+ * entrada de texto livre marcada como tal, nunca inventamos uma lista
+ * de opções.
+ */
+export interface ClassToolChoice {
+  count: number;
+  optionsText: string;
+}
+
+/**
  * Uma opção de equipamento inicial (A/B/C). Itens ficam em texto livre
  * — não existe ainda catálogo de kits/armaduras/instrumentos (só o de
  * armas, `data/weapons.ts`) — por isso não são referências
@@ -47,6 +63,8 @@ export interface ClassDefinition {
   toolProficiencyText: string | null;
   /** `undefined` = ainda não confirmado com fonte (ex.: Artífice) — nunca inventado. */
   skillChoice?: ClassSkillChoice;
+  /** `undefined` = a classe não tem escolha de ferramenta/instrumento (concessão fixa, ou nenhuma) — ver `toolProficiencyText`. */
+  toolChoice?: ClassToolChoice;
   /** `undefined` = ainda não confirmado com fonte. */
   startingEquipment?: StartingEquipmentOption[];
   /**
@@ -111,6 +129,7 @@ export const classes: Record<ClassId, ClassDefinition> = {
     weaponProficiencyText: "Armas Simples",
     toolProficiencyText: "3 Instrumentos Musicais à escolha",
     skillChoice: { count: 3, from: "any" },
+    toolChoice: { count: 3, optionsText: "Instrumentos Musicais" },
     startingEquipment: [
       { id: "A", items: ["Armadura de Couro", "2 Adagas", "Instrumento Musical à sua escolha", "Kit de Artista"], gold: 19 },
       { id: "B", items: [], gold: 90 },
@@ -273,6 +292,7 @@ export const classes: Record<ClassId, ClassDefinition> = {
     weaponProficiencyText: "Armas Simples e Armas Marciais com propriedade Leve",
     toolProficiencyText: "1 Ferramenta de Artesão ou Instrumento Musical à escolha",
     skillChoice: { count: 2, from: ["acrobacia", "atletismo", "furtividade", "historia", "intuicao", "religiao"] },
+    toolChoice: { count: 1, optionsText: "Ferramenta de Artesão OU Instrumento Musical" },
     startingEquipment: [
       { id: "A", items: ["Lança", "5 Adagas", "Ferramenta de Artesão ou Instrumento Musical escolhido", "Kit de Aventureiro"], gold: 11 },
       { id: "B", items: [], gold: 50 },
@@ -336,4 +356,9 @@ export const classList: ClassDefinition[] = CLASS_IDS.map((id) => classes[id]);
 /** Id estável da escolha de perícias de classe — usado tanto pela feature (data/features/classes.ts) quanto por rules/skills.ts para ler a seleção do jogador. */
 export function getClassSkillChoiceId(classId: ClassId): string {
   return `classe-${classId}-pericias`;
+}
+
+/** Id estável da escolha de ferramenta/instrumento de classe — mesma convenção de `getClassSkillChoiceId`. */
+export function getClassToolChoiceId(classId: ClassId): string {
+  return `classe-${classId}-ferramentas`;
 }

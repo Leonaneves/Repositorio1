@@ -1,6 +1,6 @@
 import { CLASS_IDS, type ClassId } from "../../domain/ids.js";
 import type { FeatureDefinition } from "../../domain/features.js";
-import { classes, getClassSkillChoiceId } from "../classes.js";
+import { classes, getClassSkillChoiceId, getClassToolChoiceId } from "../classes.js";
 
 /**
  * Features de CLASSE cujo efeito mecânico já está implementado em
@@ -56,6 +56,39 @@ const classSkillChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId)
           id: getClassSkillChoiceId(classId),
           prompt: `Escolha ${skillChoice.count} ${skillChoice.count === 1 ? "perícia" : "perícias"} de ${classes[classId].name}`,
           effect: { kind: "skillProficiency", options: skillChoice.from, count: skillChoice.count },
+        },
+      ],
+    } satisfies FeatureDefinition;
+  },
+);
+
+/**
+ * Uma feature "Ferramentas de Classe" por classe com `toolChoice`
+ * confirmado (Bardo: 3 Instrumentos Musicais; Monge: 1 Ferramenta de
+ * Artesão OU Instrumento Musical) — sempre nível 1, sempre com uma
+ * `FeatureChoice` do tipo `toolProficiency` (entrada de texto livre:
+ * não existe catálogo de instrumentos/ferramentas ainda, então o
+ * jogador escreve, nunca escolhe de uma lista inventada). Classes com
+ * concessão automática fixa (ex.: Druida → Kit de Herbalismo, Ladino →
+ * Ferramentas de Ladrão) não entram aqui — não há escolha nenhuma a
+ * registrar, só `toolProficiencyText`.
+ */
+const classToolChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId) => classes[classId].toolChoice !== undefined).map(
+  (classId) => {
+    const toolChoice = classes[classId].toolChoice!;
+    return {
+      id: `${classId}-ferramentas-de-classe`,
+      name: "Ferramentas de Classe",
+      sourceType: "class",
+      classId,
+      level: 1,
+      autoGranted: false,
+      summary: `Escolha ${toolChoice.count} ${toolChoice.count === 1 ? "ferramenta" : "ferramentas"}: ${toolChoice.optionsText}.`,
+      choices: [
+        {
+          id: getClassToolChoiceId(classId),
+          prompt: `Escolha ${toolChoice.count} ${toolChoice.count === 1 ? "ferramenta" : "ferramentas"} de ${classes[classId].name} (${toolChoice.optionsText})`,
+          effect: { kind: "toolProficiency", optionsText: toolChoice.optionsText, count: toolChoice.count },
         },
       ],
     } satisfies FeatureDefinition;
@@ -354,6 +387,7 @@ const epicBoonFeatures: FeatureDefinition[] = DADIVA_EPICA_CLASSES.map(
 export const classFeatures: FeatureDefinition[] = [
   ...mechanicalClassFeatures,
   ...classSkillChoiceFeatures,
+  ...classToolChoiceFeatures,
   ...namedClassFeatures,
   ...abilityScoreImprovementFeatures,
   ...epicBoonFeatures,

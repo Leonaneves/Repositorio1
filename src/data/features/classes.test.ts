@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CLASS_IDS } from "../../domain/ids.js";
-import { classes, getClassSkillChoiceId } from "../classes.js";
+import { classes, getClassSkillChoiceId, getClassToolChoiceId } from "../classes.js";
 import { classFeatures } from "./classes.js";
 
 const CONFIRMED_CLASS_IDS = CLASS_IDS.filter((id) => id !== "artifice");
@@ -33,6 +33,35 @@ describe("classFeatures — 'Perícias de Classe' gerada a partir de classes[].s
     for (const feature of classFeatures.filter((f) => f.name === "Perícias de Classe")) {
       expect(feature.level).toBe(1);
     }
+  });
+});
+
+describe("classFeatures — 'Ferramentas de Classe' gerada a partir de classes[].toolChoice", () => {
+  it("só Bardo e Monge têm toolChoice confirmado, e só eles geram 'Ferramentas de Classe'", () => {
+    const toolChoiceFeatures = classFeatures.filter((f) => f.name === "Ferramentas de Classe");
+    expect(toolChoiceFeatures.map((f) => f.classId).sort()).toEqual(["bardo", "monge"]);
+  });
+
+  it("Bardo: escolha de 3, effect toolProficiency com o texto correto", () => {
+    const feature = classFeatures.find((f) => f.classId === "bardo" && f.name === "Ferramentas de Classe");
+    expect(feature?.level).toBe(1);
+    expect(feature?.choices).toHaveLength(1);
+    expect(feature?.choices?.[0].effect).toEqual({ kind: "toolProficiency", optionsText: "Instrumentos Musicais", count: 3 });
+    expect(feature?.choices?.[0].id).toBe(getClassToolChoiceId("bardo"));
+  });
+
+  it("Monge: escolha de 1, 'Ferramenta de Artesão OU Instrumento Musical'", () => {
+    const feature = classFeatures.find((f) => f.classId === "monge" && f.name === "Ferramentas de Classe");
+    expect(feature?.choices?.[0].effect).toEqual({
+      kind: "toolProficiency",
+      optionsText: "Ferramenta de Artesão OU Instrumento Musical",
+      count: 1,
+    });
+  });
+
+  it("Druida e Ladino (concessão automática fixa) não geram 'Ferramentas de Classe'", () => {
+    expect(classFeatures.some((f) => f.classId === "druida" && f.name === "Ferramentas de Classe")).toBe(false);
+    expect(classFeatures.some((f) => f.classId === "ladino" && f.name === "Ferramentas de Classe")).toBe(false);
   });
 });
 
