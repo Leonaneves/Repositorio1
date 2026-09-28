@@ -676,3 +676,228 @@ select:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   Character Builder (11 etapas) — funcional, sem tentar imitar
+   visualmente a ficha original (decisão de escopo: só o PDF exportado
+   precisa disso). Reaproveita os mesmos tokens/campos genéricos acima.
+   ============================================================ */
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--sheet-bg);
+}
+
+.app-mode-switch {
+  display: flex;
+  gap: var(--space-2xs);
+  padding: var(--space-sm) var(--space-lg) 0;
+}
+
+.app-mode-switch button {
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  padding: var(--space-2xs) var(--space-md);
+  border: var(--border-width) solid var(--border-color);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--field-bg-readonly);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.app-mode-switch button[aria-pressed="true"] {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.builder-wizard {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-lg);
+}
+
+.builder-wizard__steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.builder-wizard__steps button {
+  width: 100%;
+  text-align: left;
+  font-size: var(--text-sm);
+  padding: var(--space-2xs) var(--space-xs);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.builder-wizard__steps li.is-current button {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.builder-wizard__content {
+  background: var(--card-bg);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.builder-wizard__content h2 {
+  margin-top: 0;
+  font-size: var(--text-lg);
+}
+
+.builder-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.builder-step__hint {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  white-space: pre-line;
+}
+
+.builder-step__traits {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  white-space: pre-wrap;
+  background: var(--field-bg-readonly);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  margin: 0;
+}
+
+.builder-wizard__nav {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ability-generation-mode {
+  display: flex;
+  gap: var(--space-md);
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.radio-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  font-size: var(--text-sm);
+}
+
+.ability-draft-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+}
+
+.skills-by-ability {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+}
+
+.skills-by-ability legend {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  padding: 0 var(--space-2xs);
+}
+
+.feature-card {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+}
+
+.feature-card__origin {
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.feature-choice {
+  margin-top: var(--space-xs);
+}
+
+.attack-row,
+.attuned-item-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) auto;
+  gap: var(--space-2xs);
+  align-items: center;
+  margin-bottom: var(--space-2xs);
+}
+
+.coin-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.field--coin input {
+  width: 5rem;
+}
+
+.review-block {
+  margin-bottom: var(--space-md);
+}
+
+.review-block h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-md);
+  margin-bottom: var(--space-2xs);
+}
+
+.review-edit-button {
+  font-size: var(--text-xs);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--field-bg);
+  cursor: pointer;
+}
+
+.review-ability-list,
+.review-feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
+  .builder-wizard {
+    grid-template-columns: 1fr;
+  }
+
+  .ability-draft-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
