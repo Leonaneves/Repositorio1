@@ -27,7 +27,9 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     const selected = Array.isArray(selection?.value) ? selection.value : [];
     return (
       <fieldset className="feature-choice">
-        <legend>{choice.prompt}</legend>
+        <legend>
+          {choice.prompt} ({selected.length}/{effect.count})
+        </legend>
         {options.map((skillId) => (
           <label key={skillId} className="checkbox-field checkbox-field--compact">
             <input

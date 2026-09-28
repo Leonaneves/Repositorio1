@@ -1,5 +1,5 @@
 import type { Character } from "../domain/character.js";
-import type { FeatureDefinition, FeatureView } from "../domain/features.js";
+import type { FeatureChoice, FeatureDefinition, FeatureView } from "../domain/features.js";
 import { backgroundFeatFeatures } from "../data/features/backgrounds.js";
 import { classFeatures } from "../data/features/classes.js";
 import { generalFeats } from "../data/features/feats.js";
@@ -48,6 +48,41 @@ export function getCharacterFeatures(character: Character): FeatureDefinition[] 
     ...getBackgroundFeatures(character),
     ...getChosenFeatFeatures(character),
   ];
+}
+
+/**
+ * Se uma `FeatureChoice` já foi respondida "por completo" — usado para
+ * travar o avanço do Builder (decisão §5/§11: "impedir avanço enquanto
+ * uma escolha obrigatória estiver incompleta", nunca só "classe já
+ * selecionada"). `manualText` nunca bloqueia: não há catálogo para
+ * validar contra, então fica sempre como opcional/informativo por ora.
+ */
+export function isFeatureChoiceComplete(choice: FeatureChoice, character: Character): boolean {
+  const selection = character.featureChoiceSelections[choice.id]?.value;
+
+  if (choice.effect.kind === "skillProficiency") {
+    const selected = Array.isArray(selection) ? selection : [];
+    return selected.length === choice.effect.count;
+  }
+  if (choice.effect.kind === "toolProficiency" || choice.effect.kind === "weaponPicker") {
+    return typeof selection === "string" && selection.trim().length > 0;
+  }
+  return true; // manualText: sem catálogo para validar, nunca bloqueia.
+}
+
+/** Se TODAS as escolhas de uma feature já foram respondidas. */
+export function isFeatureComplete(feature: FeatureDefinition, character: Character): boolean {
+  return (feature.choices ?? []).every((choice) => isFeatureChoiceComplete(choice, character));
+}
+
+/**
+ * As features do personagem que ainda têm ao menos uma `FeatureChoice`
+ * pendente (skillProficiency/toolProficiency/weaponPicker sem resposta
+ * completa) — é o que faz a etapa "Características e Talentos" do
+ * Builder travar o "Avançar" até o jogador resolver.
+ */
+export function getIncompleteRequiredChoices(character: Character): FeatureDefinition[] {
+  return getCharacterFeatures(character).filter((feature) => !isFeatureComplete(feature, character));
 }
 
 const ORIGIN_LABELS: Record<FeatureDefinition["sourceType"], string> = {

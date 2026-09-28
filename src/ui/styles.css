@@ -789,6 +789,18 @@ select:focus-visible {
   grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.builder-wizard__nav-next {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.builder-wizard__nav-hint {
+  font-size: var(--text-xs);
+  color: var(--danger);
 }
 
 .ability-generation-mode {

@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
+import { getClassSkillChoiceId, getClassToolChoiceId } from "../data/classes.js";
 import {
   getBackgroundFeatures,
   getCharacterFeatures,
   getChosenFeatFeatures,
   getClassFeatures,
   getFeatureView,
+  getIncompleteRequiredChoices,
   getSpeciesFeatures,
   getSubclassFeatures,
+  isFeatureChoiceComplete,
+  isFeatureComplete,
 } from "./features.js";
 
 describe("getClassFeatures — progressão por nível", () => {
@@ -167,5 +171,70 @@ describe("getFeatureView — visão explicável, não só uma lista", () => {
     character.backgroundId = "sabio";
     const [feature] = getBackgroundFeatures(character);
     expect(getFeatureView(feature).originLabel).toBe("Talento");
+  });
+});
+
+describe("isFeatureChoiceComplete / isFeatureComplete / getIncompleteRequiredChoices — trava do Builder (§5/§11)", () => {
+  it("skillProficiency: incompleto enquanto a contagem exata não for atingida", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "guerreiro"; // escolhe 2
+    const feature = getClassFeatures(character).find((f) => f.name === "Perícias de Classe")!;
+    const choice = feature.choices![0];
+
+    expect(isFeatureChoiceComplete(choice, character)).toBe(false);
+
+    character.featureChoiceSelections[choice.id] = { value: ["atletismo"] };
+    expect(isFeatureChoiceComplete(choice, character)).toBe(false); // só 1 de 2
+
+    character.featureChoiceSelections[choice.id] = { value: ["atletismo", "intimidacao"] };
+    expect(isFeatureChoiceComplete(choice, character)).toBe(true);
+  });
+
+  it("toolProficiency: completo com qualquer texto não vazio", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "bardo";
+    const feature = getClassFeatures(character).find((f) => f.name === "Ferramentas de Classe")!;
+    const choice = feature.choices![0];
+
+    expect(isFeatureChoiceComplete(choice, character)).toBe(false);
+
+    character.featureChoiceSelections[choice.id] = { value: "  " }; // só espaço não conta
+    expect(isFeatureChoiceComplete(choice, character)).toBe(false);
+
+    character.featureChoiceSelections[choice.id] = { value: "Alaúde" };
+    expect(isFeatureChoiceComplete(choice, character)).toBe(true);
+  });
+
+  it("manualText (ASI/Dádiva Épica) nunca bloqueia — sem catálogo para validar contra", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "mago";
+    character.level = 4;
+    const asi = getClassFeatures(character).find((f) => f.id === "mago-asi-4")!;
+    expect(isFeatureComplete(asi, character)).toBe(true);
+  });
+
+  it("getIncompleteRequiredChoices: Guerreiro recém-criado tem Perícias de Classe pendente", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "guerreiro";
+    const incomplete = getIncompleteRequiredChoices(character);
+    expect(incomplete.some((f) => f.name === "Perícias de Classe")).toBe(true);
+  });
+
+  it("getIncompleteRequiredChoices: fica vazio depois que a escolha é respondida por completo", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo", "intimidacao"] };
+    expect(getIncompleteRequiredChoices(character)).toEqual([]);
+  });
+
+  it("getIncompleteRequiredChoices: Bardo continua pendente enquanto só resolver perícias, faltando ferramentas", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "bardo";
+    character.featureChoiceSelections[getClassSkillChoiceId("bardo")] = { value: ["acrobacia", "atletismo", "enganacao"] };
+    const incomplete = getIncompleteRequiredChoices(character);
+    expect(incomplete.some((f) => f.name === "Ferramentas de Classe")).toBe(true);
+
+    character.featureChoiceSelections[getClassToolChoiceId("bardo")] = { value: "Alaúde, Flauta, Tambor" };
+    expect(getIncompleteRequiredChoices(character)).toEqual([]);
   });
 });

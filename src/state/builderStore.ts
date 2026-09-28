@@ -6,6 +6,7 @@ import {
   type DraftAbilityScores,
 } from "../rules/abilityGeneration.js";
 import { BUILDER_STEP_ORDER, getVisibleSteps, type BuilderStepId } from "../rules/builderSteps.js";
+import { getIncompleteRequiredChoices } from "../rules/features.js";
 import { useCharacterStore } from "./characterStore.js";
 
 export type { AbilityGenerationMode };
@@ -44,6 +45,14 @@ interface BuilderStore {
   visibleSteps: () => BuilderStepId[];
   isFirstStep: () => boolean;
   isLastStep: () => boolean;
+  /**
+   * Se a etapa ATUAL já resolveu toda decisão obrigatória dela (decisão
+   * §5/§11: nunca só "classe já selecionada"). Por ora a única etapa com
+   * essa checagem é "featuresAndTalents" (escolhas de perícia/ferramenta
+   * de classe, via `rules/features.ts#getIncompleteRequiredChoices`) —
+   * as demais etapas continuam sem trava adicional.
+   */
+  canAdvance: () => boolean;
 }
 
 export const useBuilderStore = create<BuilderStore>((set, get) => ({
@@ -84,6 +93,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
   goNext: () =>
     set((state) => {
+      if (!get().canAdvance()) return state;
       const steps = getVisibleSteps(useCharacterStore.getState().character);
       const index = steps.indexOf(state.currentStepId);
       const next = steps[index + 1];
@@ -108,5 +118,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   isLastStep: () => {
     const steps = getVisibleSteps(useCharacterStore.getState().character);
     return steps.indexOf(get().currentStepId) === steps.length - 1;
+  },
+
+  canAdvance: () => {
+    const currentStepId = get().currentStepId;
+    if (currentStepId !== "featuresAndTalents") return true;
+    return getIncompleteRequiredChoices(useCharacterStore.getState().character).length === 0;
   },
 }));

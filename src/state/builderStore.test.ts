@@ -140,3 +140,39 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
     expect(useBuilderStore.getState().currentStepId).toBe("equipment");
   });
 });
+
+describe("useBuilderStore — canAdvance/goNext travam em 'featuresAndTalents' com escolha obrigatória pendente (§5/§11)", () => {
+  it("canAdvance() é true fora da etapa 'featuresAndTalents', mesmo com escolhas pendentes em outras classes/etapas", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro"); // tem Perícias de Classe pendente
+    store.goToStep("abilities");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("canAdvance() é false em 'featuresAndTalents' com Perícias de Classe do Guerreiro pendente", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro");
+    store.goToStep("featuresAndTalents");
+    expect(store.canAdvance()).toBe(false);
+  });
+
+  it("goNext não sai de 'featuresAndTalents' enquanto a escolha não for respondida por completo", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro");
+    store.goToStep("featuresAndTalents");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("featuresAndTalents"); // não avançou
+  });
+
+  it("goNext avança normalmente depois que a escolha de perícias é completada", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro");
+    store.goToStep("featuresAndTalents");
+
+    const setFeatureChoiceSelection = useCharacterStore.getState().setFeatureChoiceSelection;
+    setFeatureChoiceSelection("classe-guerreiro-pericias", ["atletismo", "intimidacao"]);
+
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).not.toBe("featuresAndTalents");
+  });
+});

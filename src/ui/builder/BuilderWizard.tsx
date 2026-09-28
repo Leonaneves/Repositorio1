@@ -43,6 +43,7 @@ export function BuilderWizard() {
   const goBack = useBuilderStore((s) => s.goBack);
   const isFirstStep = useBuilderStore((s) => s.isFirstStep);
   const isLastStep = useBuilderStore((s) => s.isLastStep);
+  const canAdvance = useBuilderStore((s) => s.canAdvance);
   const visibleSteps = useBuilderStore((s) => s.visibleSteps)();
 
   const StepComponent = STEP_COMPONENTS[currentStepId];
@@ -70,9 +71,12 @@ export function BuilderWizard() {
         <button type="button" onClick={goBack} disabled={isFirstStep()}>
           Voltar
         </button>
-        <button type="button" onClick={goNext} disabled={isLastStep()}>
-          Avançar
-        </button>
+        <div className="builder-wizard__nav-next">
+          {!canAdvance() && <span className="builder-wizard__nav-hint">Resolva as escolhas obrigatórias desta etapa para continuar.</span>}
+          <button type="button" onClick={goNext} disabled={isLastStep() || !canAdvance()}>
+            Avançar
+          </button>
+        </div>
       </div>
     </div>
   );
