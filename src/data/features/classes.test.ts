@@ -12,8 +12,9 @@ describe("classFeatures — 'Perícias de Classe' gerada a partir de classes[].s
     expect(skillChoiceFeatures).toHaveLength(classesWithSkillChoice.length);
   });
 
-  it("Artífice não gera 'Perícias de Classe' (sem skillChoice confirmado)", () => {
-    expect(classFeatures.some((f) => f.classId === "artifice" && f.name === "Perícias de Classe")).toBe(false);
+  it("Artífice: escolha de 2 perícias entre as 7 da fonte própria do Artífice", () => {
+    const feature = classFeatures.find((f) => f.classId === "artifice" && f.name === "Perícias de Classe");
+    expect(feature?.choices?.[0].effect).toEqual({ kind: "skillProficiency", options: classes.artifice.skillChoice!.from, count: 2 });
   });
 
   it("Bardo: 1 FeatureChoice skillProficiency com count=3 e options='any'", () => {
@@ -37,9 +38,14 @@ describe("classFeatures — 'Perícias de Classe' gerada a partir de classes[].s
 });
 
 describe("classFeatures — 'Ferramentas de Classe' gerada a partir de classes[].toolChoice", () => {
-  it("só Bardo e Monge têm toolChoice confirmado, e só eles geram 'Ferramentas de Classe'", () => {
+  it("Bardo, Monge e Artífice têm toolChoice confirmado, e só eles geram 'Ferramentas de Classe'", () => {
     const toolChoiceFeatures = classFeatures.filter((f) => f.name === "Ferramentas de Classe");
-    expect(toolChoiceFeatures.map((f) => f.classId).sort()).toEqual(["bardo", "monge"]);
+    expect(toolChoiceFeatures.map((f) => f.classId).sort()).toEqual(["artifice", "bardo", "monge"]);
+  });
+
+  it("Artífice: escolha de 1, 'Ferramenta de Artesão'", () => {
+    const feature = classFeatures.find((f) => f.classId === "artifice" && f.name === "Ferramentas de Classe");
+    expect(feature?.choices?.[0].effect).toEqual({ kind: "toolProficiency", optionsText: "Ferramenta de Artesão", count: 1 });
   });
 
   it("Bardo: escolha de 3, effect toolProficiency com o texto correto", () => {
@@ -103,8 +109,42 @@ describe("classFeatures — nomes e níveis das 12 classes da base consolidada",
     expect(indomavel.map((f) => f.level ?? 0).sort((a, b) => a - b)).toEqual([9, 13, 17]);
   });
 
-  it("Artífice (fora da base) não ganha nenhuma feature nomeada/ASI/Dádiva Épica", () => {
-    expect(classFeatures.filter((f) => f.classId === "artifice")).toHaveLength(0);
+  it("Artífice: features nomeadas da fonte própria (nível 1 a 20), sem Dádiva Épica", () => {
+    const artificeFeatureNames = classFeatures.filter((f) => f.classId === "artifice").map((f) => f.name);
+    expect(artificeFeatureNames).toEqual(
+      expect.arrayContaining([
+        "Ajustes Mágicos",
+        "Conjuração",
+        "Infundir Item",
+        "A Ferramenta Certa para o Trabalho",
+        "Especialização em Ferramentas",
+        "Lampejo de Gênio",
+        "Adepto de Itens Mágicos",
+        "Item de Armazenar Magia",
+        "Sábio dos Itens Mágicos",
+        "Mestre dos Itens Mágicos",
+        "Alma do Artífice",
+      ]),
+    );
+    expect(artificeFeatureNames).not.toContain("Dádiva Épica");
+  });
+
+  it("Artífice: Aumento no Valor de Atributo em 4/8/12/16/19 (único com ASI também no 19, no lugar da Dádiva Épica)", () => {
+    const asiLevels = classFeatures.filter((f) => f.classId === "artifice" && f.name === "Aumento no Valor de Atributo").map((f) => f.level);
+    expect(asiLevels.sort((a, b) => (a ?? 0) - (b ?? 0))).toEqual([4, 8, 12, 16, 19]);
+  });
+
+  it("Artífice: 3 decisões internas do equipamento inicial (2 Armas Simples + 1 armadura), todas de nível 1", () => {
+    const equipmentChoices = classFeatures.filter((f) => f.classId === "artifice" && f.name.startsWith("Equipamento Inicial"));
+    expect(equipmentChoices).toHaveLength(3);
+    expect(equipmentChoices.every((f) => f.level === 1)).toBe(true);
+    const weaponChoices = equipmentChoices.filter((f) => f.choices?.[0].effect.kind === "weaponPicker");
+    expect(weaponChoices).toHaveLength(2);
+    const armorChoice = equipmentChoices.find((f) => f.choices?.[0].effect.kind === "optionPick");
+    expect(armorChoice?.choices?.[0].effect).toEqual({
+      kind: "optionPick",
+      options: ["Armadura de Couro Batido", "Cota de Escamas"],
+    });
   });
 
   it("toda feature de classe (fora as de ASI/Dádiva Épica/skillChoice) tem sourceType 'class' e nível entre 1 e 20", () => {

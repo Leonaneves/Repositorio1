@@ -114,6 +114,19 @@ interface NamedFeature {
  * Monge nível 2).
  */
 const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
+  artifice: [
+    { name: "Ajustes Mágicos", level: 1 },
+    { name: "Conjuração", level: 1 },
+    { name: "Infundir Item", level: 2 },
+    { name: "A Ferramenta Certa para o Trabalho", level: 3 },
+    { name: "Especialização em Ferramentas", level: 6 },
+    { name: "Lampejo de Gênio", level: 7 },
+    { name: "Adepto de Itens Mágicos", level: 10 },
+    { name: "Item de Armazenar Magia", level: 11 },
+    { name: "Sábio dos Itens Mágicos", level: 14 },
+    { name: "Mestre dos Itens Mágicos", level: 18 },
+    { name: "Alma do Artífice", level: 20 },
+  ],
   bardo: [
     { name: "Inspiração de Bardo", level: 1 },
     { name: "Conjuração", level: 1 },
@@ -286,8 +299,15 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   ],
 };
 
-/** Níveis de Aumento no Valor de Atributo confirmados por classe — Guerreiro e Ladino recebem mais do que as demais. */
+/**
+ * Níveis de Aumento no Valor de Atributo confirmados por classe —
+ * Guerreiro e Ladino recebem mais do que as demais. Artífice é a
+ * única com ASI também no nível 19 (a própria tabela da fonte dá "Aumento
+ * no Valor de Atributo" nesse nível, no lugar da Dádiva Épica — ver
+ * `DADIVA_EPICA_CLASSES`, que exclui o Artífice por isso).
+ */
 const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
+  artifice: [4, 8, 12, 16, 19],
   bardo: [4, 8, 12, 16],
   barbaro: [4, 8, 12, 16],
   bruxo: [4, 8, 12, 16],
@@ -302,8 +322,13 @@ const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
   patrulheiro: [4, 8, 12, 16],
 };
 
-/** Todas as 12 classes desta base recebem a Dádiva Épica no nível 19. */
-const DADIVA_EPICA_CLASSES: ClassId[] = Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[];
+/**
+ * As 12 classes da base consolidada original recebem a Dádiva Épica no
+ * nível 19. Artífice fica de fora: a fonte própria do Artífice dá
+ * "Aumento no Valor de Atributo" no nível 19 (ver `ASI_LEVELS_BY_CLASS`)
+ * e "Alma do Artífice" no nível 20 como capstone — nunca Dádiva Épica.
+ */
+const DADIVA_EPICA_CLASSES: ClassId[] = (Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice");
 
 function slugify(text: string): string {
   return text
@@ -384,6 +409,70 @@ const epicBoonFeatures: FeatureDefinition[] = DADIVA_EPICA_CLASSES.map(
   }),
 );
 
+/**
+ * Decisões internas do equipamento inicial do Artífice — a única das
+ * 13 classes cuja fonte pede isso explicitamente ("2 Armas Simples" +
+ * "1 opção de armadura" são "decisões internas dentro do próprio
+ * pacote" que "devem ser apresentadas no Builder"). As outras 12
+ * classes mantêm esse tipo de escolha como texto livre dentro do
+ * próprio `StartingEquipmentOption` (ex.: Bardo: "Instrumento Musical
+ * à sua escolha") — aqui viram `FeatureDefinition`/`FeatureChoice` de
+ * nível 1 de propósito, para reaproveitar 100% do mecanismo já
+ * existente (mesma etapa "Características e Talentos", mesmo gating
+ * de `canAdvance()`) em vez de criar um pipeline específico de
+ * equipamento.
+ */
+const artificeEquipmentChoiceFeatures: FeatureDefinition[] = [
+  {
+    id: "artifice-equipamento-arma-simples-1",
+    name: "Equipamento Inicial — 1ª Arma Simples",
+    sourceType: "class",
+    classId: "artifice",
+    level: 1,
+    autoGranted: false,
+    summary: "Escolha 1 das 2 Armas Simples do equipamento inicial.",
+    choices: [
+      {
+        id: "artifice-equipamento-arma-simples-1-escolha",
+        prompt: "Escolha a 1ª Arma Simples do equipamento inicial",
+        effect: { kind: "weaponPicker", category: "simples", count: 1 },
+      },
+    ],
+  },
+  {
+    id: "artifice-equipamento-arma-simples-2",
+    name: "Equipamento Inicial — 2ª Arma Simples",
+    sourceType: "class",
+    classId: "artifice",
+    level: 1,
+    autoGranted: false,
+    summary: "Escolha a 2ª das 2 Armas Simples do equipamento inicial.",
+    choices: [
+      {
+        id: "artifice-equipamento-arma-simples-2-escolha",
+        prompt: "Escolha a 2ª Arma Simples do equipamento inicial",
+        effect: { kind: "weaponPicker", category: "simples", count: 1 },
+      },
+    ],
+  },
+  {
+    id: "artifice-equipamento-armadura",
+    name: "Equipamento Inicial — Armadura",
+    sourceType: "class",
+    classId: "artifice",
+    level: 1,
+    autoGranted: false,
+    summary: "Escolha entre Armadura de Couro Batido ou Cota de Escamas.",
+    choices: [
+      {
+        id: "artifice-equipamento-armadura-escolha",
+        prompt: "Escolha a armadura do equipamento inicial",
+        effect: { kind: "optionPick", options: ["Armadura de Couro Batido", "Cota de Escamas"] },
+      },
+    ],
+  },
+];
+
 export const classFeatures: FeatureDefinition[] = [
   ...mechanicalClassFeatures,
   ...classSkillChoiceFeatures,
@@ -391,4 +480,5 @@ export const classFeatures: FeatureDefinition[] = [
   ...namedClassFeatures,
   ...abilityScoreImprovementFeatures,
   ...epicBoonFeatures,
+  ...artificeEquipmentChoiceFeatures,
 ];

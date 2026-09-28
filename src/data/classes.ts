@@ -1,7 +1,8 @@
 import type { AbilityKey } from "../domain/common.js";
 import { CLASS_IDS, type ClassId, type SkillKey } from "../domain/ids.js";
 
-export type CasterKind = "full" | "half" | "pact" | "none";
+/** "artificer" = progressão própria do Artífice (tabela explícita — nunca a fórmula genérica de meio-conjurador). */
+export type CasterKind = "full" | "half" | "pact" | "artificer" | "none";
 
 /** Faces do Dado de Vida da classe (ex.: Bárbaro = 12 → "d12"). */
 export type HitDie = 6 | 8 | 10 | 12;
@@ -45,8 +46,17 @@ export interface ClassToolChoice {
 export interface StartingEquipmentOption {
   id: string;
   items: string[];
-  /** PO adicional dessa opção (isolado, nunca somado a itens — ex.: opção B costuma ser só ouro). */
-  gold: number;
+  /** PO adicional dessa opção (isolado, nunca somado a itens — ex.: opção B costuma ser só ouro). Mutuamente exclusivo com `goldFormula`. */
+  gold?: number;
+  /**
+   * Fórmula de rolagem (ex.: "5d4 × 10") quando a fonte não dá um
+   * valor fixo de ouro — nunca convertida silenciosamente para um
+   * número (Artífice: "5d4 × 10 PO", sem rolador automático ainda).
+   * A UI mostra a fórmula como texto e deixa o jogador digitar o
+   * resultado já rolado no campo de Ouro do inventário (existente).
+   * Mutuamente exclusivo com `gold`.
+   */
+  goldFormula?: string;
 }
 
 export interface ClassDefinition {
@@ -83,23 +93,46 @@ export interface ClassDefinition {
  */
 export const classes: Record<ClassId, ClassDefinition> = {
   artifice: {
-    // ARTÍFICE = AGUARDANDO REVISÃO CONTRA FONTE FORNECIDA.
-    // A base consolidada de classes (2 mensagens) cobre 12 das 13 classes — Artífice ficou de fora
-    // deliberadamente. hitDie/spellcastingAbility/saves/armadura/armas/ferramentas abaixo são a
-    // implementação PRÉ-EXISTENTE (Fase 2), preservada por ora; NÃO foram conferidos contra a base
-    // consolidada e NÃO devem ser usados como modelo para preencher outra classe. primaryAbilityText/
-    // skillChoice/startingEquipment ficam undefined/null até você fornecer os dados estruturados do
-    // Artífice — nunca inferidos do padrão das outras 12 classes.
+    // ARTÍFICE — fonte "DADOS DE CLASSE — ARTÍFICE" (13ª e última classe a receber
+    // dados estruturados; encerra a pendência "aguardando revisão contra fonte
+    // fornecida"). hitDie/spellcastingAbility/savingThrowProficiencies/
+    // armorProficiencies/weaponProficiencyText/toolProficiencyText já batiam com a
+    // implementação anterior (conferido — nenhuma mudança nesses 6 campos, só
+    // confirmação). primaryAbilityText/skillChoice/toolChoice/startingEquipment/
+    // casterKind são novos ou corrigidos nesta fonte — ver relatório de entrega.
     id: "artifice",
     name: "Artífice",
     hitDie: 8,
-    primaryAbilityText: null,
+    primaryAbilityText: "Inteligência",
     spellcastingAbility: "INT",
     savingThrowProficiencies: ["CON", "INT"],
     armorProficiencies: { light: true, medium: true, heavy: false, shield: true },
     weaponProficiencyText: "Armas Simples",
     toolProficiencyText: "Ferramentas de Ladrão\nFerramentas de Funileiro\n1 Ferramenta de Artesão à escolha",
-    casterKind: "half",
+    skillChoice: {
+      count: 2,
+      from: ["arcanismo", "historia", "investigacao", "medicina", "natureza", "percepcao", "prestidigitacao"],
+    },
+    toolChoice: { count: 1, optionsText: "Ferramenta de Artesão" },
+    startingEquipment: [
+      {
+        id: "padrao",
+        items: [
+          "2 Armas Simples à escolha (ver Características e Talentos)",
+          "Besta Leve",
+          "20 Virotes",
+          "Armadura de Couro Batido OU Cota de Escamas à escolha (ver Características e Talentos)",
+          "Ferramentas de Ladrão",
+          "Kit de Explorador de Masmorras",
+        ],
+        gold: 0,
+      },
+      { id: "ouro", items: [], goldFormula: "5d4 × 10" },
+    ],
+    // Progressão própria de espaços de magia (ver data/spellProgression.ts#ARTIFICER_SLOT_TABLE) —
+    // tabela explícita da fonte fornecida, não derivada da fórmula genérica de meio-conjurador
+    // (mesmo que coincida numericamente com ela — ver comentário da tabela).
+    casterKind: "artificer",
   },
   barbaro: {
     id: "barbaro",

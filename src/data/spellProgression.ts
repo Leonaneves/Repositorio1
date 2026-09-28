@@ -32,6 +32,42 @@ export const FULL_CASTER_SLOT_TABLE: readonly (readonly number[])[] = [
   [4, 3, 3, 3, 3, 2, 2, 1, 1], // nível 20
 ];
 
+/**
+ * Progressão de espaços de magia do ARTÍFICE — indexada diretamente
+ * pelo NÍVEL DO PERSONAGEM (não "nível de conjurador efetivo"), com 5
+ * posições (círculos 1–5, o Artífice nunca ultrapassa o 5º). Transcrita
+ * literalmente da fonte fornecida (mensagem "DADOS DE CLASSE —
+ * ARTÍFICE"). Numericamente, esta tabela coincide em todos os 20
+ * níveis com a fórmula genérica de meio-conjurador (`ceil(nível/2)`
+ * em `FULL_CASTER_SLOT_TABLE`, truncada aos 5 primeiros círculos) —
+ * mas fica registrada explicitamente, e não derivada da fórmula,
+ * porque a fonte fornecida é a autoridade aqui: uma tabela própria não
+ * corre o risco de divergir silenciosamente se a fórmula genérica for
+ * ajustada no futuro por causa de outra classe.
+ */
+export const ARTIFICER_SLOT_TABLE: Record<number, readonly number[]> = {
+  1: [2, 0, 0, 0, 0],
+  2: [2, 0, 0, 0, 0],
+  3: [3, 0, 0, 0, 0],
+  4: [3, 0, 0, 0, 0],
+  5: [4, 2, 0, 0, 0],
+  6: [4, 2, 0, 0, 0],
+  7: [4, 3, 0, 0, 0],
+  8: [4, 3, 0, 0, 0],
+  9: [4, 3, 2, 0, 0],
+  10: [4, 3, 2, 0, 0],
+  11: [4, 3, 3, 0, 0],
+  12: [4, 3, 3, 0, 0],
+  13: [4, 3, 3, 1, 0],
+  14: [4, 3, 3, 1, 0],
+  15: [4, 3, 3, 2, 0],
+  16: [4, 3, 3, 2, 0],
+  17: [4, 3, 3, 3, 1],
+  18: [4, 3, 3, 3, 1],
+  19: [4, 3, 3, 3, 2],
+  20: [4, 3, 3, 3, 2],
+};
+
 export interface PactMagicState {
   /** Círculo em que os espaços de Magia de Pacto do Bruxo operam neste nível (0 = nenhum). */
   slotCircle: number;

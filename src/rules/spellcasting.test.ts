@@ -133,13 +133,17 @@ describe("getCasterProgressionType", () => {
   });
 
   it("meio-conjuradores", () => {
-    for (const classId of ["paladino", "patrulheiro", "artifice"] as const) {
+    for (const classId of ["paladino", "patrulheiro"] as const) {
       expect(getCasterProgressionType(classId, null, 5)).toBe("half");
     }
   });
 
   it("Bruxo é 'pact', não 'full'", () => {
     expect(getCasterProgressionType("bruxo", null, 5)).toBe("pact");
+  });
+
+  it("Artífice é 'artificer' (tabela própria), não 'half' (fórmula genérica de meio-conjurador)", () => {
+    expect(getCasterProgressionType("artifice", null, 5)).toBe("artificer");
   });
 
   it("Guerreiro sem a subclasse certa não é conjurador", () => {
@@ -177,13 +181,33 @@ describe("getSpellSlots — progressão de espaços de magia", () => {
     expect([slots[1], slots[2], slots[3]]).toEqual([4, 2, 0]);
   });
 
-  it("meio-conjuradores (Artífice, Paladino, Patrulheiro) já têm 2 espaços de 1º círculo no nível 1 — confirmado como correto para o ruleset 2024 (ceil(1/2)=1)", () => {
-    for (const classId of ["artifice", "paladino", "patrulheiro"] as const) {
+  it("meio-conjuradores (Paladino, Patrulheiro) já têm 2 espaços de 1º círculo no nível 1 — confirmado como correto para o ruleset 2024 (ceil(1/2)=1)", () => {
+    for (const classId of ["paladino", "patrulheiro"] as const) {
       const character = createBlankCharacter("t");
       character.classId = classId;
       character.level = 1;
       const slots = getSpellSlots(character);
       expect(slots[1]).toBe(2);
+    }
+  });
+
+  it("Artífice: espaços de magia batem com a tabela própria da fonte (não a fórmula de meio-conjurador) em toda a progressão", () => {
+    const expected: Record<number, number[]> = {
+      1: [2, 0, 0, 0, 0],
+      3: [3, 0, 0, 0, 0],
+      5: [4, 2, 0, 0, 0],
+      9: [4, 3, 2, 0, 0],
+      13: [4, 3, 3, 1, 0],
+      17: [4, 3, 3, 3, 1],
+      20: [4, 3, 3, 3, 2],
+    };
+    for (const [level, rowExpected] of Object.entries(expected)) {
+      const character = createBlankCharacter("t");
+      character.classId = "artifice";
+      character.level = Number(level);
+      const slots = getSpellSlots(character);
+      expect([slots[1], slots[2], slots[3], slots[4], slots[5]]).toEqual(rowExpected);
+      expect(slots[6]).toBe(0); // Artífice nunca ultrapassa o 5º círculo
     }
   });
 

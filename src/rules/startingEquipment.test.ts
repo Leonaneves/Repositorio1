@@ -8,23 +8,26 @@ describe("getStartingEquipmentOptions", () => {
     expect(getStartingEquipmentOptions(character)).toEqual([]);
   });
 
-  it("vazio para Artífice (sem dados confirmados)", () => {
-    const character = createBlankCharacter("equip-test");
-    character.classId = "artifice";
-    expect(getStartingEquipmentOptions(character)).toEqual([]);
-  });
-
   it("Guerreiro tem as 3 opções A/B/C", () => {
     const character = createBlankCharacter("equip-test");
     character.classId = "guerreiro";
     expect(getStartingEquipmentOptions(character).map((o) => o.id)).toEqual(["A", "B", "C"]);
   });
+
+  it("Artífice tem 2 opções: 'padrao' (itens) e 'ouro' (fórmula 5d4 × 10, nunca convertida)", () => {
+    const character = createBlankCharacter("equip-test");
+    character.classId = "artifice";
+    const options = getStartingEquipmentOptions(character);
+    expect(options.map((o) => o.id)).toEqual(["padrao", "ouro"]);
+    expect(options[0].gold).toBe(0);
+    expect(options[1].goldFormula).toBe("5d4 × 10");
+    expect(options[1].gold).toBeUndefined();
+  });
 });
 
 describe("isStartingEquipmentResolved", () => {
-  it("true quando a classe não tem opções confirmadas (nunca trava o Builder por causa disso)", () => {
+  it("true quando não há classe escolhida (nunca trava o Builder por causa disso)", () => {
     const character = createBlankCharacter("equip-test");
-    character.classId = "artifice";
     expect(isStartingEquipmentResolved(character)).toBe(true);
   });
 

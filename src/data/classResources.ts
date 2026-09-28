@@ -175,3 +175,26 @@ export const RANGER_SPELLS_PREPARED: Record<number, number> = {
   1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 6, 7: 7, 8: 7, 9: 9, 10: 9,
   11: 10, 12: 10, 13: 11, 14: 11, 15: 12, 16: 12, 17: 14, 18: 14, 19: 15, 20: 15,
 };
+
+/**
+ * Artífice — colunas "Truques Conhecidos"/"Infusões Conhecidas"/"Itens
+ * Infundidos" da fonte fornecida (mensagem "DADOS DE CLASSE —
+ * ARTÍFICE"). Sem coluna de "Magias Preparadas" na fonte — não
+ * inventada, `getSpellsPreparedMax` continua `null` para o Artífice.
+ */
+export const ARTIFICER_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 2, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2, 10: 3,
+  11: 3, 12: 3, 13: 3, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4,
+};
+
+/** Nível 1 não tem Infusões Conhecidas ("0 / indisponível" na fonte). */
+export const ARTIFICER_INFUSIONS_KNOWN: Record<number, number> = {
+  1: 0, 2: 4, 3: 4, 4: 4, 5: 4, 6: 6, 7: 6, 8: 6, 9: 6, 10: 8,
+  11: 8, 12: 8, 13: 8, 14: 10, 15: 10, 16: 10, 17: 10, 18: 12, 19: 12, 20: 12,
+};
+
+/** Nível 1 não tem Itens Infundidos ("0 / indisponível" na fonte). */
+export const ARTIFICER_INFUSED_ITEMS_MAX: Record<number, number> = {
+  1: 0, 2: 2, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 3, 10: 4,
+  11: 4, 12: 4, 13: 4, 14: 5, 15: 5, 16: 5, 17: 5, 18: 6, 19: 6, 20: 6,
+};

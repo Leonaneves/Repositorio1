@@ -1,6 +1,9 @@
 import type { Character } from "../domain/character.js";
 import type { HitDie } from "../data/classes.js";
 import {
+  ARTIFICER_CANTRIPS_KNOWN,
+  ARTIFICER_INFUSED_ITEMS_MAX,
+  ARTIFICER_INFUSIONS_KNOWN,
   BARBARIAN_RAGE_COUNT,
   BARBARIAN_RAGE_DAMAGE,
   BARBARIAN_WEAPON_MASTERIES,
@@ -109,6 +112,7 @@ export function getFavoredEnemyCount(character: Character): number | null {
 }
 
 const CANTRIPS_KNOWN_TABLES = {
+  artifice: ARTIFICER_CANTRIPS_KNOWN,
   bardo: BARD_CANTRIPS_KNOWN,
   bruxo: WARLOCK_CANTRIPS_KNOWN,
   clerigo: CLERIC_CANTRIPS_KNOWN,
@@ -144,6 +148,18 @@ export function getSpellsPreparedMax(character: Character): number | null {
   if (!character.classId || !(character.classId in SPELLS_PREPARED_TABLES)) return null;
   const table = SPELLS_PREPARED_TABLES[character.classId as keyof typeof SPELLS_PREPARED_TABLES];
   return table[character.level] ?? 0;
+}
+
+/** Infusões Conhecidas do Artífice, por nível — `null` para as demais classes, `0` no nível 1 (indisponível na fonte). */
+export function getInfusionsKnown(character: Character): number | null {
+  if (character.classId !== "artifice") return null;
+  return ARTIFICER_INFUSIONS_KNOWN[character.level] ?? 0;
+}
+
+/** Itens Infundidos (máximo simultâneo) do Artífice, por nível — `null` para as demais classes, `0` no nível 1 (indisponível na fonte). */
+export function getInfusedItemsMax(character: Character): number | null {
+  if (character.classId !== "artifice") return null;
+  return ARTIFICER_INFUSED_ITEMS_MAX[character.level] ?? 0;
 }
 
 /**

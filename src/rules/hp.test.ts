@@ -33,6 +33,15 @@ describe("getMaxHitPoints — PV máximo automático (sem rolagem, criação rá
     expect(getMaxHitPoints(character).auto).toBe(32);
   });
 
+  it("Artífice (fonte própria): d8, nível 1 = 8 + CON, níveis seguintes = 5 + CON cada (valor fixo)", () => {
+    const character = createBlankCharacter("hp-test");
+    character.classId = "artifice";
+    character.level = 3;
+    character.abilities.CON.score = 14; // mod +2
+    // nível 1: 8 + 2 = 10; níveis 2-3: 2 × (5 + 2) = 14; total 24
+    expect(getMaxHitPoints(character).auto).toBe(24);
+  });
+
   it("preserva o ajuste manual somado ao automático", () => {
     const character = createBlankCharacter("hp-test");
     character.classId = "clerigo";

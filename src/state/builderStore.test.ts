@@ -193,10 +193,18 @@ describe("useBuilderStore — canAdvance/goNext travam em 'equipment' sem pacote
     expect(store.canAdvance()).toBe(true);
   });
 
-  it("canAdvance() é true em 'equipment' para uma classe sem opções confirmadas (Artífice) — nunca trava por falta de dado", () => {
+  it("canAdvance() é true em 'equipment' quando não há classe escolhida — nunca trava por falta de dado", () => {
+    const store = useBuilderStore.getState();
+    store.goToStep("equipment");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("Artífice: canAdvance() em 'equipment' segue o mesmo gating (falso sem pacote, true após escolher)", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("artifice");
     store.goToStep("equipment");
+    expect(store.canAdvance()).toBe(false);
+    useCharacterStore.getState().setStartingEquipmentOption("padrao");
     expect(store.canAdvance()).toBe(true);
   });
 

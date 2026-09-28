@@ -12,6 +12,8 @@ import {
   getExtraAttacksCount,
   getFavoredEnemyCount,
   getFocusPoints,
+  getInfusedItemsMax,
+  getInfusionsKnown,
   getInvocationsKnown,
   getMartialArtsDie,
   getRageCount,
@@ -38,6 +40,9 @@ export interface ClassProgressionResources {
   martialArtsDie: HitDie | null;
   focusPoints: number | null;
   favoredEnemyCount: number | null;
+  /** Só o Artífice tem Infusões Conhecidas/Itens Infundidos — `null` para todas as outras classes. */
+  infusionsKnown: number | null;
+  infusedItemsMax: number | null;
 }
 
 export interface ClassProgressionSnapshot {
@@ -91,6 +96,8 @@ export function getClassProgression(character: Character): ClassProgressionSnaps
       martialArtsDie: getMartialArtsDie(character),
       focusPoints: getFocusPoints(character),
       favoredEnemyCount: getFavoredEnemyCount(character),
+      infusionsKnown: getInfusionsKnown(character),
+      infusedItemsMax: getInfusedItemsMax(character),
     },
   };
 }

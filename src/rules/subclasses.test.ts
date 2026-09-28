@@ -57,16 +57,16 @@ describe("canChooseSubclass — regra fixa de nível 3 para todas as classes", (
   });
 });
 
-describe("SUBCLASS_FEATURE_LEVELS — níveis de Característica de Subclasse (base consolidada de classes)", () => {
-  it("as 12 classes confirmadas têm nível 3 na lista (aquisição da subclasse)", () => {
-    for (const classId of CLASS_IDS.filter((id) => id !== "artifice")) {
+describe("SUBCLASS_FEATURE_LEVELS — níveis de Característica de Subclasse (base consolidada de classes + fonte do Artífice)", () => {
+  it("as 13 classes têm nível 3 na lista (aquisição da subclasse)", () => {
+    for (const classId of CLASS_IDS) {
       expect(SUBCLASS_FEATURE_LEVELS[classId]).toBeDefined();
       expect(SUBCLASS_FEATURE_LEVELS[classId]).toContain(3);
     }
   });
 
-  it("Artífice fica sem níveis confirmados (fora da base fornecida)", () => {
-    expect(SUBCLASS_FEATURE_LEVELS.artifice).toBeUndefined();
+  it("Artífice: 3, 5, 9 e 15 (fonte própria do Artífice)", () => {
+    expect(SUBCLASS_FEATURE_LEVELS.artifice).toEqual([3, 5, 9, 15]);
   });
 
   it("Clérigo: 3, 6 e 17 (só 2 características de subclasse além da aquisição)", () => {

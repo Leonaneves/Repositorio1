@@ -134,6 +134,7 @@ export const SUBCLASS_SPELLCASTERS: ReadonlyArray<{ classId: ClassId; fullName: 
  * serve de guia para quando o conteúdo real chegar.
  */
 export const SUBCLASS_FEATURE_LEVELS: Partial<Record<ClassId, number[]>> = {
+  artifice: [3, 5, 9, 15],
   bardo: [3, 6, 14],
   barbaro: [3, 6, 10, 14],
   bruxo: [3, 6, 10, 14],

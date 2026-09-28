@@ -28,6 +28,8 @@ export type FeatureChoiceEffect =
   | { kind: "skillProficiency"; options: SkillKey[] | "any"; count: number }
   | { kind: "toolProficiency"; optionsText: string; count: number }
   | { kind: "weaponPicker"; category: WeaponCategory | "any"; count: number }
+  /** Escolha única entre um pequeno conjunto de opções nomeadas (ex.: "Armadura de Couro Batido" OU "Cota de Escamas" do equipamento inicial do Artífice) — quando as opções não pertencem a nenhum catálogo existente (perícia/ferramenta/arma), mas ainda são uma lista fechada e conhecida, não texto livre. */
+  | { kind: "optionPick"; options: string[] }
   | { kind: "manualText"; placeholder: string };
 
 export interface FeatureChoice {

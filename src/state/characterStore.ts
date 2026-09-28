@@ -391,7 +391,10 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
           inventory: {
             ...state.character.inventory,
             equipment: formatStartingEquipmentItems(option),
-            coins: { ...state.character.inventory.coins, gp: option.gold },
+            // `goldFormula` (ex.: Artífice "5d4 × 10") nunca é convertida num número
+            // sozinha — o campo de Ouro fica como está para o jogador preencher à mão
+            // com o resultado já rolado (mesmo campo manual de sempre, ver Step9Equipment).
+            coins: option.gold !== undefined ? { ...state.character.inventory.coins, gp: option.gold } : state.character.inventory.coins,
           },
         },
       };

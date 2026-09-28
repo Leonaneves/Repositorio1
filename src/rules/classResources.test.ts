@@ -7,6 +7,8 @@ import {
   getExtraAttacksCount,
   getFavoredEnemyCount,
   getFocusPoints,
+  getInfusedItemsMax,
+  getInfusionsKnown,
   getInvocationsKnown,
   getMartialArtsDie,
   getRageCount,
@@ -226,5 +228,58 @@ describe("getSpellsPreparedMax — Magias Preparadas por nível", () => {
 
   it("classe não conjuradora (Guerreiro sem subclasse conjuradora) — null", () => {
     expect(getSpellsPreparedMax(characterOf("guerreiro", 5))).toBeNull();
+  });
+
+  it("Artífice não tem coluna de Magias Preparadas na fonte própria — null, nunca inventado", () => {
+    expect(getSpellsPreparedMax(characterOf("artifice", 10))).toBeNull();
+  });
+});
+
+describe("getCantripsKnown — Artífice (fonte própria)", () => {
+  it("níveis 1-9: 2; níveis 10-13: 3; níveis 14-20: 4", () => {
+    expect(getCantripsKnown(characterOf("artifice", 1))).toBe(2);
+    expect(getCantripsKnown(characterOf("artifice", 9))).toBe(2);
+    expect(getCantripsKnown(characterOf("artifice", 10))).toBe(3);
+    expect(getCantripsKnown(characterOf("artifice", 13))).toBe(3);
+    expect(getCantripsKnown(characterOf("artifice", 14))).toBe(4);
+    expect(getCantripsKnown(characterOf("artifice", 20))).toBe(4);
+  });
+});
+
+describe("getInfusionsKnown — Infusões Conhecidas do Artífice, por nível", () => {
+  it("nível 1: 0 (indisponível na fonte, nunca null — é a classe certa)", () => {
+    expect(getInfusionsKnown(characterOf("artifice", 1))).toBe(0);
+  });
+
+  it("níveis 2-5: 4; níveis 6-9: 6; níveis 10-13: 8; níveis 14-17: 10; níveis 18-20: 12", () => {
+    expect(getInfusionsKnown(characterOf("artifice", 2))).toBe(4);
+    expect(getInfusionsKnown(characterOf("artifice", 5))).toBe(4);
+    expect(getInfusionsKnown(characterOf("artifice", 6))).toBe(6);
+    expect(getInfusionsKnown(characterOf("artifice", 9))).toBe(6);
+    expect(getInfusionsKnown(characterOf("artifice", 10))).toBe(8);
+    expect(getInfusionsKnown(characterOf("artifice", 13))).toBe(8);
+    expect(getInfusionsKnown(characterOf("artifice", 14))).toBe(10);
+    expect(getInfusionsKnown(characterOf("artifice", 17))).toBe(10);
+    expect(getInfusionsKnown(characterOf("artifice", 18))).toBe(12);
+    expect(getInfusionsKnown(characterOf("artifice", 20))).toBe(12);
+  });
+
+  it("classe diferente de Artífice — null", () => {
+    expect(getInfusionsKnown(characterOf("mago", 10))).toBeNull();
+  });
+});
+
+describe("getInfusedItemsMax — Itens Infundidos do Artífice, por nível", () => {
+  it("nível 1: 0 (indisponível na fonte); níveis 2-5: 2; níveis 6-9: 3; níveis 10-13: 4; níveis 14-17: 5; níveis 18-20: 6", () => {
+    expect(getInfusedItemsMax(characterOf("artifice", 1))).toBe(0);
+    expect(getInfusedItemsMax(characterOf("artifice", 2))).toBe(2);
+    expect(getInfusedItemsMax(characterOf("artifice", 6))).toBe(3);
+    expect(getInfusedItemsMax(characterOf("artifice", 10))).toBe(4);
+    expect(getInfusedItemsMax(characterOf("artifice", 14))).toBe(5);
+    expect(getInfusedItemsMax(characterOf("artifice", 18))).toBe(6);
+  });
+
+  it("classe diferente de Artífice — null", () => {
+    expect(getInfusedItemsMax(characterOf("mago", 10))).toBeNull();
   });
 });

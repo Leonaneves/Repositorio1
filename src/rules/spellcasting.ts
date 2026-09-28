@@ -4,7 +4,7 @@ import { SPELL_CIRCLES, type CasterProgressionType, type ClassId, type SpellCirc
 import { classes } from "../data/classes.js";
 import { SUBCLASS_SPELLCASTERS } from "../data/subclasses.js";
 import { backgrounds } from "../data/backgrounds.js";
-import { FULL_CASTER_SLOT_TABLE, PACT_MAGIC_TABLE } from "../data/spellProgression.js";
+import { ARTIFICER_SLOT_TABLE, FULL_CASTER_SLOT_TABLE, PACT_MAGIC_TABLE } from "../data/spellProgression.js";
 import { getAbilityModifier, getProficiencyBonus } from "./abilities.js";
 
 /**
@@ -109,6 +109,17 @@ export function getSpellSlots(character: Character): Record<SpellCircle, number>
     const result = emptySlots();
     if (pact && pact.slotCircle > 0) {
       result[pact.slotCircle as SpellCircle] = pact.slotCount;
+    }
+    return result;
+  }
+
+  if (progressionType === "artificer") {
+    const row = ARTIFICER_SLOT_TABLE[character.level];
+    const result = emptySlots();
+    if (row) {
+      [1, 2, 3, 4, 5].forEach((circle, index) => {
+        result[circle as SpellCircle] = row[index] ?? 0;
+      });
     }
     return result;
   }

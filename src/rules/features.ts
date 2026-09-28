@@ -67,6 +67,9 @@ export function isFeatureChoiceComplete(choice: FeatureChoice, character: Charac
   if (choice.effect.kind === "toolProficiency" || choice.effect.kind === "weaponPicker") {
     return typeof selection === "string" && selection.trim().length > 0;
   }
+  if (choice.effect.kind === "optionPick") {
+    return typeof selection === "string" && choice.effect.options.includes(selection);
+  }
   return true; // manualText: sem catálogo para validar, nunca bloqueia.
 }
 
@@ -77,9 +80,9 @@ export function isFeatureComplete(feature: FeatureDefinition, character: Charact
 
 /**
  * As features do personagem que ainda têm ao menos uma `FeatureChoice`
- * pendente (skillProficiency/toolProficiency/weaponPicker sem resposta
- * completa) — é o que faz a etapa "Características e Talentos" do
- * Builder travar o "Avançar" até o jogador resolver.
+ * pendente (skillProficiency/toolProficiency/weaponPicker/optionPick sem
+ * resposta completa) — é o que faz a etapa "Características e Talentos"
+ * do Builder travar o "Avançar" até o jogador resolver.
  */
 export function getIncompleteRequiredChoices(character: Character): FeatureDefinition[] {
   return getCharacterFeatures(character).filter((feature) => !isFeatureComplete(feature, character));

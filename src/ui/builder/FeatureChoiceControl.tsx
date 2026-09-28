@@ -66,6 +66,23 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     );
   }
 
+  if (effect.kind === "optionPick") {
+    const value = typeof selection?.value === "string" ? selection.value : "";
+    return (
+      <label className="field feature-choice">
+        <span>{choice.prompt}</span>
+        <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
+          <option value="">- Selecione -</option>
+          {effect.options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  }
+
   if (effect.kind === "toolProficiency") {
     const value = typeof selection?.value === "string" ? selection.value : "";
     return (

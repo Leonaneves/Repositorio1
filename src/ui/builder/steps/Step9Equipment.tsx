@@ -37,8 +37,10 @@ export function Step9Equipment() {
                     {option.items.map((item) => (
                       <li key={item}>{item}</li>
                     ))}
-                    {option.gold > 0 && <li>{option.gold} PO</li>}
+                    {!!option.gold && option.gold > 0 && <li>{option.gold} PO</li>}
                   </ul>
+                ) : option.goldFormula ? (
+                  <span> — {option.goldFormula} PO (role e informe o resultado no campo Ouro, abaixo)</span>
                 ) : (
                   <span> — {option.gold} PO</span>
                 )}

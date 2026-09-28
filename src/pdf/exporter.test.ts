@@ -97,6 +97,30 @@ describe("buildExportedPdf — gera um PDF válido a partir do molde interativo"
   });
 });
 
+describe("fillPdfForm — Artífice (fonte própria): classe, PV, Dado de Vida, conjuração e espaços de magia no PDF", () => {
+  it("preenche CLASSE, PV máximo, Dados de Vida, atributo/CD de conjuração e o espaço de 1º círculo gasto", async () => {
+    const character = createBlankCharacter("pdf-export-artifice");
+    character.name = "Kova Duskryn";
+    character.classId = "artifice";
+    character.level = 5;
+    character.abilities.INT.score = 16; // mod +3
+    character.spellcasting.slots[1].expended = 1;
+
+    const pdfDoc = await PDFDocument.load(readTemplateBytes());
+    const form = pdfDoc.getForm();
+    fillPdfForm(pdfDoc, form, character);
+
+    expect(form.getDropdown("CLASSE").getSelected()).toEqual(["Artífice"]);
+    expect(form.getTextField("HP.Dados.max").getText()).toBe("5"); // 1 Dado de Vida por nível
+    expect(form.getTextField("ATRIBUTO.conju").getText()).toBe("Inteligência");
+    expect(form.getTextField("HP.max").getText()).not.toBe("");
+    expect(form.getTextField("CD.magia").getText()).not.toBe("");
+    // Espaço de magia gasto (nível 5 → 4/2 no 1º/2º círculo — 1 gasto no 1º círculo marca só a 1ª caixa).
+    expect(form.getCheckBox("1o.circ.1").isChecked()).toBe(true);
+    expect(form.getCheckBox("1o.circ.2").isChecked()).toBe(false);
+  });
+});
+
 describe("fillPdfForm — checkboxes (chamado antes do flatten, ver docstring da função)", () => {
   async function loadFormWithCharacter(mutate: (character: ReturnType<typeof makeCharacter>) => void) {
     const character = makeCharacter();

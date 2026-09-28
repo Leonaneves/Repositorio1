@@ -62,11 +62,13 @@ describe("getClassFeatures — progressão por nível", () => {
     expect(getClassFeatures(character)).toHaveLength(0);
   });
 
-  it("classe sem dados confirmados (Artífice, fora da base consolidada) não quebra, só devolve vazio", () => {
+  it("Artífice nível 10 já tem Adepto de Itens Mágicos (fonte própria do Artífice)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "artifice";
     character.level = 10;
-    expect(getClassFeatures(character)).toEqual([]);
+    const names = getClassFeatures(character).map((f) => f.name);
+    expect(names).toContain("Adepto de Itens Mágicos");
+    expect(names).not.toContain("Sábio dos Itens Mágicos"); // só a partir do nível 14
   });
 
   it("Aumento no Valor de Atributo e Dádiva Épica vêm com uma FeatureChoice manualText (catálogo pendente)", () => {

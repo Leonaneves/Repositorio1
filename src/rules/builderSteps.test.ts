@@ -47,10 +47,8 @@ describe("isStepVisible — Conjuração (condicional, depende do atributo de co
 });
 
 describe("isStepVisible — Características e Talentos (condicional, precisa de FeatureChoice pendente)", () => {
-  it("some quando a classe não tem nenhuma escolha de feature confirmada (Artífice, fora da base consolidada)", () => {
+  it("some quando não existe nenhuma feature com escolha (personagem em branco, sem classe/espécie/antecedente)", () => {
     const character = createBlankCharacter("step-test");
-    character.classId = "artifice";
-    character.level = 5;
     expect(isStepVisible("featuresAndTalents", character)).toBe(false);
   });
 

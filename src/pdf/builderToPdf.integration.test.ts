@@ -86,27 +86,51 @@ describe("integração completa: Builder → resolver escolhas → exportar → 
     expect(form.getCheckBox("PROF.Escudo").isChecked()).toBe(true);
   });
 
-  it("Artífice (classe ainda aguardando revisão, sem skillChoice/startingEquipment) nunca trava o Builder e ainda exporta um PDF válido (§10/§11)", async () => {
+  it("Artífice — todas as decisões da fonte própria (perícias, ferramenta, 2 armas, armadura, equipamento) resolvidas pelo Builder exportam um PDF válido", async () => {
     const characterStore = useCharacterStore.getState();
     const builderStore = useBuilderStore.getState();
 
-    characterStore.setName("Personagem sem dados de classe confirmados");
+    characterStore.setName("Kova Duskryn");
     characterStore.setClass("artifice");
 
-    // Sem skillChoice/toolChoice/startingEquipment definidos para Artífice — o Builder nunca deve travar por falta de dado (§10).
     builderStore.goToStep("featuresAndTalents");
+    expect(useBuilderStore.getState().canAdvance()).toBe(false); // nada resolvido ainda
+
+    characterStore.setFeatureChoiceSelection("classe-artifice-pericias", ["arcanismo", "investigacao"]);
+    expect(useBuilderStore.getState().canAdvance()).toBe(false); // faltam ferramenta + 2 armas + armadura
+
+    characterStore.setFeatureChoiceSelection("classe-artifice-ferramentas", "Ferramentas de Ferreiro");
+    characterStore.setFeatureChoiceSelection("artifice-equipamento-arma-simples-1-escolha", "adaga");
+    characterStore.setFeatureChoiceSelection("artifice-equipamento-arma-simples-2-escolha", "azagaia");
+    characterStore.setFeatureChoiceSelection("artifice-equipamento-armadura-escolha", "Cota de Escamas");
     expect(useBuilderStore.getState().canAdvance()).toBe(true);
+
     builderStore.goToStep("equipment");
+    expect(useBuilderStore.getState().canAdvance()).toBe(false);
+    characterStore.setStartingEquipmentOption("padrao");
     expect(useBuilderStore.getState().canAdvance()).toBe(true);
 
     const character = useCharacterStore.getState().character;
-    const outBytes = await buildExportedPdf(character, readTemplateBytes());
+    expect(character.savingThrows.CON.proficient).toBe(true);
+    expect(character.savingThrows.INT.proficient).toBe(true);
+    expect(character.armor.proficiencies.heavy).toBe(false); // Artífice não tem armadura pesada
 
+    const outBytes = await buildExportedPdf(character, readTemplateBytes());
     const reopened = await PDFDocument.load(outBytes);
     expect(reopened.getPageCount()).toBe(2);
     expect(reopened.getForm().getFields()).toHaveLength(0);
 
     const header = new TextDecoder().decode(outBytes.slice(0, 5));
     expect(header).toBe("%PDF-");
+
+    // Confere os checkboxes de proficiência de perícia/salvaguarda resolvidos pelo Builder (mesmo Character, sem achatar).
+    const pdfDoc = await PDFDocument.load(readTemplateBytes());
+    const form = pdfDoc.getForm();
+    fillPdfForm(pdfDoc, form, character);
+    expect(form.getCheckBox("o.INT.arc").isChecked()).toBe(true); // Arcanismo
+    expect(form.getCheckBox("O.INT.inv").isChecked()).toBe(true); // Investigação
+    expect(form.getCheckBox("O.SAB.med").isChecked()).toBe(false); // Medicina não foi escolhida
+    expect(form.getCheckBox("O.CON.res").isChecked()).toBe(true);
+    expect(form.getCheckBox("O.INT.res").isChecked()).toBe(true);
   });
 });

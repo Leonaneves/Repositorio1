@@ -108,4 +108,5 @@ export const SPELL_CIRCLES = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export type SpellCircle = (typeof SPELL_CIRCLES)[number];
 
 /** Tipo de progressão de conjurador, usado pela tabela de espaços de magia. */
-export type CasterProgressionType = "full" | "half" | "third" | "pact" | "none";
+/** "artificer" = progressão própria do Artífice (tabela explícita própria — nunca a fórmula genérica de meio-conjurador). */
+export type CasterProgressionType = "full" | "half" | "third" | "pact" | "artificer" | "none";
