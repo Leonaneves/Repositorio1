@@ -186,3 +186,120 @@ describe("useCharacterStore — ajustes manuais nunca substituem o input automá
     expect(character.initiative.manualAdjustment).toBe(2);
   });
 });
+
+describe("useCharacterStore — PV, salvaguardas contra morte e Inspiração Heroica (§21)", () => {
+  it("guarda PV atual/temporário/ajuste manual de PV máximo e Dados de Vida gastos", () => {
+    const store = useCharacterStore.getState();
+    store.setHpCurrent(12);
+    store.setHpTemp(3);
+    store.setHpMaxManualAdjustment(-2);
+    store.setHitDiceSpent(1);
+    const { character } = useCharacterStore.getState();
+    expect(character.hp).toEqual({ current: 12, temp: 3, maxManualAdjustment: -2, hitDiceSpent: 1 });
+  });
+
+  it("guarda sucessos/falhas de salvaguarda contra morte", () => {
+    const store = useCharacterStore.getState();
+    store.setDeathSaveSuccesses(2);
+    store.setDeathSaveFailures(1);
+    expect(useCharacterStore.getState().character.deathSaves).toEqual({ successes: 2, failures: 1 });
+  });
+
+  it("alterna Inspiração Heroica", () => {
+    const store = useCharacterStore.getState();
+    store.setHeroicInspiration(true);
+    expect(useCharacterStore.getState().character.heroicInspiration).toBe(true);
+  });
+});
+
+describe("useCharacterStore — listas manuais (ataques, magias preparadas, itens sintonizados)", () => {
+  it("adiciona, atualiza e remove um ataque", () => {
+    const store = useCharacterStore.getState();
+    store.addAttack();
+    expect(useCharacterStore.getState().character.attacks).toHaveLength(1);
+
+    store.updateAttack(0, { name: "Espada Longa", damage: "1d8+3" });
+    expect(useCharacterStore.getState().character.attacks[0]).toEqual({
+      name: "Espada Longa",
+      attackBonus: "",
+      damage: "1d8+3",
+      notes: "",
+    });
+
+    store.removeAttack(0);
+    expect(useCharacterStore.getState().character.attacks).toHaveLength(0);
+  });
+
+  it("adiciona, atualiza e remove uma magia preparada", () => {
+    const store = useCharacterStore.getState();
+    store.addSpellPrepared();
+    store.updateSpellPrepared(0, { name: "Bola de Fogo", circle: "3" });
+    expect(useCharacterStore.getState().character.spellsPrepared[0].name).toBe("Bola de Fogo");
+
+    store.removeSpellPrepared(0);
+    expect(useCharacterStore.getState().character.spellsPrepared).toHaveLength(0);
+  });
+
+  it("adiciona, atualiza e remove um item sintonizado", () => {
+    const store = useCharacterStore.getState();
+    store.addAttunedItem();
+    store.updateAttunedItem(0, { description: "Anel de Proteção", attuned: true });
+    expect(useCharacterStore.getState().character.inventory.attunedItems[0]).toEqual({
+      description: "Anel de Proteção",
+      attuned: true,
+    });
+
+    store.removeAttunedItem(0);
+    expect(useCharacterStore.getState().character.inventory.attunedItems).toHaveLength(0);
+  });
+});
+
+describe("useCharacterStore — inventário (moedas, equipamento), aparência e idiomas", () => {
+  it("guarda o texto de equipamento e cada tipo de moeda separadamente", () => {
+    const store = useCharacterStore.getState();
+    store.setInventoryEquipment("Mochila, corda 15m, 3 antorchas");
+    store.setCoin("gp", 50);
+    store.setCoin("cp", 12);
+    const { character } = useCharacterStore.getState();
+    expect(character.inventory.equipment).toBe("Mochila, corda 15m, 3 antorchas");
+    expect(character.inventory.coins).toEqual({ cp: 12, sp: 0, gp: 50, pp: 0 });
+  });
+
+  it("guarda aparência e idiomas como texto livre", () => {
+    const store = useCharacterStore.getState();
+    store.setAppearance("1,80m, cabelo ruivo, cicatriz no olho esquerdo");
+    store.setLanguages("Comum, Élfico, Anão");
+    const { character } = useCharacterStore.getState();
+    expect(character.appearance).toBe("1,80m, cabelo ruivo, cicatriz no olho esquerdo");
+    expect(character.languages).toBe("Comum, Élfico, Anão");
+  });
+});
+
+describe("useCharacterStore — escolhas de feature e talentos gerais escolhidos", () => {
+  it("registra e limpa a seleção de uma escolha de feature", () => {
+    const store = useCharacterStore.getState();
+    store.setFeatureChoiceSelection("escolha-1", "furtividade");
+    expect(useCharacterStore.getState().character.featureChoiceSelections["escolha-1"]).toEqual({ value: "furtividade" });
+
+    store.clearFeatureChoiceSelection("escolha-1");
+    expect(useCharacterStore.getState().character.featureChoiceSelections["escolha-1"]).toBeUndefined();
+  });
+
+  it("aceita seleção múltipla (array) para escolhas com count > 1", () => {
+    const store = useCharacterStore.getState();
+    store.setFeatureChoiceSelection("escolha-2", ["atletismo", "furtividade"]);
+    expect(useCharacterStore.getState().character.featureChoiceSelections["escolha-2"]).toEqual({
+      value: ["atletismo", "furtividade"],
+    });
+  });
+
+  it("adiciona e remove um talento geral escolhido, sem duplicar", () => {
+    const store = useCharacterStore.getState();
+    store.addChosenFeat("talento-x");
+    store.addChosenFeat("talento-x"); // repetido, não deve duplicar
+    expect(useCharacterStore.getState().character.chosenFeatIds).toEqual(["talento-x"]);
+
+    store.removeChosenFeat("talento-x");
+    expect(useCharacterStore.getState().character.chosenFeatIds).toEqual([]);
+  });
+});

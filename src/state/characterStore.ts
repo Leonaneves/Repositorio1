@@ -3,7 +3,9 @@ import type { AbilityKey } from "../domain/common.js";
 import {
   createBlankCharacter,
   type ArmorProficiencies,
+  type AttackEntry,
   type Character,
+  type SpellPreparedEntry,
 } from "../domain/character.js";
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
@@ -135,6 +137,38 @@ interface CharacterStore {
   setToolProficienciesNotes: (notes: string) => void;
   setSpeciesTraitsNotes: (notes: string) => void;
   setTalentsNotes: (notes: string) => void;
+
+  setHpCurrent: (value: number) => void;
+  setHpTemp: (value: number) => void;
+  setHpMaxManualAdjustment: (value: number) => void;
+  setHitDiceSpent: (value: number) => void;
+
+  setDeathSaveSuccesses: (value: number) => void;
+  setDeathSaveFailures: (value: number) => void;
+
+  setHeroicInspiration: (value: boolean) => void;
+
+  addAttack: () => void;
+  updateAttack: (index: number, patch: Partial<AttackEntry>) => void;
+  removeAttack: (index: number) => void;
+
+  addSpellPrepared: () => void;
+  updateSpellPrepared: (index: number, patch: Partial<SpellPreparedEntry>) => void;
+  removeSpellPrepared: (index: number) => void;
+
+  setAppearance: (value: string) => void;
+  setLanguages: (value: string) => void;
+
+  setInventoryEquipment: (value: string) => void;
+  setCoin: (coin: "cp" | "sp" | "gp" | "pp", value: number) => void;
+  addAttunedItem: () => void;
+  updateAttunedItem: (index: number, patch: Partial<{ description: string; attuned: boolean }>) => void;
+  removeAttunedItem: (index: number) => void;
+
+  setFeatureChoiceSelection: (choiceId: string, value: string | string[]) => void;
+  clearFeatureChoiceSelection: (choiceId: string) => void;
+  addChosenFeat: (featId: string) => void;
+  removeChosenFeat: (featId: string) => void;
 
   /** Começa um personagem inteiramente novo (novo id anônimo, portanto um novo build de analytics). */
   resetCharacter: () => void;
@@ -278,6 +312,127 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   setToolProficienciesNotes: (notes) => set((state) => ({ character: { ...state.character, toolProficienciesNotes: notes } })),
   setSpeciesTraitsNotes: (notes) => set((state) => ({ character: { ...state.character, speciesTraitsNotes: notes } })),
   setTalentsNotes: (notes) => set((state) => ({ character: { ...state.character, talentsNotes: notes } })),
+
+  setHpCurrent: (value) => set((state) => ({ character: { ...state.character, hp: { ...state.character.hp, current: value } } })),
+  setHpTemp: (value) => set((state) => ({ character: { ...state.character, hp: { ...state.character.hp, temp: value } } })),
+  setHpMaxManualAdjustment: (value) =>
+    set((state) => ({ character: { ...state.character, hp: { ...state.character.hp, maxManualAdjustment: value } } })),
+  setHitDiceSpent: (value) =>
+    set((state) => ({ character: { ...state.character, hp: { ...state.character.hp, hitDiceSpent: value } } })),
+
+  setDeathSaveSuccesses: (value) =>
+    set((state) => ({ character: { ...state.character, deathSaves: { ...state.character.deathSaves, successes: value } } })),
+  setDeathSaveFailures: (value) =>
+    set((state) => ({ character: { ...state.character, deathSaves: { ...state.character.deathSaves, failures: value } } })),
+
+  setHeroicInspiration: (value) => set((state) => ({ character: { ...state.character, heroicInspiration: value } })),
+
+  addAttack: () =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        attacks: [...state.character.attacks, { name: "", attackBonus: "", damage: "", notes: "" }],
+      },
+    })),
+  updateAttack: (index, patch) =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        attacks: state.character.attacks.map((attack, i) => (i === index ? { ...attack, ...patch } : attack)),
+      },
+    })),
+  removeAttack: (index) =>
+    set((state) => ({
+      character: { ...state.character, attacks: state.character.attacks.filter((_, i) => i !== index) },
+    })),
+
+  addSpellPrepared: () =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        spellsPrepared: [
+          ...state.character.spellsPrepared,
+          { circle: "", name: "", castingTime: "", range: "", concentration: false, ritual: false, material: false, notes: "" },
+        ],
+      },
+    })),
+  updateSpellPrepared: (index, patch) =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        spellsPrepared: state.character.spellsPrepared.map((spell, i) => (i === index ? { ...spell, ...patch } : spell)),
+      },
+    })),
+  removeSpellPrepared: (index) =>
+    set((state) => ({
+      character: { ...state.character, spellsPrepared: state.character.spellsPrepared.filter((_, i) => i !== index) },
+    })),
+
+  setAppearance: (value) => set((state) => ({ character: { ...state.character, appearance: value } })),
+  setLanguages: (value) => set((state) => ({ character: { ...state.character, languages: value } })),
+
+  setInventoryEquipment: (value) =>
+    set((state) => ({ character: { ...state.character, inventory: { ...state.character.inventory, equipment: value } } })),
+  setCoin: (coin, value) =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        inventory: { ...state.character.inventory, coins: { ...state.character.inventory.coins, [coin]: value } },
+      },
+    })),
+  addAttunedItem: () =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        inventory: {
+          ...state.character.inventory,
+          attunedItems: [...state.character.inventory.attunedItems, { description: "", attuned: false }],
+        },
+      },
+    })),
+  updateAttunedItem: (index, patch) =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        inventory: {
+          ...state.character.inventory,
+          attunedItems: state.character.inventory.attunedItems.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+        },
+      },
+    })),
+  removeAttunedItem: (index) =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        inventory: {
+          ...state.character.inventory,
+          attunedItems: state.character.inventory.attunedItems.filter((_, i) => i !== index),
+        },
+      },
+    })),
+
+  setFeatureChoiceSelection: (choiceId, value) =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        featureChoiceSelections: { ...state.character.featureChoiceSelections, [choiceId]: { value } },
+      },
+    })),
+  clearFeatureChoiceSelection: (choiceId) =>
+    set((state) => {
+      const featureChoiceSelections = { ...state.character.featureChoiceSelections };
+      delete featureChoiceSelections[choiceId];
+      return { character: { ...state.character, featureChoiceSelections } };
+    }),
+  addChosenFeat: (featId) =>
+    set((state) => {
+      if (state.character.chosenFeatIds.includes(featId)) return state;
+      return { character: { ...state.character, chosenFeatIds: [...state.character.chosenFeatIds, featId] } };
+    }),
+  removeChosenFeat: (featId) =>
+    set((state) => ({
+      character: { ...state.character, chosenFeatIds: state.character.chosenFeatIds.filter((id) => id !== featId) },
+    })),
 
   resetCharacter: () => set({ character: createBlankCharacter(generateId()) }),
 }));
