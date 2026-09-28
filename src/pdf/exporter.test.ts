@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { PDFDocument, PDFName } from "pdf-lib";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { PDFDocument, PDFName } from "@cantoo/pdf-lib";
 import { createBlankCharacter } from "../domain/character.js";
 import { buildExportedPdf, fillPdfForm } from "./exporter.js";
 
@@ -56,6 +58,28 @@ describe("buildExportedPdf — gera um PDF válido a partir do molde interativo"
     const resetField = form.getFieldMaybe("Reset");
     if (resetField) form.removeField(resetField);
     expect(form.getFieldMaybe("Reset")).toBeUndefined();
+  });
+
+  it("remove os campos auxiliares ocultos 'AUTO.*' antes do flatten (senão vazam como texto visível — ver docstring de fillPdfForm)", async () => {
+    const pdfDoc = await PDFDocument.load(readTemplateBytes());
+    const form = pdfDoc.getForm();
+    expect(form.getFieldMaybe("AUTO.CA")).not.toBeUndefined();
+    expect(form.getFieldMaybe("AUTO.PERICIAS.ANTECEDENTE")).not.toBeUndefined();
+
+    fillPdfForm(pdfDoc, form, makeCharacter());
+
+    for (const name of [
+      "AUTO.CA",
+      "AUTO.ARMAS",
+      "AUTO.FERRAMENTAS",
+      "AUTO.ESPECIE",
+      "AUTO.ANTECEDENTE",
+      "AUTO.INICIATIVA",
+      "AUTO.PASSIVA",
+      "AUTO.PERICIAS.ANTECEDENTE",
+    ]) {
+      expect(form.getFieldMaybe(name)).toBeUndefined();
+    }
   });
 
   it("produz bytes de PDF válidos (assinatura %PDF, tamanho razoável)", async () => {
@@ -145,5 +169,67 @@ describe("fillPdfForm — checkboxes (chamado antes do flatten, ver docstring da
     expect(form.getCheckBox("O.FOR.atl").isChecked()).toBe(false);
     expect(form.getCheckBox("O.FOR.res").isChecked()).toBe(false);
     expect(form.getCheckBox("PROF.leve").isChecked()).toBe(false);
+  });
+});
+
+/**
+ * `pdf-lib` (biblioteca original) grava uma tabela de xref estruturalmente
+ * inválida ao chamar `form.flatten()` — confirmado com `pdfinfo`/`pdftoppm`
+ * (poppler), que reportavam múltiplos "Invalid XRef entry" no PDF final
+ * (ver `docs/referencia/pdf-exportacao/xref-investigacao.md`). Leitores
+ * tolerantes (Chrome, o próprio pdf-lib, pikepdf/qpdf ao abrir) escondem o
+ * problema recuperando em memória — o que não é aceitável como solução
+ * final. A correção adotada foi trocar `pdf-lib` por `@cantoo/pdf-lib`
+ * (fork mantido, mesma API), que grava uma tabela de xref válida.
+ *
+ * Este teste usa `pdfinfo`/`pdftoppm` — uma ferramenta de leitura/validação
+ * independente da biblioteca que gera o PDF — para confirmar isso no PDF
+ * final de verdade. Pula (não falha) se o poppler não estiver instalado no
+ * ambiente, já que é uma dependência de sistema opcional só para este
+ * teste de reforço.
+ */
+function popplerAvailable(): boolean {
+  try {
+    execFileSync("pdfinfo", ["-v"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+describe.runIf(popplerAvailable())("buildExportedPdf — validade estrutural do xref (validador independente: poppler)", () => {
+  it("pdfinfo não reporta 'Invalid XRef entry' no PDF exportado", async () => {
+    const outBytes = await buildExportedPdf(makeCharacter(), readTemplateBytes());
+    const dir = mkdtempSync(join(tmpdir(), "ficha-pdf-xref-"));
+    const filePath = join(dir, "export.pdf");
+    writeFileSync(filePath, outBytes);
+
+    const result = spawnSync("pdfinfo", [filePath], { encoding: "utf-8" });
+    expect(result.stdout).toContain("Pages:");
+    expect(result.stderr).not.toMatch(/Invalid XRef/i);
+  });
+
+  it("pdftoppm consegue rasterizar a página 1 sem erro de xref", async () => {
+    const outBytes = await buildExportedPdf(makeCharacter(), readTemplateBytes());
+    const dir = mkdtempSync(join(tmpdir(), "ficha-pdf-xref-"));
+    const filePath = join(dir, "export.pdf");
+    writeFileSync(filePath, outBytes);
+    const outPrefix = join(dir, "page");
+
+    const result = spawnSync("pdftoppm", ["-f", "1", "-l", "1", "-r", "40", filePath, outPrefix], { encoding: "utf-8" });
+    expect(result.status).toBe(0);
+    expect(result.stderr).not.toMatch(/Invalid XRef/i);
+  });
+
+  it("pdftotext não extrai o texto de depuração dos campos ocultos 'AUTO.*' (ex.: 'FOR.res=2;FOR.atl=-1;...')", async () => {
+    const outBytes = await buildExportedPdf(makeCharacter(), readTemplateBytes());
+    const dir = mkdtempSync(join(tmpdir(), "ficha-pdf-xref-"));
+    const filePath = join(dir, "export.pdf");
+    writeFileSync(filePath, outBytes);
+
+    const result = spawnSync("pdftotext", ["-f", "1", "-l", "1", filePath, "-"], { encoding: "utf-8" });
+    expect(result.status).toBe(0);
+    expect(result.stdout).not.toMatch(/FOR\.res=/);
+    expect(result.stdout).not.toMatch(/AUTO\./);
   });
 });
