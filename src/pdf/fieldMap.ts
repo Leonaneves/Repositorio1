@@ -335,6 +335,24 @@ const spellSlotExpendedCheckboxes: PdfCheckboxFieldMapping[] = SPELL_CIRCLES.fla
 );
 
 /**
+ * `C5` — Inspiração Heroica (`Character.heroicInspiration`). Mapeado
+ * semanticamente (identificado visualmente na ficha impressa), mas
+ * **sem escrita nesta fase** — decisão explícita, não pendência
+ * técnica: Inspiração Heroica só fica realmente útil numa Ficha Web
+ * futura, usada durante a sessão, com o jogador marcando/desmarcando
+ * em tempo real (não faz sentido "imprimir" um estado que muda a cada
+ * cena de jogo). Por isso fica documentado aqui, exportado à parte,
+ * mas de propósito FORA de `pdfCheckboxFields` — o exportador nunca o
+ * escreve. Não se tenta corrigir a anomalia de aparência do campo (só
+ * tem estado `/Sim`, sem `/Off`) agora, já que ele não é escrito.
+ */
+export const heroicInspirationCheckboxField: PdfCheckboxFieldMapping = {
+  kind: "checkbox",
+  pdfField: "C5",
+  getValue: (c: Character) => c.heroicInspiration,
+};
+
+/**
  * Checkboxes implementados nesta etapa (diagnóstico completo em
  * `docs/referencia/pdf-exportacao/checkboxes-diagnostico.md`):
  * proficiência de perícia/salvaguarda, salvaguardas contra morte,
@@ -343,8 +361,8 @@ const spellSlotExpendedCheckboxes: PdfCheckboxFieldMapping[] = SPELL_CIRCLES.fla
  * implementado (o `Character` não tem metadado estruturado de
  * Concentração/Ritual/Material por magia enquanto `spellsPrepared`
  * for entrada manual — ver `data/spells/`): Concentração/Ritual/
- * Material das 34 linhas de magia preparada. `C5` (anomalia sem
- * estado /Off, função não identificada) nunca é escrito.
+ * Material das 34 linhas de magia preparada. `C5`/Inspiração Heroica
+ * fica de fora de propósito (ver `heroicInspirationCheckboxField`).
  */
 export const pdfCheckboxFields: PdfCheckboxFieldMapping[] = [
   ...skillProficiencyCheckboxes,

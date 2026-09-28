@@ -20,13 +20,21 @@ assumidos).
 - **1 campo é botão de clique** (`Reset`, `Ff` bit *Pushbutton* ligado)
   — já tratado à parte (remoção estrutural antes do flatten, ver
   `reset-diagnostico.md`).
-- **1 anomalia**: o campo `C5` (retângulo pequeno, página 1, sem `/DA`,
-  `/MK/CA = "H"`) só tem UM estado de aparência (`/Sim`) — não tem
-  aparência definida para `/Off`. Não foi possível identificar a que
-  ele corresponde visualmente (nome curto, sem rótulo próximo óbvio no
-  texto extraído da página). Por segurança, o exportador **não escreve
-  nada nele** — fica como está no molde (nunca marcado), evitando
-  qualquer efeito colateral não previsto.
+- **`C5` — Inspiração Heroica — mapeado, implementação adiada para
+  futura Ficha Web.** O campo (retângulo pequeno, página 1, sem `/DA`,
+  `/MK/CA = "H"`, só com o estado de aparência `/Sim` — sem `/Off`)
+  foi identificado pelo autor do projeto como o checkbox de Inspiração
+  Heroica. Decisão explícita: não é implementado como interação do
+  Builder nem rastreado na ficha de impressão nesta fase — Inspiração
+  Heroica só fica realmente útil numa Ficha Web futura, usada durante
+  a sessão, com o jogador marcando/desmarcando em tempo real (não faz
+  sentido "imprimir" um estado que muda a cada cena de jogo). O
+  `Character` já tem `heroicInspiration: boolean` (preservado,
+  reservado para essa fase futura) e `pdf/fieldMap.ts` registra o
+  mapeamento (`heroicInspirationCheckboxField`), mas fora de
+  `pdfCheckboxFields` de propósito — o exportador nunca escreve nele.
+  A anomalia de aparência (só `/Sim`, sem `/Off`) também não precisa
+  de correção agora, já que o campo não é escrito.
 
 ## Grupos funcionais (pelos nomes, todos com o padrão `/Off`↔`/Sim`)
 
@@ -39,7 +47,7 @@ assumidos).
 | Itens mágicos sintonizados | 3 | `O.item.magico.1..3` | Sintonização de cada um dos 3 slots |
 | Espaços de magia gastos | 22 | `1o.circ.1..4`, ..., `9o.circ.1` | Marca de espaço de magia já gasto, por círculo (1º–9º) |
 | Magia preparada: Concentração/Ritual/Material | 102 (34×3) | `Concentracao.1..34`, `Ritual.1..34`, `Material.1..34` | Flags de cada uma das 34 linhas de magia preparada |
-| Anomalia (não preenchida) | 1 | `C5` | Só 1 estado de aparência — deixada intocada |
+| Inspiração Heroica (mapeado, não escrito nesta fase) | 1 | `C5` | Reservado para a futura Ficha Web (ver acima) |
 | **Total** | **163** (+ `Reset`, tratado à parte) | | |
 
 Observação: `o.INT.arc` (perícia Arcanismo) usa "o" minúsculo — mesma
@@ -88,5 +96,6 @@ bloco "fillPdfForm — checkboxes": cobre perícia com `manualOverride`
 (incluindo a exceção `o.INT.arc`), salvaguarda proficiente,
 salvaguardas contra morte cumulativas (2 sucessos marca `suc.1`/`suc.2`
 mas não `suc.3`), treinamento de armadura + escudo equipado, o caso
-"nunca escreve no campo anômalo `C5`" e o caso "personagem em branco
-não marca nada".
+"nunca escreve em `C5`/Inspiração Heroica nesta fase" (mesmo com
+`heroicInspiration = true` no `Character`) e o caso "personagem em
+branco não marca nada".

@@ -207,11 +207,13 @@ describe("fillPdfForm — checkboxes (chamado antes do flatten, ver docstring da
     expect(form.getCheckBox("9o.circ.1").isChecked()).toBe(false);
   });
 
-  it("nunca escreve no campo anômalo C5 (sem estado /Off definido — ver checkboxes-diagnostico.md)", async () => {
+  it("nunca escreve em C5/Inspiração Heroica nesta fase (mapeado, implementação adiada para a futura Ficha Web)", async () => {
     const pdfDoc = await PDFDocument.load(readTemplateBytes());
     const form = pdfDoc.getForm();
+    const character = makeCharacter();
+    character.heroicInspiration = true; // mesmo com o dado presente no Character, C5 não é escrito nesta fase
     const before = form.getCheckBox("C5").isChecked();
-    fillPdfForm(pdfDoc, form, makeCharacter());
+    fillPdfForm(pdfDoc, form, character);
     expect(form.getCheckBox("C5").isChecked()).toBe(before);
   });
 
