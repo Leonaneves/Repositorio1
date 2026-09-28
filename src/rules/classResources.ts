@@ -93,3 +93,30 @@ export function getFavoredEnemyCount(character: Character): number | null {
   if (character.classId !== "patrulheiro") return null;
   return RANGER_FAVORED_ENEMY_COUNT[character.level] ?? 0;
 }
+
+/**
+ * Quantidade de ataques extras concedidos por "Ataque Extra"/"Dois
+ * Ataques Extras"/"Três Ataques Extras" — níveis confirmados
+ * diretamente nas tabelas de características por classe (nunca a
+ * regra genérica "nível 5" de memória): Guerreiro recebe 3 vezes (5,
+ * 11, 20); Bárbaro, Monge, Paladino e Patrulheiro só uma vez (5). As
+ * demais classes da base consolidada (Bardo, Bruxo, Clérigo, Druida,
+ * Feiticeiro, Ladino, Mago) nunca têm essa feature — devolve 0.
+ */
+export function getExtraAttacksCount(character: Character): number {
+  if (character.classId === "guerreiro") {
+    if (character.level >= 20) return 3;
+    if (character.level >= 11) return 2;
+    if (character.level >= 5) return 1;
+    return 0;
+  }
+  if (
+    character.classId === "barbaro" ||
+    character.classId === "monge" ||
+    character.classId === "paladino" ||
+    character.classId === "patrulheiro"
+  ) {
+    return character.level >= 5 ? 1 : 0;
+  }
+  return 0;
+}

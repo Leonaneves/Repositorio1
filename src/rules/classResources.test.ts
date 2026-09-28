@@ -3,6 +3,7 @@ import { createBlankCharacter } from "../domain/character.js";
 import {
   getBardicInspirationDie,
   getChannelDivinityUses,
+  getExtraAttacksCount,
   getFavoredEnemyCount,
   getFocusPoints,
   getInvocationsKnown,
@@ -154,5 +155,34 @@ describe("Patrulheiro — Inimigo Favorito", () => {
     expect(getFavoredEnemyCount(characterOf("patrulheiro", 1))).toBe(2);
     expect(getFavoredEnemyCount(characterOf("patrulheiro", 5))).toBe(3);
     expect(getFavoredEnemyCount(characterOf("patrulheiro", 17))).toBe(6);
+  });
+});
+
+describe("getExtraAttacksCount — níveis confirmados diretamente pelas tabelas de características", () => {
+  it("Guerreiro: 0 antes do 5, 1 no 5–10, 2 no 11–19, 3 no 20", () => {
+    expect(getExtraAttacksCount(characterOf("guerreiro", 4))).toBe(0);
+    expect(getExtraAttacksCount(characterOf("guerreiro", 5))).toBe(1);
+    expect(getExtraAttacksCount(characterOf("guerreiro", 10))).toBe(1);
+    expect(getExtraAttacksCount(characterOf("guerreiro", 11))).toBe(2);
+    expect(getExtraAttacksCount(characterOf("guerreiro", 19))).toBe(2);
+    expect(getExtraAttacksCount(characterOf("guerreiro", 20))).toBe(3);
+  });
+
+  it.each(["barbaro", "monge", "paladino", "patrulheiro"] as const)("%s: 0 antes do nível 5, 1 a partir do nível 5 (nunca mais que isso)", (classId) => {
+    expect(getExtraAttacksCount(characterOf(classId, 4))).toBe(0);
+    expect(getExtraAttacksCount(characterOf(classId, 5))).toBe(1);
+    expect(getExtraAttacksCount(characterOf(classId, 20))).toBe(1);
+  });
+
+  it.each(["bardo", "bruxo", "clerigo", "druida", "feiticeiro", "ladino", "mago"] as const)(
+    "%s nunca tem Ataque Extra (não aparece nas tabelas dessa classe)",
+    (classId) => {
+      expect(getExtraAttacksCount(characterOf(classId, 20))).toBe(0);
+    },
+  );
+
+  it("sem classe definida, 0", () => {
+    const character = createBlankCharacter("resources-test");
+    expect(getExtraAttacksCount(character)).toBe(0);
   });
 });
