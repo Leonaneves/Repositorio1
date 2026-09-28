@@ -14,3 +14,4 @@ export * from "./weapons.js";
 export * from "./features.js";
 export * from "./abilityGeneration.js";
 export * from "./builderSteps.js";
+export * from "./classResources.js";
