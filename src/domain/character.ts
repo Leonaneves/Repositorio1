@@ -142,6 +142,15 @@ export interface Character {
     attunedItems: { description: string; attuned: boolean }[];
   };
 
+  /**
+   * Qual `StartingEquipmentOption.id` (A/B/C) o jogador escolheu para
+   * o equipamento inicial da classe atual — `null` enquanto não
+   * escolhido. Escolher preenche `inventory.equipment`/`coins.gp`
+   * (ver `state/characterStore.ts#setStartingEquipmentOption`); troca
+   * de classe limpa este campo (as opções são específicas da classe).
+   */
+  startingEquipmentOptionId: string | null;
+
   appearance: string;
   languages: string;
 
@@ -212,6 +221,7 @@ export function createBlankCharacter(id: string): Character {
     heroicInspiration: false,
     spellsPrepared: [],
     inventory: { equipment: "", coins: { cp: 0, sp: 0, gp: 0, pp: 0 }, attunedItems: [] },
+    startingEquipmentOptionId: null,
     appearance: "",
     languages: "",
     featureChoiceSelections: {},

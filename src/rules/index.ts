@@ -16,3 +16,4 @@ export * from "./abilityGeneration.js";
 export * from "./builderSteps.js";
 export * from "./classResources.js";
 export * from "./classProgression.js";
+export * from "./startingEquipment.js";

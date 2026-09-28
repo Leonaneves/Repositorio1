@@ -1,9 +1,11 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
+import { getStartingEquipmentOptions } from "../../../rules/startingEquipment.js";
 import { ArmorSection } from "../../sections/ArmorSection.js";
 
-/** Etapa 9 — armadura/CA (reaproveita ArmorSection), ataques manuais e inventário. */
+/** Etapa 9 — escolha de equipamento inicial, armadura/CA (reaproveita ArmorSection), ataques manuais e inventário. */
 export function Step9Equipment() {
   const character = useCharacterStore((s) => s.character);
+  const setStartingEquipmentOption = useCharacterStore((s) => s.setStartingEquipmentOption);
   const addAttack = useCharacterStore((s) => s.addAttack);
   const updateAttack = useCharacterStore((s) => s.updateAttack);
   const removeAttack = useCharacterStore((s) => s.removeAttack);
@@ -13,8 +15,39 @@ export function Step9Equipment() {
   const updateAttunedItem = useCharacterStore((s) => s.updateAttunedItem);
   const removeAttunedItem = useCharacterStore((s) => s.removeAttunedItem);
 
+  const equipmentOptions = getStartingEquipmentOptions(character);
+
   return (
     <div className="builder-step" aria-label="Equipamento / Combate">
+      {equipmentOptions.length > 0 && (
+        <fieldset className="starting-equipment">
+          <legend>Equipamento Inicial — escolha um pacote</legend>
+          {equipmentOptions.map((option) => (
+            <label key={option.id} className="starting-equipment__option">
+              <input
+                type="radio"
+                name="starting-equipment"
+                checked={character.startingEquipmentOptionId === option.id}
+                onChange={() => setStartingEquipmentOption(option.id)}
+              />
+              <span className="starting-equipment__option-body">
+                <strong>Pacote {option.id}</strong>
+                {option.items.length > 0 ? (
+                  <ul>
+                    {option.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                    {option.gold > 0 && <li>{option.gold} PO</li>}
+                  </ul>
+                ) : (
+                  <span> — {option.gold} PO</span>
+                )}
+              </span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+
       <ArmorSection />
 
       <fieldset className="attack-list">

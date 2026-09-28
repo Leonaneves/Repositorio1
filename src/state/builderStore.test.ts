@@ -176,3 +176,39 @@ describe("useBuilderStore — canAdvance/goNext travam em 'featuresAndTalents' c
     expect(useBuilderStore.getState().currentStepId).not.toBe("featuresAndTalents");
   });
 });
+
+describe("useBuilderStore — canAdvance/goNext travam em 'equipment' sem pacote de equipamento inicial escolhido (§7/§11)", () => {
+  it("canAdvance() é false em 'equipment' quando a classe tem opções e nenhuma foi escolhida", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro");
+    store.goToStep("equipment");
+    expect(store.canAdvance()).toBe(false);
+  });
+
+  it("canAdvance() é true em 'equipment' depois de escolher um pacote", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro");
+    useCharacterStore.getState().setStartingEquipmentOption("B");
+    store.goToStep("equipment");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("canAdvance() é true em 'equipment' para uma classe sem opções confirmadas (Artífice) — nunca trava por falta de dado", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("artifice");
+    store.goToStep("equipment");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("goNext não sai de 'equipment' sem pacote escolhido, e avança depois de escolher", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("mago");
+    store.goToStep("equipment");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("equipment");
+
+    useCharacterStore.getState().setStartingEquipmentOption("A");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).not.toBe("equipment");
+  });
+});

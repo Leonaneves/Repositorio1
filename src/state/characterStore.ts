@@ -12,6 +12,7 @@ import { classes } from "../data/classes.js";
 import { getAvailableArmor } from "../rules/armor.js";
 import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
+import { formatStartingEquipmentItems, getStartingEquipmentOptions } from "../rules/startingEquipment.js";
 
 /**
  * Store central do personagem em construção.
@@ -90,6 +91,8 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
     ...character,
     classId,
     subclassId: subclassStillValid ? character.subclassId : null,
+    // As opções de equipamento inicial (A/B/C) são específicas da classe — um id igual em outra classe representa itens diferentes.
+    startingEquipmentOptionId: null,
     savingThrows,
     armor: { ...character.armor, proficiencies: armorProficiencies },
   };
@@ -164,6 +167,9 @@ interface CharacterStore {
   addAttunedItem: () => void;
   updateAttunedItem: (index: number, patch: Partial<{ description: string; attuned: boolean }>) => void;
   removeAttunedItem: (index: number) => void;
+
+  /** Aplica a opção A/B/C de equipamento inicial da classe atual: grava o id escolhido e preenche inventory.equipment/coins.gp com os itens/ouro dela. */
+  setStartingEquipmentOption: (optionId: string) => void;
 
   setFeatureChoiceSelection: (choiceId: string, value: string | string[]) => void;
   clearFeatureChoiceSelection: (choiceId: string) => void;
@@ -373,6 +379,24 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
 
   setInventoryEquipment: (value) =>
     set((state) => ({ character: { ...state.character, inventory: { ...state.character.inventory, equipment: value } } })),
+
+  setStartingEquipmentOption: (optionId) =>
+    set((state) => {
+      const option = getStartingEquipmentOptions(state.character).find((o) => o.id === optionId);
+      if (!option) return state;
+      return {
+        character: {
+          ...state.character,
+          startingEquipmentOptionId: optionId,
+          inventory: {
+            ...state.character.inventory,
+            equipment: formatStartingEquipmentItems(option),
+            coins: { ...state.character.inventory.coins, gp: option.gold },
+          },
+        },
+      };
+    }),
+
   setCoin: (coin, value) =>
     set((state) => ({
       character: {

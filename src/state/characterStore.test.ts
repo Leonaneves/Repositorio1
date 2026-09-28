@@ -275,6 +275,44 @@ describe("useCharacterStore — inventário (moedas, equipamento), aparência e 
   });
 });
 
+describe("useCharacterStore — equipamento inicial (pacotes A/B/C, §7)", () => {
+  it("setStartingEquipmentOption grava o id e preenche equipamento/ouro com os dados da opção", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setStartingEquipmentOption("A");
+    const { character } = useCharacterStore.getState();
+    expect(character.startingEquipmentOptionId).toBe("A");
+    expect(character.inventory.equipment).toContain("Cota de Malha");
+    expect(character.inventory.coins.gp).toBe(4);
+  });
+
+  it("trocar de opção substitui equipamento/ouro pela nova opção", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setStartingEquipmentOption("A");
+    store.setStartingEquipmentOption("C");
+    const { character } = useCharacterStore.getState();
+    expect(character.startingEquipmentOptionId).toBe("C");
+    expect(character.inventory.equipment).toBe("");
+    expect(character.inventory.coins.gp).toBe(155);
+  });
+
+  it("id inexistente na classe atual é ignorado (não corrompe o estado)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setStartingEquipmentOption("Z");
+    expect(useCharacterStore.getState().character.startingEquipmentOptionId).toBeNull();
+  });
+
+  it("trocar de classe limpa a opção escolhida (as opções são específicas da classe)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setStartingEquipmentOption("A");
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.startingEquipmentOptionId).toBeNull();
+  });
+});
+
 describe("useCharacterStore — escolhas de feature e talentos gerais escolhidos", () => {
   it("registra e limpa a seleção de uma escolha de feature", () => {
     const store = useCharacterStore.getState();

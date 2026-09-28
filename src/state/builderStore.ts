@@ -7,6 +7,7 @@ import {
 } from "../rules/abilityGeneration.js";
 import { BUILDER_STEP_ORDER, getVisibleSteps, type BuilderStepId } from "../rules/builderSteps.js";
 import { getIncompleteRequiredChoices } from "../rules/features.js";
+import { isStartingEquipmentResolved } from "../rules/startingEquipment.js";
 import { useCharacterStore } from "./characterStore.js";
 
 export type { AbilityGenerationMode };
@@ -47,10 +48,12 @@ interface BuilderStore {
   isLastStep: () => boolean;
   /**
    * Se a etapa ATUAL já resolveu toda decisão obrigatória dela (decisão
-   * §5/§11: nunca só "classe já selecionada"). Por ora a única etapa com
-   * essa checagem é "featuresAndTalents" (escolhas de perícia/ferramenta
-   * de classe, via `rules/features.ts#getIncompleteRequiredChoices`) —
-   * as demais etapas continuam sem trava adicional.
+   * §5/§11: nunca só "classe já selecionada"). Etapas com essa checagem:
+   * "featuresAndTalents" (escolhas de perícia/ferramenta de classe, via
+   * `rules/features.ts#getIncompleteRequiredChoices`) e "equipment"
+   * (opção de equipamento inicial A/B/C, via
+   * `rules/startingEquipment.ts#isStartingEquipmentResolved`) — as
+   * demais etapas continuam sem trava adicional.
    */
   canAdvance: () => boolean;
 }
@@ -122,7 +125,9 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
 
   canAdvance: () => {
     const currentStepId = get().currentStepId;
-    if (currentStepId !== "featuresAndTalents") return true;
-    return getIncompleteRequiredChoices(useCharacterStore.getState().character).length === 0;
+    const character = useCharacterStore.getState().character;
+    if (currentStepId === "featuresAndTalents") return getIncompleteRequiredChoices(character).length === 0;
+    if (currentStepId === "equipment") return isStartingEquipmentResolved(character);
+    return true;
   },
 }));
