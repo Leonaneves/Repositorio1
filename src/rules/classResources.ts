@@ -4,18 +4,32 @@ import {
   BARBARIAN_RAGE_COUNT,
   BARBARIAN_RAGE_DAMAGE,
   BARBARIAN_WEAPON_MASTERIES,
+  BARD_CANTRIPS_KNOWN,
+  BARD_SPELLS_PREPARED,
   BARDIC_INSPIRATION_DIE,
+  CLERIC_CANTRIPS_KNOWN,
   CLERIC_CHANNEL_DIVINITY_USES,
+  CLERIC_SPELLS_PREPARED,
+  DRUID_CANTRIPS_KNOWN,
+  DRUID_SPELLS_PREPARED,
   DRUID_WILD_SHAPE_USES,
   FIGHTER_SECOND_WIND_USES,
   FIGHTER_WEAPON_MASTERIES,
   MONK_FOCUS_POINTS,
   MONK_MARTIAL_ARTS_DIE,
   PALADIN_CHANNEL_DIVINITY_USES,
+  PALADIN_SPELLS_PREPARED,
   RANGER_FAVORED_ENEMY_COUNT,
+  RANGER_SPELLS_PREPARED,
   ROGUE_SNEAK_ATTACK_DICE,
+  SORCERER_CANTRIPS_KNOWN,
   SORCERER_SORCERY_POINTS,
+  SORCERER_SPELLS_PREPARED,
+  WARLOCK_CANTRIPS_KNOWN,
   WARLOCK_INVOCATIONS_KNOWN,
+  WARLOCK_SPELLS_PREPARED,
+  WIZARD_CANTRIPS_KNOWN,
+  WIZARD_SPELLS_PREPARED,
 } from "../data/classResources.js";
 
 /**
@@ -92,6 +106,44 @@ export function getFocusPoints(character: Character): number | null {
 export function getFavoredEnemyCount(character: Character): number | null {
   if (character.classId !== "patrulheiro") return null;
   return RANGER_FAVORED_ENEMY_COUNT[character.level] ?? 0;
+}
+
+const CANTRIPS_KNOWN_TABLES = {
+  bardo: BARD_CANTRIPS_KNOWN,
+  bruxo: WARLOCK_CANTRIPS_KNOWN,
+  clerigo: CLERIC_CANTRIPS_KNOWN,
+  druida: DRUID_CANTRIPS_KNOWN,
+  feiticeiro: SORCERER_CANTRIPS_KNOWN,
+  mago: WIZARD_CANTRIPS_KNOWN,
+} as const;
+
+const SPELLS_PREPARED_TABLES = {
+  bardo: BARD_SPELLS_PREPARED,
+  bruxo: WARLOCK_SPELLS_PREPARED,
+  clerigo: CLERIC_SPELLS_PREPARED,
+  druida: DRUID_SPELLS_PREPARED,
+  feiticeiro: SORCERER_SPELLS_PREPARED,
+  mago: WIZARD_SPELLS_PREPARED,
+  paladino: PALADIN_SPELLS_PREPARED,
+  patrulheiro: RANGER_SPELLS_PREPARED,
+} as const;
+
+/**
+ * Truques conhecidos, por nível — coluna "Truques" da tabela da
+ * classe. Paladino e Patrulheiro não têm essa coluna (meio-conjuradores
+ * sem truques de classe no PHB 2024): `null`, nunca `0`.
+ */
+export function getCantripsKnown(character: Character): number | null {
+  if (!character.classId || !(character.classId in CANTRIPS_KNOWN_TABLES)) return null;
+  const table = CANTRIPS_KNOWN_TABLES[character.classId as keyof typeof CANTRIPS_KNOWN_TABLES];
+  return table[character.level] ?? 0;
+}
+
+/** Magias Preparadas máximas, por nível — coluna "Magias Preparadas" da tabela da classe. */
+export function getSpellsPreparedMax(character: Character): number | null {
+  if (!character.classId || !(character.classId in SPELLS_PREPARED_TABLES)) return null;
+  const table = SPELLS_PREPARED_TABLES[character.classId as keyof typeof SPELLS_PREPARED_TABLES];
+  return table[character.level] ?? 0;
 }
 
 /**

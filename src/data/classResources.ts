@@ -101,3 +101,77 @@ export const RANGER_FAVORED_ENEMY_COUNT: Record<number, number> = {
   1: 2, 2: 2, 3: 2, 4: 2, 5: 3, 6: 3, 7: 3, 8: 3, 9: 4, 10: 4,
   11: 4, 12: 4, 13: 5, 14: 5, 15: 5, 16: 5, 17: 6, 18: 6, 19: 6, 20: 6,
 };
+
+/**
+ * Truques (cantrips) conhecidos e Magias Preparadas por nível, para
+ * cada classe conjuradora — colunas "Truques"/"Magias Preparadas" das
+ * tabelas de progressão fornecidas (não derivadas de fórmula própria).
+ * Paladino e Patrulheiro não têm coluna de Truques (meio-conjuradores
+ * sem truques de classe no PHB 2024) — ausentes de propósito, não "0".
+ */
+
+export const BARD_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 2, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 4,
+  11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4,
+};
+export const BARD_SPELLS_PREPARED: Record<number, number> = {
+  1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
+  11: 16, 12: 16, 13: 17, 14: 17, 15: 18, 16: 18, 17: 19, 18: 20, 19: 21, 20: 22,
+};
+
+export const WARLOCK_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 2, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 4,
+  11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4,
+};
+export const WARLOCK_SPELLS_PREPARED: Record<number, number> = {
+  1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10,
+  11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15,
+};
+
+export const CLERIC_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 3, 2: 3, 3: 3, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 5,
+  11: 5, 12: 5, 13: 5, 14: 5, 15: 5, 16: 5, 17: 5, 18: 5, 19: 5, 20: 5,
+};
+export const CLERIC_SPELLS_PREPARED: Record<number, number> = {
+  1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
+  11: 16, 12: 16, 13: 17, 14: 17, 15: 18, 16: 18, 17: 19, 18: 20, 19: 21, 20: 22,
+};
+
+export const DRUID_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 2, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3,
+  11: 3, 12: 3, 13: 3, 14: 3, 15: 3, 16: 3, 17: 4, 18: 4, 19: 4, 20: 4,
+};
+export const DRUID_SPELLS_PREPARED: Record<number, number> = {
+  1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
+  11: 16, 12: 16, 13: 17, 14: 17, 15: 18, 16: 18, 17: 19, 18: 20, 19: 21, 20: 22,
+};
+
+export const SORCERER_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 4, 2: 4, 3: 4, 4: 5, 5: 5, 6: 5, 7: 5, 8: 5, 9: 5, 10: 6,
+  11: 6, 12: 6, 13: 6, 14: 6, 15: 6, 16: 6, 17: 6, 18: 6, 19: 6, 20: 6,
+};
+export const SORCERER_SPELLS_PREPARED: Record<number, number> = {
+  1: 2, 2: 4, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
+  11: 16, 12: 16, 13: 17, 14: 17, 15: 18, 16: 18, 17: 19, 18: 20, 19: 21, 20: 22,
+};
+
+export const WIZARD_CANTRIPS_KNOWN: Record<number, number> = {
+  1: 3, 2: 3, 3: 3, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 5,
+  11: 5, 12: 5, 13: 5, 14: 5, 15: 5, 16: 5, 17: 5, 18: 5, 19: 5, 20: 5,
+};
+export const WIZARD_SPELLS_PREPARED: Record<number, number> = {
+  1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
+  11: 16, 12: 16, 13: 17, 14: 18, 15: 19, 16: 21, 17: 22, 18: 23, 19: 24, 20: 25,
+};
+
+/** Paladino — sem coluna de Truques (meio-conjurador sem truques de classe). */
+export const PALADIN_SPELLS_PREPARED: Record<number, number> = {
+  1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 6, 7: 7, 8: 7, 9: 9, 10: 9,
+  11: 10, 12: 10, 13: 11, 14: 11, 15: 12, 16: 12, 17: 14, 18: 14, 19: 15, 20: 15,
+};
+
+/** Patrulheiro — sem coluna de Truques (meio-conjurador sem truques de classe). */
+export const RANGER_SPELLS_PREPARED: Record<number, number> = {
+  1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 6, 7: 7, 8: 7, 9: 9, 10: 9,
+  11: 10, 12: 10, 13: 11, 14: 11, 15: 12, 16: 12, 17: 14, 18: 14, 19: 15, 20: 15,
+};

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import {
   getBardicInspirationDie,
+  getCantripsKnown,
   getChannelDivinityUses,
   getExtraAttacksCount,
   getFavoredEnemyCount,
@@ -13,6 +14,7 @@ import {
   getSecondWindUses,
   getSneakAttackDice,
   getSorceryPoints,
+  getSpellsPreparedMax,
   getWeaponMasteryCount,
   getWildShapeUses,
 } from "./classResources.js";
@@ -184,5 +186,45 @@ describe("getExtraAttacksCount — níveis confirmados diretamente pelas tabelas
   it("sem classe definida, 0", () => {
     const character = createBlankCharacter("resources-test");
     expect(getExtraAttacksCount(character)).toBe(0);
+  });
+});
+
+describe("getCantripsKnown — Truques por nível", () => {
+  it("Bardo nível 1: 2 truques; nível 10: 4 truques", () => {
+    expect(getCantripsKnown(characterOf("bardo", 1))).toBe(2);
+    expect(getCantripsKnown(characterOf("bardo", 10))).toBe(4);
+  });
+
+  it("Feiticeiro nível 1: 4 truques (mais que as outras classes conjuradoras)", () => {
+    expect(getCantripsKnown(characterOf("feiticeiro", 1))).toBe(4);
+  });
+
+  it("Paladino e Patrulheiro não têm coluna de Truques — devolve null, nunca 0", () => {
+    expect(getCantripsKnown(characterOf("paladino", 5))).toBeNull();
+    expect(getCantripsKnown(characterOf("patrulheiro", 5))).toBeNull();
+  });
+
+  it("classe não conjuradora (Bárbaro) — null", () => {
+    expect(getCantripsKnown(characterOf("barbaro", 5))).toBeNull();
+  });
+});
+
+describe("getSpellsPreparedMax — Magias Preparadas por nível", () => {
+  it("Mago nível 1: 4; nível 20: 25 (a maior entre as classes conjuradoras)", () => {
+    expect(getSpellsPreparedMax(characterOf("mago", 1))).toBe(4);
+    expect(getSpellsPreparedMax(characterOf("mago", 20))).toBe(25);
+  });
+
+  it("Paladino nível 1: 2; nível 20: 15", () => {
+    expect(getSpellsPreparedMax(characterOf("paladino", 1))).toBe(2);
+    expect(getSpellsPreparedMax(characterOf("paladino", 20))).toBe(15);
+  });
+
+  it("Bruxo tem sua própria coluna de Magias Preparadas, distinta da Magia de Pacto", () => {
+    expect(getSpellsPreparedMax(characterOf("bruxo", 1))).toBe(2);
+  });
+
+  it("classe não conjuradora (Guerreiro sem subclasse conjuradora) — null", () => {
+    expect(getSpellsPreparedMax(characterOf("guerreiro", 5))).toBeNull();
   });
 });

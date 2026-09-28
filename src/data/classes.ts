@@ -65,10 +65,16 @@ export interface ClassDefinition {
  */
 export const classes: Record<ClassId, ClassDefinition> = {
   artifice: {
+    // ARTÍFICE = AGUARDANDO REVISÃO CONTRA FONTE FORNECIDA.
+    // A base consolidada de classes (2 mensagens) cobre 12 das 13 classes — Artífice ficou de fora
+    // deliberadamente. hitDie/spellcastingAbility/saves/armadura/armas/ferramentas abaixo são a
+    // implementação PRÉ-EXISTENTE (Fase 2), preservada por ora; NÃO foram conferidos contra a base
+    // consolidada e NÃO devem ser usados como modelo para preencher outra classe. primaryAbilityText/
+    // skillChoice/startingEquipment ficam undefined/null até você fornecer os dados estruturados do
+    // Artífice — nunca inferidos do padrão das outras 12 classes.
     id: "artifice",
     name: "Artífice",
     hitDie: 8,
-    // primaryAbilityText/skillChoice/startingEquipment: pendentes — Artífice não fazia parte da base consolidada de classes fornecida.
     primaryAbilityText: null,
     spellcastingAbility: "INT",
     savingThrowProficiencies: ["CON", "INT"],
