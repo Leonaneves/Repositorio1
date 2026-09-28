@@ -1,16 +1,11 @@
-import { CLASS_IDS } from "../../domain/ids.js";
+import { CLASS_IDS, type ClassId } from "../../domain/ids.js";
 import type { FeatureDefinition } from "../../domain/features.js";
 import { classes, getClassSkillChoiceId } from "../classes.js";
 
 /**
- * Features de CLASSE já confirmadas nesta etapa: só as duas cujos
- * números foram explicitamente confirmados por você nesta conversa
- * (ver `rules/speed.ts#getClassSpeedBonus`) — o restante da progressão
- * de features por classe/nível (D&D 2024 completo) é um volume de dados
- * grande que ainda não foi confirmado comigo, então fica
- * deliberadamente de fora aqui em vez de ser inventado (ver relatório
- * de pendências). `getClassFeatures` (rules/features.ts) já está pronta
- * para receber o restante sem precisar mudar de formato.
+ * Features de CLASSE cujo efeito mecânico já está implementado em
+ * `rules/` — cada uma explica, no `summary`, ONDE o cálculo mora (nunca
+ * duplicamos o número aqui, só apontamos para a função).
  */
 const mechanicalClassFeatures: FeatureDefinition[] = [
   {
@@ -67,4 +62,299 @@ const classSkillChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId)
   },
 );
 
-export const classFeatures: FeatureDefinition[] = [...mechanicalClassFeatures, ...classSkillChoiceFeatures];
+interface NamedFeature {
+  name: string;
+  level: number;
+}
+
+/**
+ * Nomes e níveis de aquisição transcritos literalmente da coluna
+ * "Características"/"Características de Classe" da base consolidada
+ * de classes — NUNCA o conteúdo mecânico/explicativo (isso fica
+ * `pending`, ver `toFeatureDefinitions`). Omite de propósito: linhas
+ * "Subclasse de X" e "Característica de Subclasse" (estrutural —
+ * tratado pela etapa 3 do Builder + `rules/subclasses.ts` +
+ * `data/subclassFeatureLevels.ts`), "Aumento no Valor de Atributo" e
+ * "Dádiva Épica" (geradas à parte, com uma `FeatureChoice` de
+ * fallback), e as duas já cobertas por `mechanicalClassFeatures`
+ * (Movimento Rápido do Bárbaro nível 5, Movimento sem Armadura do
+ * Monge nível 2).
+ */
+const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
+  bardo: [
+    { name: "Inspiração de Bardo", level: 1 },
+    { name: "Conjuração", level: 1 },
+    { name: "Especialista", level: 2 },
+    { name: "Pau pra Toda Obra", level: 2 },
+    { name: "Fonte de Inspiração", level: 5 },
+    { name: "Contra-Encantamento", level: 7 },
+    { name: "Especialização", level: 9 },
+    { name: "Segredos Mágicos", level: 10 },
+    { name: "Inspiração Superior", level: 18 },
+    { name: "Palavras de Criação", level: 20 },
+  ],
+  barbaro: [
+    { name: "Defesa sem Armadura", level: 1 },
+    { name: "Fúria", level: 1 },
+    { name: "Maestria em Arma", level: 1 },
+    { name: "Ataque Imprudente", level: 2 },
+    { name: "Sentido de Perigo", level: 2 },
+    { name: "Conhecimento Primordial", level: 3 },
+    { name: "Ataque Extra", level: 5 },
+    { name: "Bote Instintivo", level: 7 },
+    { name: "Instintos Primitivos", level: 7 },
+    { name: "Golpe Brutal", level: 9 },
+    { name: "Fúria Implacável", level: 11 },
+    { name: "Golpe Brutal Fortalecido", level: 13 },
+    { name: "Fúria Persistente", level: 15 },
+    { name: "Golpe Brutal Fortalecido", level: 17 },
+    { name: "Força Indomável", level: 18 },
+    { name: "Campeão Primitivo", level: 20 },
+  ],
+  bruxo: [
+    { name: "Invocações Místicas", level: 1 },
+    { name: "Magia de Pacto", level: 1 },
+    { name: "Astúcia Mágica", level: 2 },
+    { name: "Contatar Patrono", level: 9 },
+    { name: "Arcana Mística (6º círculo)", level: 11 },
+    { name: "Arcana Mística (7º círculo)", level: 13 },
+    { name: "Arcana Mística (8º círculo)", level: 15 },
+    { name: "Arcana Mística (9º círculo)", level: 17 },
+    { name: "Mestre Místico", level: 20 },
+  ],
+  clerigo: [
+    { name: "Conjuração", level: 1 },
+    { name: "Ordem Divina", level: 1 },
+    { name: "Canalizar Divindade", level: 2 },
+    { name: "Fulminar Mortos-Vivos", level: 5 },
+    { name: "Golpes Abençoados", level: 7 },
+    { name: "Intervenção Divina", level: 10 },
+    { name: "Golpes Abençoados Aprimorado", level: 14 },
+    { name: "Intervenção Divina Maior", level: 20 },
+  ],
+  druida: [
+    { name: "Conjuração", level: 1 },
+    { name: "Idioma Druídico", level: 1 },
+    { name: "Ordem Primal", level: 1 },
+    { name: "Companheiro Selvagem", level: 2 },
+    { name: "Forma Selvagem", level: 2 },
+    { name: "Ressurgimento Selvagem", level: 5 },
+    { name: "Fúria Elemental", level: 7 },
+    { name: "Fúria Elemental Aprimorada", level: 15 },
+    { name: "Magias Bestiais", level: 18 },
+    { name: "Arquidruida", level: 20 },
+  ],
+  feiticeiro: [
+    { name: "Conjuração", level: 1 },
+    { name: "Feitiçaria Inata", level: 1 },
+    { name: "Fonte de Magia", level: 2 },
+    { name: "Metamagia", level: 2 },
+    { name: "Opções de Metamagia", level: 2 },
+    { name: "Restauração Feiticeira", level: 5 },
+    { name: "Feitiçaria Encarnada", level: 7 },
+    { name: "Metamagia", level: 10 },
+    { name: "Metamagia", level: 17 },
+    { name: "Apoteose Arcana", level: 20 },
+  ],
+  guerreiro: [
+    { name: "Estilo de Luta", level: 1 },
+    { name: "Maestria em Arma", level: 1 },
+    { name: "Recuperar Fôlego", level: 1 },
+    { name: "Mente Tática", level: 2 },
+    { name: "Surto de Ação", level: 2 },
+    { name: "Ajuste Tático", level: 5 },
+    { name: "Ataque Extra", level: 5 },
+    { name: "Indomável", level: 9 },
+    { name: "Mestre Tático", level: 9 },
+    { name: "Dois Ataques Extras", level: 11 },
+    { name: "Ataques Estudados", level: 13 },
+    { name: "Indomável", level: 13 },
+    { name: "Indomável", level: 17 },
+    { name: "Surto de Ação", level: 17 },
+    { name: "Três Ataques Extras", level: 20 },
+  ],
+  ladino: [
+    { name: "Ataque Furtivo", level: 1 },
+    { name: "Especialização", level: 1 },
+    { name: "Gíria dos Ladrões", level: 1 },
+    { name: "Maestria em Arma", level: 1 },
+    { name: "Ação Ardilosa", level: 2 },
+    { name: "Mira Firme", level: 3 },
+    { name: "Esquiva Sobrenatural", level: 5 },
+    { name: "Golpe Astuto", level: 5 },
+    { name: "Especialista", level: 6 },
+    { name: "Evasão", level: 7 },
+    { name: "Talento Confiável", level: 7 },
+    { name: "Golpe Astuto Aprimorado", level: 11 },
+    { name: "Golpes Sujos", level: 14 },
+    { name: "Mente Escorregadia", level: 15 },
+    { name: "Elusivo", level: 18 },
+    { name: "Golpe de Sorte", level: 20 },
+  ],
+  mago: [
+    { name: "Adepto de Ritual", level: 1 },
+    { name: "Conjuração", level: 1 },
+    { name: "Recuperação Arcana", level: 1 },
+    { name: "Acadêmico", level: 2 },
+    { name: "Memorizar Magia", level: 5 },
+    { name: "Maestria de Magias", level: 18 },
+    { name: "Assinatura Mágica", level: 20 },
+  ],
+  monge: [
+    { name: "Artes Marciais", level: 1 },
+    { name: "Defesa sem Armadura", level: 1 },
+    { name: "Foco do Monge", level: 2 },
+    { name: "Metabolismo Incomum", level: 2 },
+    { name: "Defletir Ataques", level: 3 },
+    { name: "Ataque Extra", level: 5 },
+    { name: "Golpe Atordoante", level: 5 },
+    { name: "Ataques Potencializados", level: 6 },
+    { name: "Evasão", level: 7 },
+    { name: "Movimento Acrobático", level: 9 },
+    { name: "Autocura", level: 10 },
+    { name: "Foco Aprimorado", level: 10 },
+    { name: "Defletir Energia", level: 13 },
+    { name: "Sobrevivente Disciplinado", level: 14 },
+    { name: "Foco Perfeito", level: 15 },
+    { name: "Defesa Superior", level: 18 },
+    { name: "Corpo e Mente", level: 20 },
+  ],
+  paladino: [
+    { name: "Conjuração", level: 1 },
+    { name: "Maestria em Arma", level: 1 },
+    { name: "Mãos Consagradas", level: 1 },
+    { name: "Destruição do Paladino", level: 2 },
+    { name: "Estilo de Luta", level: 2 },
+    { name: "Canalizar Divindade", level: 3 },
+    { name: "Ataque Extra", level: 5 },
+    { name: "Montaria Fiel", level: 5 },
+    { name: "Aura de Proteção", level: 6 },
+    { name: "Repudiar Inimigos", level: 9 },
+    { name: "Aura de Coragem", level: 10 },
+    { name: "Golpes Radiantes", level: 11 },
+    { name: "Toque Restaurador", level: 14 },
+    { name: "Aura Expandida", level: 18 },
+  ],
+  patrulheiro: [
+    { name: "Conjuração", level: 1 },
+    { name: "Inimigo Favorito", level: 1 },
+    { name: "Maestria em Arma", level: 1 },
+    { name: "Estilo de Luta", level: 2 },
+    { name: "Explorador Hábil", level: 2 },
+    { name: "Ataque Extra", level: 5 },
+    { name: "Errante", level: 6 },
+    { name: "Especialista", level: 9 },
+    { name: "Incansável", level: 10 },
+    { name: "Predador Implacável", level: 13 },
+    { name: "Véu da Natureza", level: 14 },
+    { name: "Caçador Preciso", level: 17 },
+    { name: "Sentidos Selvagens", level: 18 },
+    { name: "Matador de Inimigos Favoritos", level: 20 },
+  ],
+};
+
+/** Níveis de Aumento no Valor de Atributo confirmados por classe — Guerreiro e Ladino recebem mais do que as demais. */
+const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
+  bardo: [4, 8, 12, 16],
+  barbaro: [4, 8, 12, 16],
+  bruxo: [4, 8, 12, 16],
+  clerigo: [4, 8, 12, 16],
+  druida: [4, 8, 12, 16],
+  feiticeiro: [4, 8, 12, 16],
+  guerreiro: [4, 6, 8, 12, 14, 16],
+  ladino: [4, 8, 10, 12, 16],
+  mago: [4, 8, 12, 16],
+  monge: [4, 8, 12, 16],
+  paladino: [4, 8, 12, 16],
+  patrulheiro: [4, 8, 12, 16],
+};
+
+/** Todas as 12 classes desta base recebem a Dádiva Épica no nível 19. */
+const DADIVA_EPICA_CLASSES: ClassId[] = Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[];
+
+function slugify(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function toFeatureDefinitions(classId: ClassId, list: NamedFeature[]): FeatureDefinition[] {
+  return list.map(({ name, level }) => ({
+    id: `${classId}-${slugify(name)}-${level}`,
+    name,
+    sourceType: "class",
+    classId,
+    level,
+    autoGranted: true,
+    // Conteúdo mecânico/explicativo detalhado ainda não foi fornecido — nome e nível são reais, o resumo fica pendente (nunca inventado).
+    summary: "Conteúdo explicativo pendente — nome e nível confirmados, aguardando a descrição da regra.",
+  }));
+}
+
+const namedClassFeatures: FeatureDefinition[] = (Object.entries(NAMED_FEATURES_BY_CLASS) as [ClassId, NamedFeature[]][]).flatMap(
+  ([classId, list]) => toFeatureDefinitions(classId, list),
+);
+
+/**
+ * "Aumento no Valor de Atributo" (decisão §9 das regras de integração):
+ * feature estruturada com uma escolha — fallback `manualText` até o
+ * sistema de +2/+1 em atributos e o catálogo de talentos existirem.
+ */
+const abilityScoreImprovementFeatures: FeatureDefinition[] = (Object.entries(ASI_LEVELS_BY_CLASS) as [ClassId, number[]][]).flatMap(
+  ([classId, levels]) =>
+    levels.map(
+      (level): FeatureDefinition => ({
+        id: `${classId}-asi-${level}`,
+        name: "Aumento no Valor de Atributo",
+        sourceType: "class",
+        classId,
+        level,
+        autoGranted: false,
+        summary: "+2 em um atributo, +1 em dois atributos, ou um talento geral (catálogo de talentos ainda pendente).",
+        choices: [
+          {
+            id: `${classId}-asi-${level}-escolha`,
+            prompt: "Aumento no Valor de Atributo ou Talento",
+            effect: {
+              kind: "manualText",
+              placeholder: "Ex.: +2 em Força; ou +1 em Força e +1 em Constituição; ou um talento (catálogo pendente)",
+            },
+          },
+        ],
+      }),
+    ),
+);
+
+/**
+ * "Dádiva Épica" (decisão §10): mesmo tratamento — feature estruturada,
+ * `pending` até o catálogo de Dádivas Épicas existir.
+ */
+const epicBoonFeatures: FeatureDefinition[] = DADIVA_EPICA_CLASSES.map(
+  (classId): FeatureDefinition => ({
+    id: `${classId}-dadiva-epica`,
+    name: "Dádiva Épica",
+    sourceType: "class",
+    classId,
+    level: 19,
+    autoGranted: false,
+    summary: "Talento de Dádiva Épica — catálogo ainda pendente.",
+    choices: [
+      {
+        id: `${classId}-dadiva-epica-escolha`,
+        prompt: "Dádiva Épica",
+        effect: { kind: "manualText", placeholder: "Dádiva Épica (catálogo pendente)" },
+      },
+    ],
+  }),
+);
+
+export const classFeatures: FeatureDefinition[] = [
+  ...mechanicalClassFeatures,
+  ...classSkillChoiceFeatures,
+  ...namedClassFeatures,
+  ...abilityScoreImprovementFeatures,
+  ...epicBoonFeatures,
+];

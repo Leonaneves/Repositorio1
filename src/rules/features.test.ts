@@ -11,35 +11,46 @@ import {
 } from "./features.js";
 
 describe("getClassFeatures — progressão por nível", () => {
-  it("Bárbaro nível 4 já tem a escolha de Perícias de Classe (nível 1), mas ainda não Movimento Rápido (chega no 5)", () => {
+  it("Bárbaro nível 4 já tem Perícias de Classe e as features de nível 1–4, mas ainda não Movimento Rápido (chega no 5)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "barbaro";
     character.level = 4;
-    expect(getClassFeatures(character).map((f) => f.id)).toEqual(["barbaro-pericias-de-classe"]);
+    const ids = getClassFeatures(character).map((f) => f.id);
+    expect(ids).toContain("barbaro-pericias-de-classe");
+    expect(ids).toContain("barbaro-defesa-sem-armadura-1");
+    expect(ids).toContain("barbaro-asi-4");
+    expect(ids).not.toContain("barbaro-movimento-rapido");
+    expect(ids).not.toContain("barbaro-ataque-extra-5");
   });
 
-  it("Bárbaro nível 5 já tem Movimento Rápido, além da escolha de Perícias de Classe", () => {
+  it("Bárbaro nível 5 já tem Movimento Rápido e Ataque Extra", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "barbaro";
     character.level = 5;
-    const features = getClassFeatures(character);
-    expect(features.map((f) => f.id).sort()).toEqual(["barbaro-movimento-rapido", "barbaro-pericias-de-classe"].sort());
+    const ids = getClassFeatures(character).map((f) => f.id);
+    expect(ids).toContain("barbaro-movimento-rapido");
+    expect(ids).toContain("barbaro-ataque-extra-5");
   });
 
-  it("Monge nível 1 já tem a escolha de Perícias de Classe, mas ainda não Movimento sem Armadura (chega no 2)", () => {
+  it("Monge nível 1 já tem Perícias de Classe, Artes Marciais e Defesa sem Armadura, mas ainda não Movimento sem Armadura (chega no 2)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "monge";
     character.level = 1;
-    expect(getClassFeatures(character).map((f) => f.id)).toEqual(["monge-pericias-de-classe"]);
+    const ids = getClassFeatures(character).map((f) => f.id);
+    expect(ids).toContain("monge-pericias-de-classe");
+    expect(ids).toContain("monge-artes-marciais-1");
+    expect(ids).not.toContain("monge-movimento-sem-armadura");
   });
 
-  it("Monge nível 2+ tem Movimento sem Armadura, além da escolha de Perícias de Classe", () => {
+  it("Monge nível 20 acumula todas as features até esse nível, incluindo Movimento sem Armadura e Dádiva Épica", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "monge";
     character.level = 20;
-    expect(getClassFeatures(character).map((f) => f.id).sort()).toEqual(
-      ["monge-movimento-sem-armadura", "monge-pericias-de-classe"].sort(),
-    );
+    const ids = getClassFeatures(character).map((f) => f.id);
+    expect(ids).toContain("monge-movimento-sem-armadura");
+    expect(ids).toContain("monge-pericias-de-classe");
+    expect(ids).toContain("monge-dadiva-epica");
+    expect(ids).toContain("monge-corpo-e-mente-20");
   });
 
   it("sem classe definida, nenhuma feature", () => {
@@ -52,6 +63,28 @@ describe("getClassFeatures — progressão por nível", () => {
     character.classId = "artifice";
     character.level = 10;
     expect(getClassFeatures(character)).toEqual([]);
+  });
+
+  it("Aumento no Valor de Atributo e Dádiva Épica vêm com uma FeatureChoice manualText (catálogo pendente)", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "mago";
+    character.level = 20;
+    const asi = getClassFeatures(character).find((f) => f.id === "mago-asi-4");
+    const dadiva = getClassFeatures(character).find((f) => f.id === "mago-dadiva-epica");
+    expect(asi?.choices?.[0].effect.kind).toBe("manualText");
+    expect(dadiva?.choices?.[0].effect.kind).toBe("manualText");
+  });
+
+  it("Guerreiro recebe 6 Aumentos no Valor de Atributo (mais que as outras classes) e Ladino recebe 5", () => {
+    const guerreiro = createBlankCharacter("features-test");
+    guerreiro.classId = "guerreiro";
+    guerreiro.level = 20;
+    expect(getClassFeatures(guerreiro).filter((f) => f.name === "Aumento no Valor de Atributo")).toHaveLength(6);
+
+    const ladino = createBlankCharacter("features-test");
+    ladino.classId = "ladino";
+    ladino.level = 20;
+    expect(getClassFeatures(ladino).filter((f) => f.name === "Aumento no Valor de Atributo")).toHaveLength(5);
   });
 });
 
@@ -100,21 +133,20 @@ describe("getChosenFeatFeatures — catálogo geral vazio nesta etapa", () => {
 });
 
 describe("getCharacterFeatures — junta todas as fontes sem duplicar", () => {
-  it("Bárbaro Golias nível 5 com antecedente Soldado: 3 features (classe + espécie + antecedente)", () => {
+  it("Bárbaro Golias nível 5 com antecedente Soldado: junta features de classe + espécie + antecedente, sem repetir nenhum id", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "barbaro";
     character.level = 5;
     character.speciesId = "golias";
     character.backgroundId = "soldado";
     const features = getCharacterFeatures(character);
-    expect(features.map((f) => f.id).sort()).toEqual(
-      [
-        "barbaro-movimento-rapido",
-        "barbaro-pericias-de-classe",
-        "antecedente-soldado-talento-origem",
-        "especie-golias-tracos",
-      ].sort(),
-    );
+    const ids = features.map((f) => f.id);
+
+    expect(ids).toContain("barbaro-movimento-rapido");
+    expect(ids).toContain("barbaro-pericias-de-classe");
+    expect(ids).toContain("antecedente-soldado-talento-origem");
+    expect(ids).toContain("especie-golias-tracos");
+    expect(new Set(ids).size).toBe(ids.length); // nenhum id duplicado
   });
 });
 
