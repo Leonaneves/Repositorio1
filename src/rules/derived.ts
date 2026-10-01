@@ -1,11 +1,11 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import { getAbilityModifier } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 import { getSkillBonus } from "./skills.js";
 
 /** Iniciativa = modificador de Destreza + ajuste manual. */
 export function getInitiative(character: Character): ComputedValue {
-  const auto = getAbilityModifier(character.abilities.DEX.score);
+  const auto = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
   return computedValue(auto, character.initiative.manualAdjustment);
 }
 

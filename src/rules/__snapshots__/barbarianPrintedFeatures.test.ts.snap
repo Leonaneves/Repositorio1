@@ -1,0 +1,109 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso por nível (Bárbaro puro, sem subclasse) > nível 1 1`] = `
+[
+  "#Fúria [__][__]
+AB, sem Arm. Pesada. Res. Conc/Cort/Perf; +2 dano em Atq FOR; Vant. testes/Salv. FOR; sem Concent./magias.
+Dura até fim do próx. turno; estenda ao Atq, forçar Salv. ou AB; máx. 10 min. +1 uso/DC, todos/DL.",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bárbaro puro, sem subclasse) > nível 5 1`] = `
+[
+  "#Fúria [__][__][__]
+AB, sem Arm. Pesada. Res. Conc/Cort/Perf; +2 dano em Atq FOR; Vant. testes/Salv. FOR; sem Concent./magias.
+Dura até fim do próx. turno; estenda ao Atq, forçar Salv. ou AB; máx. 10 min. +1 uso/DC, todos/DL.",
+  "#Ataque Imprudente
+No 1º Atq do turno, escolha: Vant. em Atq FOR até seu próx. turno; Atq contra você também têm Vant.",
+  "#Sentido de Perigo
+Vant. em Salv. DES, exceto Incapacitado.",
+  "#Conhecimento Primordial
+Em Fúria, Acrobacia, Furtividade, Intimidação, Percepção e Sobrevivência podem usar FOR.",
+  "#Ataque Extra
+2 Atq ao usar a ação Atacar.",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bárbaro puro, sem subclasse) > nível 10 1`] = `
+[
+  "#Fúria [__][__][__][__]
+AB, sem Arm. Pesada. Res. Conc/Cort/Perf; +3 dano em Atq FOR; Vant. testes/Salv. FOR; sem Concent./magias.
+Dura até fim do próx. turno; estenda ao Atq, forçar Salv. ou AB; máx. 10 min. +1 uso/DC, todos/DL.",
+  "#Ataque Imprudente
+No 1º Atq do turno, escolha: Vant. em Atq FOR até seu próx. turno; Atq contra você também têm Vant.",
+  "#Sentido de Perigo
+Vant. em Salv. DES, exceto Incapacitado.",
+  "#Conhecimento Primordial
+Em Fúria, Acrobacia, Furtividade, Intimidação, Percepção e Sobrevivência podem usar FOR.",
+  "#Ataque Extra
+2 Atq ao usar a ação Atacar.",
+  "#Bote Instintivo
+Ao entrar em Fúria, mova até ½ Desl. como parte da mesma AB.",
+  "#Instintos Primitivos
+Vant. em Iniciativa.",
+  "#Golpe Brutal
+Com Atq Imprudente, renuncie à Vant. de 1 Atq FOR sem Desv.; ao acertar: +1d10 dano + escolha 1:
+> Debilitador: Desl. alvo –4,5m até seu próx. turno.
+> Poderoso: empurra 4,5m; mova até ½ Desl. em direção ao alvo sem Atq Oport.",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bárbaro puro, sem subclasse) > nível 15 1`] = `
+[
+  "#Fúria [__][__][__][__][__]
+AB, sem Arm. Pesada. Res. Conc/Cort/Perf; +3 dano em Atq FOR; Vant. testes/Salv. FOR; sem Concent./magias.
+Dura 10 min; encerra se Inconsciente ou com Arm. Pesada. +1 uso/DC, todos/DL.
+> [__] Ao rolar Inic., recupere todos os usos (1/DL).",
+  "#Ataque Imprudente
+No 1º Atq do turno, escolha: Vant. em Atq FOR até seu próx. turno; Atq contra você também têm Vant.",
+  "#Sentido de Perigo
+Vant. em Salv. DES, exceto Incapacitado.",
+  "#Conhecimento Primordial
+Em Fúria, Acrobacia, Furtividade, Intimidação, Percepção e Sobrevivência podem usar FOR.",
+  "#Ataque Extra
+2 Atq ao usar a ação Atacar.",
+  "#Bote Instintivo
+Ao entrar em Fúria, mova até ½ Desl. como parte da mesma AB.",
+  "#Instintos Primitivos
+Vant. em Iniciativa.",
+  "#Golpe Brutal
+Com Atq Imprudente, renuncie à Vant. de 1 Atq FOR sem Desv.; ao acertar: +1d10 dano + escolha 1:
+> Debilitador: Desl. alvo –4,5m até seu próx. turno.
+> Poderoso: empurra 4,5m; mova até ½ Desl. em direção ao alvo sem Atq Oport.
+> Atordoante: alvo tem Desv. na próxima Salv. e não faz Atq Oport. até seu próx. turno.
+> Destruidor: próximo Atq de outra criatura contra o alvo antes do seu próx. turno recebe +5.",
+  "#Fúria Implacável
+Em Fúria, ao cair a 0 PV sem morrer: Salv. CON CD 10; sucesso → PV = 2× nível Bárbaro. Novo uso: CD +5. DC/DL → CD 10.",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bárbaro puro, sem subclasse) > nível 20 1`] = `
+[
+  "#Fúria [__][__][__][__][__][__]
+AB, sem Arm. Pesada. Res. Conc/Cort/Perf; +4 dano em Atq FOR; Vant. testes/Salv. FOR; sem Concent./magias.
+Dura 10 min; encerra se Inconsciente ou com Arm. Pesada. +1 uso/DC, todos/DL.
+> [__] Ao rolar Inic., recupere todos os usos (1/DL).",
+  "#Ataque Imprudente
+No 1º Atq do turno, escolha: Vant. em Atq FOR até seu próx. turno; Atq contra você também têm Vant.",
+  "#Sentido de Perigo
+Vant. em Salv. DES, exceto Incapacitado.",
+  "#Conhecimento Primordial
+Em Fúria, Acrobacia, Furtividade, Intimidação, Percepção e Sobrevivência podem usar FOR.",
+  "#Ataque Extra
+2 Atq ao usar a ação Atacar.",
+  "#Bote Instintivo
+Ao entrar em Fúria, mova até ½ Desl. como parte da mesma AB.",
+  "#Instintos Primitivos
+Vant. em Iniciativa.",
+  "#Golpe Brutal
+Com Atq Imprudente, renuncie à Vant. de 1 Atq FOR sem Desv.; ao acertar: +2d10 dano + escolha 2 efeitos diferentes:
+> Debilitador: Desl. alvo –4,5m até seu próx. turno.
+> Poderoso: empurra 4,5m; mova até ½ Desl. em direção ao alvo sem Atq Oport.
+> Atordoante: alvo tem Desv. na próxima Salv. e não faz Atq Oport. até seu próx. turno.
+> Destruidor: próximo Atq de outra criatura contra o alvo antes do seu próx. turno recebe +5.",
+  "#Fúria Implacável
+Em Fúria, ao cair a 0 PV sem morrer: Salv. CON CD 10; sucesso → PV = 2× nível Bárbaro. Novo uso: CD +5. DC/DL → CD 10.",
+  "#Força Indomável
+Se teste ou Salv. FOR < valor de FOR, use o valor de FOR.",
+]
+`;

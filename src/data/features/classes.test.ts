@@ -98,10 +98,11 @@ describe("classFeatures — nomes e níveis das 12 classes da base consolidada",
     }
   });
 
-  it("features com o mesmo nome em níveis diferentes da mesma classe não colidem (ex.: Bárbaro 'Golpe Brutal Fortalecido' em 13 e 17)", () => {
-    const golpeBrutal = classFeatures.filter((f) => f.classId === "barbaro" && f.name === "Golpe Brutal Fortalecido");
-    expect(golpeBrutal.map((f) => f.level).sort()).toEqual([13, 17]);
-    expect(new Set(golpeBrutal.map((f) => f.id)).size).toBe(2);
+  it("Bárbaro 'Golpe Brutal' é uma única FeatureDefinition (nível 9) — nunca duplicada como 'Golpe Brutal Fortalecido' em 13/17 (a evolução fica só no texto impresso)", () => {
+    const golpeBrutal = classFeatures.filter((f) => f.classId === "barbaro" && f.name === "Golpe Brutal");
+    expect(golpeBrutal).toHaveLength(1);
+    expect(golpeBrutal[0].level).toBe(9);
+    expect(classFeatures.some((f) => f.classId === "barbaro" && f.name === "Golpe Brutal Fortalecido")).toBe(false);
   });
 
   it("Guerreiro 'Indomável' aparece 3 vezes (níveis 9, 13, 17), cada uma com id próprio", () => {

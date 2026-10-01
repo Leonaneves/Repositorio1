@@ -1,4 +1,5 @@
 import { getClassSkillChoiceId } from "../data/classes.js";
+import { CONHECIMENTO_PRIMORDIAL_CHOICE_ID, getBarbarianWeaponMasteryChoiceId } from "../data/features/barbarian.js";
 import { useCharacterStore } from "../state/characterStore.js";
 
 /**
@@ -62,7 +63,7 @@ function loadBarbarian(): void {
   s.setName("Grokka Punhoferro");
   s.setClass("barbaro");
   s.setLevel(5);
-  s.setSubclass("Trilha do Berserker");
+  s.setSubclass("Caminho do Berserker");
   s.setSpecies("humano");
   s.setBackground("guarda");
   s.setAbilityScore("FOR", 16);
@@ -72,6 +73,10 @@ function loadBarbarian(): void {
   s.setAbilityScore("SAB", 10);
   s.setAbilityScore("CAR", 8);
   s.setFeatureChoiceSelection(getClassSkillChoiceId("barbaro"), ["atletismo", "percepcao"]);
+  s.setFeatureChoiceSelection(CONHECIMENTO_PRIMORDIAL_CHOICE_ID, ["intimidacao"]);
+  s.setFeatureChoiceSelection(getBarbarianWeaponMasteryChoiceId(1), "machadoGrande");
+  s.setFeatureChoiceSelection(getBarbarianWeaponMasteryChoiceId(2), "azagaia");
+  s.setFeatureChoiceSelection(getBarbarianWeaponMasteryChoiceId(3), "clava");
   s.setStartingEquipmentOption("A");
   // Sem armadura de propósito — demonstra a Defesa sem Armadura do Bárbaro (10 + DEX + CON), calculada automaticamente por rules/armor.ts.
 }

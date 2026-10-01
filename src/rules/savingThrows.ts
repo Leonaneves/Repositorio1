@@ -1,6 +1,6 @@
 import { computedValue, type AbilityKey, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import { getAbilityModifier, getProficiencyBonus } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 
 /**
  * Bônus de salvaguarda = modificador do atributo + bônus de
@@ -12,7 +12,7 @@ import { getAbilityModifier, getProficiencyBonus } from "./abilities.js";
 export function getSavingThrow(character: Character, ability: AbilityKey): ComputedValue {
   const state = character.savingThrows[ability];
 
-  const abilityMod = getAbilityModifier(character.abilities[ability].score);
+  const abilityMod = getAbilityModifier(getEffectiveAbilityScore(character, ability));
   const proficiencyBonus = character.level ? getProficiencyBonus(character.level) : 0;
 
   const auto = abilityMod + (state.proficient ? proficiencyBonus : 0);

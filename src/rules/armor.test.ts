@@ -17,6 +17,15 @@ describe("getArmorClass — sem armadura", () => {
     expect(getArmorClass(character).auto).toBe(15);
   });
 
+  it("Bárbaro nível 20 (Campeão Primitivo): CON efetiva (+4, teto 25) entra na CA sem armadura", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "barbaro";
+    character.level = 20;
+    character.abilities.DEX.score = 14; // +2
+    character.abilities.CON.score = 20; // bruto +5, efetivo 24 → +7
+    expect(getArmorClass(character).auto).toBe(19); // 10 + 2 + 7
+  });
+
   it("Bárbaro com escudo soma +2 normalmente", () => {
     const character = createBlankCharacter("ca-test");
     character.classId = "barbaro";

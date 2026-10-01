@@ -5,7 +5,7 @@ import { classes } from "../data/classes.js";
 import { SUBCLASS_SPELLCASTERS } from "../data/subclasses.js";
 import { backgrounds } from "../data/backgrounds.js";
 import { ARTIFICER_SLOT_TABLE, FULL_CASTER_SLOT_TABLE, PACT_MAGIC_TABLE } from "../data/spellProgression.js";
-import { getAbilityModifier, getProficiencyBonus } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 
 /**
  * Tipo de progressão de conjurador efetiva, considerando a subclasse
@@ -62,7 +62,7 @@ export function getSpellcastingAbility(character: Character): AbilityKey | null 
 export function getSpellcastingModifier(character: Character): number | null {
   const ability = getSpellcastingAbility(character);
   if (!ability) return null;
-  return getAbilityModifier(character.abilities[ability].score);
+  return getAbilityModifier(getEffectiveAbilityScore(character, ability));
 }
 
 /** CD de magia = 8 + bônus de proficiência + modificador de conjuração + ajuste manual. */

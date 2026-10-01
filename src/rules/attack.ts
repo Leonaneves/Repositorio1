@@ -1,6 +1,6 @@
 import { computedValue, type AbilityKey, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import { getAbilityModifier, getProficiencyBonus } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 
 export interface AttackBonusInput {
   /** Atributo usado no ataque (FOR para a maioria das armas corpo a corpo, DEX para à distância/acuidade). */
@@ -24,7 +24,7 @@ export interface AttackBonusInput {
  * e da proficiência escolhidos para cada entrada.
  */
 export function getAttackBonus(character: Character, input: AttackBonusInput): ComputedValue {
-  const abilityMod = getAbilityModifier(character.abilities[input.ability].score);
+  const abilityMod = getAbilityModifier(getEffectiveAbilityScore(character, input.ability));
   const proficiencyBonus = input.proficient ? getProficiencyBonus(character.level) : 0;
   const auto = abilityMod + proficiencyBonus;
   return computedValue(auto, input.manualAdjustment ?? 0);

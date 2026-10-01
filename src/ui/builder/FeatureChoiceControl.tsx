@@ -2,6 +2,7 @@ import type { FeatureChoice } from "../../domain/features.js";
 import { SKILL_KEYS } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
 import { getWeaponsByCategory, weapons } from "../../rules/weapons.js";
+import { getSkillProficiency } from "../../rules/skills.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 
 export interface FeatureChoiceControlProps {
@@ -18,13 +19,20 @@ export interface FeatureChoiceControlProps {
  * estruturada.
  */
 export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
-  const selection = useCharacterStore((s) => s.character.featureChoiceSelections[choice.id]);
+  const character = useCharacterStore((s) => s.character);
+  const selection = character.featureChoiceSelections[choice.id];
   const setFeatureChoiceSelection = useCharacterStore((s) => s.setFeatureChoiceSelection);
   const { effect } = choice;
 
   if (effect.kind === "skillProficiency") {
-    const options = effect.options === "any" ? SKILL_KEYS : effect.options;
+    const allOptions = effect.options === "any" ? SKILL_KEYS : effect.options;
     const selected = Array.isArray(selection?.value) ? selection.value : [];
+    // Uma perícia já SELECIONADA nesta mesma escolha nunca some da lista, mesmo que
+    // `excludeAlreadyProficient` esteja ligado — senão a própria seleção (que concede a
+    // proficiência) faria a opção desaparecer assim que marcada (Conhecimento Primordial).
+    const options = effect.excludeAlreadyProficient
+      ? allOptions.filter((skillId) => selected.includes(skillId) || !getSkillProficiency(character, skillId))
+      : allOptions;
     return (
       <fieldset className="feature-choice">
         <legend>
@@ -49,7 +57,8 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   }
 
   if (effect.kind === "weaponPicker") {
-    const options = effect.category === "any" ? weapons : getWeaponsByCategory(effect.category);
+    const byCategory = effect.category === "any" ? weapons : getWeaponsByCategory(effect.category);
+    const options = effect.rangeKind ? byCategory.filter((weapon) => weapon.rangeKind === effect.rangeKind) : byCategory;
     const value = typeof selection?.value === "string" ? selection.value : "";
     return (
       <label className="field feature-choice">

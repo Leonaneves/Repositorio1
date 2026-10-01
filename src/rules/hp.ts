@@ -1,7 +1,7 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { classes, type HitDie } from "../data/classes.js";
-import { getAbilityModifier } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 
 /**
  * Valor fixo médio do Dado de Vida (regra padrão de "PV fixo" do D&D
@@ -18,7 +18,7 @@ export function getAverageHitDieRoll(hitDie: HitDie): number {
  * CON. Sem classe escolhida, o automático é 0 (só o ajuste manual conta).
  */
 export function getMaxHitPoints(character: Character): ComputedValue {
-  const conMod = getAbilityModifier(character.abilities.CON.score);
+  const conMod = getAbilityModifier(getEffectiveAbilityScore(character, "CON"));
   const auto = character.classId === null
     ? 0
     : (() => {

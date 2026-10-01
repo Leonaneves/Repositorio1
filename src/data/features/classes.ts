@@ -1,6 +1,7 @@
 import { CLASS_IDS, type ClassId } from "../../domain/ids.js";
 import type { FeatureDefinition } from "../../domain/features.js";
 import { classes, getClassSkillChoiceId, getClassToolChoiceId } from "../classes.js";
+import { barbarianClassFeatures, barbarianWeaponMasteryFeatures } from "./barbarian.js";
 
 /**
  * Features de CLASSE cujo efeito mecânico já está implementado em
@@ -139,24 +140,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
     { name: "Inspiração Superior", level: 18 },
     { name: "Palavras de Criação", level: 20 },
   ],
-  barbaro: [
-    { name: "Defesa sem Armadura", level: 1 },
-    { name: "Fúria", level: 1 },
-    { name: "Maestria em Arma", level: 1 },
-    { name: "Ataque Imprudente", level: 2 },
-    { name: "Sentido de Perigo", level: 2 },
-    { name: "Conhecimento Primordial", level: 3 },
-    { name: "Ataque Extra", level: 5 },
-    { name: "Bote Instintivo", level: 7 },
-    { name: "Instintos Primitivos", level: 7 },
-    { name: "Golpe Brutal", level: 9 },
-    { name: "Fúria Implacável", level: 11 },
-    { name: "Golpe Brutal Fortalecido", level: 13 },
-    { name: "Fúria Persistente", level: 15 },
-    { name: "Golpe Brutal Fortalecido", level: 17 },
-    { name: "Força Indomável", level: 18 },
-    { name: "Campeão Primitivo", level: 20 },
-  ],
+  // Bárbaro removido daqui — fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES" tem
+  // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/barbarian.ts).
   bruxo: [
     { name: "Invocações Místicas", level: 1 },
     { name: "Magia de Pacto", level: 1 },
@@ -327,8 +312,15 @@ const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
  * nível 19. Artífice fica de fora: a fonte própria do Artífice dá
  * "Aumento no Valor de Atributo" no nível 19 (ver `ASI_LEVELS_BY_CLASS`)
  * e "Alma do Artífice" no nível 20 como capstone — nunca Dádiva Épica.
+ * Bárbaro continua incluído (`ASI_LEVELS_BY_CLASS.barbaro` fica em
+ * 4/8/12/16, igual às outras 11) mesmo tendo saído de
+ * `NAMED_FEATURES_BY_CLASS` — por isso é somado explicitamente aqui,
+ * não lido mais dali.
  */
-const DADIVA_EPICA_CLASSES: ClassId[] = (Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice");
+const DADIVA_EPICA_CLASSES: ClassId[] = [
+  ...(Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice"),
+  "barbaro",
+];
 
 function slugify(text: string): string {
   return text
@@ -481,4 +473,6 @@ export const classFeatures: FeatureDefinition[] = [
   ...abilityScoreImprovementFeatures,
   ...epicBoonFeatures,
   ...artificeEquipmentChoiceFeatures,
+  ...barbarianClassFeatures,
+  ...barbarianWeaponMasteryFeatures,
 ];

@@ -4,6 +4,7 @@ import { SKILL_KEYS, SPELL_CIRCLES, type SkillKey, type SpellCircle } from "../d
 import { armors } from "../data/armors.js";
 import {
   getAbilityModifier,
+  getEffectiveAbilityScore,
   getProficiencyBonus,
   getArmorClass,
   getInitiative,
@@ -27,6 +28,9 @@ import {
   renderAutoTextBlock,
 } from "../rules/proficiencyText.js";
 import { getSkillProficiency } from "../rules/skills.js";
+import { getBarbarianPrintedBlocks } from "../rules/barbarianPrintedFeatures.js";
+import { getBarbarianWeaponMasteryEntries } from "../rules/barbarianWeaponMastery.js";
+import { getBarbarianRitualSpells } from "../rules/barbarianRitualSpells.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
 /**
@@ -175,11 +179,11 @@ const identityAndDerived: PdfTextFieldMapping[] = [
 ];
 
 const abilityFields: PdfTextFieldMapping[] = ABILITY_ORDER.flatMap((ability) => [
-  { kind: "text" as const, pdfField: `${ability}.val`, getValue: (c: Character) => formatPlain(c.abilities[ability].score) },
+  { kind: "text" as const, pdfField: `${ability}.val`, getValue: (c: Character) => formatPlain(getEffectiveAbilityScore(c, ability)) },
   {
     kind: "text" as const,
     pdfField: `${ability}.MOD`,
-    getValue: (c: Character) => formatSigned(getAbilityModifier(c.abilities[ability].score)),
+    getValue: (c: Character) => formatSigned(getAbilityModifier(getEffectiveAbilityScore(c, ability))),
   },
   { kind: "text" as const, pdfField: `${ability}.res`, getValue: (c: Character) => formatComputedSigned(getSavingThrow(c, ability)) },
 ]);
@@ -190,11 +194,42 @@ const skillFields: PdfTextFieldMapping[] = SKILL_KEYS.map((skillKey) => ({
   getValue: (c: Character) => formatComputedSigned(getSkillBonus(c, skillKey)),
 }));
 
+/**
+ * Distribui blocos de texto em 2 colunas, sempre no bloco mais curto
+ * até agora — simples e genérico o bastante para reaproveitar quando
+ * outras classes ganharem texto impresso dinâmico (hoje só o Bárbaro).
+ */
+function splitIntoTwoColumns(blocks: string[]): [string, string] {
+  const columns: [string[], string[]] = [[], []];
+  const lengths = [0, 0];
+  for (const block of blocks) {
+    const shorter = lengths[0] <= lengths[1] ? 0 : 1;
+    columns[shorter].push(block);
+    lengths[shorter] += block.length;
+  }
+  return [columns[0].join("\n\n"), columns[1].join("\n\n")];
+}
+
+/**
+ * "Características de Classe" (`Carac.Classe.1`/`.2`) — só o Bárbaro
+ * tem o texto impresso montado dinamicamente por ora (fonte
+ * "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES"); as demais 12 classes
+ * continuam com o campo manual de sempre (`Character.classFeatures`),
+ * sem nenhuma mudança de comportamento.
+ */
+function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
+  if (character.classId === "barbaro") {
+    const [column1, column2] = splitIntoTwoColumns(getBarbarianPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
+}
+
 const proficiencyTextFields: PdfTextFieldMapping[] = [
   {
     kind: "text",
     pdfField: "PROF.armas",
-    getValue: (c) => renderAutoTextBlock(getClassWeaponProficiencyEntries(c), c.weaponProficienciesNotes),
+    getValue: (c) => renderAutoTextBlock([...getClassWeaponProficiencyEntries(c), ...getBarbarianWeaponMasteryEntries(c)], c.weaponProficienciesNotes),
   },
   {
     kind: "text",
@@ -207,8 +242,8 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
     getValue: (c) => renderAutoTextBlock(getSpeciesTraitEntries(c), c.speciesTraitsNotes),
   },
   { kind: "text", pdfField: "Talentos", getValue: (c) => renderAutoTextBlock(getBackgroundFeatEntries(c), c.talentsNotes) },
-  { kind: "text", pdfField: "Carac.Classe.1", getValue: (c) => c.classFeatures.column1 },
-  { kind: "text", pdfField: "Carac.Classe.2", getValue: (c) => c.classFeatures.column2 },
+  { kind: "text", pdfField: "Carac.Classe.1", getValue: (c) => getClassFeaturesColumn(c, 1) },
+  { kind: "text", pdfField: "Carac.Classe.2", getValue: (c) => getClassFeaturesColumn(c, 2) },
 ];
 
 const spellcastingStatFields: PdfTextFieldMapping[] = [
@@ -252,13 +287,26 @@ const inventoryFields: PdfTextFieldMapping[] = [
   { kind: "text", pdfField: "idiomas", getValue: (c) => c.languages },
 ];
 
+/**
+ * Lista efetiva de magias preparadas para o PDF: magias concedidas
+ * automaticamente por subclasse (hoje só o Arauto da Fauna/Natureza do
+ * Caminho do Coração Selvagem — `getBarbarianRitualSpells`) primeiro,
+ * seguidas da lista manual do jogador. Nunca grava as auto-concedidas
+ * de volta em `character.spellsPrepared` — só compõe no momento da
+ * exportação, igual ao padrão já usado para texto automático em
+ * `rules/proficiencyText.ts`.
+ */
+function getEffectiveSpellsPrepared(character: Character) {
+  return [...getBarbarianRitualSpells(character), ...character.spellsPrepared];
+}
+
 /** Até 34 magias preparadas — o PDF-molde reserva essas 34 linhas (`circulo1.N`/`nome.magia.1.N`/`alcance.magia.N`/`notas.magia.1.N`). */
 const MAX_SPELL_ROWS = 34;
 const spellPreparedFields: PdfTextFieldMapping[] = Array.from({ length: MAX_SPELL_ROWS }, (_, i) => [
-  { kind: "text" as const, pdfField: `circulo1.${i}`, getValue: (c: Character) => c.spellsPrepared[i]?.circle ?? "" },
-  { kind: "text" as const, pdfField: `nome.magia.1.${i}`, getValue: (c: Character) => c.spellsPrepared[i]?.name ?? "" },
-  { kind: "text" as const, pdfField: `alcance.magia.${i}`, getValue: (c: Character) => c.spellsPrepared[i]?.range ?? "" },
-  { kind: "text" as const, pdfField: `notas.magia.1.${i}`, getValue: (c: Character) => c.spellsPrepared[i]?.notes ?? "" },
+  { kind: "text" as const, pdfField: `circulo1.${i}`, getValue: (c: Character) => getEffectiveSpellsPrepared(c)[i]?.circle ?? "" },
+  { kind: "text" as const, pdfField: `nome.magia.1.${i}`, getValue: (c: Character) => getEffectiveSpellsPrepared(c)[i]?.name ?? "" },
+  { kind: "text" as const, pdfField: `alcance.magia.${i}`, getValue: (c: Character) => getEffectiveSpellsPrepared(c)[i]?.range ?? "" },
+  { kind: "text" as const, pdfField: `notas.magia.1.${i}`, getValue: (c: Character) => getEffectiveSpellsPrepared(c)[i]?.notes ?? "" },
 ]).flat();
 
 /**

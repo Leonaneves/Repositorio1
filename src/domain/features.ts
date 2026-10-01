@@ -1,6 +1,6 @@
 import type { AbilityKey } from "./common.js";
 import type { BackgroundId, ClassId, SkillKey, SpeciesId } from "./ids.js";
-import type { WeaponCategory } from "../data/weapons.js";
+import type { WeaponCategory, WeaponRangeKind } from "../data/weapons.js";
 
 /** De onde a feature vem — usado para agrupar/etiquetar na UI (Ficha Web e Builder). */
 export type FeatureSourceType = "class" | "subclass" | "species" | "background" | "feat";
@@ -25,9 +25,11 @@ export interface FeatureUses {
  * como entrada manual.
  */
 export type FeatureChoiceEffect =
-  | { kind: "skillProficiency"; options: SkillKey[] | "any"; count: number }
+  /** `excludeAlreadyProficient` filtra, na hora de exibir, as perícias em que o personagem já é proficiente por qualquer outra fonte (ex.: Conhecimento Primordial do Bárbaro, §6 — nunca oferece uma perícia repetida). */
+  | { kind: "skillProficiency"; options: SkillKey[] | "any"; count: number; excludeAlreadyProficient?: boolean }
   | { kind: "toolProficiency"; optionsText: string; count: number }
-  | { kind: "weaponPicker"; category: WeaponCategory | "any"; count: number }
+  /** `rangeKind` filtra por alcance (corpo a corpo/à distância) além da categoria simples/marcial — ex.: Maestria em Arma do Bárbaro, só corpo a corpo (§3). */
+  | { kind: "weaponPicker"; category: WeaponCategory | "any"; count: number; rangeKind?: WeaponRangeKind }
   /** Escolha única entre um pequeno conjunto de opções nomeadas (ex.: "Armadura de Couro Batido" OU "Cota de Escamas" do equipamento inicial do Artífice) — quando as opções não pertencem a nenhum catálogo existente (perícia/ferramenta/arma), mas ainda são uma lista fechada e conhecida, não texto livre. */
   | { kind: "optionPick"; options: string[] }
   | { kind: "manualText"; placeholder: string };

@@ -66,6 +66,17 @@ describe("getMaxHitPoints — PV máximo automático (sem rolagem, criação rá
   });
 });
 
+describe("getMaxHitPoints — Campeão Primitivo (Bárbaro nível 20) retroage sobre TODOS os níveis de PV", () => {
+  it("CON efetiva (+4, D&D 2024: retroage a todos os Dados de Vida já tirados) entra em TODOS os níveis do cálculo, não só do nível 20 em diante", () => {
+    const character = createBlankCharacter("hp-test");
+    character.classId = "barbaro";
+    character.level = 20;
+    character.abilities.CON.score = 20; // efetivo: 24 (mod +7)
+    // nível 1: 12 + 7 = 19; níveis 2-20: 19 × (7 + 7) = 266; total 285
+    expect(getMaxHitPoints(character).auto).toBe(285);
+  });
+});
+
 describe("getMaxHitDice / getRemainingHitDice — 1 Dado de Vida por nível", () => {
   it("máximo de Dados de Vida é igual ao nível", () => {
     const character = createBlankCharacter("hp-test");

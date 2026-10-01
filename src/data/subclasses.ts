@@ -24,11 +24,14 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
     { shortName: "Cartógrafo", fullName: "Cartógrafo" },
     { shortName: "Reanimador", fullName: "Reanimador" },
   ],
+  // Nomes de exibição normalizados para "Caminho do/da X" pela fonte "INTEGRAÇÃO
+  // COMPLETA — BÁRBARO E SUBCLASSES" (substitui "Trilha do/da X"/"Trilha do Zelote" —
+  // mesmas 4 subclasses, sem adicionar nem remover nenhuma).
   barbaro: [
-    { shortName: "Berserker", fullName: "Trilha do Berserker" },
-    { shortName: "Coração Selvagem", fullName: "Trilha do Coração Selvagem" },
-    { shortName: "Árvore do Mundo", fullName: "Trilha da Árvore do Mundo" },
-    { shortName: "Zelote", fullName: "Trilha do Zelote" },
+    { shortName: "Berserker", fullName: "Caminho do Berserker" },
+    { shortName: "Coração Selvagem", fullName: "Caminho do Coração Selvagem" },
+    { shortName: "Árvore do Mundo", fullName: "Caminho da Árvore do Mundo" },
+    { shortName: "Fanático", fullName: "Caminho do Fanático" },
   ],
   bardo: [
     { shortName: "Dança", fullName: "Colégio da Dança" },

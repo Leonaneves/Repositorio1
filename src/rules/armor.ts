@@ -1,7 +1,7 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { armors, SHIELD_AC_BONUS, type ArmorDefinition } from "../data/armors.js";
-import { getAbilityModifier } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 
 /**
  * Armaduras disponíveis para seleção, filtradas pelas proficiências
@@ -36,9 +36,9 @@ export function getAvailableArmor(character: Character): ArmorDefinition[] {
  * - Escudo com armadura: sempre +2
  */
 export function getArmorClass(character: Character): ComputedValue {
-  const dexMod = getAbilityModifier(character.abilities.DEX.score);
-  const conMod = getAbilityModifier(character.abilities.CON.score);
-  const wisMod = getAbilityModifier(character.abilities.SAB.score);
+  const dexMod = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  const conMod = getAbilityModifier(getEffectiveAbilityScore(character, "CON"));
+  const wisMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
   const hasShield = character.armor.shield;
 
   let auto: number;

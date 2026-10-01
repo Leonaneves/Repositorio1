@@ -1,10 +1,20 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import type { SkillKey } from "../domain/ids.js";
+import type { ClassId, SkillKey } from "../domain/ids.js";
 import { skills } from "../data/skills.js";
 import { backgrounds } from "../data/backgrounds.js";
 import { classes, getClassSkillChoiceId } from "../data/classes.js";
-import { getAbilityModifier, getProficiencyBonus } from "./abilities.js";
+
+/**
+ * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
+ * "Perícias de Classe" que também concedem perícia — registrados por
+ * classe. Hoje só o Conhecimento Primordial do Bárbaro (nível 3, fonte
+ * "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES" §6).
+ */
+const EXTRA_SKILL_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
+  barbaro: ["barbaro-conhecimento-primordial-escolha"],
+};
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 
 /**
  * `true` se o antecedente ATUAL concede proficiência nesta perícia.
@@ -27,13 +37,16 @@ export function isSkillGrantedByBackground(character: Character, skill: SkillKey
  */
 export function isSkillGrantedByClassChoice(character: Character, skill: SkillKey): boolean {
   if (!character.classId) return false;
-  const skillChoice = classes[character.classId].skillChoice;
-  if (!skillChoice) return false;
 
-  const choiceId = getClassSkillChoiceId(character.classId);
-  const selection = character.featureChoiceSelections[choiceId]?.value;
-  const selected = Array.isArray(selection) ? selection : [];
-  return selected.includes(skill);
+  const choiceIds: string[] = [];
+  if (classes[character.classId].skillChoice) choiceIds.push(getClassSkillChoiceId(character.classId));
+  choiceIds.push(...(EXTRA_SKILL_CHOICE_IDS_BY_CLASS[character.classId] ?? []));
+
+  return choiceIds.some((choiceId) => {
+    const selection = character.featureChoiceSelections[choiceId]?.value;
+    const selected = Array.isArray(selection) ? selection : [];
+    return selected.includes(skill);
+  });
 }
 
 /**
@@ -65,7 +78,7 @@ export function getSkillBonus(character: Character, skill: SkillKey): ComputedVa
   const definition = skills[skill];
   const state = character.skills[skill];
 
-  const abilityMod = getAbilityModifier(character.abilities[definition.ability].score);
+  const abilityMod = getAbilityModifier(getEffectiveAbilityScore(character, definition.ability));
   const proficiencyBonus = character.level ? getProficiencyBonus(character.level) : 0;
 
   const proficient = getSkillProficiency(character, skill);

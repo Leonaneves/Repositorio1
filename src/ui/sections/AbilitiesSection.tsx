@@ -1,6 +1,6 @@
 import { useCharacterStore } from "../../state/characterStore.js";
 import type { AbilityKey } from "../../domain/common.js";
-import { getAbilityModifier } from "../../rules/abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore } from "../../rules/abilities.js";
 import { skillsByAbility } from "../../data/skills.js";
 import type { ChoiceInsight } from "../../analytics/types.js";
 import { InsightCard } from "../insights/InsightCard.js";
@@ -30,7 +30,8 @@ export interface AbilitiesSectionProps {
 }
 
 export function AbilitiesSection({ abilityHighest }: AbilitiesSectionProps) {
-  const abilities = useCharacterStore((s) => s.character.abilities);
+  const character = useCharacterStore((s) => s.character);
+  const abilities = character.abilities;
   const setAbilityScore = useCharacterStore((s) => s.setAbilityScore);
 
   const renderColumn = (keys: readonly AbilityKey[]) => (
@@ -53,7 +54,7 @@ export function AbilitiesSection({ abilityHighest }: AbilitiesSectionProps) {
               />
             </label>
             <span className="ability-card__modifier" aria-label="Modificador">
-              {formatSigned(getAbilityModifier(abilities[ability].score))}
+              {formatSigned(getAbilityModifier(getEffectiveAbilityScore(character, ability)))}
             </span>
           </div>
           <ul className="trait-list">

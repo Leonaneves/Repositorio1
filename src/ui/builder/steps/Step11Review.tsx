@@ -7,7 +7,7 @@ import { backgrounds } from "../../../data/backgrounds.js";
 import { armors } from "../../../data/armors.js";
 import { skills } from "../../../data/skills.js";
 import { SKILL_KEYS } from "../../../domain/ids.js";
-import { getAbilityModifier, getProficiencyBonus } from "../../../rules/abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "../../../rules/abilities.js";
 import { getArmorClass } from "../../../rules/armor.js";
 import { getMaxHitPoints, getMaxHitDice } from "../../../rules/hp.js";
 import { getInitiative, getPassivePerception } from "../../../rules/derived.js";
@@ -105,7 +105,7 @@ export function Step11Review() {
         <ul className="review-ability-list">
           {ABILITY_KEYS.map((ability) => (
             <li key={ability}>
-              {ABILITY_NAMES[ability]}: {character.abilities[ability].score} ({formatSigned(getAbilityModifier(character.abilities[ability].score))})
+              {ABILITY_NAMES[ability]}: {getEffectiveAbilityScore(character, ability)} ({formatSigned(getAbilityModifier(getEffectiveAbilityScore(character, ability)))})
             </li>
           ))}
         </ul>
