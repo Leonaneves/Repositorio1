@@ -25,8 +25,8 @@ describe("Fúria — checkboxes de uso e texto por nível", () => {
     const text = getBarbarianPrintedBlocks(barbarianAt(1)).find((b) => b.startsWith("#Fúria"))!;
     expect(text).toContain("#Fúria [__][__]");
     expect(text).not.toContain("[__][__][__]");
-    expect(text).toContain("+2 dano em Atq FOR");
-    expect(text).toContain("Dura até fim do próx. turno");
+    expect(text).toContain("+2 de dano");
+    expect(text).toContain("Até fim do próx turno");
     expect(text).not.toContain("Fúria Persistente");
     expect(text).not.toContain("Dura 10 min");
   });
@@ -34,7 +34,7 @@ describe("Fúria — checkboxes de uso e texto por nível", () => {
   it("nível 9: dano sobe para +3, ainda 4 usos (pré-15)", () => {
     const text = getBarbarianPrintedBlocks(barbarianAt(9)).find((b) => b.startsWith("#Fúria"))!;
     expect(text).toContain("#Fúria [__][__][__][__]");
-    expect(text).toContain("+3 dano em Atq FOR");
+    expect(text).toContain("+3 de dano");
   });
 
   it("nível 15: evolui para Fúria Persistente — mesmo bloco, nunca duplicado", () => {
@@ -44,16 +44,16 @@ describe("Fúria — checkboxes de uso e texto por nível", () => {
 
     const text = furiaBlocks[0];
     expect(text).toContain("#Fúria [__][__][__][__][__]");
-    expect(text).toContain("+3 dano em Atq FOR"); // Dano da Fúria só sobe para +4 no nível 16
+    expect(text).toContain("+3 de dano"); // Dano da Fúria só sobe para +4 no nível 16
     expect(text).toContain("Dura 10 min");
     expect(text).toContain("recupere todos os usos");
-    expect(text).not.toContain("Dura até fim do próx. turno");
+    expect(text).not.toContain("Até fim do próx turno");
   });
 
   it("nível 20: 6 usos, +4 dano, continua com o texto de Fúria Persistente", () => {
     const text = getBarbarianPrintedBlocks(barbarianAt(20)).find((b) => b.startsWith("#Fúria"))!;
     expect(text).toContain("#Fúria [__][__][__][__][__][__]");
-    expect(text).toContain("+4 dano em Atq FOR");
+    expect(text).toContain("+4 de dano");
     expect(text).toContain("Dura 10 min");
   });
 });
@@ -66,7 +66,7 @@ describe("Golpe Brutal — mesma característica evoluindo em 9/13/17, nunca dup
 
   it("nível 9: +1d10, só Debilitador/Poderoso", () => {
     const text = getBarbarianPrintedBlocks(barbarianAt(9)).find((b) => b.startsWith("#Golpe Brutal"))!;
-    expect(text).toContain("+1d10 dano + escolha 1");
+    expect(text).toContain("+1d10 e escolha");
     expect(text).toContain("Debilitador");
     expect(text).toContain("Poderoso");
     expect(text).not.toContain("Atordoante");
@@ -75,14 +75,14 @@ describe("Golpe Brutal — mesma característica evoluindo em 9/13/17, nunca dup
 
   it("nível 13: ainda +1d10, mas agora com Atordoante/Destruidor também", () => {
     const text = getBarbarianPrintedBlocks(barbarianAt(13)).find((b) => b.startsWith("#Golpe Brutal"))!;
-    expect(text).toContain("+1d10 dano + escolha 1");
+    expect(text).toContain("+1d10 e escolha");
     expect(text).toContain("Atordoante");
     expect(text).toContain("Destruidor");
   });
 
   it("nível 17: +2d10 e escolha de 2 efeitos diferentes", () => {
     const text = getBarbarianPrintedBlocks(barbarianAt(17)).find((b) => b.startsWith("#Golpe Brutal"))!;
-    expect(text).toContain("+2d10 dano + escolha 2 efeitos diferentes");
+    expect(text).toContain("+2d10 e escolha 2");
     expect(text).toContain("Atordoante");
     expect(text).toContain("Destruidor");
   });

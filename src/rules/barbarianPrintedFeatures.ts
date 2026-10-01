@@ -5,11 +5,16 @@ import { getBarbarianSubclassPrintedBlocks } from "./barbarianSubclassPrintedFea
 /**
  * Texto compacto para impressão do Bárbaro ("Características de
  * Classe", campos `Carac.Classe.1`/`Carac.Classe.2` do PDF) — fonte
- * "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES". Representação SEPARADA
- * da regra estruturada completa (`data/features/barbarian.ts` +
- * `rules/classResources.ts`): nunca usada para cálculo, só montada a
- * partir dela (classe/nível/subclasse/escolhas/progressões) — nunca um
- * texto gigante hardcoded por combinação de nível/subclasse.
+ * "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES" + revisão editorial
+ * "ALTERAÇÃO DOS TEXTOS IMPRESSOS — BÁRBARO" (texto telegráfico, sem
+ * ponto após abreviação, título sozinho quando já é autoexplicativo).
+ * Representação SEPARADA da regra estruturada completa
+ * (`data/features/barbarian.ts` + `rules/classResources.ts`): nunca
+ * usada para cálculo, só montada a partir dela (classe/nível/
+ * subclasse/escolhas/progressões) — nunca um texto gigante hardcoded
+ * por combinação de nível/subclasse. A revisão editorial NUNCA muda
+ * regra, nível de aquisição, progressão ou escolha do Builder — só a
+ * forma como o texto já resolvido é apresentado neste campo.
  *
  * Cada bloco é uma função pura `(character) => string | null` (`null`
  * = ainda não adquirida no nível atual) — quando uma característica
@@ -35,89 +40,74 @@ const FURIA: PrintedBlock = {
   getText: (character) => {
     if (character.classId !== "barbaro" || character.level < 1) return null;
     const uses = getRageCount(character) ?? 0;
-    const damage = getRageDamageBonus(character) ?? 2;
+    const damage = getRageDamageBonus(character) ?? 2; // {DanoFúria}
     const header = `#Fúria ${checkboxes(uses)}`;
-    const core = `AB, sem Arm. Pesada. Res. Conc/Cort/Perf; +${damage} dano em Atq FOR; Vant. testes/Salv. FOR; sem Concent./magias.`;
+    const core = `AB, Res Conc/Cort/Perf; +${damage} de dano\nVant testes/Salv`;
     if (character.level >= 15) {
-      return [
-        header,
-        core,
-        "Dura 10 min; encerra se Inconsciente ou com Arm. Pesada. +1 uso/DC, todos/DL.",
-        "> [__] Ao rolar Inic., recupere todos os usos (1/DL).",
-      ].join("\n");
+      return [header, core, "Dura 10 min; termina Inconsciente ou Arm Pesada", "+1 uso/DC, todos/DL", "> [__] Inic: recupere todos os usos, 1/DL"].join(
+        "\n",
+      );
     }
-    return [
-      header,
-      core,
-      "Dura até fim do próx. turno; estenda ao Atq, forçar Salv. ou AB; máx. 10 min. +1 uso/DC, todos/DL.",
-    ].join("\n");
+    return [header, core, "Até fim do próx turno; estende se: Atacar, forçar Salv ou usar AB; máx de 10 min", "+1 uso/DC, todos/DL"].join("\n");
   },
 };
 
 const ATAQUE_IMPRUDENTE: PrintedBlock = {
   acquisitionLevel: 2,
-  getText: (character) =>
-    character.level >= 2
-      ? "#Ataque Imprudente\nNo 1º Atq do turno, escolha: Vant. em Atq FOR até seu próx. turno; Atq contra você também têm Vant."
-      : null,
+  getText: (character) => (character.level >= 2 ? "#Ataque Imprudente\nVant em atqs para e contra você" : null),
 };
 
 const SENTIDO_DE_PERIGO: PrintedBlock = {
   acquisitionLevel: 2,
-  getText: (character) => (character.level >= 2 ? "#Sentido de Perigo\nVant. em Salv. DES, exceto Incapacitado." : null),
+  getText: (character) => (character.level >= 2 ? "#Sentido de Perigo\nVant em Salv DEX, exceto Incapacitado" : null),
 };
 
 const CONHECIMENTO_PRIMORDIAL: PrintedBlock = {
   acquisitionLevel: 3,
-  getText: (character) =>
-    character.level >= 3
-      ? "#Conhecimento Primordial\nEm Fúria, Acrobacia, Furtividade, Intimidação, Percepção e Sobrevivência podem usar FOR."
-      : null,
+  getText: (character) => (character.level >= 3 ? "#Conhecimento Primordial\nFúria: Acro, Furt, Int, Perc e Sobr usam FOR" : null),
 };
 
 const ATAQUE_EXTRA: PrintedBlock = {
   acquisitionLevel: 5,
-  getText: (character) => (character.level >= 5 ? "#Ataque Extra\n2 Atq ao usar a ação Atacar." : null),
+  getText: (character) => (character.level >= 5 ? "#Ataque Extra" : null),
 };
 
 const BOTE_INSTINTIVO: PrintedBlock = {
   acquisitionLevel: 7,
-  getText: (character) => (character.level >= 7 ? "#Bote Instintivo\nAo entrar em Fúria, mova até ½ Desl. como parte da mesma AB." : null),
+  getText: (character) => (character.level >= 7 ? "#Bote Instintivo\nEntrar em Fúria: mova até ½ Desl" : null),
 };
 
 const INSTINTOS_PRIMITIVOS: PrintedBlock = {
   acquisitionLevel: 7,
-  getText: (character) => (character.level >= 7 ? "#Instintos Primitivos\nVant. em Iniciativa." : null),
+  getText: (character) => (character.level >= 7 ? "#Instintos Primitivos\nVant em Inic" : null),
 };
 
 const GOLPE_BRUTAL_EFFECTS = [
-  "> Debilitador: Desl. alvo –4,5m até seu próx. turno.",
-  "> Poderoso: empurra 4,5m; mova até ½ Desl. em direção ao alvo sem Atq Oport.",
-  "> Atordoante: alvo tem Desv. na próxima Salv. e não faz Atq Oport. até seu próx. turno.",
-  "> Destruidor: próximo Atq de outra criatura contra o alvo antes do seu próx. turno recebe +5.",
+  "> Debilitador: Desl -4,5m",
+  "> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport",
+  "> Atordoante: Desv na próx Salv; sem Atq Oport",
+  "> Destruidor: próx Atq de outra criatura contra alvo +5",
 ];
 
 const GOLPE_BRUTAL: PrintedBlock = {
   acquisitionLevel: 9,
   getText: (character) => {
     if (character.level < 9) return null;
-    const dice = character.level >= 17 ? "+2d10 dano + escolha 2 efeitos diferentes" : "+1d10 dano + escolha 1";
+    const dice = character.level >= 17 ? "+2d10 e escolha 2" : "+1d10 e escolha";
     const effects = character.level >= 13 ? GOLPE_BRUTAL_EFFECTS : GOLPE_BRUTAL_EFFECTS.slice(0, 2);
-    return [`#Golpe Brutal`, `Com Atq Imprudente, renuncie à Vant. de 1 Atq FOR sem Desv.; ao acertar: ${dice}:`, ...effects].join("\n");
+    return ["#Golpe Brutal", `Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto ${dice}:`, ...effects].join("\n");
   },
 };
 
 const FURIA_IMPLACAVEL: PrintedBlock = {
   acquisitionLevel: 11,
   getText: (character) =>
-    character.level >= 11
-      ? "#Fúria Implacável\nEm Fúria, ao cair a 0 PV sem morrer: Salv. CON CD 10; sucesso → PV = 2× nível Bárbaro. Novo uso: CD +5. DC/DL → CD 10."
-      : null,
+    character.level >= 11 ? "#Fúria Implacável\nFúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível\nNovo uso: CD +5; DC/DL: CD10" : null,
 };
 
 const FORCA_INDOMAVEL: PrintedBlock = {
   acquisitionLevel: 18,
-  getText: (character) => (character.level >= 18 ? "#Força Indomável\nSe teste ou Salv. FOR < valor de FOR, use o valor de FOR." : null),
+  getText: (character) => (character.level >= 18 ? "#Força Indomável\nTeste/Salv FOR < FOR: use FOR" : null),
 };
 
 const BASE_CLASS_BLOCKS: PrintedBlock[] = [

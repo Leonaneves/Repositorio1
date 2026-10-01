@@ -3,7 +3,10 @@ import type { Character } from "../domain/character.js";
 /**
  * Texto compacto para impressão das 4 subclasses de Bárbaro — mesma
  * ideia/arquitetura de `rules/barbarianPrintedFeatures.ts` (que importa
- * e entrelaça este módulo por nível). "Arauto da Fauna"/"Arauto da
+ * e entrelaça este módulo por nível), revisado editorialmente pela
+ * fonte "ALTERAÇÃO DOS TEXTOS IMPRESSOS — BÁRBARO" (texto telegráfico,
+ * sem ponto após abreviação). Nenhuma mecânica/progressão muda aqui —
+ * só a apresentação do texto já resolvido. "Arauto da Fauna"/"Arauto da
  * Natureza" (Coração Selvagem) ficam de fora de propósito: vão para a
  * área de Magias (`rules/spellcasting.ts`), nunca para este campo.
  */
@@ -23,35 +26,27 @@ const ARVORE_DO_MUNDO: SubclassBlock[] = [
     subclassFullName: "Caminho da Árvore do Mundo",
     acquisitionLevel: 3,
     getText: (character) => {
-      const d6 = character.level >= 16 ? 4 : character.level >= 9 ? 3 : 2; // mesma progressão do Dano da Fúria (2/3/4)
-      return [
-        "#Vitalidade da Árvore",
-        "> Surto: ao entrar em Fúria, ganhe PV Temp. = nível Bárbaro.",
-        `> Força Revigorante: início do turno em Fúria, outra criatura a 3m recebe PV Temp. = ${d6}d6.`,
-      ].join("\n");
+      const d6 = character.level >= 16 ? 4 : character.level >= 9 ? 3 : 2; // {DanoFúria}, mesma progressão do Dano da Fúria
+      return ["#Vitalidade da Árvore", "> Entrar em Fúria: PV Temp = nível", `> Início turno: outra criatura a 3m recebe ${d6}d6 PV Temp`].join("\n");
     },
   },
   {
     subclassFullName: "Caminho da Árvore do Mundo",
     acquisitionLevel: 6,
     getText: () =>
-      "#Ramos da Árvore\nEm Fúria, Reação quando criatura visível inicia turno a 9m: Salv. FOR CD 8+FOR+Prof.; falha → teleporte-a para espaço livre até 1,5m de você; opcional Desl. 0 até fim do turno.",
+      ["#Ramos da Árvore", "Fúria, Reação: criatura a 9m inicia turno → Salv FOR CD 8+FOR+Prof", "Falha: teleporta até 1,5m de você; pode ficar Desl 0"].join(
+        "\n",
+      ),
   },
   {
     subclassFullName: "Caminho da Árvore do Mundo",
     acquisitionLevel: 10,
-    getText: () =>
-      "#Raízes Devastadoras\nNo seu turno, alcance +3m com arma corpo a corpo Pesada/Versátil. Ao acertar, use Derrubar ou Empurrar além da outra Maestria da arma.",
+    getText: () => ["#Raízes Devastadoras", "Arma Pesada/Versátil: +3m alcance", "Acerto: Derrubar ou Empurrar + outra Maestria"].join("\n"),
   },
   {
     subclassFullName: "Caminho da Árvore do Mundo",
     acquisitionLevel: 14,
-    getText: () =>
-      [
-        "#Percorrer a Árvore",
-        "Ao entrar em Fúria e como AB durante ela: teleporte 18m.",
-        "> 1×/Fúria: alcance 45m e leve até 6 criaturas voluntárias a 3m; surgem até 3m do seu destino.",
-      ].join("\n"),
+    getText: () => ["#Percorrer a Árvore", "Fúria: teleporte 18m ao entrar ou com AB", "> 1×/Fúria: 45m + até 6 criaturas"].join("\n"),
   },
 ];
 
@@ -60,29 +55,27 @@ const BERSERKER: SubclassBlock[] = [
     subclassFullName: "Caminho do Berserker",
     acquisitionLevel: 3,
     getText: (character) => {
-      const d6 = character.level >= 16 ? 4 : character.level >= 9 ? 3 : 2;
-      return `#Frenesi\nEm Fúria + Atq Imprudente, o 1º alvo acertado/turno com Atq FOR sofre +${d6}d6 do mesmo tipo.`;
+      const d6 = character.level >= 16 ? 4 : character.level >= 9 ? 3 : 2; // {DanoFúria}
+      return `#Frenesi\nFúria + Atq Imprudente, o 1º alvo acertado/turno com Atq FOR sofre +${d6}d6 do mesmo tipo`;
     },
   },
   {
     subclassFullName: "Caminho do Berserker",
     acquisitionLevel: 6,
-    getText: () => "#Fúria Irracional\nEm Fúria: Imune a Amedrontado/Enfeitiçado; ao entrar em Fúria, encerra essas condições.",
+    getText: () => "#Fúria Irracional\nFúria: Imune a Amedrontado/Enfeitiçado; ao entrar, encerra ambos",
   },
   {
     subclassFullName: "Caminho do Berserker",
     acquisitionLevel: 10,
-    getText: () => "#Retaliação\nAo sofrer dano de criatura a 1,5m, Reação → 1 Atq corpo a corpo contra ela.",
+    getText: () => "#Retaliação\nReação ao sofrer dano de criatura a 1,5m: 1 Atq corpo a corpo",
   },
   {
     subclassFullName: "Caminho do Berserker",
     acquisitionLevel: 14,
     getText: () =>
-      [
-        "#Presença Intimidante [__]",
-        "AB; criaturas escolhidas até 9m: Salv. SAB CD 8+FOR+Prof.; falha → Amedrontado 1 min, repetindo Salv. ao fim do turno.",
-        "DL; recupere o uso gastando 1 Fúria.",
-      ].join("\n"),
+      ["#Presença Intimidante [__]", "AB, 9m: Salv SAB CD 8+FOR+Prof; falha: Amedrontado 1 min", "Repete Salv no fim do turno", "DL ou gaste 1 Fúria"].join(
+        "\n",
+      ),
   },
 ];
 
@@ -94,9 +87,9 @@ const CORACAO_SELVAGEM: SubclassBlock[] = [
       [
         "#Fúria dos Selvagens",
         "Ao entrar em Fúria, escolha:",
-        "> Águia: ao entrar, Correr+Desengajar na mesma AB; em Fúria, AB → ambos.",
-        "> Lobo: aliados têm Vant. em Atq contra seus inimigos a 1,5m.",
-        "> Urso: Res. a todo dano exc. Energético, Necrótico, Psíquico e Radiante.",
+        "> Águia: Correr+Desengajar na mesma AB; em Fúria, AB faz ambos",
+        "> Lobo: aliados têm Vant em Atq contra inimigos a 1,5m",
+        "> Urso: Res a todo dano exc Energ, Necr, Psiq e Rad",
       ].join("\n"),
   },
   {
@@ -105,10 +98,10 @@ const CORACAO_SELVAGEM: SubclassBlock[] = [
     getText: () =>
       [
         "#Aspecto dos Selvagens",
-        "Escolha; pode trocar após DL:",
-        "> Coruja: Visão no Escuro 18m; se já tiver, +18m.",
-        "> Pantera: Desl. Escalada = Desl.",
-        "> Salmão: Desl. Natação = Desl.",
+        "Escolha; pode trocar/DL:",
+        "> Coruja: Visão no Escuro 18m ou +18m",
+        "> Pantera: Desl Escalada = Desl",
+        "> Salmão: Desl Natação = Desl",
       ].join("\n"),
   },
   {
@@ -118,9 +111,9 @@ const CORACAO_SELVAGEM: SubclassBlock[] = [
       [
         "#Poder dos Selvagens",
         "Ao entrar em Fúria, escolha:",
-        "> Carneiro: ao acertar Atq corpo a corpo, pode deixar criatura Grande ou menor Caída.",
-        "> Falcão: Desl. Voo = Desl. enquanto sem armadura.",
-        "> Leão: inimigos a 1,5m têm Desv. em Atq contra outros alvos que não você ou outro Bárbaro com esta opção.",
+        "> Carneiro: Atq corpo a corpo pode deixar alvo Grande ou menor Caído",
+        "> Falcão: Desl Voo = Desl, sem armadura",
+        "> Leão: inimigos a 1,5m têm Desv em Atq contra outros",
       ].join("\n"),
   },
 ];
@@ -137,28 +130,26 @@ const FANATICO: SubclassBlock[] = [
   {
     subclassFullName: "Caminho do Fanático",
     acquisitionLevel: 3,
-    getText: (character) => `#Campeão dos Deuses\nReserva d12: ${checkboxes(championDice(character.level))}\nAB: gaste quaisquer dados; cure PV = total rolado. Recupera todos/DL.`,
+    getText: (character) => `#Campeão dos Deuses\nd12: ${checkboxes(championDice(character.level))}\nAB: gaste dados e cure o total\nTodos/DL`,
   },
   {
     subclassFullName: "Caminho do Fanático",
     acquisitionLevel: 3,
     getText: (character) => {
-      const bonus = Math.floor(character.level / 2);
-      return `#Fúria Divina\nEm Fúria, 1º alvo acertado/turno com arma ou Atq Desarmado: +1d6+${bonus}, Necrótico ou Radiante.`;
+      const bonus = Math.floor(character.level / 2); // {bonusResolvido}
+      return `#Fúria Divina\nFúria: 1º acerto/turno +1d6+${bonus} Necr ou Rad`;
     },
   },
   {
     subclassFullName: "Caminho do Fanático",
     acquisitionLevel: 6,
-    getText: () => "#Concentração Fanática\n1×/Fúria, ao falhar Salv.: repita com +Dano da Fúria; use o novo resultado.",
+    getText: () => "#Concentração Fanática\n1×/Fúria, falha Salv: refaça com +Dano da Fúria",
   },
   {
     subclassFullName: "Caminho do Fanático",
     acquisitionLevel: 10,
     getText: () =>
-      ["#Presença Zelosa [__]", "AB: até 10 outras criaturas a 18m têm Vant. em Atq e Salv. até seu próx. turno.", "DL; recupere o uso gastando 1 Fúria."].join(
-        "\n",
-      ),
+      ["#Presença Zelosa [__]", "AB: até 10 criaturas a 18m têm Vant em Atq/Salv até próx turno", "DL ou gaste 1 Fúria"].join("\n"),
   },
   {
     subclassFullName: "Caminho do Fanático",
@@ -166,10 +157,10 @@ const FANATICO: SubclassBlock[] = [
     getText: () =>
       [
         "#Fúria dos Deuses [__]",
-        "Ao entrar em Fúria, forma divina por 1 min ou até 0 PV. DL.",
-        "> Res.: Necrótico, Psíquico e Radiante.",
-        "> Revivificação: Reação; criatura a 9m cairia a 0 PV → gaste 1 Fúria; PV dela = seu nível Bárbaro.",
-        "> Voo: Desl. Voo = Desl.; pode pairar.",
+        "Entrar em Fúria: forma divina por 1 min. DL",
+        "> Res Necr/Psiq/Rad",
+        "> Reação: criatura a 9m cairia a 0 PV → gaste 1 Fúria; PV = seu nível",
+        "> Voo = Desl; pode pairar",
       ].join("\n"),
   },
 ];

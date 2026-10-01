@@ -102,7 +102,7 @@ describe("Caminho do Fanático — Campeão dos Deuses (reserva de d12)", () => 
     [20, 7],
   ])("nível %i → %i d12 (checkboxes)", (level, diceCount) => {
     const text = getBarbarianSubclassPrintedBlocks(barbarianAt(level, SUBCLASSES.fanatico)).find((b) => b.text.includes("Campeão dos Deuses"))!.text;
-    expect(text).toContain(`Reserva d12: ${"[__]".repeat(diceCount)}`);
+    expect(text).toContain(`d12: ${"[__]".repeat(diceCount)}`);
   });
 
   it("Fúria Divina: bônus = metade do nível de Bárbaro (arredondado para baixo)", () => {
