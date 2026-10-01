@@ -42,17 +42,21 @@ describe("catálogo de features — integridade estrutural", () => {
     expect(generalFeats).toEqual([]);
   });
 
-  it("subclassFeatures: só as 4 subclasses de Bárbaro por ora (fonte fornecida), todas com sourceType 'subclass' e subclassFullName válido", () => {
+  it("subclassFeatures: só as 4 subclasses de Bárbaro + 4 de Bardo por ora (fontes fornecidas), todas com sourceType 'subclass' e subclassFullName válido", () => {
     expect(subclassFeatures.length).toBeGreaterThan(0);
-    const barbarianSubclassNames = [
+    const confirmedSubclassNames = [
       "Caminho da Árvore do Mundo",
       "Caminho do Berserker",
       "Caminho do Coração Selvagem",
       "Caminho do Fanático",
+      "Colégio da Bravura",
+      "Colégio da Dança",
+      "Colégio do Conhecimento",
+      "Colégio do Glamour",
     ];
     for (const feature of subclassFeatures) {
       expect(feature.sourceType).toBe("subclass");
-      expect(barbarianSubclassNames).toContain(feature.subclassFullName);
+      expect(confirmedSubclassNames).toContain(feature.subclassFullName);
     }
   });
 });

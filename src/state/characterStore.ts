@@ -102,6 +102,22 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
   return next;
 }
 
+/**
+ * Treinamento Marcial (Colégio da Bravura, nível 3 — fonte "INTEGRAÇÃO
+ * COMPLETA — BARDO E SUBCLASSES" §16) concede proficiência em Armaduras
+ * Médias e Escudos automaticamente ao escolher a subclasse — mesmo
+ * padrão de `applyClassChange` (flag mutável, mas sempre editável depois
+ * em `ArmorSection`). Só SOMA a proficiência; nunca remove o que o
+ * jogador já tinha marcado manualmente, e nunca retira ao trocar de
+ * subclasse (consistente com "sempre editável", nunca forçosamente
+ * resetado fora da troca de classe). Armas Marciais (texto, não flag)
+ * entram em `rules/bardSubclassProficiencies.ts`.
+ */
+function applyBardSubclassProficiencies(character: Character): Character {
+  if (character.classId !== "bardo" || character.subclassId !== "Colégio da Bravura") return character;
+  return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, medium: true, shield: true } } };
+}
+
 interface CharacterStore {
   character: Character;
 
@@ -202,7 +218,8 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   setSubclass: (subclassId) =>
     set((state) => {
       if (!canChooseSubclass(state.character.level)) return state;
-      return { character: clampSpellSlotsExpended({ ...state.character, subclassId }) };
+      const character = applyBardSubclassProficiencies(clampSpellSlotsExpended({ ...state.character, subclassId }));
+      return { character };
     }),
 
   setSpecies: (speciesId) => set((state) => ({ character: { ...state.character, speciesId } })),

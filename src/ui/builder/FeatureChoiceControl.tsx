@@ -56,6 +56,35 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     );
   }
 
+  if (effect.kind === "skillExpertise") {
+    const selected = Array.isArray(selection?.value) ? selection.value : [];
+    // Só perícias já proficientes entram na lista (nunca concede a proficiência) — uma perícia já
+    // SELECIONADA nesta mesma escolha nunca some, mesmo que algo externo mude sua proficiência depois.
+    const options = SKILL_KEYS.filter((skillId) => selected.includes(skillId) || getSkillProficiency(character, skillId));
+    return (
+      <fieldset className="feature-choice">
+        <legend>
+          {choice.prompt} ({selected.length}/{effect.count})
+        </legend>
+        {options.map((skillId) => (
+          <label key={skillId} className="checkbox-field checkbox-field--compact">
+            <input
+              type="checkbox"
+              checked={selected.includes(skillId)}
+              disabled={!selected.includes(skillId) && selected.length >= effect.count}
+              onChange={(e) => {
+                const next = e.target.checked ? [...selected, skillId] : selected.filter((v) => v !== skillId);
+                setFeatureChoiceSelection(choice.id, next);
+              }}
+            />
+            <span>{skills[skillId].name}</span>
+          </label>
+        ))}
+        {options.length === 0 && <p className="builder-step__hint">Escolha proficiência em ao menos uma perícia antes de especializar-se.</p>}
+      </fieldset>
+    );
+  }
+
   if (effect.kind === "weaponPicker") {
     const byCategory = effect.category === "any" ? weapons : getWeaponsByCategory(effect.category);
     const options = effect.rangeKind ? byCategory.filter((weapon) => weapon.rangeKind === effect.rangeKind) : byCategory;

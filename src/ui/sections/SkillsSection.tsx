@@ -1,7 +1,14 @@
 import { useCharacterStore } from "../../state/characterStore.js";
 import type { SkillKey } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
-import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground, isSkillGrantedByClassChoice } from "../../rules/skills.js";
+import {
+  getSkillBonus,
+  getSkillExpertise,
+  getSkillProficiency,
+  isSkillGrantedByBackground,
+  isSkillGrantedByClassChoice,
+  isSkillGrantedExpertiseByClassChoice,
+} from "../../rules/skills.js";
 import { ComputedField } from "../components/ComputedField.js";
 
 export interface SkillRowProps {
@@ -16,7 +23,6 @@ export function SkillRow({ skillId }: SkillRowProps) {
   const setSkillManualAdjustment = useCharacterStore((s) => s.setSkillManualAdjustment);
 
   const definition = skills[skillId];
-  const state = character.skills[skillId];
   const proficient = getSkillProficiency(character, skillId);
   const grantedByBackground = isSkillGrantedByBackground(character, skillId);
   const grantedByClassChoice = isSkillGrantedByClassChoice(character, skillId);
@@ -47,10 +53,17 @@ export function SkillRow({ skillId }: SkillRowProps) {
           )}
         </span>
       </label>
-      <label className="trait-row__expertise" title="Especialização (dobra a proficiência)">
+      <label
+        className="trait-row__expertise"
+        title={
+          isSkillGrantedExpertiseByClassChoice(character, skillId)
+            ? "Especialização concedida por escolha de classe (ex.: Especialista do Bardo — ainda editável)"
+            : "Especialização (dobra a proficiência)"
+        }
+      >
         <input
           type="checkbox"
-          checked={state.expertise}
+          checked={getSkillExpertise(character, skillId)}
           disabled={!proficient}
           onChange={(e) => setSkillExpertise(skillId, e.target.checked)}
           aria-label={`Especialização em ${definition.name}`}

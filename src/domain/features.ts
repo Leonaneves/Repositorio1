@@ -27,6 +27,8 @@ export interface FeatureUses {
 export type FeatureChoiceEffect =
   /** `excludeAlreadyProficient` filtra, na hora de exibir, as perícias em que o personagem já é proficiente por qualquer outra fonte (ex.: Conhecimento Primordial do Bárbaro, §6 — nunca oferece uma perícia repetida). */
   | { kind: "skillProficiency"; options: SkillKey[] | "any"; count: number; excludeAlreadyProficient?: boolean }
+  /** Especialização (Expertise) em perícias nas quais o personagem JÁ é proficiente — nunca concede a proficiência em si, só dobra o bônus (ex.: "Especialista" do Bardo, fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" §4). A UI filtra as opções pelas perícias atualmente proficientes. */
+  | { kind: "skillExpertise"; count: number }
   | { kind: "toolProficiency"; optionsText: string; count: number }
   /** `rangeKind` filtra por alcance (corpo a corpo/à distância) além da categoria simples/marcial — ex.: Maestria em Arma do Bárbaro, só corpo a corpo (§3). */
   | { kind: "weaponPicker"; category: WeaponCategory | "any"; count: number; rangeKind?: WeaponRangeKind }

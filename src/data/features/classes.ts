@@ -2,6 +2,7 @@ import { CLASS_IDS, type ClassId } from "../../domain/ids.js";
 import type { FeatureDefinition } from "../../domain/features.js";
 import { classes, getClassSkillChoiceId, getClassToolChoiceId } from "../classes.js";
 import { barbarianClassFeatures, barbarianWeaponMasteryFeatures } from "./barbarian.js";
+import { bardClassFeatures } from "./bard.js";
 
 /**
  * Features de CLASSE cujo efeito mecânico já está implementado em
@@ -128,20 +129,10 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
     { name: "Mestre dos Itens Mágicos", level: 18 },
     { name: "Alma do Artífice", level: 20 },
   ],
-  bardo: [
-    { name: "Inspiração de Bardo", level: 1 },
-    { name: "Conjuração", level: 1 },
-    { name: "Especialista", level: 2 },
-    { name: "Pau pra Toda Obra", level: 2 },
-    { name: "Fonte de Inspiração", level: 5 },
-    { name: "Contra-Encantamento", level: 7 },
-    { name: "Especialização", level: 9 },
-    { name: "Segredos Mágicos", level: 10 },
-    { name: "Inspiração Superior", level: 18 },
-    { name: "Palavras de Criação", level: 20 },
-  ],
   // Bárbaro removido daqui — fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/barbarian.ts).
+  // Bardo removido daqui — fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" tem
+  // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/bard.ts).
   bruxo: [
     { name: "Invocações Místicas", level: 1 },
     { name: "Magia de Pacto", level: 1 },
@@ -320,6 +311,7 @@ const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
 const DADIVA_EPICA_CLASSES: ClassId[] = [
   ...(Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice"),
   "barbaro",
+  "bardo",
 ];
 
 function slugify(text: string): string {
@@ -475,4 +467,5 @@ export const classFeatures: FeatureDefinition[] = [
   ...artificeEquipmentChoiceFeatures,
   ...barbarianClassFeatures,
   ...barbarianWeaponMasteryFeatures,
+  ...bardClassFeatures,
 ];

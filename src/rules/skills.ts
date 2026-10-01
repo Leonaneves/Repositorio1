@@ -13,7 +13,18 @@ import { classes, getClassSkillChoiceId } from "../data/classes.js";
  */
 const EXTRA_SKILL_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
   barbaro: ["barbaro-conhecimento-primordial-escolha"],
+  bardo: ["bardo-conhecimento-proficiencias-bonus-escolha"],
 };
+
+/**
+ * IDs de `FeatureChoice` (`skillExpertise`) que concedem Especialização
+ * (nunca proficiência) — hoje só "Especialista" do Bardo, nos níveis 2
+ * e 9 (fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" §4/§10).
+ */
+const EXPERTISE_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
+  bardo: ["bardo-especialista-1-escolha", "bardo-especialista-2-escolha"],
+};
+
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 
 /**
@@ -50,6 +61,44 @@ export function isSkillGrantedByClassChoice(character: Character, skill: SkillKe
 }
 
 /**
+ * `true` se alguma escolha de "Especialização" (`skillExpertise`) da
+ * classe ATUAL já selecionou esta perícia — nunca concede proficiência,
+ * só a Especialização (ex.: "Especialista" do Bardo, níveis 2 e 9).
+ */
+export function isSkillGrantedExpertiseByClassChoice(character: Character, skill: SkillKey): boolean {
+  if (!character.classId) return false;
+  const choiceIds = EXPERTISE_CHOICE_IDS_BY_CLASS[character.classId] ?? [];
+  return choiceIds.some((choiceId) => {
+    const selection = character.featureChoiceSelections[choiceId]?.value;
+    const selected = Array.isArray(selection) ? selection : [];
+    return selected.includes(skill);
+  });
+}
+
+/**
+ * Especialização final da perícia = toggle manual do jogador OU
+ * concedida por uma escolha de "Especialização" da classe atual — a
+ * mesma lógica OR do antecedente/escolha de perícias (sem tri-state:
+ * `expertise` nunca teve estado "segue o derivado", é só um booleano
+ * manual, então aqui basta somar a fonte estrutural por cima).
+ */
+export function getSkillExpertise(character: Character, skill: SkillKey): boolean {
+  return character.skills[skill].expertise || isSkillGrantedExpertiseByClassChoice(character, skill);
+}
+
+/**
+ * Bônus de "Pau pra Toda Obra" do Bardo (nível 2+, fonte "INTEGRAÇÃO
+ * COMPLETA — BARDO E SUBCLASSES" §5): metade do Bônus de Proficiência,
+ * arredondado para baixo. Só entra em `getSkillBonus` quando a perícia
+ * NÃO é proficiente — nunca em Iniciativa/Salvaguardas/Ataques/CDs,
+ * que usam suas próprias fórmulas e nunca chamam esta função.
+ */
+export function getJackOfAllTradesBonus(character: Character): number {
+  if (character.classId !== "bardo" || character.level < 2) return 0;
+  return Math.floor(getProficiencyBonus(character.level) / 2);
+}
+
+/**
  * Proficiência final da perícia = override manual do jogador, se
  * houver; senão, concedida pelo antecedente atual OU pela escolha de
  * perícias de classe atual (qualquer uma das duas basta).
@@ -72,7 +121,11 @@ export function getSkillProficiency(character: Character, skill: SkillKey): bool
  *
  * Especialização (expertise) só é aplicada se a proficiência final
  * também for `true` — não é possível ter especialização sem
- * proficiência.
+ * proficiência. Perícias NÃO proficientes ainda podem ganhar o bônus
+ * de "Pau pra Toda Obra" do Bardo (`getJackOfAllTradesBonus`) — os dois
+ * bônus (proficiência×especialização e Pau pra Toda Obra) são mutuamente
+ * exclusivos pela própria definição (um exige proficiência, o outro a
+ * exige ausente).
  */
 export function getSkillBonus(character: Character, skill: SkillKey): ComputedValue {
   const definition = skills[skill];
@@ -82,8 +135,10 @@ export function getSkillBonus(character: Character, skill: SkillKey): ComputedVa
   const proficiencyBonus = character.level ? getProficiencyBonus(character.level) : 0;
 
   const proficient = getSkillProficiency(character, skill);
-  const multiplier = proficient ? (state.expertise ? 2 : 1) : 0;
-  const auto = abilityMod + proficiencyBonus * multiplier;
+  const expertise = getSkillExpertise(character, skill);
+  const multiplier = proficient ? (expertise ? 2 : 1) : 0;
+  const jackOfAllTradesBonus = proficient ? 0 : getJackOfAllTradesBonus(character);
+  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus;
 
   return computedValue(auto, state.manualAdjustment);
 }

@@ -60,7 +60,7 @@ export function getCharacterFeatures(character: Character): FeatureDefinition[] 
 export function isFeatureChoiceComplete(choice: FeatureChoice, character: Character): boolean {
   const selection = character.featureChoiceSelections[choice.id]?.value;
 
-  if (choice.effect.kind === "skillProficiency") {
+  if (choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise") {
     const selected = Array.isArray(selection) ? selection : [];
     return selected.length === choice.effect.count;
   }

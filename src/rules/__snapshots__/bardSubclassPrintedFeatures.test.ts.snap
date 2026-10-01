@@ -1,0 +1,84 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > bravura nível 14 1`] = `
+[
+  "#Inspiração de Bardo d10 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso",
+  "#Inspiração em Combate
+Alvo com Insp pode:
+> Def: Reação ao ser atingido → +dado na CA contra Atq
+> Ofens: após acertar → +dado no dano",
+  "#Ataque Extra
+1 Atq pode ser trocado por Truque de 1 ação",
+  "#Contra-Encantamento
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+  "#Magia de Batalha
+Após magia de 1 ação: AB → 1 Atq com arma",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > conhecimento nível 14 1`] = `
+[
+  "#Inspiração de Bardo d10 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso",
+  "#Palavras de Interrupção
+Reação +1 Insp, alvo a 18m: subtraia dado de dano ou teste/Atq bem-sucedido",
+  "#Contra-Encantamento
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+  "#Perícia Inigualável
+Falha em teste/Atq: use Insp e some dado ao d20
+Se ainda falhar, Insp não é gasta",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > danca nível 14 1`] = `
+[
+  "#Inspiração de Bardo d10 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso",
+  "#Ginga Fascinante
+Sem Arm/Esc: Vant em Atua com dança
+Ao gastar Insp em ação/AB/Reação → 1 Atq Desarmado junto",
+  "#Gingado Coordenado
+Inic: gaste 1 Insp; você + aliados a 9m somam dado à Inic",
+  "#Movimento Inspirador
+Reação +1 Insp: inimigo encerra turno a 1,5m → você move ½ Desl
+Aliado a 9m pode Reação → ½ Desl; sem Atq Oport",
+  "#Contra-Encantamento
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+  "#Evasão Liderada
+Salv DES p/½ dano: sucesso 0, falha ½
+Aliados a 1,5m também recebem; não funciona Incapacitado",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > glamour nível 14 1`] = `
+[
+  "#Inspiração de Bardo d10 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso",
+  "#Magia Fascinante [__]
+Após magia Enc/Ilusão com espaço: alvo 18m Salv SAB
+Falha: Amed ou Enfeit 1 min; repete Salv/fim turno
+DL ou gaste 1 Insp",
+  "#Manto de Inspiração
+AB +1 Insp: até CAR criaturas a 18m ganham PV Temp = 2× dado
+Cada uma pode Reação → mover Desl sem Atq Oport",
+  "#Manto de Majestade [__]
+AB: Comando grátis + forma por 1 min/Concent
+Durante: AB → Comando grátis; Enfeit por você falham Salv
+DL ou espaço 3º+",
+  "#Contra-Encantamento
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+  "#Majestade Inquebrável [__]
+AB: presença 1 min
+1º acerto/turno contra você: atacante Salv CAR vs CD magia; falha → Atq falha
+DC/DL",
+]
+`;

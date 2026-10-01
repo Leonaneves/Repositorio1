@@ -31,6 +31,9 @@ import { getSkillProficiency } from "../rules/skills.js";
 import { getBarbarianPrintedBlocks } from "../rules/barbarianPrintedFeatures.js";
 import { getBarbarianWeaponMasteryEntries } from "../rules/barbarianWeaponMastery.js";
 import { getBarbarianRitualSpells } from "../rules/barbarianRitualSpells.js";
+import { getBardPrintedBlocks } from "../rules/bardPrintedFeatures.js";
+import { getBardWeaponProficiencyEntries } from "../rules/bardSubclassProficiencies.js";
+import { getBardAutoPreparedSpells } from "../rules/bardAutoPreparedSpells.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
 /**
@@ -211,15 +214,20 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
 }
 
 /**
- * "Características de Classe" (`Carac.Classe.1`/`.2`) — só o Bárbaro
- * tem o texto impresso montado dinamicamente por ora (fonte
- * "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES"); as demais 12 classes
- * continuam com o campo manual de sempre (`Character.classFeatures`),
- * sem nenhuma mudança de comportamento.
+ * "Características de Classe" (`Carac.Classe.1`/`.2`) — por ora só
+ * Bárbaro (fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES") e Bardo
+ * (fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES") têm o texto
+ * impresso montado dinamicamente; as demais 11 classes continuam com o
+ * campo manual de sempre (`Character.classFeatures`), sem nenhuma
+ * mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
     const [column1, column2] = splitIntoTwoColumns(getBarbarianPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  if (character.classId === "bardo") {
+    const [column1, column2] = splitIntoTwoColumns(getBardPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
@@ -229,7 +237,11 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
   {
     kind: "text",
     pdfField: "PROF.armas",
-    getValue: (c) => renderAutoTextBlock([...getClassWeaponProficiencyEntries(c), ...getBarbarianWeaponMasteryEntries(c)], c.weaponProficienciesNotes),
+    getValue: (c) =>
+      renderAutoTextBlock(
+        [...getClassWeaponProficiencyEntries(c), ...getBarbarianWeaponMasteryEntries(c), ...getBardWeaponProficiencyEntries(c)],
+        c.weaponProficienciesNotes,
+      ),
   },
   {
     kind: "text",
@@ -289,15 +301,17 @@ const inventoryFields: PdfTextFieldMapping[] = [
 
 /**
  * Lista efetiva de magias preparadas para o PDF: magias concedidas
- * automaticamente por subclasse (hoje só o Arauto da Fauna/Natureza do
- * Caminho do Coração Selvagem — `getBarbarianRitualSpells`) primeiro,
+ * automaticamente por subclasse/classe (Arauto da Fauna/Natureza do
+ * Caminho do Coração Selvagem — `getBarbarianRitualSpells`; Magia
+ * Fascinante/Manto de Majestade do Colégio do Glamour e Palavras de
+ * Criação do Bardo base — `getBardAutoPreparedSpells`) primeiro,
  * seguidas da lista manual do jogador. Nunca grava as auto-concedidas
  * de volta em `character.spellsPrepared` — só compõe no momento da
  * exportação, igual ao padrão já usado para texto automático em
  * `rules/proficiencyText.ts`.
  */
 function getEffectiveSpellsPrepared(character: Character) {
-  return [...getBarbarianRitualSpells(character), ...character.spellsPrepared];
+  return [...getBarbarianRitualSpells(character), ...getBardAutoPreparedSpells(character), ...character.spellsPrepared];
 }
 
 /** Até 34 magias preparadas — o PDF-molde reserva essas 34 linhas (`circulo1.N`/`nome.magia.1.N`/`alcance.magia.N`/`notas.magia.1.N`). */

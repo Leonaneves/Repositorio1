@@ -133,6 +133,48 @@ describe("useCharacterStore — subclasse só a partir do nível 3 (regra fixa, 
   });
 });
 
+describe("useCharacterStore — Treinamento Marcial (Colégio da Bravura, nível 3) concede Armadura Média/Escudo automaticamente", () => {
+  it("escolher 'Colégio da Bravura' marca medium e shield, sem desmarcar light (que o Bardo já tinha)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bardo");
+    store.setLevel(3);
+    expect(useCharacterStore.getState().character.armor.proficiencies.light).toBe(true); // já concedida pela classe
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(false);
+
+    store.setSubclass("Colégio da Bravura");
+    const proficiencies = useCharacterStore.getState().character.armor.proficiencies;
+    expect(proficiencies.light).toBe(true);
+    expect(proficiencies.medium).toBe(true);
+    expect(proficiencies.shield).toBe(true);
+  });
+
+  it("outra subclasse de Bardo não ganha a proficiência automaticamente", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bardo");
+    store.setLevel(3);
+    store.setSubclass("Colégio da Dança");
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(false);
+  });
+
+  it("depois de concedida, o jogador ainda pode editar manualmente (setArmorProficiency continua funcionando)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bardo");
+    store.setLevel(3);
+    store.setSubclass("Colégio da Bravura");
+    expect(useCharacterStore.getState().character.armor.proficiencies.shield).toBe(true);
+
+    store.setArmorProficiency("shield", false);
+    expect(useCharacterStore.getState().character.armor.proficiencies.shield).toBe(false);
+  });
+
+  it("outra classe escolhendo um nome de subclasse igual (coincidência) nunca é afetada — a flag só olha classId === 'bardo'", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(3);
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(true); // já concedida normalmente pela classe Guerreiro
+  });
+});
+
 describe("useCharacterStore — antecedente (fontes de proficiência, §1.1)", () => {
   it("marca as 2 perícias do antecedente escolhido", () => {
     const store = useCharacterStore.getState();

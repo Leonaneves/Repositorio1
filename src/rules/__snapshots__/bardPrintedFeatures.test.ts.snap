@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso por nível (Bardo puro, sem subclasse, CAR 14) > nível 1 1`] = `
+[
+  "#Inspiração de Bardo d6 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DL",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bardo puro, sem subclasse, CAR 14) > nível 5 1`] = `
+[
+  "#Inspiração de Bardo d8 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bardo puro, sem subclasse, CAR 14) > nível 10 1`] = `
+[
+  "#Inspiração de Bardo d10 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso",
+  "#Contra-Encantamento
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bardo puro, sem subclasse, CAR 14) > nível 18 1`] = `
+[
+  "#Inspiração de Bardo d12 [__][__]
+AB, alvo a 18m recebe 1 Insp
+Após falhar Teste d20, soma dado; dura 1h
+Todos/DC/DL; 1 espaço = +1 uso
+> Inic: se tiver <2 usos, recupere até 2",
+  "#Contra-Encantamento
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+]
+`;

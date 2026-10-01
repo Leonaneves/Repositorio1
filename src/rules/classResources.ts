@@ -1,5 +1,6 @@
 import type { Character } from "../domain/character.js";
 import type { HitDie } from "../data/classes.js";
+import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 import {
   ARTIFICER_CANTRIPS_KNOWN,
   ARTIFICER_INFUSED_ITEMS_MAX,
@@ -47,6 +48,13 @@ import {
 export function getBardicInspirationDie(character: Character): HitDie | null {
   if (character.classId !== "bardo") return null;
   return BARDIC_INSPIRATION_DIE[character.level] ?? null;
+}
+
+/** Usos de Inspiração de Bardo por Descanso Longo: modificador de Carisma, mínimo 1 (fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" §1). */
+export function getBardicInspirationUses(character: Character): number | null {
+  if (character.classId !== "bardo") return null;
+  const charismaMod = getAbilityModifier(getEffectiveAbilityScore(character, "CAR"));
+  return Math.max(1, charismaMod);
 }
 
 export function getRageCount(character: Character): number | null {

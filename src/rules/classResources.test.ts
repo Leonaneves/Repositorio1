@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import {
   getBardicInspirationDie,
+  getBardicInspirationUses,
   getCantripsKnown,
   getChannelDivinityUses,
   getExtraAttacksCount,
@@ -49,6 +50,32 @@ describe("Bardo — Dados de Inspiração", () => {
     [20, 12],
   ])("nível %i → d%i", (level, die) => {
     expect(getBardicInspirationDie(characterOf("bardo", level))).toBe(die);
+  });
+
+  it("null para quem não é Bardo", () => {
+    expect(getBardicInspirationDie(characterOf("mago", 10))).toBeNull();
+  });
+});
+
+describe("Bardo — Usos de Inspiração (modificador de CAR, mínimo 1)", () => {
+  it("CAR +3 → 3 usos", () => {
+    const character = characterOf("bardo", 5);
+    character.abilities.CAR.score = 16; // +3
+    expect(getBardicInspirationUses(character)).toBe(3);
+  });
+
+  it("CAR +0 ou negativo → mínimo 1 uso, nunca 0", () => {
+    const zero = characterOf("bardo", 5);
+    zero.abilities.CAR.score = 10; // +0
+    expect(getBardicInspirationUses(zero)).toBe(1);
+
+    const negative = characterOf("bardo", 5);
+    negative.abilities.CAR.score = 8; // -1
+    expect(getBardicInspirationUses(negative)).toBe(1);
+  });
+
+  it("null para quem não é Bardo", () => {
+    expect(getBardicInspirationUses(characterOf("mago", 10))).toBeNull();
   });
 });
 

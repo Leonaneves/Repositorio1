@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
-import { getSkillBonus, getSkillProficiency, isSkillGrantedByBackground, isSkillGrantedByClassChoice } from "./skills.js";
+import { getBardSkillExpertiseChoiceId } from "../data/features/bard.js";
+import { getInitiative } from "./derived.js";
+import { getSavingThrow } from "./savingThrows.js";
+import { getAttackBonus } from "./attack.js";
+import {
+  getJackOfAllTradesBonus,
+  getSkillBonus,
+  getSkillExpertise,
+  getSkillProficiency,
+  isSkillGrantedByBackground,
+  isSkillGrantedByClassChoice,
+  isSkillGrantedExpertiseByClassChoice,
+} from "./skills.js";
 
 function characterAt(level: number) {
   const character = createBlankCharacter("skills-test");
@@ -148,5 +160,138 @@ describe("isSkillGrantedByClassChoice / getSkillProficiency — escolha de Perí
 
     expect(getSkillProficiency(character, "atletismo")).toBe(true);
     expect(character.skills.atletismo.expertise).toBe(false); // expertise continua exigindo escolha explícita do jogador
+  });
+});
+
+function bardoAt(level: number) {
+  const character = createBlankCharacter("skills-test-bardo");
+  character.classId = "bardo";
+  character.level = level;
+  return character;
+}
+
+describe("getJackOfAllTradesBonus — Pau pra Toda Obra do Bardo (nível 2+)", () => {
+  it.each([
+    [2, 1],
+    [4, 1],
+    [5, 1],
+    [8, 1],
+    [9, 2],
+    [12, 2],
+    [13, 2],
+    [16, 2],
+    [17, 3],
+    [20, 3],
+  ])("nível %i (Prof +%i → metade arredondada) → bônus +%i", (level, expectedBonus) => {
+    expect(getJackOfAllTradesBonus(bardoAt(level))).toBe(expectedBonus);
+  });
+
+  it("nível 1 (ainda não tem a característica) → 0", () => {
+    expect(getJackOfAllTradesBonus(bardoAt(1))).toBe(0);
+  });
+
+  it("outra classe nunca recebe o bônus", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.level = 20;
+    expect(getJackOfAllTradesBonus(character)).toBe(0);
+  });
+});
+
+describe("getSkillBonus — Pau pra Toda Obra aplicado só em perícias NÃO proficientes", () => {
+  it("DEX +2, Furtividade sem proficiência, Prof +3 → +3 no total (2 DEX + 1 Pau pra Toda Obra)", () => {
+    const character = bardoAt(5); // Prof +3 → metade = +1
+    character.abilities.DEX.score = 14; // +2
+    const bonus = getSkillBonus(character, "furtividade");
+    expect(bonus.auto).toBe(3);
+  });
+
+  it("perícia proficiente NUNCA recebe o bônus de Pau pra Toda Obra (usa o bônus de proficiência normal)", () => {
+    const character = bardoAt(5); // Prof +3
+    character.abilities.DEX.score = 14; // +2
+    character.skills.furtividade.manualOverride = true; // proficiente
+    const bonus = getSkillBonus(character, "furtividade");
+    expect(bonus.auto).toBe(5); // 2 + 3 (bônus de proficiência cheio, nunca +1 por cima)
+  });
+
+  it("Pau pra Toda Obra NUNCA torna a perícia proficiente", () => {
+    const character = bardoAt(5);
+    expect(getSkillProficiency(character, "furtividade")).toBe(false);
+  });
+
+  it("não se aplica antes do nível 2", () => {
+    const character = bardoAt(1);
+    character.abilities.DEX.score = 14; // +2
+    const bonus = getSkillBonus(character, "furtividade");
+    expect(bonus.auto).toBe(2); // só o modificador, sem Pau pra Toda Obra ainda
+  });
+});
+
+describe("Pau pra Toda Obra NUNCA altera Iniciativa, Salvaguardas ou Ataques (só testes associados a perícia)", () => {
+  it("Iniciativa usa só DEX + ajuste manual — nunca o bônus de perícia não-proficiente", () => {
+    const character = bardoAt(10); // Prof +4, se (erroneamente) aplicado somaria +2
+    character.abilities.DEX.score = 14; // +2
+    expect(getInitiative(character).auto).toBe(2);
+  });
+
+  it("Salvaguardas nunca recebem Pau pra Toda Obra mesmo sem proficiência", () => {
+    const character = bardoAt(10); // Prof +4 → metade = +2, se (erroneamente) aplicado
+    character.abilities.INT.score = 10; // +0
+    const save = getSavingThrow(character, "INT");
+    expect(save.auto).toBe(0); // nunca +2 por Pau pra Toda Obra
+  });
+
+  it("Ataques sem proficiência na arma nunca recebem o bônus de Pau pra Toda Obra (fórmula própria, sem perícia)", () => {
+    const character = bardoAt(10); // Prof +4, se (erroneamente) aplicado somaria +2
+    character.abilities.FOR.score = 14; // +2
+    const bonus = getAttackBonus(character, { ability: "FOR", proficient: false });
+    expect(bonus.auto).toBe(2);
+  });
+});
+
+describe("Especialista do Bardo — skillExpertise (nunca concede proficiência, só Especialização)", () => {
+  it("perícia escolhida em 'Especialista' (nível 2) ganha Especialização mesmo sem o jogador marcar o checkbox manual", () => {
+    const character = bardoAt(2);
+    character.skills.persuasao.manualOverride = true; // precisa já ser proficiente
+    character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
+
+    expect(isSkillGrantedExpertiseByClassChoice(character, "persuasao")).toBe(true);
+    expect(getSkillExpertise(character, "persuasao")).toBe(true);
+  });
+
+  it("nunca concede a proficiência em si — só a Especialização", () => {
+    const character = bardoAt(2);
+    character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
+
+    expect(getSkillProficiency(character, "persuasao")).toBe(false);
+    expect(getSkillExpertise(character, "persuasao")).toBe(true); // a flag existe, mas sem proficiência o multiplicador de getSkillBonus ainda é 0
+  });
+
+  it("dobra o bônus quando a perícia é de fato proficiente", () => {
+    const character = bardoAt(9); // Prof +4
+    character.abilities.CAR.score = 16; // +3
+    character.skills.persuasao.manualOverride = true;
+    character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
+
+    const bonus = getSkillBonus(character, "persuasao");
+    expect(bonus.auto).toBe(11); // 3 + 4*2
+  });
+
+  it("nível 9 soma mais 2 escolhas (choice separado), nunca reaproveitando o id do nível 2", () => {
+    const character = bardoAt(9);
+    character.skills.persuasao.manualOverride = true;
+    character.skills.enganacao.manualOverride = true;
+    character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
+    character.featureChoiceSelections[getBardSkillExpertiseChoiceId(2)] = { value: ["enganacao"] };
+
+    expect(getSkillExpertise(character, "persuasao")).toBe(true);
+    expect(getSkillExpertise(character, "enganacao")).toBe(true);
+  });
+
+  it("outra classe nunca tem Especialização concedida por escolha (mapa vazio)", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
+    expect(isSkillGrantedExpertiseByClassChoice(character, "persuasao")).toBe(false);
   });
 });

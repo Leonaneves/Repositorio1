@@ -1,11 +1,15 @@
 import type { FeatureDefinition } from "../../domain/features.js";
+import { CONHECIMENTO_PROFICIENCIAS_BONUS_CHOICE_ID } from "./bard.js";
 
 /**
- * Features de SUBCLASSE confirmadas com fonte fornecida — por ora só
- * as 4 subclasses do Bárbaro ("INTEGRAÇÃO COMPLETA — BÁRBARO E
- * SUBCLASSES"). As demais ~30 subclasses do projeto continuam sem
+ * Features de SUBCLASSE confirmadas com fonte fornecida — as 4
+ * subclasses do Bárbaro ("INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES")
+ * e as 4 subclasses do Bardo ("INTEGRAÇÃO COMPLETA — BARDO E
+ * SUBCLASSES"). As demais ~25 subclasses do projeto continuam sem
  * conteúdo (ver `getSubclassFeatures`, que já filtra por
  * `subclassFullName` + nível e não precisa mudar quando chegarem).
+ * "Colégio dos Espíritos" (5ª subclasse de Bardo já cadastrada em
+ * `data/subclasses.ts`) fica de fora — fora do escopo desta fonte.
  *
  * Escolhas tomadas DURANTE O JOGO (a cada ativação de Fúria, ou a cada
  * vez que o efeito ocorre) NÃO viram `FeatureChoice` do Builder — só
@@ -209,5 +213,179 @@ export const subclassFeatures: FeatureDefinition[] = [
     autoGranted: true,
     summary:
       "Ao ativar Fúria, assume forma divina por 1 minuto ou até cair a 0 PV (1×/Descanso Longo): Resistência a Necrótico/Psíquico/Radiante; Reação — criatura a até 9m que cairia a 0 PV: gaste 1 uso de Fúria, PV dela = seu nível de Bárbaro; Deslocamento de Voo = Deslocamento, podendo pairar.",
+  },
+
+  // ---------- Colégio da Bravura ----------
+  {
+    id: "bardo-bravura-inspiracao-em-combate-3",
+    name: "Inspiração em Combate",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Bravura",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Não cria novos usos — usa o dado de Inspiração de Bardo que a criatura já recebeu. Defensivo: Reação ao ser atingido por ataque, rola o dado e soma à própria CA contra aquele ataque. Ofensivo: imediatamente após acertar um ataque, rola o dado e soma ao dano. Escolha feita a cada uso, não é decisão permanente do Builder.",
+  },
+  {
+    id: "bardo-bravura-treinamento-marcial-3",
+    name: "Treinamento Marcial",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Bravura",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Proficiência em Armas Marciais, Armaduras Médias e Escudos (aplicado automaticamente em Proficiências/Armaduras — ver state/characterStore.ts#setSubclass). Uma arma Simples ou Marcial pode servir de Foco de Conjuração de Bardo.",
+  },
+  {
+    id: "bardo-bravura-ataque-extra-6",
+    name: "Ataque Extra",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Bravura",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "2 ataques ao usar a ação Atacar. 1 desses ataques pode ser substituído por 1 Truque com tempo de conjuração de 1 ação.",
+  },
+  {
+    id: "bardo-bravura-magia-de-batalha-14",
+    name: "Magia de Batalha",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Bravura",
+    level: 14,
+    autoGranted: true,
+    summary: "Após conjurar uma magia com tempo de conjuração de 1 ação, pode realizar 1 ataque com arma como Ação Bônus.",
+  },
+
+  // ---------- Colégio da Dança ----------
+  {
+    id: "bardo-danca-ginga-fascinante-3",
+    name: "Ginga Fascinante",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Dança",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Todos os benefícios exigem estar sem armadura e sem escudo. Dança Virtuosa: Vantagem em testes de CAR (Atuação) envolvendo dança. Dano de Bardo: Ataque Desarmado pode usar DES no lugar de FOR para o ataque; dano = dado de Inspiração de Bardo + mod. DES, Contundente (não gasta dado de Inspiração — aplicado automaticamente nos Ataques). Defesa sem Armadura: CA = 10 + DES + CAR sem armadura/escudo (aplicado automaticamente em rules/armor.ts). Golpes Ágeis: ao gastar 1 uso de Inspiração como parte de uma ação, Ação Bônus ou Reação, pode realizar 1 Ataque Desarmado como parte da mesma ação.",
+  },
+  {
+    id: "bardo-danca-gingado-coordenado-6",
+    name: "Gingado Coordenado",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Dança",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ao rolar Iniciativa, gaste 1 uso de Inspiração (se não estiver Incapacitado): role o dado de Inspiração; você e cada aliado a até 9m que possa ver/ouvir somam o resultado à própria Iniciativa.",
+  },
+  {
+    id: "bardo-danca-movimento-inspirador-6",
+    name: "Movimento Inspirador",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Dança",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Reação (custo: 1 Inspiração) quando um inimigo visível encerra o turno a até 1,5m: mova até ½ do Deslocamento. Depois, 1 aliado escolhido a até 9m pode usar sua própria Reação para mover até ½ do Deslocamento dele. Nenhum desses movimentos provoca Ataque de Oportunidade.",
+  },
+  {
+    id: "bardo-danca-evasao-liderada-14",
+    name: "Evasão Liderada",
+    sourceType: "subclass",
+    subclassFullName: "Colégio da Dança",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Quando um efeito permite Salvaguarda de DES para metade do dano: sucesso = 0 dano, falha = metade do dano. Criaturas a até 1,5m que também façam a salvaguarda podem receber o mesmo benefício. Não funciona se o Bardo estiver Incapacitado.",
+  },
+
+  // ---------- Colégio do Conhecimento ----------
+  {
+    id: "bardo-conhecimento-palavras-de-interrupcao-3",
+    name: "Palavras de Interrupção",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Conhecimento",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reação (custo: 1 Inspiração de Bardo) quando uma criatura visível a até 18m faz uma jogada de dano, ou tem sucesso em um teste de atributo ou em um ataque: role o dado de Inspiração e subtraia o resultado da jogada da criatura.",
+  },
+  {
+    id: "bardo-conhecimento-proficiencias-bonus-3",
+    name: "Proficiências Bônus",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Conhecimento",
+    level: 3,
+    autoGranted: false,
+    summary:
+      "Escolha 3 perícias (não limitado à lista normal de perícias do Bardo) — proficiência aplicada direto em Perícias/PDF, nunca repetida aqui.",
+    choices: [
+      {
+        id: CONHECIMENTO_PROFICIENCIAS_BONUS_CHOICE_ID,
+        prompt: "Proficiências Bônus — escolha 3 perícias",
+        effect: { kind: "skillProficiency", options: "any", count: 3 },
+      },
+    ],
+  },
+  {
+    id: "bardo-conhecimento-descobertas-magicas-6",
+    name: "Descobertas Mágicas",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Conhecimento",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Escolha 2 magias (Truques ou de um círculo para o qual tenha espaço) das listas de Clérigo, Druida ou Mago — ficam sempre preparadas, sem contar no limite normal de Magias Preparadas. Ao subir de nível de Bardo, pode substituir uma delas por outra válida dessas listas. Sem catálogo estruturado de magias no projeto: a escolha é feita na lista manual de Magias Preparadas da área de Magias (Character.spellsPrepared), nunca neste campo.",
+  },
+  {
+    id: "bardo-conhecimento-pericia-inigualavel-14",
+    name: "Perícia Inigualável",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Conhecimento",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Ao falhar em um teste de atributo ou em uma jogada de ataque, pode gastar 1 Inspiração: role o dado de Inspiração e some ao d20. Se ainda assim falhar, o uso de Inspiração NÃO é gasto.",
+  },
+
+  // ---------- Colégio do Glamour ----------
+  {
+    id: "bardo-glamour-magia-fascinante-3",
+    name: "Magia Fascinante",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Glamour",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Enfeitiçar Pessoa e Reflexos ficam sempre preparadas (entram automaticamente na área de Magias, rules/bardAutoPreparedSpells.ts — nunca neste campo). Efeito próprio: imediatamente após conjurar uma magia de Encantamento ou Ilusão usando um espaço de magia, 1 criatura visível a até 18m faz Salv. SAB contra sua CD de magia; falha → Amedrontado ou Enfeitiçado (à escolha) por 1 minuto, repetindo a salvaguarda ao fim de cada turno. Uso gratuito: 1×/Descanso Longo; recuperação alternativa: gastar 1 Inspiração de Bardo (nenhuma ação).",
+  },
+  {
+    id: "bardo-glamour-manto-de-inspiracao-3",
+    name: "Manto de Inspiração",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Glamour",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Bônus (custo: 1 Inspiração): role o dado de Inspiração; até modificador de CAR (mínimo 1) criaturas a até 18m recebem PV Temporários = 2× o resultado do dado. Cada uma pode usar sua Reação para mover até o Deslocamento máximo, sem provocar Ataque de Oportunidade.",
+  },
+  {
+    id: "bardo-glamour-manto-de-majestade-6",
+    name: "Manto de Majestade",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Glamour",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Comando fica sempre preparada (entra automaticamente na área de Magias, rules/bardAutoPreparedSpells.ts). Ação Bônus: conjura Comando sem gastar espaço e assume forma sobrenatural por 1 minuto ou até a Concentração terminar; durante a duração, pode conjurar Comando como Ação Bônus sem gastar espaço, e criaturas Enfeitiçadas por você falham automaticamente a salvaguarda contra esse Comando. Uso gratuito: 1×/Descanso Longo; recuperação alternativa: gastar um espaço de magia de 3º círculo ou superior (nenhuma ação).",
+  },
+  {
+    id: "bardo-glamour-majestade-inquebravel-14",
+    name: "Majestade Inquebrável",
+    sourceType: "subclass",
+    subclassFullName: "Colégio do Glamour",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: assume uma presença por 1 minuto ou até ficar Incapacitado. Na primeira vez em cada turno que uma criatura acerta você com um ataque, o atacante faz Salv. CAR contra sua CD de magia; falha → o ataque falha. 1×/Descanso Curto ou Longo.",
   },
 ];
