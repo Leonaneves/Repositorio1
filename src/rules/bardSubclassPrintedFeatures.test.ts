@@ -53,7 +53,7 @@ describe("Colégio da Bravura", () => {
 
   it("nível 14: Magia de Batalha", () => {
     const text = getBardSubclassPrintedBlocks(bardAt(14, SUBCLASSES.bravura)).find((b) => b.text.includes("Magia de Batalha"))!.text;
-    expect(text).toBe("#Magia de Batalha\nApós magia de 1 ação: AB → 1 Atq com arma");
+    expect(text).toBe("#Magia de Batalha\nApós magia de 1 ação: AB -> 1 Atq com arma");
   });
 });
 
@@ -67,7 +67,7 @@ describe("Colégio da Dança", () => {
 
   it("nível 14: Evasão Liderada", () => {
     const text = getBardSubclassPrintedBlocks(bardAt(14, SUBCLASSES.danca)).find((b) => b.text.includes("Evasão Liderada"))!.text;
-    expect(text).toBe("#Evasão Liderada\nSalv DES p/½ dano: sucesso 0, falha ½\nAliados a 1,5m também recebem; não funciona Incapacitado");
+    expect(text).toBe("#Evasão Liderada\nSalv DES p/1/2 dano: sucesso 0, falha 1/2\nAliados a 1,5m também recebem; não funciona Incapacitado");
   });
 });
 
@@ -122,7 +122,7 @@ describe("Colégio do Glamour — checkboxes de uso gratuito (1×/DL)", () => {
   it("Manto de Majestade cita 'Comando' só como parte do mecanismo do próprio efeito (conjurar grátis), nunca como lista de magia sempre preparada", () => {
     const text = getBardSubclassPrintedBlocks(bardAt(6, SUBCLASSES.glamour)).find((b) => b.text.includes("Manto de Majestade"))!.text;
     expect(text).toBe(
-      "#Manto de Majestade [__]\nAB: Comando grátis + forma por 1 min/Concent\nDurante: AB → Comando grátis; Enfeit por você falham Salv\nDL ou espaço 3º+",
+      "#Manto de Majestade [__]\nAB: Comando grátis + forma por 1 min/Concent\nDurante: AB -> Comando grátis; Enfeit por você falham Salv\nDL ou espaço 3º+",
     );
   });
 });

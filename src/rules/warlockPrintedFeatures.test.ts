@@ -95,7 +95,7 @@ describe("Explosão Agonizante/Repulsiva/Lança Mística — Truque resolvido, n
     const character = warlockAt(2);
     choose(character, "explosao-repulsiva", "Mãos Flamejantes");
     const block = getWarlockPrintedBlocks(character).find((b) => b.includes("Invocações"))!;
-    expect(block).toContain("> Explosão Repulsiva: Mãos Flamejantes, acerto → empurra 3m alvo Grande-");
+    expect(block).toContain("> Explosão Repulsiva: Mãos Flamejantes, acerto -> empurra 3m alvo Grande-");
   });
 
   it("Lança Mística resolve Truque e {AlcanceExtra} = 9m × nível de Bruxo", () => {
@@ -163,7 +163,7 @@ describe("Presente dos Protetores — CAR resolvido numericamente, com checkbox"
     choose(character, "pacto-do-tomo");
     choose(character, "presente-dos-protetores");
     const block = getWarlockPrintedBlocks(character).find((b) => b.includes("Invocações"))!;
-    expect(block).toContain("> Presente dos Protetores [__]: até 3 nomes; 0 PV → 1 PV; 1/DL");
+    expect(block).toContain("> Presente dos Protetores [__]: até 3 nomes; 0 PV -> 1 PV; 1/DL");
   });
 
   it("CAR +0 ou negativo: mínimo 1 nome", () => {

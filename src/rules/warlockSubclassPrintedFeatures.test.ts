@@ -122,7 +122,7 @@ describe("Patrono Ínfero", () => {
   it("Bênção do Tenebroso (3): PV Temp = CAR+nível, mínimo 1", () => {
     const character = warlockAt(3, SUBCLASSES.infero, 16); // CAR +3
     const text = getWarlockSubclassPrintedBlocks(character).find((b) => b.text.includes("Bênção do Tenebroso"))!.text;
-    expect(text).toBe("#Bênção do Tenebroso\nInimigo cai a 0 PV por você ou a 3m → 6 PV Temp"); // 3+3
+    expect(text).toBe("#Bênção do Tenebroso\nInimigo cai a 0 PV por você ou a 3m -> 6 PV Temp"); // 3+3
   });
 
   it("A Sorte do Próprio Tenebroso (6): checkboxes = CAR, mínimo 1", () => {

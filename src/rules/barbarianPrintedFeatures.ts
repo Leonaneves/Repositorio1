@@ -74,7 +74,7 @@ const ATAQUE_EXTRA: PrintedBlock = {
 
 const BOTE_INSTINTIVO: PrintedBlock = {
   acquisitionLevel: 7,
-  getText: (character) => (character.level >= 7 ? "#Bote Instintivo\nEntrar em Fúria: mova até ½ Desl" : null),
+  getText: (character) => (character.level >= 7 ? "#Bote Instintivo\nEntrar em Fúria: mova até 1/2 Desl" : null),
 };
 
 const INSTINTOS_PRIMITIVOS: PrintedBlock = {
@@ -84,7 +84,7 @@ const INSTINTOS_PRIMITIVOS: PrintedBlock = {
 
 const GOLPE_BRUTAL_EFFECTS = [
   "> Debilitador: Desl -4,5m",
-  "> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport",
+  "> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport",
   "> Atordoante: Desv na próx Salv; sem Atq Oport",
   "> Destruidor: próx Atq de outra criatura contra alvo +5",
 ];
@@ -102,7 +102,7 @@ const GOLPE_BRUTAL: PrintedBlock = {
 const FURIA_IMPLACAVEL: PrintedBlock = {
   acquisitionLevel: 11,
   getText: (character) =>
-    character.level >= 11 ? "#Fúria Implacável\nFúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível\nNovo uso: CD +5; DC/DL: CD10" : null,
+    character.level >= 11 ? "#Fúria Implacável\nFúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível\nNovo uso: CD +5; DC/DL: CD10" : null,
 };
 
 const FORCA_INDOMAVEL: PrintedBlock = {

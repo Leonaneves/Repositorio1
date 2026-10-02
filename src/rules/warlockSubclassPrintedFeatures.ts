@@ -53,14 +53,14 @@ const ARQUIFADA: SubclassBlock[] = [
     subclassFullName: "Patrono Arquifada",
     acquisitionLevel: 10,
     getText: () =>
-      ["#Defesas Sedutoras [__]", "Imune Enfeit", "Reação ao ser atingido: ½ dano; atacante Salv SAB ou sofre Psiq = dano sofrido", "DL ou 1 espaço Pacto"].join(
+      ["#Defesas Sedutoras [__]", "Imune Enfeit", "Reação ao ser atingido: 1/2 dano; atacante Salv SAB ou sofre Psiq = dano sofrido", "DL ou 1 espaço Pacto"].join(
         "\n",
       ),
   },
   {
     subclassFullName: "Patrono Arquifada",
     acquisitionLevel: 14,
-    getText: () => "#Magia Sedutora\nApós magia Enc/Ilusão de 1 ação + espaço → Passo Nebuloso grátis na mesma ação",
+    getText: () => "#Magia Sedutora\nApós magia Enc/Ilusão de 1 ação + espaço -> Passo Nebuloso grátis na mesma ação",
   },
 ];
 
@@ -74,7 +74,7 @@ const CELESTIAL: SubclassBlock[] = [
   {
     subclassFullName: "Patrono Celestial",
     acquisitionLevel: 6,
-    getText: () => "#Alma Radiante\nRes Rad; 1/turno magia Íg/Rad → +CAR dano em 1 alvo",
+    getText: () => "#Alma Radiante\nRes Rad; 1/turno magia Íg/Rad -> +CAR dano em 1 alvo",
   },
   {
     subclassFullName: "Patrono Celestial",
@@ -92,7 +92,7 @@ const CELESTIAL: SubclassBlock[] = [
     getText: () =>
       [
         "#Vingança Calcinante [__]",
-        "Você/aliado 18m faria Salv Morte → recupera ½ PV máx e pode encerrar Caído",
+        "Você/aliado 18m faria Salv Morte -> recupera 1/2 PV máx e pode encerrar Caído",
         "Escolhidos a 9m: 2d8+CAR Rad e Cego até fim turno. DL",
       ].join("\n"),
   },
@@ -116,7 +116,7 @@ const GRANDE_ANTIGO: SubclassBlock[] = [
     subclassFullName: "Patrono Grande Antigo",
     acquisitionLevel: 6,
     getText: () =>
-      ["#Combatente Clarividente [__]", "Mente Desperta: alvo Salv SAB; falha → Desv Atq contra você e você Vant Atq contra ele", "DC/DL ou 1 espaço Pacto"].join(
+      ["#Combatente Clarividente [__]", "Mente Desperta: alvo Salv SAB; falha -> Desv Atq contra você e você Vant Atq contra ele", "DC/DL ou 1 espaço Pacto"].join(
         "\n",
       ),
   },
@@ -133,7 +133,7 @@ const INFERO: SubclassBlock[] = [
     acquisitionLevel: 3,
     getText: (character) => {
       const pvTemp = Math.max(1, charismaModifier(character) + character.level);
-      return `#Bênção do Tenebroso\nInimigo cai a 0 PV por você ou a 3m → ${pvTemp} PV Temp`;
+      return `#Bênção do Tenebroso\nInimigo cai a 0 PV por você ou a 3m -> ${pvTemp} PV Temp`;
     },
   },
   {
@@ -141,13 +141,13 @@ const INFERO: SubclassBlock[] = [
     acquisitionLevel: 6,
     getText: (character) => {
       const carMod = Math.max(1, charismaModifier(character));
-      return [`#Sorte do Próprio Tenebroso ${checkboxes(carMod)}`, "Teste/Salv: após rolar, antes do efeito → +1d10", "Todos/DL"].join("\n");
+      return [`#Sorte do Próprio Tenebroso ${checkboxes(carMod)}`, "Teste/Salv: após rolar, antes do efeito -> +1d10", "Todos/DL"].join("\n");
     },
   },
   {
     subclassFullName: "Patrono Ínfero",
     acquisitionLevel: 10,
-    getText: () => "#Resistência Ínfera\nDC/DL: escolha dano exc Energ → Res até nova escolha",
+    getText: () => "#Resistência Ínfera\nDC/DL: escolha dano exc Energ -> Res até nova escolha",
   },
   {
     subclassFullName: "Patrono Ínfero",
@@ -155,7 +155,7 @@ const INFERO: SubclassBlock[] = [
     getText: () =>
       [
         "#Lançar no Inferno [__]",
-        "1/turno, acerto → Salv CAR; falha: desaparece, não-Ínfero 8d10 Psiq + Incap até fim próx turno",
+        "1/turno, acerto -> Salv CAR; falha: desaparece, não-Ínfero 8d10 Psiq + Incap até fim próx turno",
         "DL ou 1 espaço Pacto",
       ].join("\n"),
   },

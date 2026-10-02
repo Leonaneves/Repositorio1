@@ -1,6 +1,7 @@
 import { AnnotationFlags, PDFDocument, PDFName, type PDFForm, type PDFTextField } from "@cantoo/pdf-lib";
 import type { Character } from "../domain/character.js";
 import { pdfCheckboxFields, pdfDropdownFields, pdfOverlayFields, pdfTextFields } from "./fieldMap.js";
+import { sanitizeForPdf } from "./sanitize.js";
 
 export const PDF_TEMPLATE_URL = "/pdf-template/ficha-interativa.pdf";
 
@@ -46,7 +47,7 @@ export function fillPdfForm(pdfDoc: PDFDocument, form: PDFForm, character: Chara
     const value = overlay.getValue(character);
     if (value && page) {
       const [x0, y0] = overlay.rect;
-      page.drawText(value, { x: x0 + 3, y: y0 + 4, size: 10 });
+      page.drawText(sanitizeForPdf(value), { x: x0 + 3, y: y0 + 4, size: 10 });
     }
   }
 
@@ -54,7 +55,7 @@ export function fillPdfForm(pdfDoc: PDFDocument, form: PDFForm, character: Chara
     const field = form.getFieldMaybe(mapping.pdfField);
     if (!field) continue;
     const value = mapping.getValue(character);
-    (field as PDFTextField).setText(value || undefined);
+    (field as PDFTextField).setText(sanitizeForPdf(value) || undefined);
   }
 
   for (const mapping of pdfDropdownFields) {

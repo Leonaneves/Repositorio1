@@ -22,27 +22,27 @@ Todos/DL",
 Fúria: 1º acerto/turno +1d6+10 Necr ou Rad",
   "#Ataque Extra",
   "#Concentração Fanática
-1×/Fúria, falha Salv: refaça com +Dano da Fúria",
+1x/Fúria, falha Salv: refaça com +Dano da Fúria",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +2d10 e escolha 2:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Presença Zelosa [__]
 AB: até 10 criaturas a 18m têm Vant em Atq/Salv até próx turno
 DL ou gaste 1 Fúria",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Fúria dos Deuses [__]
 Entrar em Fúria: forma divina por 1 min. DL
 > Res Necr/Psiq/Rad
-> Reação: criatura a 9m cairia a 0 PV → gaste 1 Fúria; PV = seu nível
+> Reação: criatura a 9m cairia a 0 PV -> gaste 1 Fúria; PV = seu nível
 > Voo = Desl; pode pairar",
   "#Força Indomável
 Teste/Salv FOR < FOR: use FOR",
@@ -67,27 +67,27 @@ Fúria: Acro, Furt, Int, Perc e Sobr usam FOR",
 > Início turno: outra criatura a 3m recebe 3d6 PV Temp",
   "#Ataque Extra",
   "#Ramos da Árvore
-Fúria, Reação: criatura a 9m inicia turno → Salv FOR CD 8+FOR+Prof
+Fúria, Reação: criatura a 9m inicia turno -> Salv FOR CD 8+FOR+Prof
 Falha: teleporta até 1,5m de você; pode ficar Desl 0",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +1d10 e escolha:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Raízes Devastadoras
 Arma Pesada/Versátil: +3m alcance
 Acerto: Derrubar ou Empurrar + outra Maestria",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Percorrer a Árvore
 Fúria: teleporte 18m ao entrar ou com AB
-> 1×/Fúria: 45m + até 6 criaturas",
+> 1x/Fúria: 45m + até 6 criaturas",
 ]
 `;
 
@@ -110,19 +110,19 @@ Fúria + Atq Imprudente, o 1º alvo acertado/turno com Atq FOR sofre +3d6 do mes
   "#Fúria Irracional
 Fúria: Imune a Amedrontado/Enfeitiçado; ao entrar, encerra ambos",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +1d10 e escolha:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Retaliação
 Reação ao sofrer dano de criatura a 1,5m: 1 Atq corpo a corpo",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Presença Intimidante [__]
 AB, 9m: Salv SAB CD 8+FOR+Prof; falha: Amedrontado 1 min
@@ -156,17 +156,17 @@ Escolha; pode trocar/DL:
 > Pantera: Desl Escalada = Desl
 > Salmão: Desl Natação = Desl",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +1d10 e escolha:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Poder dos Selvagens
 Ao entrar em Fúria, escolha:
@@ -197,27 +197,27 @@ Todos/DL",
 Fúria: 1º acerto/turno +1d6+7 Necr ou Rad",
   "#Ataque Extra",
   "#Concentração Fanática
-1×/Fúria, falha Salv: refaça com +Dano da Fúria",
+1x/Fúria, falha Salv: refaça com +Dano da Fúria",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +1d10 e escolha:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Presença Zelosa [__]
 AB: até 10 criaturas a 18m têm Vant em Atq/Salv até próx turno
 DL ou gaste 1 Fúria",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Fúria dos Deuses [__]
 Entrar em Fúria: forma divina por 1 min. DL
 > Res Necr/Psiq/Rad
-> Reação: criatura a 9m cairia a 0 PV → gaste 1 Fúria; PV = seu nível
+> Reação: criatura a 9m cairia a 0 PV -> gaste 1 Fúria; PV = seu nível
 > Voo = Desl; pode pairar",
 ]
 `;

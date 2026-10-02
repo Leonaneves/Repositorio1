@@ -48,7 +48,7 @@ const INSPIRACAO_DE_BARDO: PrintedBlock = {
 const CONTRA_ENCANTAMENTO: PrintedBlock = {
   acquisitionLevel: 7,
   getText: (character) =>
-    character.level >= 7 ? "#Contra-Encantamento\nReação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant" : null,
+    character.level >= 7 ? "#Contra-Encantamento\nReação: você/aliado a 9m falha Salv contra Amed/Enfeit -> refaz com Vant" : null,
 };
 
 const PALAVRAS_DE_CRIACAO: PrintedBlock = {

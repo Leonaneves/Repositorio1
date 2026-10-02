@@ -34,7 +34,7 @@ const ARVORE_DO_MUNDO: SubclassBlock[] = [
     subclassFullName: "Caminho da Árvore do Mundo",
     acquisitionLevel: 6,
     getText: () =>
-      ["#Ramos da Árvore", "Fúria, Reação: criatura a 9m inicia turno → Salv FOR CD 8+FOR+Prof", "Falha: teleporta até 1,5m de você; pode ficar Desl 0"].join(
+      ["#Ramos da Árvore", "Fúria, Reação: criatura a 9m inicia turno -> Salv FOR CD 8+FOR+Prof", "Falha: teleporta até 1,5m de você; pode ficar Desl 0"].join(
         "\n",
       ),
   },
@@ -46,7 +46,7 @@ const ARVORE_DO_MUNDO: SubclassBlock[] = [
   {
     subclassFullName: "Caminho da Árvore do Mundo",
     acquisitionLevel: 14,
-    getText: () => ["#Percorrer a Árvore", "Fúria: teleporte 18m ao entrar ou com AB", "> 1×/Fúria: 45m + até 6 criaturas"].join("\n"),
+    getText: () => ["#Percorrer a Árvore", "Fúria: teleporte 18m ao entrar ou com AB", "> 1x/Fúria: 45m + até 6 criaturas"].join("\n"),
   },
 ];
 
@@ -143,7 +143,7 @@ const FANATICO: SubclassBlock[] = [
   {
     subclassFullName: "Caminho do Fanático",
     acquisitionLevel: 6,
-    getText: () => "#Concentração Fanática\n1×/Fúria, falha Salv: refaça com +Dano da Fúria",
+    getText: () => "#Concentração Fanática\n1x/Fúria, falha Salv: refaça com +Dano da Fúria",
   },
   {
     subclassFullName: "Caminho do Fanático",
@@ -159,7 +159,7 @@ const FANATICO: SubclassBlock[] = [
         "#Fúria dos Deuses [__]",
         "Entrar em Fúria: forma divina por 1 min. DL",
         "> Res Necr/Psiq/Rad",
-        "> Reação: criatura a 9m cairia a 0 PV → gaste 1 Fúria; PV = seu nível",
+        "> Reação: criatura a 9m cairia a 0 PV -> gaste 1 Fúria; PV = seu nível",
         "> Voo = Desl; pode pairar",
       ].join("\n"),
   },

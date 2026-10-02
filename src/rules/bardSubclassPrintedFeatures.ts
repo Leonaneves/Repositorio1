@@ -21,7 +21,7 @@ const BRAVURA: SubclassBlock[] = [
     subclassFullName: "Colégio da Bravura",
     acquisitionLevel: 3,
     getText: () =>
-      ["#Inspiração em Combate", "Alvo com Insp pode:", "> Def: Reação ao ser atingido → +dado na CA contra Atq", "> Ofens: após acertar → +dado no dano"].join(
+      ["#Inspiração em Combate", "Alvo com Insp pode:", "> Def: Reação ao ser atingido -> +dado na CA contra Atq", "> Ofens: após acertar -> +dado no dano"].join(
         "\n",
       ),
   },
@@ -33,7 +33,7 @@ const BRAVURA: SubclassBlock[] = [
   {
     subclassFullName: "Colégio da Bravura",
     acquisitionLevel: 14,
-    getText: () => "#Magia de Batalha\nApós magia de 1 ação: AB → 1 Atq com arma",
+    getText: () => "#Magia de Batalha\nApós magia de 1 ação: AB -> 1 Atq com arma",
   },
 ];
 
@@ -41,7 +41,7 @@ const DANCA: SubclassBlock[] = [
   {
     subclassFullName: "Colégio da Dança",
     acquisitionLevel: 3,
-    getText: () => "#Ginga Fascinante\nSem Arm/Esc: Vant em Atua com dança\nAo gastar Insp em ação/AB/Reação → 1 Atq Desarmado junto",
+    getText: () => "#Ginga Fascinante\nSem Arm/Esc: Vant em Atua com dança\nAo gastar Insp em ação/AB/Reação -> 1 Atq Desarmado junto",
   },
   {
     subclassFullName: "Colégio da Dança",
@@ -52,14 +52,14 @@ const DANCA: SubclassBlock[] = [
     subclassFullName: "Colégio da Dança",
     acquisitionLevel: 6,
     getText: () =>
-      ["#Movimento Inspirador", "Reação +1 Insp: inimigo encerra turno a 1,5m → você move ½ Desl", "Aliado a 9m pode Reação → ½ Desl; sem Atq Oport"].join(
+      ["#Movimento Inspirador", "Reação +1 Insp: inimigo encerra turno a 1,5m -> você move 1/2 Desl", "Aliado a 9m pode Reação -> 1/2 Desl; sem Atq Oport"].join(
         "\n",
       ),
   },
   {
     subclassFullName: "Colégio da Dança",
     acquisitionLevel: 14,
-    getText: () => ["#Evasão Liderada", "Salv DES p/½ dano: sucesso 0, falha ½", "Aliados a 1,5m também recebem; não funciona Incapacitado"].join("\n"),
+    getText: () => ["#Evasão Liderada", "Salv DES p/1/2 dano: sucesso 0, falha 1/2", "Aliados a 1,5m também recebem; não funciona Incapacitado"].join("\n"),
   },
 ];
 
@@ -92,7 +92,7 @@ const GLAMOUR: SubclassBlock[] = [
     subclassFullName: "Colégio do Glamour",
     acquisitionLevel: 3,
     getText: () =>
-      ["#Manto de Inspiração", "AB +1 Insp: até CAR criaturas a 18m ganham PV Temp = 2× dado", "Cada uma pode Reação → mover Desl sem Atq Oport"].join(
+      ["#Manto de Inspiração", "AB +1 Insp: até CAR criaturas a 18m ganham PV Temp = 2x dado", "Cada uma pode Reação -> mover Desl sem Atq Oport"].join(
         "\n",
       ),
   },
@@ -103,7 +103,7 @@ const GLAMOUR: SubclassBlock[] = [
       [
         "#Manto de Majestade [__]",
         "AB: Comando grátis + forma por 1 min/Concent",
-        "Durante: AB → Comando grátis; Enfeit por você falham Salv",
+        "Durante: AB -> Comando grátis; Enfeit por você falham Salv",
         "DL ou espaço 3º+",
       ].join("\n"),
   },
@@ -114,7 +114,7 @@ const GLAMOUR: SubclassBlock[] = [
       [
         "#Majestade Inquebrável [__]",
         "AB: presença 1 min",
-        "1º acerto/turno contra você: atacante Salv CAR vs CD magia; falha → Atq falha",
+        "1º acerto/turno contra você: atacante Salv CAR vs CD magia; falha -> Atq falha",
         "DC/DL",
       ].join("\n"),
   },

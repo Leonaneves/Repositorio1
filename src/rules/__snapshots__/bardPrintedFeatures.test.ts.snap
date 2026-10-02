@@ -25,7 +25,7 @@ AB, alvo a 18m recebe 1 Insp
 Após falhar Teste d20, soma dado; dura 1h
 Todos/DC/DL; 1 espaço = +1 uso",
   "#Contra-Encantamento
-Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit -> refaz com Vant",
 ]
 `;
 
@@ -37,6 +37,6 @@ Após falhar Teste d20, soma dado; dura 1h
 Todos/DC/DL; 1 espaço = +1 uso
 > Inic: se tiver <2 usos, recupere até 2",
   "#Contra-Encantamento
-Reação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant",
+Reação: você/aliado a 9m falha Salv contra Amed/Enfeit -> refaz com Vant",
 ]
 `;

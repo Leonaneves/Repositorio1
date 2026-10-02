@@ -98,7 +98,7 @@ describe("Contra-Encantamento (nível 7)", () => {
 
   it("nível 7+: texto exato", () => {
     const text = getBardPrintedBlocks(bardAt(7)).find((b) => b.startsWith("#Contra-Encantamento"))!;
-    expect(text).toBe("#Contra-Encantamento\nReação: você/aliado a 9m falha Salv contra Amed/Enfeit → refaz com Vant");
+    expect(text).toBe("#Contra-Encantamento\nReação: você/aliado a 9m falha Salv contra Amed/Enfeit -> refaz com Vant");
   });
 });
 

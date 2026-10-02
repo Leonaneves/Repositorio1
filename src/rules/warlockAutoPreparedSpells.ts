@@ -53,7 +53,7 @@ const SPELL_GRANTING_INVOCATIONS: Record<string, { spellName: string; notes: str
   "mascara-das-muitas-faces": { spellName: "Disfarçar-se", notes: "Sempre preparada — Máscara das Muitas Faces; sem espaço" },
   "mestre-das-infindaveis-formas": { spellName: "Alterar-se", notes: "Sempre preparada — Mestre das Infindáveis Formas; sem espaço" },
   "passo-ascendente": { spellName: "Levitação", notes: "Sempre preparada — Passo Ascendente; alvo: si mesmo; sem espaço" },
-  "presente-das-profundezas": { spellName: "Respirar na Água", notes: "Sempre preparada — Presente das Profundezas; alvo: si mesmo; 1×/DL, sem espaço" },
+  "presente-das-profundezas": { spellName: "Respirar na Água", notes: "Sempre preparada — Presente das Profundezas; alvo: si mesmo; 1x/DL, sem espaço" },
   "salto-sobrenatural": { spellName: "Salto", notes: "Sempre preparada — Salto Sobrenatural; alvo: si mesmo; sem espaço" },
   "uno-com-as-sombras": { spellName: "Invisibilidade", notes: "Sempre preparada — Uno com as Sombras; alvo: si mesmo; sem espaço; só em Meia-luz/Escuridão" },
   "vigor-infero": { spellName: "Vitalidade Vazia", notes: "Sempre preparada — Vigor Ínfero; alvo: si mesmo; sem espaço; nunca rola o dado de PV Temp, recebe o máximo automaticamente" },
@@ -91,7 +91,7 @@ export function getWarlockAutoPreparedSpells(character: Character): SpellPrepare
 
   if (character.level >= 9) {
     entries.push(
-      autoEntry("Contato Extraplanar", "Sempre preparada — Contatar Patrono; 1×/DL, sem espaço; sucesso automático na Salv.; finalidade: contato com o patrono"),
+      autoEntry("Contato Extraplanar", "Sempre preparada — Contatar Patrono; 1x/DL, sem espaço; sucesso automático na Salv.; finalidade: contato com o patrono"),
     );
   }
 

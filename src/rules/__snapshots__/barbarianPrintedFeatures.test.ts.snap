@@ -42,13 +42,13 @@ Vant em Salv DEX, exceto Incapacitado",
 Fúria: Acro, Furt, Int, Perc e Sobr usam FOR",
   "#Ataque Extra",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +1d10 e escolha:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport",
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport",
 ]
 `;
 
@@ -68,17 +68,17 @@ Vant em Salv DEX, exceto Incapacitado",
 Fúria: Acro, Furt, Int, Perc e Sobr usam FOR",
   "#Ataque Extra",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +1d10 e escolha:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
 ]
 `;
@@ -99,17 +99,17 @@ Vant em Salv DEX, exceto Incapacitado",
 Fúria: Acro, Furt, Int, Perc e Sobr usam FOR",
   "#Ataque Extra",
   "#Bote Instintivo
-Entrar em Fúria: mova até ½ Desl",
+Entrar em Fúria: mova até 1/2 Desl",
   "#Instintos Primitivos
 Vant em Inic",
   "#Golpe Brutal
 Atq Imprudente: abra mão da Vant em 1 Atq FOR; acerto +2d10 e escolha 2:
 > Debilitador: Desl -4,5m
-> Poderoso: empurra 4,5m; mova ½ Desl até alvo sem Atq Oport
+> Poderoso: empurra 4,5m; mova 1/2 Desl até alvo sem Atq Oport
 > Atordoante: Desv na próx Salv; sem Atq Oport
 > Destruidor: próx Atq de outra criatura contra alvo +5",
   "#Fúria Implacável
-Fúria, 0 PV: Salv CON CD10; sucesso PV = 2× nível
+Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Força Indomável
 Teste/Salv FOR < FOR: use FOR",

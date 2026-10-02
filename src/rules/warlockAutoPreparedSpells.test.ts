@@ -63,7 +63,7 @@ describe("getWarlockAutoPreparedSpells", () => {
 
     const at = getWarlockAutoPreparedSpells(warlockAt(9, "Patrono Ínfero"));
     const contato = at.find((e) => e.name === "Contato Extraplanar")!;
-    expect(contato.notes).toContain("1×/DL");
+    expect(contato.notes).toContain("1x/DL");
     expect(contato.notes).toContain("sucesso automático");
   });
 
