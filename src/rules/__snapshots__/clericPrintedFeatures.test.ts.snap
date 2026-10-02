@@ -1,0 +1,64 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 1, sem escolha de Golpes Abençoados 1`] = `[]`;
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 2, sem escolha de Golpes Abençoados 1`] = `
+[
+  "#Canalizar Divindade [__][__]
+DC: +1 uso; DL: todos
+> Centelha: alvo 9m, 1d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min; dano encerra",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 5, sem escolha de Golpes Abençoados 1`] = `
+[
+  "#Canalizar Divindade [__][__]
+DC: +1 uso; DL: todos
+> Centelha: alvo 9m, 1d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 7 com Golpe Divino escolhido 1`] = `
+[
+  "#Canalizar Divindade [__][__][__]
+DC: +1 uso; DL: todos
+> Centelha: alvo 9m, 2d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra",
+  "#Golpe Divino
+1/turno, acerto com arma -> +1d8 Necr/Rad",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 7, sem escolha de Golpes Abençoados 1`] = `
+[
+  "#Canalizar Divindade [__][__][__]
+DC: +1 uso; DL: todos
+> Centelha: alvo 9m, 2d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 14, sem escolha de Golpes Abençoados 1`] = `
+[
+  "#Canalizar Divindade [__][__][__]
+DC: +1 uso; DL: todos
+> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra",
+  "#Intervenção Divina [__]
+Ação: conjure magia Clérigo até 5º, exc Reação, sem espaço/Material. 1/DL",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Clérigo puro, sem subclasse, SAB 16) > nível 20, sem escolha de Golpes Abençoados 1`] = `
+[
+  "#Canalizar Divindade [__][__][__][__]
+DC: +1 uso; DL: todos
+> Centelha: alvo 9m, 4d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra",
+  "#Intervenção Divina [__]
+Ação: conjure magia Clérigo até 5º, exc Reação, sem espaço/Material. 1/DL
+> Pode escolher Desejo; se usar, recarga após 2d4 DL",
+]
+`;

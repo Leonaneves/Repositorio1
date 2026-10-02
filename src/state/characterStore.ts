@@ -9,6 +9,7 @@ import {
 } from "../domain/character.js";
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
+import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { getAvailableArmor } from "../rules/armor.js";
 import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
@@ -118,6 +119,24 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
 function applyBardSubclassProficiencies(character: Character): Character {
   if (character.classId !== "bardo" || character.subclassId !== "Colégio da Bravura") return character;
   return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, medium: true, shield: true } } };
+}
+
+/**
+ * Protetor (Ordem Divina do Clérigo, nível 1 — fonte "INTEGRAÇÃO COMPLETA
+ * — CLÉRIGO E SUBCLASSES") concede treinamento com Armadura Pesada
+ * automaticamente ao escolher essa opção — mesmo padrão de
+ * `applyBardSubclassProficiencies` (flag mutável, sempre editável depois
+ * em `ArmorSection`; só SOMA a proficiência, nunca remove o que o jogador
+ * já tinha marcado manualmente). Diferente do Bardo, a escolha aqui não é
+ * de subclasse, e sim uma `FeatureChoiceSelection` de nível 1
+ * (`ORDEM_DIVINA_CHOICE_ID`) — por isso é aplicada em
+ * `setFeatureChoiceSelection`, não em `setSubclass`. Armas Marciais
+ * (texto, não flag) entram em `rules/clericSubclassProficiencies.ts`.
+ */
+function applyClericOrdemDivinaProficiencies(character: Character): Character {
+  if (character.classId !== "clerigo") return character;
+  if (character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID]?.value !== "Protetor") return character;
+  return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, heavy: true } } };
 }
 
 interface CharacterStore {
@@ -463,12 +482,13 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
     })),
 
   setFeatureChoiceSelection: (choiceId, value) =>
-    set((state) => ({
-      character: {
+    set((state) => {
+      const character = {
         ...state.character,
         featureChoiceSelections: { ...state.character.featureChoiceSelections, [choiceId]: { value } },
-      },
-    })),
+      };
+      return { character: choiceId === ORDEM_DIVINA_CHOICE_ID ? applyClericOrdemDivinaProficiencies(character) : character };
+    }),
   clearFeatureChoiceSelection: (choiceId) =>
     set((state) => {
       const featureChoiceSelections = { ...state.character.featureChoiceSelections };

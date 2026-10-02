@@ -42,7 +42,7 @@ describe("catálogo de features — integridade estrutural", () => {
     expect(generalFeats).toEqual([]);
   });
 
-  it("subclassFeatures: só as 4 subclasses de Bárbaro + 4 de Bardo + 4 de Bruxo por ora (fontes fornecidas), todas com sourceType 'subclass' e subclassFullName válido", () => {
+  it("subclassFeatures: só as 4 subclasses de Bárbaro + 4 de Bardo + 4 de Bruxo + 4 de Clérigo por ora (fontes fornecidas), todas com sourceType 'subclass' e subclassFullName válido", () => {
     expect(subclassFeatures.length).toBeGreaterThan(0);
     const confirmedSubclassNames = [
       "Caminho da Árvore do Mundo",
@@ -57,6 +57,10 @@ describe("catálogo de features — integridade estrutural", () => {
       "Patrono Celestial",
       "Patrono Grande Antigo",
       "Patrono Ínfero",
+      "Domínio da Guerra",
+      "Domínio da Luz",
+      "Domínio da Trapaça",
+      "Domínio da Vida",
     ];
     for (const feature of subclassFeatures) {
       expect(feature.sourceType).toBe("subclass");

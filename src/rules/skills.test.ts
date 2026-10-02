@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { getBardSkillExpertiseChoiceId } from "../data/features/bard.js";
+import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { getInitiative } from "./derived.js";
 import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
@@ -10,6 +11,7 @@ import {
   getSkillBonus,
   getSkillExpertise,
   getSkillProficiency,
+  getThaumaturgeSkillBonus,
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
   isSkillGrantedExpertiseByClassChoice,
@@ -293,5 +295,87 @@ describe("Especialista do Bardo — skillExpertise (nunca concede proficiência,
     character.classId = "guerreiro";
     character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
     expect(isSkillGrantedExpertiseByClassChoice(character, "persuasao")).toBe(false);
+  });
+});
+
+function clerigoAt(level: number): ReturnType<typeof createBlankCharacter> {
+  const character = createBlankCharacter("skills-test-clerigo");
+  character.classId = "clerigo";
+  character.level = level;
+  return character;
+}
+
+describe("getThaumaturgeSkillBonus — Taumaturgo (Ordem Divina do Clérigo), INCONDICIONAL (nunca exige ausência de proficiência)", () => {
+  it("SAB +3, Taumaturgo escolhido: +3 em Arcanismo e Religião", () => {
+    const character = clerigoAt(1);
+    character.abilities.SAB.score = 16; // +3
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+    expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(3);
+    expect(getThaumaturgeSkillBonus(character, "religiao")).toBe(3);
+  });
+
+  it("SAB +0 ou negativo: mínimo +1", () => {
+    const character = clerigoAt(1);
+    character.abilities.SAB.score = 8; // -1
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+    expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(1);
+  });
+
+  it("nunca se aplica a outras perícias", () => {
+    const character = clerigoAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+    expect(getThaumaturgeSkillBonus(character, "historia")).toBe(0);
+    expect(getThaumaturgeSkillBonus(character, "intuicao")).toBe(0);
+  });
+
+  it("Protetor escolhido (não Taumaturgo): bônus 0", () => {
+    const character = clerigoAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Protetor" };
+    expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(0);
+  });
+
+  it("nenhuma escolha de Ordem Divina ainda feita: bônus 0", () => {
+    const character = clerigoAt(1);
+    character.abilities.SAB.score = 16;
+    expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(0);
+  });
+
+  it("outra classe nunca recebe o bônus, mesmo com a mesma seleção por acidente", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "mago";
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+    expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(0);
+  });
+
+  it("getSkillBonus: soma INCONDICIONALMENTE, mesmo com a perícia já proficiente (empilha, nunca mutuamente exclusivo com proficiência) — Religião usa INT na fórmula base, o bônus de Taumaturgo é independente", () => {
+    const character = clerigoAt(5); // Prof +3
+    character.abilities.INT.score = 10; // +0 (Religião é baseada em INT)
+    character.abilities.SAB.score = 16; // +3 (só alimenta o bônus de Taumaturgo)
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+    character.skills.religiao.manualOverride = true; // proficiente
+
+    const bonus = getSkillBonus(character, "religiao");
+    expect(bonus.auto).toBe(6); // 0 (INT) + 3 (prof) + 3 (Taumaturgo) — nunca zera por já ser proficiente
+  });
+
+  it("getSkillBonus: também soma sem proficiência alguma", () => {
+    const character = clerigoAt(1);
+    character.abilities.INT.score = 10; // +0 (Arcanismo é baseado em INT)
+    character.abilities.SAB.score = 14; // +2 (só alimenta o bônus de Taumaturgo)
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+
+    const bonus = getSkillBonus(character, "arcanismo");
+    expect(bonus.auto).toBe(2); // 0 (INT) + 0 (sem prof) + 2 (Taumaturgo)
+  });
+
+  it("Taumaturgo nunca concede a proficiência em si", () => {
+    const character = clerigoAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+    expect(getSkillProficiency(character, "religiao")).toBe(false);
+    expect(getSkillProficiency(character, "arcanismo")).toBe(false);
   });
 });

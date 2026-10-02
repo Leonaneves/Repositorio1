@@ -4,6 +4,7 @@ import type { ClassId, SkillKey } from "../domain/ids.js";
 import { skills } from "../data/skills.js";
 import { backgrounds } from "../data/backgrounds.js";
 import { classes, getClassSkillChoiceId } from "../data/classes.js";
+import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -99,6 +100,25 @@ export function getJackOfAllTradesBonus(character: Character): number {
 }
 
 /**
+ * Bônus de "Taumaturgo" (Ordem Divina do Clérigo, nível 1 — fonte
+ * "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES" §Ordem Divina): modificador
+ * de Sabedoria, mínimo +1, aplicado SOMENTE em Arcanismo e Religião.
+ * Diferente de "Pau pra Toda Obra" (getJackOfAllTradesBonus), este bônus
+ * é INCONDICIONAL — soma mesmo quando a perícia já é proficiente, porque
+ * a fonte nunca condiciona o bônus à ausência de proficiência, e nunca
+ * concede a proficiência em si.
+ */
+export function getThaumaturgeSkillBonus(character: Character, skill: SkillKey): number {
+  if (character.classId !== "clerigo") return 0;
+  if (skill !== "arcanismo" && skill !== "religiao") return 0;
+  const selection = character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID]?.value;
+  if (selection !== "Taumaturgo") return 0;
+
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return Math.max(1, wisdomMod);
+}
+
+/**
  * Proficiência final da perícia = override manual do jogador, se
  * houver; senão, concedida pelo antecedente atual OU pela escolha de
  * perícias de classe atual (qualquer uma das duas basta).
@@ -138,7 +158,8 @@ export function getSkillBonus(character: Character, skill: SkillKey): ComputedVa
   const expertise = getSkillExpertise(character, skill);
   const multiplier = proficient ? (expertise ? 2 : 1) : 0;
   const jackOfAllTradesBonus = proficient ? 0 : getJackOfAllTradesBonus(character);
-  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus;
+  const thaumaturgeBonus = getThaumaturgeSkillBonus(character, skill);
+  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus + thaumaturgeBonus;
 
   return computedValue(auto, state.manualAdjustment);
 }

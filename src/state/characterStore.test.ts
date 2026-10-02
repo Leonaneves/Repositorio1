@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useCharacterStore } from "./characterStore.js";
 import { getSkillProficiency } from "../rules/skills.js";
+import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -172,6 +173,46 @@ describe("useCharacterStore — Treinamento Marcial (Colégio da Bravura, nível
     store.setClass("guerreiro");
     store.setLevel(3);
     expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(true); // já concedida normalmente pela classe Guerreiro
+  });
+});
+
+describe("useCharacterStore — Protetor (Ordem Divina do Clérigo, nível 1) concede Armadura Pesada automaticamente", () => {
+  it("escolher 'Protetor' marca heavy, sem desmarcar light/medium/shield (que o Clérigo já tinha)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("clerigo");
+    expect(useCharacterStore.getState().character.armor.proficiencies.light).toBe(true); // já concedida pela classe
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+
+    store.setFeatureChoiceSelection(ORDEM_DIVINA_CHOICE_ID, "Protetor");
+    const proficiencies = useCharacterStore.getState().character.armor.proficiencies;
+    expect(proficiencies.light).toBe(true);
+    expect(proficiencies.medium).toBe(true);
+    expect(proficiencies.shield).toBe(true);
+    expect(proficiencies.heavy).toBe(true);
+  });
+
+  it("escolher 'Taumaturgo' não concede Armadura Pesada", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("clerigo");
+    store.setFeatureChoiceSelection(ORDEM_DIVINA_CHOICE_ID, "Taumaturgo");
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+  });
+
+  it("outra classe nunca ganha a proficiência automaticamente mesmo com o mesmo id de escolha por acidente", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setFeatureChoiceSelection(ORDEM_DIVINA_CHOICE_ID, "Protetor");
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+  });
+
+  it("depois de concedida, o jogador ainda pode editar manualmente (setArmorProficiency continua funcionando)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("clerigo");
+    store.setFeatureChoiceSelection(ORDEM_DIVINA_CHOICE_ID, "Protetor");
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(true);
+
+    store.setArmorProficiency("heavy", false);
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
   });
 });
 

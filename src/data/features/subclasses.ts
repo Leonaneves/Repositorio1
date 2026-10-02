@@ -613,4 +613,217 @@ export const subclassFeatures: FeatureDefinition[] = [
     summary:
       "1×/turno, ao atingir uma criatura com um ataque: ela faz Salv. CAR vs CD de magia; falha → desaparece (se não for Ínfera, sofre 8d10 de dano Psíquico) e fica Incapacitada até o fim do seu próx. turno, depois retorna ao espaço anterior ou ao espaço desocupado mais próximo. 1×/Descanso Longo; recuperação alternativa: gastar 1 espaço de Magia de Pacto.",
   },
+
+  // ============== CLÉRIGO — fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES" ==============
+  // Níveis de aquisição de subclasse do Clérigo são 3/6/17 (não 3/6/10/14 — ver
+  // data/subclasses.ts#clerigo). "Magias de Domínio" são sempre preparadas e vão
+  // para a área de Magias (rules/clericAutoPreparedSpells.ts), nunca para
+  // "Características de Classe".
+
+  // ---------- Domínio da Guerra ----------
+  {
+    id: "clerigo-guerra-magias-de-dominio-3",
+    name: "Magias de Domínio da Guerra",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Guerra",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/clericAutoPreparedSpells.ts — nunca neste campo): nível 3 — Arma Espiritual, Arma Mágica, Escudo da Fé, Raio Guia; nível 5 — Guardiões Espirituais, Manto do Cruzado; nível 7 — Escudo Ardente, Movimentação Livre; nível 9 — Golpe de Arço, Paralisar Monstro.",
+  },
+  {
+    id: "clerigo-guerra-ataque-direcionado-3",
+    name: "Ataque Direcionado",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Guerra",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Opção de Canalizar Divindade — nunca um conjunto de usos próprio, consome o mesmo recurso de Canalizar Divindade. Quando você ou uma criatura visível a 9m erra um ataque, gaste 1 uso de Canalizar Divindade: +10 ao resultado da rolagem (pode transformar o erro em acerto). Se o ataque for de outra criatura, use sua Reação.",
+  },
+  {
+    id: "clerigo-guerra-sacerdote-da-guerra-3",
+    name: "Sacerdote da Guerra",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Guerra",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Usos próprios (não é Canalizar Divindade) = modificador de Sabedoria, mínimo 1; recupera todos após Descanso Curto ou Longo. Ação Bônus: 1 ataque com arma ou 1 ataque desarmado.",
+  },
+  {
+    id: "clerigo-guerra-bencao-do-deus-da-guerra-6",
+    name: "Bênção do Deus da Guerra",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Guerra",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Opção de Canalizar Divindade — nunca um conjunto de usos próprio. Gaste 1 uso de Canalizar Divindade: conjure Arma Espiritual ou Escudo da Fé sem gastar espaço de magia e sem Concentração; duração 1 minuto; termina antes se conjurar de novo, ficar Incapacitado, ou morrer.",
+  },
+  {
+    id: "clerigo-guerra-avatar-da-guerra-17",
+    name: "Avatar da Guerra",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Guerra",
+    level: 17,
+    autoGranted: true,
+    summary: "Resistência a dano Contundente, Cortante e Perfurante.",
+  },
+
+  // ---------- Domínio da Luz ----------
+  {
+    id: "clerigo-luz-magias-de-dominio-3",
+    name: "Magias de Domínio da Luz",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Luz",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/clericAutoPreparedSpells.ts — nunca neste campo): nível 3 — Fogo das Fadas, Mãos Ardentes, Raio Ardente, Ver o Invisível; nível 5 — Bola de Fogo, Luz do Dia; nível 7 — Muralha de Fogo, Olho Arcano; nível 9 — Coluna de Chamas, Vidência.",
+  },
+  {
+    id: "clerigo-luz-brilho-do-amanhecer-3",
+    name: "Brilho do Amanhecer",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Luz",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Opção de Canalizar Divindade — nunca um conjunto de usos próprio. Ação: Usar Magia; Emanação de 9m que primeiro dissipa Escuridão mágica na área; criaturas escolhidas na área fazem Salvaguarda de Constituição contra dano Radiante igual a 2d10 + seu nível de Clérigo; falha: dano completo, sucesso: metade.",
+  },
+  {
+    id: "clerigo-luz-labareda-protetora-3",
+    name: "Labareda Protetora",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Luz",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Usos próprios (não é Canalizar Divindade) = modificador de Sabedoria, mínimo 1; recupera todos após Descanso Longo. Reação: quando uma criatura visível a 9m faz um ataque (antes de saber se acerta ou erra), impõe Desvantagem nesse ataque. A partir do nível 6 (Labareda Protetora Aprimorada — mesma característica, nunca um bloco separado): recupera todos após Descanso Curto OU Longo, e o alvo do ataque ganha PV Temporários = 2d6 + modificador de Sabedoria.",
+  },
+  {
+    id: "clerigo-luz-labareda-protetora-aprimorada-6",
+    name: "Labareda Protetora Aprimorada",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Luz",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Atualiza Labareda Protetora — nunca um bloco separado. Passa a recuperar todos os usos após Descanso Curto OU Longo (antes só Longo); além disso, o alvo do ataque sofrido ganha PV Temporários = 2d6 + modificador de Sabedoria.",
+  },
+  {
+    id: "clerigo-luz-coroa-de-luz-17",
+    name: "Coroa de Luz",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Luz",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Usos próprios (não é Canalizar Divindade) = modificador de Sabedoria, mínimo 1; recupera todos após Descanso Longo. Ação: cria uma aura por 1 minuto (ou até você encerrar sem gastar ação) de Luz Plena em 18m + Penumbra em mais 9m; inimigos na Luz Plena têm Desvantagem em salvaguardas contra Brilho do Amanhecer e contra magias que causem dano de Fogo ou Radiante.",
+  },
+
+  // ---------- Domínio da Trapaça ----------
+  {
+    id: "clerigo-trapaca-magias-de-dominio-3",
+    name: "Magias de Domínio da Trapaça",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Trapaça",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/clericAutoPreparedSpells.ts — nunca neste campo): nível 3 — Disfarçar-se, Enfeitiçar Pessoa, Invisibilidade, Passo Sem Rastro; nível 5 — Indetectável, Padrão Hipnótico; nível 7 — Confusão, Porta Dimensional; nível 9 — Dominar Pessoa, Modificar Memória.",
+  },
+  {
+    id: "clerigo-trapaca-bencao-do-trapaceiro-3",
+    name: "Bênção do Trapaceiro",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Trapaça",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "NÃO é opção de Canalizar Divindade. Ação: Usar Magia; alvo você mesmo ou uma criatura disposta a até 9m — ganha Vantagem em testes de Destreza (Furtividade); dura até o próximo Descanso Longo ou até você usar de novo.",
+  },
+  {
+    id: "clerigo-trapaca-invocar-duplicidade-3",
+    name: "Invocar Duplicidade",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Trapaça",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Opção de Canalizar Divindade — nunca um conjunto de usos próprio. Gaste 1 uso, Ação Bônus: cria uma duplicata ilusória de si mesmo num espaço desocupado e visível a até 9m; a ilusão é intangível, não ocupa espaço, dura 1 minuto, e termina se você ficar Incapacitado ou encerrar sem gastar ação. Pode conjurar magias como se estivesse no espaço da ilusão, usando seus próprios sentidos; se você e a ilusão estiverem a até 1,5m do mesmo alvo, você tem Vantagem em ataques contra ele. Ação Bônus: move a ilusão até 9m, desde que o destino esteja a até 36m de você. A partir do nível 6 (Transposição do Trapaceiro): ao usar essa Ação Bônus para criar ou mover a ilusão, pode trocar de lugar com ela. A partir do nível 17 (Duplicidade Aprimorada): Distração Compartilhada — quando uma criatura está a até 1,5m da ilusão, você E seus aliados têm Vantagem em ataques contra ela; Ilusão de Cura — quando a ilusão termina, você ou uma criatura escolhida a até 1,5m recupera PV iguais ao seu nível de Clérigo. Mesma característica em todos os níveis, nunca um bloco separado.",
+  },
+  {
+    id: "clerigo-trapaca-transposicao-do-trapaceiro-6",
+    name: "Transposição do Trapaceiro",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Trapaça",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Atualiza Invocar Duplicidade — nunca um bloco separado. Ao usar a Ação Bônus de Invocar Duplicidade para criar ou mover a ilusão, pode trocar de lugar com ela.",
+  },
+  {
+    id: "clerigo-trapaca-duplicidade-aprimorada-17",
+    name: "Duplicidade Aprimorada",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Trapaça",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Atualiza Invocar Duplicidade — nunca um bloco separado. Distração Compartilhada: quando uma criatura está a até 1,5m da ilusão, você E seus aliados têm Vantagem em ataques contra ela (antes, só você). Ilusão de Cura: quando a ilusão termina, você ou uma criatura escolhida a até 1,5m recupera PV iguais ao seu nível de Clérigo.",
+  },
+
+  // ---------- Domínio da Vida ----------
+  {
+    id: "clerigo-vida-magias-de-dominio-3",
+    name: "Magias de Domínio da Vida",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Vida",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/clericAutoPreparedSpells.ts — nunca neste campo): nível 3 — Auxílio, Bênção, Curar Ferimentos, Restauração Menor; nível 5 — Palavra Curativa em Massa, Revivificar; nível 7 — Aura de Vida, Proteção Contra a Morte; nível 9 — Curar Ferimentos em Massa, Restauração Maior.",
+  },
+  {
+    id: "clerigo-vida-discipulo-da-vida-3",
+    name: "Discípulo da Vida",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Vida",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "NÃO é opção de Canalizar Divindade. Quando conjura, com um espaço de magia, uma magia que restaura PV, o alvo recupera PV adicionais iguais a 2 + o círculo do espaço usado, no mesmo turno. A partir do nível 6 (Curandeiro Abençoado — mesma característica, nunca um bloco separado): quando essa magia de cura com espaço tem como alvo outra criatura que não você, você também recupera PV iguais a 2 + o círculo do espaço, imediatamente depois.",
+  },
+  {
+    id: "clerigo-vida-curandeiro-abencoado-6",
+    name: "Curandeiro Abençoado",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Vida",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Atualiza Discípulo da Vida — nunca um bloco separado. Quando você conjura, com um espaço de magia, uma magia de cura que tem como alvo outra criatura, você também recupera PV iguais a 2 + o círculo do espaço, imediatamente depois.",
+  },
+  {
+    id: "clerigo-vida-preservar-a-vida-3",
+    name: "Preservar a Vida",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Vida",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Opção de Canalizar Divindade — nunca um conjunto de usos próprio. Ação: Usar Magia; reserva total = 5x seu nível de Clérigo; distribua PV dessa reserva entre criaturas Sangrando ou morrendo a até 9m (pode incluir você mesmo); nenhuma criatura recupera PV além de metade do seu máximo.",
+  },
+  {
+    id: "clerigo-vida-cura-suprema-17",
+    name: "Cura Suprema",
+    sourceType: "subclass",
+    subclassFullName: "Domínio da Vida",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Ao usar uma magia ou Canalizar Divindade para restaurar PV, não role os dados de cura — use o resultado máximo possível de cada dado (ex.: 2d6 vira 12).",
+  },
 ];

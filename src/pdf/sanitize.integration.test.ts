@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
+import { GOLPES_ABENCOADOS_CHOICE_ID, ORDEM_DIVINA_CHOICE_ID, TAUMATURGO_TRUQUE_CHOICE_ID } from "../data/features/cleric.js";
 import { fillPdfForm } from "./exporter.js";
 import { pdfTextFields } from "./fieldMap.js";
 
@@ -12,9 +13,9 @@ import { pdfTextFields } from "./fieldMap.js";
  * pela fonte "PADRONIZAÇÃO DE CARACTERES PARA O PDF" (→, ½, ×, ≥, ≤,
  * ±) — testa a sanitização de ponta a ponta (pdf/exporter.ts#fillPdfForm
  * -> sanitizeForPdf), não só a função `sanitizeForPdf` isolada (já
- * coberta em sanitize.test.ts). Usa personagens de Bárbaro/Bardo/Bruxo
- * com o máximo de conteúdo impresso escolhido, já que são as classes
- * com texto compacto dinâmico mais rico.
+ * coberta em sanitize.test.ts). Usa personagens de Bárbaro/Bardo/Bruxo/
+ * Clérigo com o máximo de conteúdo impresso escolhido, já que são as
+ * classes com texto compacto dinâmico mais rico.
  */
 const TEMPLATE_PATH = resolve(process.cwd(), "public/pdf-template/ficha-interativa.pdf");
 const BANNED_PATTERN = /→|½|×|≥|≤|±/;
@@ -38,6 +39,18 @@ function fullBard(): Character {
   character.level = 20;
   character.subclassId = "Colégio da Dança";
   character.abilities.CAR.score = 16;
+  return character;
+}
+
+function fullCleric(): Character {
+  const character = createBlankCharacter("sanitize-test-cleric");
+  character.classId = "clerigo";
+  character.level = 20;
+  character.subclassId = "Domínio da Trapaça";
+  character.abilities.SAB.score = 18;
+  character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
+  character.featureChoiceSelections[TAUMATURGO_TRUQUE_CHOICE_ID] = { value: "Chama Sagrada" };
+  character.featureChoiceSelections[GOLPES_ABENCOADOS_CHOICE_ID] = { value: "Conjuração Poderosa" };
   return character;
 }
 
@@ -89,6 +102,10 @@ describe("Sanitização de ponta a ponta — nenhum campo de texto do PDF conté
 
   it("Bruxo (Patrono Ínfero) nível 20, com 10 invocações escolhidas (inclusive as com texto dinâmico mais rico)", async () => {
     await assertNoForbiddenCharacters(fullWarlock());
+  });
+
+  it("Clérigo (Domínio da Trapaça) nível 20, Taumaturgo + Conjuração Poderosa", async () => {
+    await assertNoForbiddenCharacters(fullCleric());
   });
 
   it("personagem em branco (sem classe) também não produz nenhum símbolo banido", async () => {

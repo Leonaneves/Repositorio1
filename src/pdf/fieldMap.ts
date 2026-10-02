@@ -34,6 +34,9 @@ import { getBarbarianRitualSpells } from "../rules/barbarianRitualSpells.js";
 import { getBardPrintedBlocks } from "../rules/bardPrintedFeatures.js";
 import { getBardWeaponProficiencyEntries } from "../rules/bardSubclassProficiencies.js";
 import { getBardAutoPreparedSpells } from "../rules/bardAutoPreparedSpells.js";
+import { getClericPrintedBlocks } from "../rules/clericPrintedFeatures.js";
+import { getClericWeaponProficiencyEntries } from "../rules/clericProficiencies.js";
+import { getClericAutoPreparedSpells } from "../rules/clericAutoPreparedSpells.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockAutoPreparedSpells } from "../rules/warlockAutoPreparedSpells.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
@@ -220,11 +223,12 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
 /**
  * "Características de Classe" (`Carac.Classe.1`/`.2`) — por ora Bárbaro
  * (fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES"), Bardo (fonte
- * "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES") e Bruxo (fonte
- * "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES") têm
- * o texto impresso montado dinamicamente; as demais 10 classes
- * continuam com o campo manual de sempre (`Character.classFeatures`),
- * sem nenhuma mudança de comportamento.
+ * "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES"), Bruxo (fonte
+ * "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES") e
+ * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES") têm o
+ * texto impresso montado dinamicamente; as demais 9 classes continuam
+ * com o campo manual de sempre (`Character.classFeatures`), sem
+ * nenhuma mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -237,6 +241,10 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   }
   if (character.classId === "bruxo") {
     const [column1, column2] = splitIntoTwoColumns(getWarlockPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  if (character.classId === "clerigo") {
+    const [column1, column2] = splitIntoTwoColumns(getClericPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
@@ -252,6 +260,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getClassWeaponProficiencyEntries(c),
           ...getBarbarianWeaponMasteryEntries(c),
           ...getBardWeaponProficiencyEntries(c),
+          ...getClericWeaponProficiencyEntries(c),
           ...getWarlockPactWeaponProficiencyEntries(c),
         ],
         c.weaponProficienciesNotes,
@@ -322,10 +331,12 @@ const inventoryFields: PdfTextFieldMapping[] = [
  * automaticamente por subclasse/classe (Arauto da Fauna/Natureza do
  * Caminho do Coração Selvagem — `getBarbarianRitualSpells`; Magia
  * Fascinante/Manto de Majestade do Colégio do Glamour e Palavras de
- * Criação do Bardo base — `getBardAutoPreparedSpells`; magias sempre
- * preparadas dos 4 Patronos + Contatar Patrono + invocações que
- * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`) primeiro,
- * seguidas da lista manual do jogador. Nunca grava as auto-concedidas
+ * Criação do Bardo base — `getBardAutoPreparedSpells`; Magias de
+ * Domínio das 4 subclasses + Truque extra de Taumaturgo do Clérigo —
+ * `getClericAutoPreparedSpells`; magias sempre preparadas dos 4
+ * Patronos + Contatar Patrono + invocações que concedem magia do Bruxo
+ * — `getWarlockAutoPreparedSpells`) primeiro, seguidas da lista manual
+ * do jogador. Nunca grava as auto-concedidas
  * de volta em `character.spellsPrepared` — só compõe no momento da
  * exportação, igual ao padrão já usado para texto automático em
  * `rules/proficiencyText.ts`.
@@ -334,6 +345,7 @@ function getEffectiveSpellsPrepared(character: Character) {
   return [
     ...getBarbarianRitualSpells(character),
     ...getBardAutoPreparedSpells(character),
+    ...getClericAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
     ...character.spellsPrepared,
   ];
