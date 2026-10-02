@@ -7,6 +7,7 @@ import {
 } from "../rules/abilityGeneration.js";
 import { BUILDER_STEP_ORDER, getVisibleSteps, type BuilderStepId } from "../rules/builderSteps.js";
 import { getIncompleteRequiredChoices } from "../rules/features.js";
+import { isInvocationSelectionComplete } from "../rules/invocations.js";
 import { isStartingEquipmentResolved } from "../rules/startingEquipment.js";
 import { useCharacterStore } from "./characterStore.js";
 
@@ -50,7 +51,9 @@ interface BuilderStore {
    * Se a etapa ATUAL já resolveu toda decisão obrigatória dela (decisão
    * §5/§11: nunca só "classe já selecionada"). Etapas com essa checagem:
    * "featuresAndTalents" (escolhas de perícia/ferramenta de classe, via
-   * `rules/features.ts#getIncompleteRequiredChoices`) e "equipment"
+   * `rules/features.ts#getIncompleteRequiredChoices`), "invocations"
+   * (quantidade/validade das Invocações Místicas do Bruxo, via
+   * `rules/invocations.ts#isInvocationSelectionComplete`) e "equipment"
    * (opção de equipamento inicial A/B/C, via
    * `rules/startingEquipment.ts#isStartingEquipmentResolved`) — as
    * demais etapas continuam sem trava adicional.
@@ -127,6 +130,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     const currentStepId = get().currentStepId;
     const character = useCharacterStore.getState().character;
     if (currentStepId === "featuresAndTalents") return getIncompleteRequiredChoices(character).length === 0;
+    if (currentStepId === "invocations") return isInvocationSelectionComplete(character);
     if (currentStepId === "equipment") return isStartingEquipmentResolved(character);
     return true;
   },

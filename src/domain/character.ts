@@ -164,6 +164,25 @@ export interface Character {
    */
   featureChoiceSelections: Record<string, FeatureChoiceSelection>;
   chosenFeatIds: string[];
+
+  /**
+   * Invocações Místicas do Bruxo escolhidas (etapa própria do Builder,
+   * fora de `featureChoiceSelections` porque a quantidade/elegibilidade
+   * dependem de pré-requisitos cruzados entre invocações — ver
+   * `rules/invocations.ts`). `subChoice` é a sub-escolha em texto livre
+   * exigida por algumas invocações (Truque afetado, Talento de Origem)
+   * — nunca validada contra um catálogo (nenhum catálogo de magias/
+   * truques existe no projeto, mesma decisão já aprovada para Bardo).
+   * Repetível = pode aparecer mais de uma vez em `chosenInvocations`,
+   * com `subChoice` diferente em cada ocorrência.
+   */
+  chosenInvocations: ChosenInvocation[];
+}
+
+export interface ChosenInvocation {
+  invocationId: string;
+  /** "" quando a invocação não exige sub-escolha ou ainda não foi preenchida. */
+  subChoice: string;
 }
 
 /** Cria um personagem em branco, pronto para ser preenchido pela UI/estado (fora do escopo desta etapa). */
@@ -226,5 +245,6 @@ export function createBlankCharacter(id: string): Character {
     languages: "",
     featureChoiceSelections: {},
     chosenFeatIds: [],
+    chosenInvocations: [],
   };
 }

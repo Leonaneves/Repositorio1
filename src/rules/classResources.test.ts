@@ -11,6 +11,7 @@ import {
   getInfusedItemsMax,
   getInfusionsKnown,
   getInvocationsKnown,
+  getPactMagicSlotCount,
   getMartialArtsDie,
   getRageCount,
   getRageDamageBonus,
@@ -99,14 +100,46 @@ describe("Bárbaro — Fúrias / Dano da Fúria / Maestrias", () => {
   });
 });
 
-describe("Bruxo — Invocações Místicas", () => {
+describe("Bruxo — Invocações Místicas (tabela completa 1-20 da fonte)", () => {
   it.each([
     [1, 1],
     [2, 3],
+    [3, 3],
+    [4, 3],
+    [5, 5],
+    [6, 5],
+    [7, 6],
+    [8, 6],
+    [9, 7],
+    [10, 7],
     [11, 7],
+    [12, 8],
+    [13, 8],
+    [14, 8],
+    [15, 9],
+    [16, 9],
+    [17, 9],
+    [18, 10],
+    [19, 10],
     [20, 10],
   ])("nível %i → %i invocações", (level, count) => {
     expect(getInvocationsKnown(characterOf("bruxo", level))).toBe(count);
+  });
+
+  it("null para quem não é Bruxo", () => {
+    expect(getInvocationsKnown(characterOf("mago", 10))).toBeNull();
+  });
+});
+
+describe("Bruxo — Magia de Pacto NÃO usa progressão comum de espaços (getPactMagicSlotCount)", () => {
+  it("nível 1: 1 espaço; nível 5: 2 espaços; nível 17: 4 espaços", () => {
+    expect(getPactMagicSlotCount(characterOf("bruxo", 1))).toBe(1);
+    expect(getPactMagicSlotCount(characterOf("bruxo", 5))).toBe(2);
+    expect(getPactMagicSlotCount(characterOf("bruxo", 17))).toBe(4);
+  });
+
+  it("null para quem não é Bruxo", () => {
+    expect(getPactMagicSlotCount(characterOf("mago", 10))).toBeNull();
   });
 });
 

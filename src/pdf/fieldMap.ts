@@ -34,6 +34,10 @@ import { getBarbarianRitualSpells } from "../rules/barbarianRitualSpells.js";
 import { getBardPrintedBlocks } from "../rules/bardPrintedFeatures.js";
 import { getBardWeaponProficiencyEntries } from "../rules/bardSubclassProficiencies.js";
 import { getBardAutoPreparedSpells } from "../rules/bardAutoPreparedSpells.js";
+import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
+import { getWarlockAutoPreparedSpells } from "../rules/warlockAutoPreparedSpells.js";
+import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
+import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
 /**
@@ -214,12 +218,13 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
 }
 
 /**
- * "Características de Classe" (`Carac.Classe.1`/`.2`) — por ora só
- * Bárbaro (fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES") e Bardo
- * (fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES") têm o texto
- * impresso montado dinamicamente; as demais 11 classes continuam com o
- * campo manual de sempre (`Character.classFeatures`), sem nenhuma
- * mudança de comportamento.
+ * "Características de Classe" (`Carac.Classe.1`/`.2`) — por ora Bárbaro
+ * (fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES"), Bardo (fonte
+ * "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES") e Bruxo (fonte
+ * "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES") têm
+ * o texto impresso montado dinamicamente; as demais 10 classes
+ * continuam com o campo manual de sempre (`Character.classFeatures`),
+ * sem nenhuma mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -228,6 +233,10 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   }
   if (character.classId === "bardo") {
     const [column1, column2] = splitIntoTwoColumns(getBardPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  if (character.classId === "bruxo") {
+    const [column1, column2] = splitIntoTwoColumns(getWarlockPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
@@ -239,7 +248,12 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
     pdfField: "PROF.armas",
     getValue: (c) =>
       renderAutoTextBlock(
-        [...getClassWeaponProficiencyEntries(c), ...getBarbarianWeaponMasteryEntries(c), ...getBardWeaponProficiencyEntries(c)],
+        [
+          ...getClassWeaponProficiencyEntries(c),
+          ...getBarbarianWeaponMasteryEntries(c),
+          ...getBardWeaponProficiencyEntries(c),
+          ...getWarlockPactWeaponProficiencyEntries(c),
+        ],
         c.weaponProficienciesNotes,
       ),
   },
@@ -253,7 +267,11 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
     pdfField: "HABILIDADES.ESPECIE",
     getValue: (c) => renderAutoTextBlock(getSpeciesTraitEntries(c), c.speciesTraitsNotes),
   },
-  { kind: "text", pdfField: "Talentos", getValue: (c) => renderAutoTextBlock(getBackgroundFeatEntries(c), c.talentsNotes) },
+  {
+    kind: "text",
+    pdfField: "Talentos",
+    getValue: (c) => renderAutoTextBlock([...getBackgroundFeatEntries(c), ...getWarlockLessonsOfTheOldOnesTalentEntries(c)], c.talentsNotes),
+  },
   { kind: "text", pdfField: "Carac.Classe.1", getValue: (c) => getClassFeaturesColumn(c, 1) },
   { kind: "text", pdfField: "Carac.Classe.2", getValue: (c) => getClassFeaturesColumn(c, 2) },
 ];
@@ -304,14 +322,21 @@ const inventoryFields: PdfTextFieldMapping[] = [
  * automaticamente por subclasse/classe (Arauto da Fauna/Natureza do
  * Caminho do Coração Selvagem — `getBarbarianRitualSpells`; Magia
  * Fascinante/Manto de Majestade do Colégio do Glamour e Palavras de
- * Criação do Bardo base — `getBardAutoPreparedSpells`) primeiro,
+ * Criação do Bardo base — `getBardAutoPreparedSpells`; magias sempre
+ * preparadas dos 4 Patronos + Contatar Patrono + invocações que
+ * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`) primeiro,
  * seguidas da lista manual do jogador. Nunca grava as auto-concedidas
  * de volta em `character.spellsPrepared` — só compõe no momento da
  * exportação, igual ao padrão já usado para texto automático em
  * `rules/proficiencyText.ts`.
  */
 function getEffectiveSpellsPrepared(character: Character) {
-  return [...getBarbarianRitualSpells(character), ...getBardAutoPreparedSpells(character), ...character.spellsPrepared];
+  return [
+    ...getBarbarianRitualSpells(character),
+    ...getBardAutoPreparedSpells(character),
+    ...getWarlockAutoPreparedSpells(character),
+    ...character.spellsPrepared,
+  ];
 }
 
 /** Até 34 magias preparadas — o PDF-molde reserva essas 34 linhas (`circulo1.N`/`nome.magia.1.N`/`alcance.magia.N`/`notas.magia.1.N`). */

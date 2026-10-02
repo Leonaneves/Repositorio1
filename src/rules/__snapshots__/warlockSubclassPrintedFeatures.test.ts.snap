@@ -1,0 +1,74 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > arquifada nível 14 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 2 espaços de Pacto gastos. 1/DL",
+  "#Passos Feéricos [__][__]
+Passo Nebuloso sem espaço; pode Reação ao sofrer dano. Todos/DL
+> Provocante: origem 1,5m Salv SAB ou Desv Atq vs outros
+> Revigorante: você/alvo 3m ganha 1d10 PV Temp
+> Desvanecedor: Invisível até próx turno/Atq/dano/magia
+> Terrível: origem ou destino 1,5m Salv SAB; falha 2d10 Psiq",
+  "#Defesas Sedutoras [__]
+Imune Enfeit
+Reação ao ser atingido: ½ dano; atacante Salv SAB ou sofre Psiq = dano sofrido
+DL ou 1 espaço Pacto",
+  "#Magia Sedutora
+Após magia Enc/Ilusão de 1 ação + espaço → Passo Nebuloso grátis na mesma ação",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > celestial nível 14 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 2 espaços de Pacto gastos. 1/DL",
+  "#Luz Medicinal
+d6: [__][__][__][__][__][__][__][__][__][__][__][__][__][__][__]
+AB: cure você/alvo 18m; gaste até CAR dados e cure o total
+Todos/DL",
+  "#Alma Radiante
+Res Rad; 1/turno magia Íg/Rad → +CAR dano em 1 alvo",
+  "#Resiliência Celestial
+Astúcia Mágica/DC/DL: você ganha 16 PV Temp
+Até 5 criaturas vistas ganham 9 PV Temp",
+  "#Vingança Calcinante [__]
+Você/aliado 18m faria Salv Morte → recupera ½ PV máx e pode encerrar Caído
+Escolhidos a 9m: 2d8+CAR Rad e Cego até fim turno. DL",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > grandeAntigo nível 14 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 2 espaços de Pacto gastos. 1/DL",
+  "#Magias Psíquicas
+Magia Bruxo com dano pode virar Psiq
+Enc/Ilus de Bruxo sem V/S",
+  "#Mente Desperta
+AB alvo 9m: telepatia 3km por 14 min; requer idioma comum",
+  "#Combatente Clarividente [__]
+Mente Desperta: alvo Salv SAB; falha → Desv Atq contra você e você Vant Atq contra ele
+DC/DL ou 1 espaço Pacto",
+  "#Escudo Mental
+Mente não pode ser lida sem permissão; Res Psiq
+Quem causa dano Psiq em você sofre o mesmo dano",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 14 de cada subclasse > infero nível 14 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 2 espaços de Pacto gastos. 1/DL",
+  "#Bênção do Tenebroso
+Inimigo cai a 0 PV por você ou a 3m → 16 PV Temp",
+  "#Sorte do Próprio Tenebroso [__][__]
+Teste/Salv: após rolar, antes do efeito → +1d10
+Todos/DL",
+  "#Resistência Ínfera
+DC/DL: escolha dano exc Energ → Res até nova escolha",
+  "#Lançar no Inferno [__]
+1/turno, acerto → Salv CAR; falha: desaparece, não-Ínfero 8d10 Psiq + Incap até fim próx turno
+DL ou 1 espaço Pacto",
+]
+`;

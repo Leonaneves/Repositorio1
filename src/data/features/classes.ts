@@ -3,6 +3,7 @@ import type { FeatureDefinition } from "../../domain/features.js";
 import { classes, getClassSkillChoiceId, getClassToolChoiceId } from "../classes.js";
 import { barbarianClassFeatures, barbarianWeaponMasteryFeatures } from "./barbarian.js";
 import { bardClassFeatures } from "./bard.js";
+import { warlockClassFeatures } from "./warlock.js";
 
 /**
  * Features de CLASSE cujo efeito mecânico já está implementado em
@@ -133,17 +134,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/barbarian.ts).
   // Bardo removido daqui — fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/bard.ts).
-  bruxo: [
-    { name: "Invocações Místicas", level: 1 },
-    { name: "Magia de Pacto", level: 1 },
-    { name: "Astúcia Mágica", level: 2 },
-    { name: "Contatar Patrono", level: 9 },
-    { name: "Arcana Mística (6º círculo)", level: 11 },
-    { name: "Arcana Mística (7º círculo)", level: 13 },
-    { name: "Arcana Mística (8º círculo)", level: 15 },
-    { name: "Arcana Mística (9º círculo)", level: 17 },
-    { name: "Mestre Místico", level: 20 },
-  ],
+  // Bruxo removido daqui — fonte "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E
+  // SUBCLASSES" tem conteúdo mecânico completo, não só nome+nível pendente (ver data/features/warlock.ts).
   clerigo: [
     { name: "Conjuração", level: 1 },
     { name: "Ordem Divina", level: 1 },
@@ -312,6 +304,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   ...(Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice"),
   "barbaro",
   "bardo",
+  "bruxo",
 ];
 
 function slugify(text: string): string {
@@ -468,4 +461,5 @@ export const classFeatures: FeatureDefinition[] = [
   ...barbarianClassFeatures,
   ...barbarianWeaponMasteryFeatures,
   ...bardClassFeatures,
+  ...warlockClassFeatures,
 ];

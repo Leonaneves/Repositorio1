@@ -177,6 +177,59 @@ describe("useBuilderStore — canAdvance/goNext travam em 'featuresAndTalents' c
   });
 });
 
+describe("useBuilderStore — canAdvance/goNext travam em 'invocations' enquanto as Invocações Místicas do Bruxo não estiverem resolvidas", () => {
+  it("canAdvance() é false em 'invocations' sem nenhuma invocação escolhida (nível 1 já exige 1)", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("bruxo");
+    useCharacterStore.getState().setLevel(1);
+    store.goToStep("invocations");
+    expect(store.canAdvance()).toBe(false);
+  });
+
+  it("canAdvance() é true em 'invocations' depois de escolher a quantidade exata do nível", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("bruxo");
+    useCharacterStore.getState().setLevel(1);
+    useCharacterStore.getState().addInvocation("mente-mistica");
+    store.goToStep("invocations");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("goNext não sai de 'invocations' enquanto a quantidade não bater", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("bruxo");
+    useCharacterStore.getState().setLevel(1);
+    store.goToStep("invocations");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("invocations");
+  });
+
+  it("canAdvance() em 'invocations' também é false quando uma invocação escolhida está em estado inválido (dependência quebrada)", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("bruxo");
+    useCharacterStore.getState().setLevel(5);
+    useCharacterStore.getState().addInvocation("pacto-da-lamina");
+    useCharacterStore.getState().addInvocation("lamina-sedenta");
+    useCharacterStore.getState().addInvocation("mente-mistica");
+    useCharacterStore.getState().addInvocation("visao-diabolica");
+    useCharacterStore.getState().addInvocation("vigor-infero"); // 5 invocações no nível 5 — quantidade completa
+
+    store.goToStep("invocations");
+    expect(store.canAdvance()).toBe(true);
+
+    useCharacterStore.getState().removeInvocation(0); // remove o Pacto da Lâmina — invalida Lâmina Sedenta
+    expect(store.canAdvance()).toBe(false);
+  });
+
+  it("canAdvance() é true fora da etapa 'invocations', mesmo com invocações pendentes", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("bruxo");
+    useCharacterStore.getState().setLevel(5);
+    store.goToStep("abilities");
+    expect(store.canAdvance()).toBe(true);
+  });
+});
+
 describe("useBuilderStore — canAdvance/goNext travam em 'equipment' sem pacote de equipamento inicial escolhido (§7/§11)", () => {
   it("canAdvance() é false em 'equipment' quando a classe tem opções e nenhuma foi escolhida", () => {
     const store = useBuilderStore.getState();

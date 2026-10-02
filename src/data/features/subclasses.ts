@@ -388,4 +388,229 @@ export const subclassFeatures: FeatureDefinition[] = [
     summary:
       "Ação Bônus: assume uma presença por 1 minuto ou até ficar Incapacitado. Na primeira vez em cada turno que uma criatura acerta você com um ataque, o atacante faz Salv. CAR contra sua CD de magia; falha → o ataque falha. 1×/Descanso Curto ou Longo.",
   },
+
+  // ---------- Patrono Arquifada ----------
+  {
+    id: "bruxo-arquifada-magias-de-pacto-3",
+    name: "Magias de Pacto da Arquifada",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Arquifada",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/warlockAutoPreparedSpells.ts — nunca neste campo): nível 3 — Acalmar Emoções, Fogo das Fadas, Força Espectral, Passo Nebuloso, Sono; nível 5 — Crescimento de Plantas, Piscar; nível 7 — Dominar Fera, Invisibilidade Maior; nível 9 — Dominar Pessoa, Similaridade.",
+  },
+  {
+    id: "bruxo-arquifada-passos-feericos-3",
+    name: "Passos Feéricos",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Arquifada",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Usos gratuitos de Passo Nebuloso = modificador de CAR (mínimo 1), recupera todos/Descanso Longo. Ao conjurar, escolha: Passo Provocante (criaturas a até 1,5m do espaço deixado fazem Salv. SAB vs CD de magia; falha → Desv. em Atq contra outros alvos até o início do seu próx. turno) ou Passo Revigorante (após o teleporte, você ou criatura visível a 3m ganha 1d10 PV Temp). A partir do nível 6 (Fuga em Névoa), a MESMA característica ganha mais opções — nunca um bloco separado.",
+  },
+  {
+    id: "bruxo-arquifada-fuga-em-nevoa-6",
+    name: "Fuga em Névoa",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Arquifada",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Passos Feéricos: pode usar Passo Nebuloso como Reação ao sofrer dano. Novas opções: Passo Desvanecedor (fica Invisível até o início do próx. turno, ou até atacar/causar dano/conjurar magia) e Passo Terrível (criaturas a até 1,5m da origem OU do destino fazem Salv. SAB; falha → 2d10 Psíquico). Atualiza o mesmo bloco de Passos Feéricos — nunca '#Fuga em Névoa' separadamente.",
+  },
+  {
+    id: "bruxo-arquifada-defesas-sedutoras-10",
+    name: "Defesas Sedutoras",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Arquifada",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Imunidade a Enfeitiçado. Reação quando uma criatura visível acerta você: reduz o dano à metade; o atacante faz Salv. SAB vs CD de magia; falha → sofre dano Psíquico igual ao dano que você sofreu. 1×/Descanso Longo; recuperação alternativa: gastar 1 espaço de Magia de Pacto.",
+  },
+  {
+    id: "bruxo-arquifada-magia-sedutora-14",
+    name: "Magia Sedutora",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Arquifada",
+    level: 14,
+    autoGranted: true,
+    summary: "Após conjurar uma magia de Encantamento ou Ilusão usando uma ação e um espaço de magia, pode conjurar Passo Nebuloso como parte da mesma ação, sem gastar espaço.",
+  },
+
+  // ---------- Patrono Celestial ----------
+  {
+    id: "bruxo-celestial-magias-de-pacto-3",
+    name: "Magias de Pacto do Celestial",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Celestial",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal: nível 3 — Auxílio, Chama Sagrada, Curar Ferimentos, Luz, Raio Guia, Restauração Menor; nível 5 — Luz do Dia, Revivificar; nível 7 — Defensor da Fé, Muralha de Fogo; nível 9 — Convocar Celestial, Restauração Maior.",
+  },
+  {
+    id: "bruxo-celestial-luz-medicinal-3",
+    name: "Luz Medicinal",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Celestial",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reserva de 1 + nível de Bruxo dados d6. Ação Bônus: você ou criatura visível a até 18m; gaste até o modificador de CAR (mínimo 1) dados, cure PV = total rolado. Recupera todos/Descanso Longo.",
+  },
+  {
+    id: "bruxo-celestial-alma-radiante-6",
+    name: "Alma Radiante",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Celestial",
+    level: 6,
+    autoGranted: true,
+    summary: "Resistência a dano Radiante. 1×/turno, ao conjurar magia de dano Ígneo ou Radiante: 1 alvo da magia recebe dano adicional igual ao seu modificador de CAR.",
+  },
+  {
+    id: "bruxo-celestial-resiliencia-celestial-10",
+    name: "Resiliência Celestial",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Celestial",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Ao usar Astúcia Mágica, ou completar Descanso Curto ou Longo: você ganha PV Temp = nível de Bruxo + modificador de CAR; até 5 criaturas visíveis escolhidas ganham PV Temp = metade do nível de Bruxo (arredondado para baixo) + modificador de CAR.",
+  },
+  {
+    id: "bruxo-celestial-vinganca-calcinante-14",
+    name: "Vingança Calcinante",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Celestial",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "1×/Descanso Longo, quando você ou um aliado a até 18m está prestes a fazer uma Salv. contra a morte: o alvo recupera PV = metade dos PV máximos e pode encerrar a condição Caído. Criaturas escolhidas a até 9m do alvo sofrem 2d8 + modificador de CAR de dano Radiante e ficam Cegas até o fim do turno atual.",
+  },
+
+  // ---------- Patrono Grande Antigo ----------
+  {
+    id: "bruxo-grande-antigo-magias-de-pacto-3",
+    name: "Magias de Pacto do Grande Antigo",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal: nível 3 — Detectar Pensamentos, Força Espectral, Gargalhada Nefasta de Tasha, Sussurros Dissonantes; nível 5 — Clarividência, Fome de Hadar; nível 7 — Confusão, Invocar Aberração; nível 9 — Modificar Memória, Telecinese.",
+  },
+  {
+    id: "bruxo-grande-antigo-magias-psiquicas-3",
+    name: "Magias Psíquicas",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Uma magia de Bruxo que cause dano pode ter o tipo de dano alterado para Psíquico. Magias de Bruxo de Encantamento ou Ilusão podem ser conjuradas sem componentes Verbais nem Somáticos.",
+  },
+  {
+    id: "bruxo-grande-antigo-mente-desperta-3",
+    name: "Mente Desperta",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: cria um laço telepático com 1 criatura visível a até 9m, exigindo um idioma mental em comum; comunicação telepática a 1,5km × modificador de CAR (mínimo 1,5km), por minutos = seu nível de Bruxo. Um novo laço encerra o anterior.",
+  },
+  {
+    id: "bruxo-grande-antigo-combatente-clarividente-6",
+    name: "Combatente Clarividente",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ao criar o laço de Mente Desperta, pode exigir Salv. SAB vs CD de magia; falha → o alvo tem Desv. em Atq contra você e você tem Vant. em Atq contra ele, pela duração do laço. 1×/Descanso Curto ou Longo; recuperação alternativa: gastar 1 espaço de Magia de Pacto.",
+  },
+  {
+    id: "bruxo-grande-antigo-danacao-mistica-10",
+    name: "Danação Mística",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Danação fica sempre preparada (rules/warlockAutoPreparedSpells.ts). Modificação: ao escolher o atributo, o alvo também tem Desvantagem nas salvaguardas desse atributo pela duração — anotado diretamente na entrada de Danação na área de Magias, nunca neste campo.",
+  },
+  {
+    id: "bruxo-grande-antigo-escudo-mental-10",
+    name: "Escudo Mental",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 10,
+    autoGranted: true,
+    summary: "Seus pensamentos não podem ser lidos sem sua permissão. Resistência a dano Psíquico. Quando uma criatura causa dano Psíquico em você, ela sofre a mesma quantidade de dano.",
+  },
+  {
+    id: "bruxo-grande-antigo-criar-servo-14",
+    name: "Criar Servo",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Grande Antigo",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Modifica Invocar Aberração: pode conjurá-la sem Concentração, com duração de 1 minuto; a aberração ganha PV Temp = nível de Bruxo + modificador de CAR. Na primeira vez em cada turno que ela atingir uma criatura sob sua Danação, causa dano Psíquico adicional igual ao dano bônus de Danação. Anotado diretamente na entrada de Invocar Aberração na área de Magias, nunca neste campo.",
+  },
+
+  // ---------- Patrono Ínfero ----------
+  {
+    id: "bruxo-infero-magias-de-pacto-3",
+    name: "Magias de Pacto do Ínfero",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Ínfero",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal: nível 3 — Comando, Mãos Flamejantes, Raio Ardente, Sugestão; nível 5 — Bola de Fogo, Nuvem Fétida; nível 7 — Escudo Ardente, Muralha de Fogo; nível 9 — Missão, Praga de Insetos.",
+  },
+  {
+    id: "bruxo-infero-bencao-do-tenebroso-3",
+    name: "Bênção do Tenebroso",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Ínfero",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Quando você reduz um inimigo a 0 PV, ou outra criatura o faz a até 3m de você: ganha PV Temp = modificador de CAR + nível de Bruxo (mínimo 1).",
+  },
+  {
+    id: "bruxo-infero-sorte-do-proprio-tenebroso-6",
+    name: "A Sorte do Próprio Tenebroso",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Ínfero",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Após fazer um teste de atributo ou uma salvaguarda e ver o resultado, mas antes dos efeitos: pode adicionar +1d10. Usos = modificador de CAR (mínimo 1), recupera todos/Descanso Longo.",
+  },
+  {
+    id: "bruxo-infero-resistencia-infera-10",
+    name: "Resistência Ínfera",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Ínfero",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Após Descanso Curto ou Longo, escolhe 1 tipo de dano (exceto Energético) e recebe Resistência a ele até fazer nova escolha. Escolha alterável durante o jogo — nunca uma decisão permanente do Builder; a ficha pode registrar a escolha atual.",
+  },
+  {
+    id: "bruxo-infero-lancar-no-inferno-14",
+    name: "Lançar no Inferno",
+    sourceType: "subclass",
+    subclassFullName: "Patrono Ínfero",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "1×/turno, ao atingir uma criatura com um ataque: ela faz Salv. CAR vs CD de magia; falha → desaparece (se não for Ínfera, sofre 8d10 de dano Psíquico) e fica Incapacitada até o fim do seu próx. turno, depois retorna ao espaço anterior ou ao espaço desocupado mais próximo. 1×/Descanso Longo; recuperação alternativa: gastar 1 espaço de Magia de Pacto.",
+  },
 ];

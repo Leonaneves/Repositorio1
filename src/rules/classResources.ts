@@ -1,6 +1,7 @@
 import type { Character } from "../domain/character.js";
 import type { HitDie } from "../data/classes.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
+import { PACT_MAGIC_TABLE } from "../data/spellProgression.js";
 import {
   ARTIFICER_CANTRIPS_KNOWN,
   ARTIFICER_INFUSED_ITEMS_MAX,
@@ -76,6 +77,18 @@ export function getWeaponMasteryCount(character: Character): number | null {
 export function getInvocationsKnown(character: Character): number | null {
   if (character.classId !== "bruxo") return null;
   return WARLOCK_INVOCATIONS_KNOWN[character.level] ?? 0;
+}
+
+/**
+ * Quantidade TOTAL de espaços de Magia de Pacto no nível atual (todos
+ * do mesmo círculo — rules/spellcasting.ts#getSpellSlots já resolve
+ * isso corretamente para `casterKind: "pact"`; esta função só expõe o
+ * total numérico para textos impressos que precisam dele, ex.: Astúcia
+ * Mágica — "metade arredondada para cima").
+ */
+export function getPactMagicSlotCount(character: Character): number | null {
+  if (character.classId !== "bruxo") return null;
+  return PACT_MAGIC_TABLE[character.level]?.slotCount ?? 0;
 }
 
 export function getChannelDivinityUses(character: Character): number | null {

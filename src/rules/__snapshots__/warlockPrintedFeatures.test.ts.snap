@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso por nível (Bruxo puro, sem subclasse, CAR 14) > nível 1 1`] = `[]`;
+
+exports[`snapshots do texto impresso por nível (Bruxo puro, sem subclasse, CAR 14) > nível 5 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 1 espaços de Pacto gastos. 1/DL",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bruxo puro, sem subclasse, CAR 14) > nível 11 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 2 espaços de Pacto gastos. 1/DL",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bruxo puro, sem subclasse, CAR 14) > nível 17 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere 2 espaços de Pacto gastos. 1/DL",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Bruxo puro, sem subclasse, CAR 14) > nível 20 1`] = `
+[
+  "#Astúcia Mágica [__]
+Rito 1 min: recupere todos espaços de Pacto gastos. 1/DL",
+]
+`;

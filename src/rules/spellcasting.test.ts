@@ -247,6 +247,26 @@ describe("getSpellSlots — progressão de espaços de magia", () => {
     expect(slots[5]).toBe(3);
   });
 
+  it("Bruxo, em TODOS os níveis 1-20: todos os espaços de Magia de Pacto estão sempre no MESMO círculo — nunca uma tabela mista como '4 de 1º + 3 de 2º'", () => {
+    for (let level = 1; level <= 20; level++) {
+      const character = createBlankCharacter("t");
+      character.classId = "bruxo";
+      character.level = level;
+      const slots = getSpellSlots(character);
+      const nonZeroCircles = Object.entries(slots).filter(([, count]) => count > 0);
+      expect(nonZeroCircles).toHaveLength(1);
+    }
+  });
+
+  it("Bruxo nível 3: 2 espaços, ambos de 2º círculo (nunca 1 espaço de 1º + 1 de 2º)", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "bruxo";
+    character.level = 3;
+    const slots = getSpellSlots(character);
+    expect(slots[2]).toBe(2);
+    expect(slots[1]).toBe(0);
+  });
+
   it("classe não conjuradora (Bárbaro) nunca tem espaços, mesmo com antecedente de conjuração", () => {
     const character = createBlankCharacter("t");
     character.classId = "barbaro";

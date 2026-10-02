@@ -60,8 +60,28 @@ describe("isStepVisible — Características e Talentos (condicional, precisa de
   });
 });
 
+describe("isStepVisible — Invocações Místicas (condicional, só para Bruxo)", () => {
+  it("some para qualquer classe que não seja Bruxo", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "mago";
+    character.level = 5;
+    expect(isStepVisible("invocations", character)).toBe(false);
+  });
+
+  it("some sem classe nenhuma", () => {
+    expect(isStepVisible("invocations", createBlankCharacter("step-test"))).toBe(false);
+  });
+
+  it("aparece para Bruxo em qualquer nível (inclusive nível 1, que já concede 1 invocação)", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "bruxo";
+    character.level = 1;
+    expect(isStepVisible("invocations", character)).toBe(true);
+  });
+});
+
 describe("getVisibleSteps", () => {
-  it("personagem em branco: 8 das 11 etapas (sem Subclasse/Talentos/Conjuração)", () => {
+  it("personagem em branco: 8 das 12 etapas (sem Subclasse/Talentos/Invocações/Conjuração)", () => {
     const character = createBlankCharacter("step-test");
     expect(getVisibleSteps(character)).toEqual([
       "basicInfo",
@@ -75,7 +95,7 @@ describe("getVisibleSteps", () => {
     ]);
   });
 
-  it("Mago nível 3: soma Subclasse, Conjuração e Características e Talentos (a escolha de Perícias de Classe do Mago) — as 11 etapas", () => {
+  it("Mago nível 3: soma Subclasse, Conjuração e Características e Talentos (a escolha de Perícias de Classe do Mago), mas nunca Invocações Místicas — 11 das 12 etapas", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "mago";
     character.level = 3;
@@ -83,12 +103,25 @@ describe("getVisibleSteps", () => {
     expect(steps).toContain("subclass");
     expect(steps).toContain("spellcasting");
     expect(steps).toContain("featuresAndTalents");
+    expect(steps).not.toContain("invocations");
     expect(steps).toHaveLength(11);
   });
 
-  it("respeita sempre a ordem canônica das 11 etapas", () => {
+  it("Bruxo nível 3: soma Subclasse, Invocações Místicas, Conjuração e Características e Talentos — as 12 etapas", () => {
     const character = createBlankCharacter("step-test");
-    character.classId = "mago";
+    character.classId = "bruxo";
+    character.level = 3;
+    const steps = getVisibleSteps(character);
+    expect(steps).toContain("subclass");
+    expect(steps).toContain("invocations");
+    expect(steps).toContain("spellcasting");
+    expect(steps).toContain("featuresAndTalents");
+    expect(steps).toHaveLength(12);
+  });
+
+  it("respeita sempre a ordem canônica das etapas", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "bruxo";
     character.level = 3;
     const steps = getVisibleSteps(character);
     const indices = steps.map((s) => BUILDER_STEP_ORDER.indexOf(s));

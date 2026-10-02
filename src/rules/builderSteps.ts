@@ -18,6 +18,7 @@ export const BUILDER_STEP_ORDER = [
   "abilities",
   "skills",
   "featuresAndTalents",
+  "invocations",
   "equipment",
   "spellcasting",
   "review",
@@ -33,6 +34,7 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
   abilities: "Atributos",
   skills: "Perícias e Proficiências",
   featuresAndTalents: "Características e Talentos",
+  invocations: "Invocações Místicas",
   equipment: "Equipamento / Combate",
   spellcasting: "Conjuração",
   review: "Revisão",
@@ -43,6 +45,9 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
  * - Subclasse: só a partir do nível 3 (regra fixa — `canChooseSubclass`).
  * - Características e Talentos: só se existir ao menos uma feature com
  *   escolha (`FeatureChoice`) pendente de resposta.
+ * - Invocações Místicas: só para a classe Bruxo (fonte "INTEGRAÇÃO
+ *   COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES" §4) — etapa
+ *   própria, fora do mecanismo genérico de `FeatureChoice`.
  * - Conjuração: só se a classe/antecedente atual conceder um atributo
  *   de conjuração (`getSpellcastingAbility`).
  * - As demais etapas sempre aparecem.
@@ -52,6 +57,7 @@ export function isStepVisible(stepId: BuilderStepId, character: Character): bool
   if (stepId === "featuresAndTalents") {
     return getCharacterFeatures(character).some((feature) => (feature.choices?.length ?? 0) > 0);
   }
+  if (stepId === "invocations") return character.classId === "bruxo";
   if (stepId === "spellcasting") return getSpellcastingAbility(character) !== null;
   return true;
 }

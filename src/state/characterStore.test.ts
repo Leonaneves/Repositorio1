@@ -383,3 +383,59 @@ describe("useCharacterStore — escolhas de feature e talentos gerais escolhidos
     expect(useCharacterStore.getState().character.chosenFeatIds).toEqual([]);
   });
 });
+
+describe("useCharacterStore — Invocações Místicas do Bruxo (addInvocation/removeInvocation/setInvocationSubChoice)", () => {
+  it("adiciona 1 cópia com subChoice vazio", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bruxo");
+    store.addInvocation("mente-mistica");
+    expect(useCharacterStore.getState().character.chosenInvocations).toEqual([{ invocationId: "mente-mistica", subChoice: "" }]);
+  });
+
+  it("permite adicionar a MESMA invocação mais de uma vez (repetíveis — a validação de duplicata fica em rules/invocations.ts)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bruxo");
+    store.addInvocation("explosao-agonizante");
+    store.addInvocation("explosao-agonizante");
+    expect(useCharacterStore.getState().character.chosenInvocations).toHaveLength(2);
+  });
+
+  it("setInvocationSubChoice edita só a cópia do índice indicado", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bruxo");
+    store.addInvocation("explosao-agonizante");
+    store.addInvocation("explosao-agonizante");
+    store.setInvocationSubChoice(0, "Raio de Fogo");
+    store.setInvocationSubChoice(1, "Mãos Flamejantes");
+    const chosen = useCharacterStore.getState().character.chosenInvocations;
+    expect(chosen[0].subChoice).toBe("Raio de Fogo");
+    expect(chosen[1].subChoice).toBe("Mãos Flamejantes");
+  });
+
+  it("removeInvocation remove só o índice indicado, preservando a ordem das demais", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bruxo");
+    store.addInvocation("mente-mistica");
+    store.addInvocation("pacto-da-lamina");
+    store.addInvocation("visao-diabolica");
+    store.removeInvocation(1);
+    expect(useCharacterStore.getState().character.chosenInvocations.map((c) => c.invocationId)).toEqual(["mente-mistica", "visao-diabolica"]);
+  });
+
+  it("trocar de classe (Bruxo → outra) limpa as invocações escolhidas", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bruxo");
+    store.addInvocation("mente-mistica");
+    expect(useCharacterStore.getState().character.chosenInvocations).toHaveLength(1);
+
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.chosenInvocations).toEqual([]);
+  });
+
+  it("trocar entre classes não-Bruxo nunca cria invocações (continua [])", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.chosenInvocations).toEqual([]);
+  });
+});

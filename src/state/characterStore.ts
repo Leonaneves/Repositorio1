@@ -95,6 +95,8 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
     startingEquipmentOptionId: null,
     savingThrows,
     armor: { ...character.armor, proficiencies: armorProficiencies },
+    // Invocações Místicas são exclusivas do Bruxo — saem junto com a classe, igual às proficiências de armadura acima.
+    chosenInvocations: classId === "bruxo" ? character.chosenInvocations : [],
   };
 
   next = clampEquippedArmor(next);
@@ -191,6 +193,11 @@ interface CharacterStore {
   clearFeatureChoiceSelection: (choiceId: string) => void;
   addChosenFeat: (featId: string) => void;
   removeChosenFeat: (featId: string) => void;
+
+  /** Adiciona 1 cópia de uma Invocação Mística (`subChoice` começa vazio; repetíveis podem ser adicionadas mais de uma vez). */
+  addInvocation: (invocationId: string) => void;
+  removeInvocation: (index: number) => void;
+  setInvocationSubChoice: (index: number, value: string) => void;
 
   /** Começa um personagem inteiramente novo (novo id anônimo, portanto um novo build de analytics). */
   resetCharacter: () => void;
@@ -477,6 +484,20 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
     set((state) => ({
       character: { ...state.character, chosenFeatIds: state.character.chosenFeatIds.filter((id) => id !== featId) },
     })),
+
+  addInvocation: (invocationId) =>
+    set((state) => ({
+      character: { ...state.character, chosenInvocations: [...state.character.chosenInvocations, { invocationId, subChoice: "" }] },
+    })),
+  removeInvocation: (index) =>
+    set((state) => ({
+      character: { ...state.character, chosenInvocations: state.character.chosenInvocations.filter((_, i) => i !== index) },
+    })),
+  setInvocationSubChoice: (index, value) =>
+    set((state) => {
+      const chosenInvocations = state.character.chosenInvocations.map((chosen, i) => (i === index ? { ...chosen, subChoice: value } : chosen));
+      return { character: { ...state.character, chosenInvocations } };
+    }),
 
   resetCharacter: () => set({ character: createBlankCharacter(generateId()) }),
 }));

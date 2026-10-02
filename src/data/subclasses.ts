@@ -40,11 +40,15 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
     { shortName: "Bravura", fullName: "Colégio da Bravura" },
     { shortName: "Espíritos", fullName: "Colégio dos Espíritos" },
   ],
+  // Nomes de exibição normalizados para "Patrono Grande Antigo"/"Patrono Ínfero" pela
+  // fonte "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES" (substitui
+  // "Patrono do Grande Antigo"/"Patrono Corruptor" — mesmas subclasses, sem adicionar
+  // nem remover nenhuma; Morto-Vivo e Vestígio ficam fora do escopo desta fonte).
   bruxo: [
     { shortName: "Arquifada", fullName: "Patrono Arquifada" },
     { shortName: "Celestial", fullName: "Patrono Celestial" },
-    { shortName: "Corruptor", fullName: "Patrono Corruptor" },
-    { shortName: "Grande Antigo", fullName: "Patrono do Grande Antigo" },
+    { shortName: "Ínfero", fullName: "Patrono Ínfero" },
+    { shortName: "Grande Antigo", fullName: "Patrono Grande Antigo" },
     { shortName: "Morto-Vivo", fullName: "Patrono Morto-Vivo" },
     { shortName: "Vestígio", fullName: "Patrono do Vestígio" },
   ],
