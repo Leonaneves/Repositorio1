@@ -10,6 +10,7 @@ import {
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
+import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { getAvailableArmor } from "../rules/armor.js";
 import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
@@ -98,6 +99,8 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
     armor: { ...character.armor, proficiencies: armorProficiencies },
     // Invocações Místicas são exclusivas do Bruxo — saem junto com a classe, igual às proficiências de armadura acima.
     chosenInvocations: classId === "bruxo" ? character.chosenInvocations : [],
+    // Formas Conhecidas de Forma Selvagem são exclusivas do Druida — mesmo raciocínio das Invocações Místicas acima.
+    knownWildShapeForms: classId === "druida" ? character.knownWildShapeForms : [],
   };
 
   next = clampEquippedArmor(next);
@@ -137,6 +140,20 @@ function applyClericOrdemDivinaProficiencies(character: Character): Character {
   if (character.classId !== "clerigo") return character;
   if (character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID]?.value !== "Protetor") return character;
   return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, heavy: true } } };
+}
+
+/**
+ * Protetor (Ordem Primal do Druida, nível 1 — fonte "INTEGRAÇÃO COMPLETA
+ * — DRUIDA E SUBCLASSES") concede treinamento com Armadura Média
+ * automaticamente ao escolher essa opção — mesmíssimo padrão de
+ * `applyClericOrdemDivinaProficiencies` (flag mutável, sempre editável;
+ * só SOMA, nunca remove escolha manual do jogador). Armas Marciais
+ * (texto, não flag) entram em `rules/druidProficiencies.ts`.
+ */
+function applyDruidOrdemPrimalProficiencies(character: Character): Character {
+  if (character.classId !== "druida") return character;
+  if (character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID]?.value !== "Protetor") return character;
+  return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, medium: true } } };
 }
 
 interface CharacterStore {
@@ -217,6 +234,11 @@ interface CharacterStore {
   addInvocation: (invocationId: string) => void;
   removeInvocation: (index: number) => void;
   setInvocationSubChoice: (index: number, value: string) => void;
+
+  /** Adiciona 1 Forma Conhecida em branco de Forma Selvagem do Druida (etapa própria do Builder — ver rules/wildShapeForms.ts). */
+  addKnownWildShapeForm: () => void;
+  updateKnownWildShapeForm: (index: number, patch: Partial<{ name: string; challengeRating: string; hasFlySpeed: boolean }>) => void;
+  removeKnownWildShapeForm: (index: number) => void;
 
   /** Começa um personagem inteiramente novo (novo id anônimo, portanto um novo build de analytics). */
   resetCharacter: () => void;
@@ -483,11 +505,13 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
 
   setFeatureChoiceSelection: (choiceId, value) =>
     set((state) => {
-      const character = {
+      let character = {
         ...state.character,
         featureChoiceSelections: { ...state.character.featureChoiceSelections, [choiceId]: { value } },
       };
-      return { character: choiceId === ORDEM_DIVINA_CHOICE_ID ? applyClericOrdemDivinaProficiencies(character) : character };
+      if (choiceId === ORDEM_DIVINA_CHOICE_ID) character = applyClericOrdemDivinaProficiencies(character);
+      if (choiceId === ORDEM_PRIMAL_CHOICE_ID) character = applyDruidOrdemPrimalProficiencies(character);
+      return { character };
     }),
   clearFeatureChoiceSelection: (choiceId) =>
     set((state) => {
@@ -518,6 +542,23 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
       const chosenInvocations = state.character.chosenInvocations.map((chosen, i) => (i === index ? { ...chosen, subChoice: value } : chosen));
       return { character: { ...state.character, chosenInvocations } };
     }),
+
+  addKnownWildShapeForm: () =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        knownWildShapeForms: [...state.character.knownWildShapeForms, { name: "", challengeRating: "", hasFlySpeed: false }],
+      },
+    })),
+  updateKnownWildShapeForm: (index, patch) =>
+    set((state) => {
+      const knownWildShapeForms = state.character.knownWildShapeForms.map((form, i) => (i === index ? { ...form, ...patch } : form));
+      return { character: { ...state.character, knownWildShapeForms } };
+    }),
+  removeKnownWildShapeForm: (index) =>
+    set((state) => ({
+      character: { ...state.character, knownWildShapeForms: state.character.knownWildShapeForms.filter((_, i) => i !== index) },
+    })),
 
   resetCharacter: () => set({ character: createBlankCharacter(generateId()) }),
 }));

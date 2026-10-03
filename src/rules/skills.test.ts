@@ -3,6 +3,7 @@ import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { getBardSkillExpertiseChoiceId } from "../data/features/bard.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
+import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { getInitiative } from "./derived.js";
 import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
@@ -12,6 +13,7 @@ import {
   getSkillExpertise,
   getSkillProficiency,
   getThaumaturgeSkillBonus,
+  getShamanSkillBonus,
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
   isSkillGrantedExpertiseByClassChoice,
@@ -377,5 +379,79 @@ describe("getThaumaturgeSkillBonus — Taumaturgo (Ordem Divina do Clérigo), IN
     character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
     expect(getSkillProficiency(character, "religiao")).toBe(false);
     expect(getSkillProficiency(character, "arcanismo")).toBe(false);
+  });
+});
+
+function druidaAt(level: number): ReturnType<typeof createBlankCharacter> {
+  const character = createBlankCharacter("skills-test-druida");
+  character.classId = "druida";
+  character.level = level;
+  return character;
+}
+
+describe("getShamanSkillBonus — Xamã (Ordem Primal do Druida), INCONDICIONAL (nunca exige ausência de proficiência)", () => {
+  it("SAB +3, Xamã escolhido: +3 em Arcanismo e Natureza", () => {
+    const character = druidaAt(1);
+    character.abilities.SAB.score = 16; // +3
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    expect(getShamanSkillBonus(character, "arcanismo")).toBe(3);
+    expect(getShamanSkillBonus(character, "natureza")).toBe(3);
+  });
+
+  it("SAB +0 ou negativo: mínimo +1", () => {
+    const character = druidaAt(1);
+    character.abilities.SAB.score = 8; // -1
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    expect(getShamanSkillBonus(character, "natureza")).toBe(1);
+  });
+
+  it("nunca se aplica a outras perícias", () => {
+    const character = druidaAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    expect(getShamanSkillBonus(character, "historia")).toBe(0);
+    expect(getShamanSkillBonus(character, "intuicao")).toBe(0);
+    expect(getShamanSkillBonus(character, "religiao")).toBe(0); // é a dupla do Taumaturgo, não do Xamã
+  });
+
+  it("Protetor escolhido (não Xamã): bônus 0", () => {
+    const character = druidaAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Protetor" };
+    expect(getShamanSkillBonus(character, "natureza")).toBe(0);
+  });
+
+  it("outra classe nunca recebe o bônus, mesmo com a mesma seleção por acidente", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "mago";
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    expect(getShamanSkillBonus(character, "natureza")).toBe(0);
+  });
+
+  it("getSkillBonus: soma INCONDICIONALMENTE, mesmo com a perícia já proficiente", () => {
+    const character = druidaAt(5); // Prof +3
+    character.abilities.INT.score = 10; // +0 (Natureza é baseada em INT)
+    character.abilities.SAB.score = 16; // +3 (só alimenta o bônus de Xamã)
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    character.skills.natureza.manualOverride = true; // proficiente
+
+    const bonus = getSkillBonus(character, "natureza");
+    expect(bonus.auto).toBe(6); // 0 (INT) + 3 (prof) + 3 (Xamã) — nunca zera por já ser proficiente
+  });
+
+  it("Xamã nunca concede a proficiência em si", () => {
+    const character = druidaAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    expect(getSkillProficiency(character, "natureza")).toBe(false);
+    expect(getSkillProficiency(character, "arcanismo")).toBe(false);
+  });
+
+  it("Xamã do Druida e Taumaturgo do Clérigo nunca se misturam (Arcanismo soma dos dois se, hipoteticamente, ambos fossem verdade — mas cada função só olha a própria classe)", () => {
+    const character = druidaAt(1);
+    character.abilities.SAB.score = 16;
+    character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+    expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(0); // classId !== "clerigo"
   });
 });

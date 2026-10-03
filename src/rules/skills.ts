@@ -5,6 +5,7 @@ import { skills } from "../data/skills.js";
 import { backgrounds } from "../data/backgrounds.js";
 import { classes, getClassSkillChoiceId } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
+import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -119,6 +120,23 @@ export function getThaumaturgeSkillBonus(character: Character, skill: SkillKey):
 }
 
 /**
+ * Bônus de "Xamã" (Ordem Primal do Druida, nível 1 — fonte "INTEGRAÇÃO
+ * COMPLETA — DRUIDA E SUBCLASSES" §4): modificador de Sabedoria, mínimo
+ * +1, aplicado SOMENTE em Arcanismo e Natureza — mesma mecânica
+ * INCONDICIONAL de "Taumaturgo" (getThaumaturgeSkillBonus), só com
+ * outra classe/perícias; nunca concede proficiência.
+ */
+export function getShamanSkillBonus(character: Character, skill: SkillKey): number {
+  if (character.classId !== "druida") return 0;
+  if (skill !== "arcanismo" && skill !== "natureza") return 0;
+  const selection = character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID]?.value;
+  if (selection !== "Xamã") return 0;
+
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return Math.max(1, wisdomMod);
+}
+
+/**
  * Proficiência final da perícia = override manual do jogador, se
  * houver; senão, concedida pelo antecedente atual OU pela escolha de
  * perícias de classe atual (qualquer uma das duas basta).
@@ -159,7 +177,8 @@ export function getSkillBonus(character: Character, skill: SkillKey): ComputedVa
   const multiplier = proficient ? (expertise ? 2 : 1) : 0;
   const jackOfAllTradesBonus = proficient ? 0 : getJackOfAllTradesBonus(character);
   const thaumaturgeBonus = getThaumaturgeSkillBonus(character, skill);
-  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus + thaumaturgeBonus;
+  const shamanBonus = getShamanSkillBonus(character, skill);
+  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus + thaumaturgeBonus + shamanBonus;
 
   return computedValue(auto, state.manualAdjustment);
 }

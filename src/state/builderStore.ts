@@ -9,6 +9,8 @@ import { BUILDER_STEP_ORDER, getVisibleSteps, type BuilderStepId } from "../rule
 import { getIncompleteRequiredChoices } from "../rules/features.js";
 import { isInvocationSelectionComplete } from "../rules/invocations.js";
 import { isStartingEquipmentResolved } from "../rules/startingEquipment.js";
+import { isWildShapeFormSelectionComplete } from "../rules/wildShapeForms.js";
+import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, EARTH_CIRCLE_TERRAIN_OPTIONS } from "../data/features/subclasses.js";
 import { useCharacterStore } from "./characterStore.js";
 
 export type { AbilityGenerationMode };
@@ -132,6 +134,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     if (currentStepId === "featuresAndTalents") return getIncompleteRequiredChoices(character).length === 0;
     if (currentStepId === "invocations") return isInvocationSelectionComplete(character);
     if (currentStepId === "equipment") return isStartingEquipmentResolved(character);
+    if (currentStepId === "wildShapeForms") return isWildShapeFormSelectionComplete(character);
+    if (currentStepId === "earthCircleTerrain") {
+      const selection = character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]?.value;
+      return typeof selection === "string" && (EARTH_CIRCLE_TERRAIN_OPTIONS as readonly string[]).includes(selection);
+    }
     return true;
   },
 }));

@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { useCharacterStore } from "./characterStore.js";
 import { getSkillProficiency } from "../rules/skills.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
+import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
+import { getWildShapeFormsConfig } from "../rules/wildShapeForms.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -213,6 +215,94 @@ describe("useCharacterStore — Protetor (Ordem Divina do Clérigo, nível 1) co
 
     store.setArmorProficiency("heavy", false);
     expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+  });
+});
+
+describe("useCharacterStore — Protetor (Ordem Primal do Druida, nível 1) concede Armadura Média automaticamente", () => {
+  it("escolher 'Protetor' marca medium, sem desmarcar light/shield (que o Druida já tinha)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    expect(useCharacterStore.getState().character.armor.proficiencies.light).toBe(true); // já concedida pela classe
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(false);
+
+    store.setFeatureChoiceSelection(ORDEM_PRIMAL_CHOICE_ID, "Protetor");
+    const proficiencies = useCharacterStore.getState().character.armor.proficiencies;
+    expect(proficiencies.light).toBe(true);
+    expect(proficiencies.medium).toBe(true);
+    expect(proficiencies.shield).toBe(true);
+  });
+
+  it("escolher 'Xamã' não concede Armadura Média", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.setFeatureChoiceSelection(ORDEM_PRIMAL_CHOICE_ID, "Xamã");
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(false);
+  });
+
+  it("outra classe nunca ganha a proficiência automaticamente mesmo com o mesmo id de escolha por acidente", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setFeatureChoiceSelection(ORDEM_PRIMAL_CHOICE_ID, "Protetor");
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(false);
+  });
+
+  it("depois de concedida, o jogador ainda pode editar manualmente", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.setFeatureChoiceSelection(ORDEM_PRIMAL_CHOICE_ID, "Protetor");
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(true);
+
+    store.setArmorProficiency("medium", false);
+    expect(useCharacterStore.getState().character.armor.proficiencies.medium).toBe(false);
+  });
+});
+
+describe("useCharacterStore — Formas Conhecidas de Forma Selvagem (Druida)", () => {
+  it("addKnownWildShapeForm adiciona uma entrada em branco", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.addKnownWildShapeForm();
+    expect(useCharacterStore.getState().character.knownWildShapeForms).toEqual([{ name: "", challengeRating: "", hasFlySpeed: false }]);
+  });
+
+  it("updateKnownWildShapeForm atualiza só a entrada do índice informado", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.addKnownWildShapeForm();
+    store.addKnownWildShapeForm();
+    store.updateKnownWildShapeForm(1, { name: "Lobo", challengeRating: "1/4" });
+    const forms = useCharacterStore.getState().character.knownWildShapeForms;
+    expect(forms[0]).toEqual({ name: "", challengeRating: "", hasFlySpeed: false });
+    expect(forms[1]).toEqual({ name: "Lobo", challengeRating: "1/4", hasFlySpeed: false });
+  });
+
+  it("removeKnownWildShapeForm remove só a entrada do índice informado", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.addKnownWildShapeForm();
+    store.updateKnownWildShapeForm(0, { name: "Lobo" });
+    store.addKnownWildShapeForm();
+    store.updateKnownWildShapeForm(1, { name: "Urso" });
+    store.removeKnownWildShapeForm(0);
+    expect(useCharacterStore.getState().character.knownWildShapeForms).toEqual([{ name: "Urso", challengeRating: "", hasFlySpeed: false }]);
+  });
+
+  it("trocar de classe para fora de Druida limpa as Formas Conhecidas, igual às Invocações Místicas do Bruxo", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.addKnownWildShapeForm();
+    store.updateKnownWildShapeForm(0, { name: "Lobo" });
+    expect(useCharacterStore.getState().character.knownWildShapeForms).toHaveLength(1);
+
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.knownWildShapeForms).toEqual([]);
+  });
+
+  it("a configuração de contagem/ND/Voo por nível é a mesma usada pelo motor de regras (nunca duplicada)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.setLevel(8);
+    expect(getWildShapeFormsConfig(useCharacterStore.getState().character.level)).toEqual({ count: 8, maxChallengeRating: 1, flyAllowed: true });
   });
 });
 

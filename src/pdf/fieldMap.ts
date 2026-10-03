@@ -37,6 +37,9 @@ import { getBardAutoPreparedSpells } from "../rules/bardAutoPreparedSpells.js";
 import { getClericPrintedBlocks } from "../rules/clericPrintedFeatures.js";
 import { getClericWeaponProficiencyEntries } from "../rules/clericProficiencies.js";
 import { getClericAutoPreparedSpells } from "../rules/clericAutoPreparedSpells.js";
+import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
+import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js";
+import { getDruidAutoPreparedSpells } from "../rules/druidAutoPreparedSpells.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockAutoPreparedSpells } from "../rules/warlockAutoPreparedSpells.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
@@ -224,9 +227,10 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * "Características de Classe" (`Carac.Classe.1`/`.2`) — por ora Bárbaro
  * (fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES"), Bardo (fonte
  * "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES"), Bruxo (fonte
- * "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES") e
- * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES") têm o
- * texto impresso montado dinamicamente; as demais 9 classes continuam
+ * "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES"),
+ * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES") e
+ * Druida (fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES") têm o
+ * texto impresso montado dinamicamente; as demais 8 classes continuam
  * com o campo manual de sempre (`Character.classFeatures`), sem
  * nenhuma mudança de comportamento.
  */
@@ -247,6 +251,10 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
     const [column1, column2] = splitIntoTwoColumns(getClericPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
+  if (character.classId === "druida") {
+    const [column1, column2] = splitIntoTwoColumns(getDruidPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
 }
 
@@ -261,6 +269,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getBarbarianWeaponMasteryEntries(c),
           ...getBardWeaponProficiencyEntries(c),
           ...getClericWeaponProficiencyEntries(c),
+          ...getDruidWeaponProficiencyEntries(c),
           ...getWarlockPactWeaponProficiencyEntries(c),
         ],
         c.weaponProficienciesNotes,
@@ -323,8 +332,22 @@ const inventoryFields: PdfTextFieldMapping[] = [
   { kind: "text", pdfField: "platina", getValue: (c) => formatPlain(c.inventory.coins.pp) },
   ...attunedItemFields,
   { kind: "text", pdfField: "aparência", getValue: (c) => c.appearance },
-  { kind: "text", pdfField: "idiomas", getValue: (c) => c.languages },
+  { kind: "text", pdfField: "idiomas", getValue: (c) => getEffectiveLanguages(c) },
 ];
+
+/**
+ * Idioma Druídico (Druida, nível 1 — fonte "INTEGRAÇÃO COMPLETA —
+ * DRUIDA E SUBCLASSES" §3) adiciona "Druídico" à área de Idiomas
+ * automaticamente — mesmo padrão de `renderAutoTextBlock`, mas para um
+ * campo de uma linha só (idiomas são separados por vírgula, não por
+ * parágrafo): nunca duplica se o jogador já tiver digitado "Druídico"
+ * manualmente.
+ */
+function getEffectiveLanguages(character: Character): string {
+  if (character.classId !== "druida") return character.languages;
+  if (character.languages.toLowerCase().includes("druídico")) return character.languages;
+  return character.languages.trim() ? `Druídico, ${character.languages}` : "Druídico";
+}
 
 /**
  * Lista efetiva de magias preparadas para o PDF: magias concedidas
@@ -333,7 +356,9 @@ const inventoryFields: PdfTextFieldMapping[] = [
  * Fascinante/Manto de Majestade do Colégio do Glamour e Palavras de
  * Criação do Bardo base — `getBardAutoPreparedSpells`; Magias de
  * Domínio das 4 subclasses + Truque extra de Taumaturgo do Clérigo —
- * `getClericAutoPreparedSpells`; magias sempre preparadas dos 4
+ * `getClericAutoPreparedSpells`; Falar com Animais/Convocar Familiar/
+ * Magias de Círculo/Mapa Estelar/Truque de Xamã do Druida —
+ * `getDruidAutoPreparedSpells`; magias sempre preparadas dos 4
  * Patronos + Contatar Patrono + invocações que concedem magia do Bruxo
  * — `getWarlockAutoPreparedSpells`) primeiro, seguidas da lista manual
  * do jogador. Nunca grava as auto-concedidas
@@ -346,6 +371,7 @@ function getEffectiveSpellsPrepared(character: Character) {
     ...getBarbarianRitualSpells(character),
     ...getBardAutoPreparedSpells(character),
     ...getClericAutoPreparedSpells(character),
+    ...getDruidAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
     ...character.spellsPrepared,
   ];

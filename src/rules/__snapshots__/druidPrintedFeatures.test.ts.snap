@@ -1,0 +1,94 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 1, sem escolha de Fúria Elemental 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 2, sem escolha de Fúria Elemental 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+  "#Forma Selvagem [__][__]
+AB: Fera conhecida por 1/2 nível h; sair AB
+PV Temp = nível; usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
+Sem conjurar; Concent mantém
+DC: +1 uso; DL: todos",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 5, sem escolha de Fúria Elemental 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+  "#Forma Selvagem [__][__]
+AB: Fera conhecida por 1/2 nível h; sair AB
+PV Temp = nível; usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
+Sem conjurar; Concent mantém
+> 1/turno, 0 FS: 1 espaço -> +1 FS
+> [__] 1 FS -> +1 espaço 1o. 1/DL
+DC: +1 uso; DL: todos",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 7 com Ataque Primal escolhido 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+  "#Forma Selvagem [__][__][__]
+AB: Fera conhecida por 1/2 nível h; sair AB
+PV Temp = nível; usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
+Sem conjurar; Concent mantém
+> 1/turno, 0 FS: 1 espaço -> +1 FS
+> [__] 1 FS -> +1 espaço 1o. 1/DL
+DC: +1 uso; DL: todos",
+  "#Ataque Primal
+1/turno, Atq arma/Fera em FS -> +1d8 Elet/Gel/Ig/Trov",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 7, sem escolha de Fúria Elemental 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+  "#Forma Selvagem [__][__][__]
+AB: Fera conhecida por 1/2 nível h; sair AB
+PV Temp = nível; usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
+Sem conjurar; Concent mantém
+> 1/turno, 0 FS: 1 espaço -> +1 FS
+> [__] 1 FS -> +1 espaço 1o. 1/DL
+DC: +1 uso; DL: todos",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 18, sem escolha de Fúria Elemental 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+  "#Forma Selvagem [__][__][__][__]
+AB: Fera conhecida por 1/2 nível h; sair AB
+PV Temp = nível; usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
+Pode conjurar em FS, exc Material com custo/consumido; Concent mantém
+> 1/turno, 0 FS: 1 espaço -> +1 FS
+> [__] 1 FS -> +1 espaço 1o. 1/DL
+DC: +1 uso; DL: todos",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Druida puro, sem subclasse, SAB 16) > nível 20, sem escolha de Fúria Elemental 1`] = `
+[
+  "#Idioma Druídico
+Mensagens ocultas; outros detectam com Invest CD15, mas não decifram sem magia",
+  "#Forma Selvagem [__][__][__][__]
+AB: Fera conhecida por 1/2 nível h; sair AB
+PV Temp = nível; usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
+Pode conjurar em FS, exc Material com custo/consumido; Concent mantém
+> 1/turno, 0 FS: 1 espaço -> +1 FS
+> [__] 1 FS -> +1 espaço 1o. 1/DL
+> Inic com 0 FS -> +1 FS
+> [__] Converta FS em 1 espaço: círculo = 2 x FS gastos. 1/DL
+DC: +1 uso; DL: todos",
+]
+`;

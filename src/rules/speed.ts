@@ -48,3 +48,17 @@ export function getSpeed(character: Character): ComputedValue {
   const auto = speciesSpeed + classBonus;
   return computedValue(auto, character.speed.manualAdjustment);
 }
+
+/**
+ * Afinidade Aquática (Círculo do Mar, nível 6 — fonte "INTEGRAÇÃO
+ * COMPLETA — DRUIDA E SUBCLASSES" §44): Deslocamento de Natação = o
+ * Deslocamento normal — PERMANENTE (não depende de Ira do Mar estar
+ * ativa, ao contrário do Voo de Filho da Tempestade). `null` para
+ * qualquer personagem sem essa característica. Não existe campo
+ * dedicado de Natação no PDF-molde atual: esta função fica disponível
+ * para a futura Ficha Web e para o motor de regras.
+ */
+export function getSwimSpeed(character: Character): ComputedValue | null {
+  if (character.classId !== "druida" || character.subclassId !== "Círculo do Mar" || character.level < 6) return null;
+  return getSpeed(character);
+}

@@ -177,12 +177,35 @@ export interface Character {
    * com `subChoice` diferente em cada ocorrência.
    */
   chosenInvocations: ChosenInvocation[];
+
+  /** Formas Conhecidas de Forma Selvagem do Druida — ver `KnownWildShapeForm`. */
+  knownWildShapeForms: KnownWildShapeForm[];
 }
 
 export interface ChosenInvocation {
   invocationId: string;
   /** "" quando a invocação não exige sub-escolha ou ainda não foi preenchida. */
   subChoice: string;
+}
+
+/**
+ * Uma Forma Conhecida de Forma Selvagem do Druida (fonte "INTEGRAÇÃO
+ * COMPLETA — DRUIDA E SUBCLASSES" §8) — etapa própria do Builder, fora
+ * de `featureChoiceSelections` pelo mesmo motivo de `chosenInvocations`
+ * (quantidade/validade dependem de regras cruzadas — nível, ND máximo,
+ * restrição de Voo — não cabem no modelo genérico de `FeatureChoice`).
+ * Não existe catálogo de Feras no projeto (mesma decisão "nunca
+ * inventar catálogo" já aplicada a magias): `name` é texto livre, mas
+ * `challengeRating`/`hasFlySpeed` são campos estruturados que o
+ * Builder PODE validar (contagem/ND/Voo) sem precisar de um catálogo —
+ * confiamos no jogador para preenchê-los corretamente, igual à
+ * confiança já dada ao nome de uma magia manual.
+ */
+export interface KnownWildShapeForm {
+  name: string;
+  /** Texto livre no formato da fonte: "1/4", "1/2", "1", "2" etc. — ver rules/wildShapeForms.ts#parseChallengeRating. */
+  challengeRating: string;
+  hasFlySpeed: boolean;
 }
 
 /** Cria um personagem em branco, pronto para ser preenchido pela UI/estado (fora do escopo desta etapa). */
@@ -246,5 +269,6 @@ export function createBlankCharacter(id: string): Character {
     featureChoiceSelections: {},
     chosenFeatIds: [],
     chosenInvocations: [],
+    knownWildShapeForms: [],
   };
 }

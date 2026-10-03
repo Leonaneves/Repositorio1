@@ -2,6 +2,22 @@ import type { FeatureDefinition } from "../../domain/features.js";
 import { CONHECIMENTO_PROFICIENCIAS_BONUS_CHOICE_ID } from "./bard.js";
 
 /**
+ * Terreno do Círculo da Terra (Druida, nível 3+) — escolha duradoura
+ * armazenada em `featureChoiceSelections` como qualquer `FeatureChoice`
+ * genérica, mas resolvida por uma etapa PRÓPRIA do Builder
+ * (`ui/builder/steps/StepEarthCircleTerrain.tsx`), nunca pela etapa
+ * genérica "Características e Talentos" — por isso a `FeatureDefinition`
+ * abaixo não tem `choices`: evita que ela apareça duplicada em duas
+ * etapas. Primeira aplicação da regra arquitetural do §21 da fonte
+ * "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES": uma escolha de subclasse
+ * duradoura que altera várias partes da ficha (magias, resistência)
+ * ganha etapa condicional própria.
+ */
+export const EARTH_CIRCLE_TERRAIN_CHOICE_ID = "druida-terra-terreno-escolha";
+export const EARTH_CIRCLE_TERRAIN_OPTIONS = ["Árido", "Polar", "Temperado", "Tropical"] as const;
+export type EarthCircleTerrain = (typeof EARTH_CIRCLE_TERRAIN_OPTIONS)[number];
+
+/**
  * Features de SUBCLASSE confirmadas com fonte fornecida — as 4
  * subclasses do Bárbaro ("INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES")
  * e as 4 subclasses do Bardo ("INTEGRAÇÃO COMPLETA — BARDO E
@@ -825,5 +841,229 @@ export const subclassFeatures: FeatureDefinition[] = [
     autoGranted: true,
     summary:
       "Ao usar uma magia ou Canalizar Divindade para restaurar PV, não role os dados de cura — use o resultado máximo possível de cada dado (ex.: 2d6 vira 12).",
+  },
+
+  // ============== DRUIDA — fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES" ==============
+  // Níveis de aquisição de subclasse do Druida são 3/6/10/14 (ver
+  // data/subclasses.ts#druida). "Magias de Círculo" são sempre
+  // preparadas e vão para a área de Magias
+  // (rules/druidAutoPreparedSpells.ts), nunca para "Características de
+  // Classe".
+
+  // ---------- Círculo da Lua ----------
+  {
+    id: "druida-lua-formas-animais-dos-circulos-druidicos-3",
+    name: "Formas Animais dos Círculos Druídicos",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Lua",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Modifica Forma Selvagem — nunca um bloco impresso separado (rules/druidPrintedFeatures.ts). ND máximo = nível de Druida / 3, arredondado para baixo (substitui o limite normal da Forma Selvagem quando for maior). Enquanto em Forma Selvagem: CA = 13 + modificador de Sabedoria, só se esse valor for maior que a CA da Fera. Ao entrar em Forma Selvagem: PV Temp = 3x o nível de Druida (substitui o valor normal, que é igual ao nível).",
+  },
+  {
+    id: "druida-lua-magias-do-circulo-da-lua-3",
+    name: "Magias do Círculo da Lua",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Lua",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal, e podem ser conjuradas mesmo em Forma Selvagem (rules/druidAutoPreparedSpells.ts — nunca neste campo): nível 3 — Curar Ferimentos, Fagulha Estelar, Raio Lunar; nível 5 — Invocar Animais; nível 7 — Fonte do Luar; nível 9 — Curar Ferimentos em Massa.",
+  },
+  {
+    id: "druida-lua-formas-animais-aprimorada-6",
+    name: "Formas Animais Aprimorada",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Lua",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Modifica Forma Selvagem — nunca impressa com este título. Enquanto em Forma Selvagem, o ataque da Fera pode causar dano normal OU Radiante (escolha a cada acerto); além disso, soma o modificador de Sabedoria em Salvaguardas de Constituição.",
+  },
+  {
+    id: "druida-lua-passo-lunar-10",
+    name: "Passo Lunar",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Lua",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: teleporte até 9m para um espaço livre visível; Vantagem no próximo ataque antes do fim do turno. Usos = modificador de Sabedoria, mínimo 1; recupera todos após Descanso Longo; recuperação alternativa (sem ação): gastar 1 espaço de 2º círculo ou superior para recuperar 1 uso.",
+  },
+  {
+    id: "druida-lua-forma-lunar-14",
+    name: "Forma Lunar",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Lua",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "NÃO cria '#Forma Lunar' — atualiza outras duas características. Radiância Lunar Aprimorada (modifica Forma Selvagem): 1x por turno, ao acertar com o ataque da Fera em Forma Selvagem, +2d10 de dano Radiante. Luar Compartilhado (modifica Passo Lunar): ao usar Passo Lunar, pode levar 1 criatura voluntária a até 3m consigo; ela aparece em um espaço livre a até 3m do seu destino.",
+  },
+
+  // ---------- Círculo da Terra ----------
+  {
+    id: "druida-terra-terreno-escolha",
+    name: "Terreno do Círculo da Terra",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Terra",
+    level: 3,
+    autoGranted: false,
+    summary:
+      "Escolha obrigatória e duradoura entre Árido, Polar, Temperado e Tropical — resolvida numa etapa PRÓPRIA do Builder (não na etapa genérica de Características), porque altera automaticamente Magias do Círculo da Terra, a Resistência de Proteção Natural (nível 10+) e Santuário Natural (nível 14+). Pode ser trocada depois de um Descanso Longo; ao trocar, os benefícios do terreno anterior saem e os do novo terreno entram, sem remover uma mesma magia caso o personagem também a possua por outra fonte.",
+  },
+  {
+    id: "druida-terra-magias-do-circulo-da-terra-3",
+    name: "Magias do Círculo da Terra",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Terra",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas enquanto o terreno escolhido permanecer selecionado (rules/druidAutoPreparedSpells.ts — nunca neste campo), não contam contra o limite normal. Árido: nível 3 — Mãos Flamejantes, Raio de Fogo, Turvar; nível 5 — Bola de Fogo; nível 7 — Malogro; nível 9 — Muralha de Pedra. Polar: nível 3 — Névoa Obscurecente, Paralisar Pessoa, Raio de Gelo; nível 5 — Nevasca; nível 7 — Tempestade Glacial; nível 9 — Cone de Frio. Temperado: nível 3 — Passo Nebuloso, Sono, Toque Chocante; nível 5 — Relâmpago; nível 7 — Movimentação Livre; nível 9 — Passo Arbóreo. Tropical: nível 3 — Bolha Ácida, Raio Nauseante, Teia; nível 5 — Nuvem Fétida; nível 7 — Polimorfia; nível 9 — Praga de Insetos.",
+  },
+  {
+    id: "druida-terra-auxilio-da-terra-3",
+    name: "Auxílio da Terra",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Terra",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Custo: 1 uso de Forma Selvagem. Ação: Usar Magia; ponto a até 18m, área Esfera de 3m de raio; criaturas escolhidas fazem Salvaguarda de Constituição contra a CD de magia — falha: dano Necrótico (2d6 nos níveis 3-9, 3d6 nos níveis 10-13, 4d6 no nível 14+), sucesso: metade. Além disso, 1 criatura escolhida na área cura PV iguais ao mesmo total de dados.",
+  },
+  {
+    id: "druida-terra-recuperacao-natural-6",
+    name: "Recuperação Natural",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Terra",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Dois benefícios independentes, cada um 1x/Descanso Longo, com caixa própria. Magia gratuita: pode conjurar 1 magia de 1º círculo ou superior preparada por Magias do Círculo da Terra sem gastar espaço. Recuperação de espaços: ao completar um Descanso Curto, recupera espaços de magia gastos cuja soma de círculos seja no máximo metade do nível de Druida (arredondado para cima); nenhum espaço recuperado pode ser de 6º círculo ou superior.",
+  },
+  {
+    id: "druida-terra-protecao-natural-10",
+    name: "Proteção Natural",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Terra",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Concede Imunidade a Envenenado, e Resistência conforme o terreno atual (recalculada automaticamente ao trocar de terreno): Árido -> Ígneo; Polar -> Gélido; Temperado -> Elétrico; Tropical -> Venenoso.",
+  },
+  {
+    id: "druida-terra-santuario-natural-14",
+    name: "Santuário Natural",
+    sourceType: "subclass",
+    subclassFullName: "Círculo da Terra",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Custo: 1 uso de Forma Selvagem. Ação: cria um Cubo de 4,5m no chão, a até 36m, por 1 minuto (termina antes se morrer ou ficar Incapacitado). Dentro da área, você e aliados têm Cobertura Parcial; aliados também recebem a Resistência atual de Proteção Natural. Ação Bônus: move o Cubo até 18m para um novo local no chão, a até 36m de você.",
+  },
+
+  // ---------- Círculo das Estrelas ----------
+  {
+    id: "druida-estrelas-forma-estrelada-3",
+    name: "Forma Estrelada",
+    sourceType: "subclass",
+    subclassFullName: "Círculo das Estrelas",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Custo: 1 uso de Forma Selvagem. Ação Bônus: em vez de multimorfar, assume a Forma Estrelada (mantém suas estatísticas normais) por 10 min, encerrando antes se dispensar, ficar Incapacitado, ou usar de novo; emite Luz Plena em 3m + Meia-luz em mais 3m. Ao ativar, escolhe 1 constelação (escolha feita a cada ativação, NUNCA uma decisão permanente do Builder): Arqueiro (ao ativar e depois em turnos seguintes como Ação Bônus: ataque mágico à distância, alcance 18m, dano 1d8+Sabedoria Radiante), Dragão (testes de INT/SAB e Salvaguardas de CON para manter Concentração: resultado de d20 igual a 9 ou menos é tratado como 10), ou Taça (ao conjurar magia com espaço que restaure PV: você ou outra criatura a até 9m cura 1d8+Sabedoria adicional).",
+  },
+  {
+    id: "druida-estrelas-mapa-estelar-3",
+    name: "Mapa Estelar",
+    sourceType: "subclass",
+    subclassFullName: "Círculo das Estrelas",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "O Mapa Estelar pode servir como Foco Druídico. Enquanto o possuir, Orientação e Raio Guia ficam sempre preparadas (origem: Mapa Estelar — rules/druidAutoPreparedSpells.ts), sem contar contra o limite normal. Raio Guia pode ser conjurado sem gastar espaço: usos = modificador de Sabedoria, mínimo 1, recupera todos após Descanso Longo (rastreado junto à magia na área de Magias). A cerimônia de substituição do mapa leva 1 hora, pode ocorrer em Descanso Curto ou Longo, e destrói o mapa anterior — mantida no domínio/Ficha Web.",
+  },
+  {
+    id: "druida-estrelas-pressagio-cosmico-6",
+    name: "Presságio Cósmico",
+    sourceType: "subclass",
+    subclassFullName: "Círculo das Estrelas",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Após um Descanso Longo, joga um dado: par = Prosperidade, ímpar = Infortúnio (estado de jogo do dia atual, não escolha permanente do Builder), vigente até o próximo Descanso Longo. Reação quando uma criatura visível a até 9m faz um teste de d20: soma +1d6 (Prosperidade) ou -1d6 (Infortúnio) ao total. Usos = modificador de Sabedoria, mínimo 1; recupera todos após Descanso Longo.",
+  },
+  {
+    id: "druida-estrelas-constelacoes-cintilantes-10",
+    name: "Constelações Cintilantes",
+    sourceType: "subclass",
+    subclassFullName: "Círculo das Estrelas",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Não impressa com este título — atualiza Forma Estrelada. Arqueiro e Taça: o dado passa de 1d8 para 2d8. Dragão: ganha Deslocamento de Voo igual ao Deslocamento, podendo pairar. Além disso, no início de cada turno em Forma Estrelada, pode trocar a constelação ativa.",
+  },
+  {
+    id: "druida-estrelas-repleto-de-estrelas-14",
+    name: "Repleto de Estrelas",
+    sourceType: "subclass",
+    subclassFullName: "Círculo das Estrelas",
+    level: 14,
+    autoGranted: true,
+    summary: "Não cria bloco separado — atualiza Forma Estrelada. Enquanto em Forma Estrelada, ganha Resistência a dano Contundente, Cortante e Perfurante.",
+  },
+
+  // ---------- Círculo do Mar ----------
+  {
+    id: "druida-mar-ira-do-mar-3",
+    name: "Ira do Mar",
+    sourceType: "subclass",
+    subclassFullName: "Círculo do Mar",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Custo: 1 uso de Forma Selvagem. Ação Bônus: cria uma Emanação de 1,5m ao seu redor por 10 min, encerrando antes se dispensar, manifestar de novo, ou ficar Incapacitado. Ao manifestar e depois como Ação Bônus: escolhe 1 outra criatura visível na Emanação, que faz Salvaguarda de Constituição contra a CD de magia — falha: dano Gélido igual a uma quantidade de d6 igual ao modificador de Sabedoria (mínimo 1d6); se o alvo for Grande ou menor, também é empurrado até 4,5m.",
+  },
+  {
+    id: "druida-mar-magias-do-circulo-do-mar-3",
+    name: "Magias do Círculo do Mar",
+    sourceType: "subclass",
+    subclassFullName: "Círculo do Mar",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/druidAutoPreparedSpells.ts — nunca neste campo): nível 3 — Despedaçar, Lufada de Vento, Névoa Obscurecente, Onda Trovejante, Raio de Gelo; nível 5 — Relâmpago, Respirar na Água; nível 7 — Controlar Água, Tempestade Glacial; nível 9 — Invocar Elemental, Paralisar Monstro.",
+  },
+  {
+    id: "druida-mar-afinidade-aquatica-6",
+    name: "Afinidade Aquática",
+    sourceType: "subclass",
+    subclassFullName: "Círculo do Mar",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Modifica Ira do Mar — nunca bloco separado: a Emanação cresce de 1,5m para 3m. Além disso, concede Deslocamento de Natação igual ao Deslocamento normal — PERMANENTE (não depende de Ira do Mar estar ativa), aplicado diretamente ao cálculo de deslocamento (rules/speed.ts#getSwimSpeed); não repetido neste campo quando representado adequadamente no deslocamento.",
+  },
+  {
+    id: "druida-mar-filho-da-tempestade-10",
+    name: "Filho da Tempestade",
+    sourceType: "subclass",
+    subclassFullName: "Círculo do Mar",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Modifica Ira do Mar — nunca bloco separado. Enquanto Ira do Mar estiver ativa: Deslocamento de Voo igual ao Deslocamento, e Resistência a dano Elétrico/Gélido/Trovejante. Como só existe enquanto a Emanação está ativa, NUNCA aplicado como valor permanente da ficha.",
+  },
+  {
+    id: "druida-mar-manifestacao-oceanica-14",
+    name: "Manifestação Oceânica",
+    sourceType: "subclass",
+    subclassFullName: "Círculo do Mar",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Modifica Ira do Mar — nunca bloco separado. Agora pode manifestar a Emanação ao redor de uma criatura voluntária a até 18m (usando a CD de magia e o modificador de Sabedoria do Druida), ou simultaneamente ao redor de você E dessa criatura, gastando 2 usos de Forma Selvagem nesse caso.",
   },
 ];

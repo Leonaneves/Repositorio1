@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import { getClassSpeedBonus, getSpeed } from "./speed.js";
+import { getClassSpeedBonus, getSpeed, getSwimSpeed } from "./speed.js";
 
 describe("getSpeed — deslocamento base por espécie", () => {
   it("espécie-base usa 9m", () => {
@@ -113,5 +113,31 @@ describe("getClassSpeedBonus — Movimento Rápido do Bárbaro", () => {
     const character = barbarianAt(5);
     character.speciesId = "humano"; // 9m
     expect(getSpeed(character).auto).toBe(12);
+  });
+});
+
+describe("getSwimSpeed — Afinidade Aquática (Círculo do Mar, nível 6) — PERMANENTE, aplicado direto ao Deslocamento", () => {
+  function druidAt(level: number, subclassFullName: string | null) {
+    const character = createBlankCharacter("druid-swim-speed-test");
+    character.classId = "druida";
+    character.level = level;
+    character.subclassId = subclassFullName;
+    character.speciesId = "humano"; // 9m
+    return character;
+  }
+
+  it("null para qualquer outra classe/subclasse", () => {
+    expect(getSwimSpeed(druidAt(10, "Círculo da Lua"))).toBeNull();
+    const mago = createBlankCharacter("x");
+    mago.classId = "mago";
+    expect(getSwimSpeed(mago)).toBeNull();
+  });
+
+  it("null antes do nível 6, mesmo com Círculo do Mar", () => {
+    expect(getSwimSpeed(druidAt(5, "Círculo do Mar"))).toBeNull();
+  });
+
+  it("a partir do nível 6, igual ao Deslocamento normal (9m) — sem depender de Ira do Mar estar ativa", () => {
+    expect(getSwimSpeed(druidAt(6, "Círculo do Mar"))).toEqual({ auto: 9, manual: 0, total: 9 });
   });
 });

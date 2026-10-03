@@ -5,6 +5,8 @@ import { PDFDocument } from "@cantoo/pdf-lib";
 import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
 import { GOLPES_ABENCOADOS_CHOICE_ID, ORDEM_DIVINA_CHOICE_ID, TAUMATURGO_TRUQUE_CHOICE_ID } from "../data/features/cleric.js";
+import { FURIA_ELEMENTAL_CHOICE_ID, ORDEM_PRIMAL_CHOICE_ID, XAMA_TRUQUE_CHOICE_ID } from "../data/features/druid.js";
+import { EARTH_CIRCLE_TERRAIN_CHOICE_ID } from "../data/features/subclasses.js";
 import { fillPdfForm } from "./exporter.js";
 import { pdfTextFields } from "./fieldMap.js";
 
@@ -51,6 +53,23 @@ function fullCleric(): Character {
   character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID] = { value: "Taumaturgo" };
   character.featureChoiceSelections[TAUMATURGO_TRUQUE_CHOICE_ID] = { value: "Chama Sagrada" };
   character.featureChoiceSelections[GOLPES_ABENCOADOS_CHOICE_ID] = { value: "Conjuração Poderosa" };
+  return character;
+}
+
+function fullDruid(): Character {
+  const character = createBlankCharacter("sanitize-test-druid");
+  character.classId = "druida";
+  character.level = 20;
+  character.subclassId = "Círculo da Lua";
+  character.abilities.SAB.score = 18;
+  character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
+  character.featureChoiceSelections[XAMA_TRUQUE_CHOICE_ID] = { value: "Produzir Chama" };
+  character.featureChoiceSelections[FURIA_ELEMENTAL_CHOICE_ID] = { value: "Conjuração Poderosa" };
+  character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID] = { value: "Tropical" };
+  character.knownWildShapeForms = [
+    { name: "Urso Negro", challengeRating: "1/2", hasFlySpeed: false },
+    { name: "Águia", challengeRating: "0", hasFlySpeed: true },
+  ];
   return character;
 }
 
@@ -106,6 +125,10 @@ describe("Sanitização de ponta a ponta — nenhum campo de texto do PDF conté
 
   it("Clérigo (Domínio da Trapaça) nível 20, Taumaturgo + Conjuração Poderosa", async () => {
     await assertNoForbiddenCharacters(fullCleric());
+  });
+
+  it("Druida (Círculo da Lua) nível 20, Xamã + Conjuração Poderosa", async () => {
+    await assertNoForbiddenCharacters(fullDruid());
   });
 
   it("personagem em branco (sem classe) também não produz nenhum símbolo banido", async () => {
