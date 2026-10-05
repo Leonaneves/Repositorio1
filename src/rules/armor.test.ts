@@ -51,6 +51,34 @@ describe("getArmorClass — sem armadura", () => {
     character.armor.shield = true;
     expect(getArmorClass(character).auto).toBe(15); // 10 + 3 + 2(escudo), SAB ignorado
   });
+
+  it("Feiticeiro/Feitiçaria Dracônica (Resiliência Dracônica): CA = 10 + DEX + CAR, sem armadura", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "feiticeiro";
+    character.subclassId = "Feitiçaria Dracônica";
+    character.abilities.DEX.score = 14; // +2
+    character.abilities.CAR.score = 18; // +4
+    expect(getArmorClass(character).auto).toBe(16);
+  });
+
+  it("Feiticeiro/Feitiçaria Dracônica com escudo soma +2 normalmente", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "feiticeiro";
+    character.subclassId = "Feitiçaria Dracônica";
+    character.abilities.DEX.score = 14; // +2
+    character.abilities.CAR.score = 18; // +4
+    character.armor.shield = true;
+    expect(getArmorClass(character).auto).toBe(18);
+  });
+
+  it("Feiticeiro de outra subclasse (ou sem subclasse) usa a fórmula genérica, nunca +CAR", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "feiticeiro";
+    character.subclassId = "Feitiçaria Selvagem";
+    character.abilities.DEX.score = 14; // +2
+    character.abilities.CAR.score = 18; // +4, não deve contar
+    expect(getArmorClass(character).auto).toBe(12);
+  });
 });
 
 describe("getArmorClass — com armadura", () => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useBuilderStore } from "./builderStore.js";
 import { useCharacterStore } from "./characterStore.js";
+import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -227,6 +228,75 @@ describe("useBuilderStore — canAdvance/goNext travam em 'invocations' enquanto
     useCharacterStore.getState().setLevel(5);
     store.goToStep("abilities");
     expect(store.canAdvance()).toBe(true);
+  });
+});
+
+describe("useBuilderStore — canAdvance/goNext travam em 'metamagic' enquanto a quantidade de Metamagia do Feiticeiro não bater com o nível", () => {
+  it("canAdvance() é false em 'metamagic' sem nenhuma opção escolhida (nível 2 já exige 2)", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(2);
+    store.goToStep("metamagic");
+    expect(store.canAdvance()).toBe(false);
+  });
+
+  it("canAdvance() é true em 'metamagic' depois de escolher a quantidade exata do nível", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(2);
+    useCharacterStore.getState().addMetamagicOption("sutil");
+    useCharacterStore.getState().addMetamagicOption("distante");
+    store.goToStep("metamagic");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("goNext não sai de 'metamagic' enquanto a quantidade não bater", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(2);
+    useCharacterStore.getState().addMetamagicOption("sutil");
+    store.goToStep("metamagic");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("metamagic");
+  });
+
+  it("canAdvance() é true fora da etapa 'metamagic', mesmo com Metamagia pendente", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(2);
+    store.goToStep("abilities");
+    expect(store.canAdvance()).toBe(true);
+  });
+});
+
+describe("useBuilderStore — canAdvance/goNext travam em 'elementalAffinity' sem o tipo elemental escolhido (Feitiçaria Dracônica)", () => {
+  it("canAdvance() é false em 'elementalAffinity' sem escolha", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(6);
+    useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
+    store.goToStep("elementalAffinity");
+    expect(store.canAdvance()).toBe(false);
+  });
+
+  it("canAdvance() é true em 'elementalAffinity' depois de escolher um tipo válido", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(6);
+    useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
+    useCharacterStore.getState().setFeatureChoiceSelection(ELEMENTAL_AFFINITY_CHOICE_ID, "Fogo");
+    store.goToStep("elementalAffinity");
+    expect(store.canAdvance()).toBe(true);
+  });
+
+  it("goNext não sai de 'elementalAffinity' sem escolha", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("feiticeiro");
+    useCharacterStore.getState().setLevel(6);
+    useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
+    store.goToStep("elementalAffinity");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("elementalAffinity");
   });
 });
 

@@ -1,0 +1,138 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 18 de cada subclasse > aberrante nível 18 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/18; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 9 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta
+> Buscadora 1PF: Atq magia erra -> rerrole d20, use novo; combina com outra Meta
+> Transmutada 1PF: Ácido/Elétrico/Fogo/Gelo/Trovejante/Venenoso -> outro da lista",
+  "#Fala Telepática
+AB, alvo 9m: telepatia 4,5km por 18min; idioma comum",
+  "#Defesas Psíquicas
+Res Psíquico; Vant Salv vs Amed/Enfeit",
+  "#Revelação em Carne
+AB, 10 min; 1 PF por benefício:
+> Aquática: Natação = 2x Desl; respira água
+> Vermiforme: passa por 2,5cm; 1,5m mov -> escapa restrição não mágica/Imobilizado
+> Invisível: vê Invisíveis 18m, exc Cob Total
+> Voo: Voo = Desl; paira",
+  "#Implosão de Distorção [__]
+Ação: teleporte 36m; criaturas 9m da origem Salv FOR
+Falha: 3d10 Energético + puxada p/ espaço; sucesso 1/2
+DL ou 5PF",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 18 de cada subclasse > draconica nível 18 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/18; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 9 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta
+> Buscadora 1PF: Atq magia erra -> rerrole d20, use novo; combina com outra Meta
+> Transmutada 1PF: Ácido/Elétrico/Fogo/Gelo/Trovejante/Venenoso -> outro da lista",
+  "#Afinidade Elemental - Fogo
+Res Fogo; magia com dano de Fogo -> +CAR em 1 rolagem dano",
+  "#Asas de Dragão [__]
+AB: Voo 18m por 1h
+DL ou 3PF",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 18 de cada subclasse > mecanica nível 18 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/18; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 9 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta
+> Buscadora 1PF: Atq magia erra -> rerrole d20, use novo; combina com outra Meta
+> Transmutada 1PF: Ácido/Elétrico/Fogo/Gelo/Trovejante/Venenoso -> outro da lista",
+  "#Restaurar Equilíbrio [__][__][__]
+Reação: criatura 18m vai rolar d20 com Vant/Desv -> cancela ambas
+Todos/DL",
+  "#Bastião da Lei
+Ação, 1-5PF: você/alvo 9m ganha mesmo no. de d8
+Ao sofrer dano, gaste dados -> reduza dano pelo total
+Até DL ou novo uso",
+  "#Transe da Ordem [__]
+AB, 1 min: Atq contra você sem Vant; Teste d20 9 ou menos = 10
+DL ou 5PF",
+  "#Cavalgada Mecânica [__]
+Ação, Cubo 9m:
+> distribua até 100 PV
+> encerre magias 6o- em criaturas/objetos escolhidos
+> repare objetos danificados
+DL ou 7PF",
+]
+`;
+
+exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados) — nível 18 de cada subclasse > selvagem nível 18 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/18; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 9 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta
+> Buscadora 1PF: Atq magia erra -> rerrole d20, use novo; combina com outra Meta
+> Transmutada 1PF: Ácido/Elétrico/Fogo/Gelo/Trovejante/Venenoso -> outro da lista",
+  "#Marés do Caos [__]
+Antes Teste d20 -> Vant
+Recupere ao conjurar magia Feiticeiro com espaço ou DL
+Se conjurar com espaço após usar -> Surto automático + recarrega",
+  "#Surto de Magia Selvagem
+1/turno após magia Feiticeiro com espaço: pode d20
+20 -> role 2x na tabela Surto e escolha; magia do Surto não recebe Meta
+> [__] Após magia com espaço: escolha efeito da tabela exc última linha. 1/DL",
+  "#Distorcer a Sorte
+Reação +1PF: após criatura visível Teste d20 -> + ou -1d4",
+]
+`;

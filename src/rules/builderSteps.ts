@@ -15,6 +15,8 @@ export const BUILDER_STEP_ORDER = [
   "subclass",
   "wildShapeForms",
   "earthCircleTerrain",
+  "elementalAffinity",
+  "metamagic",
   "species",
   "background",
   "abilities",
@@ -33,6 +35,8 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
   subclass: "Subclasse",
   wildShapeForms: "Formas Conhecidas",
   earthCircleTerrain: "Terreno do Círculo da Terra",
+  elementalAffinity: "Afinidade Elemental",
+  metamagic: "Metamagia",
   species: "Espécie",
   background: "Antecedente",
   abilities: "Atributos",
@@ -55,6 +59,14 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
  *   partir do nível 3 (§27) — primeira aplicação da regra arquitetural
  *   do §21 (escolha de subclasse duradoura com efeito amplo ganha
  *   etapa condicional própria).
+ * - Afinidade Elemental: só para Feiticeiro/Feitiçaria Dracônica a
+ *   partir do nível 6 (fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO,
+ *   METAMAGIA E SUBCLASSES" §36) — mesma regra arquitetural do Terreno
+ *   do Círculo da Terra.
+ * - Metamagia: só para Feiticeiro a partir do nível 2 (§10) — etapa
+ *   própria, fora do mecanismo genérico de `FeatureChoice` (mesma
+ *   razão de Invocações Místicas/Formas Conhecidas: quantidade por
+ *   nível + nunca duplicar).
  * - Características e Talentos: só se existir ao menos uma feature com
  *   escolha (`FeatureChoice`) pendente de resposta.
  * - Invocações Místicas: só para a classe Bruxo (fonte "INTEGRAÇÃO
@@ -68,6 +80,8 @@ export function isStepVisible(stepId: BuilderStepId, character: Character): bool
   if (stepId === "subclass") return canChooseSubclass(character.level);
   if (stepId === "wildShapeForms") return character.classId === "druida" && character.level >= 2;
   if (stepId === "earthCircleTerrain") return character.classId === "druida" && character.subclassId === "Círculo da Terra" && character.level >= 3;
+  if (stepId === "elementalAffinity") return character.classId === "feiticeiro" && character.subclassId === "Feitiçaria Dracônica" && character.level >= 6;
+  if (stepId === "metamagic") return character.classId === "feiticeiro" && character.level >= 2;
   if (stepId === "featuresAndTalents") {
     return getCharacterFeatures(character).some((feature) => (feature.choices?.length ?? 0) > 0);
   }

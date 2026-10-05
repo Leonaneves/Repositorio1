@@ -6,7 +6,7 @@ import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
 import { GOLPES_ABENCOADOS_CHOICE_ID, ORDEM_DIVINA_CHOICE_ID, TAUMATURGO_TRUQUE_CHOICE_ID } from "../data/features/cleric.js";
 import { FURIA_ELEMENTAL_CHOICE_ID, ORDEM_PRIMAL_CHOICE_ID, XAMA_TRUQUE_CHOICE_ID } from "../data/features/druid.js";
-import { EARTH_CIRCLE_TERRAIN_CHOICE_ID } from "../data/features/subclasses.js";
+import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { fillPdfForm } from "./exporter.js";
 import { pdfTextFields } from "./fieldMap.js";
 
@@ -73,6 +73,17 @@ function fullDruid(): Character {
   return character;
 }
 
+function fullSorcerer(): Character {
+  const character = createBlankCharacter("sanitize-test-sorcerer");
+  character.classId = "feiticeiro";
+  character.level = 20;
+  character.subclassId = "Feitiçaria Dracônica";
+  character.abilities.CAR.score = 18;
+  character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID] = { value: "Fogo" };
+  character.knownMetamagicOptions = ["sutil", "distante", "cautelosa", "potencializada", "buscadora", "transmutada"];
+  return character;
+}
+
 function fullWarlock(): Character {
   const character = createBlankCharacter("sanitize-test-warlock");
   character.classId = "bruxo";
@@ -129,6 +140,10 @@ describe("Sanitização de ponta a ponta — nenhum campo de texto do PDF conté
 
   it("Druida (Círculo da Lua) nível 20, Xamã + Conjuração Poderosa", async () => {
     await assertNoForbiddenCharacters(fullDruid());
+  });
+
+  it("Feiticeiro (Feitiçaria Dracônica) nível 20, com Metamagia e Afinidade Elemental escolhidas", async () => {
+    await assertNoForbiddenCharacters(fullSorcerer());
   });
 
   it("personagem em branco (sem classe) também não produz nenhum símbolo banido", async () => {

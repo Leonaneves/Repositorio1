@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import { getMaxHitDice, getMaxHitPoints, getRemainingHitDice } from "./hp.js";
+import { getDraconicResilienceHpBonus, getMaxHitDice, getMaxHitPoints, getRemainingHitDice } from "./hp.js";
 
 describe("getMaxHitPoints — PV máximo automático (sem rolagem, criação rápida)", () => {
   it("é 0 sem classe definida (só o ajuste manual conta)", () => {
@@ -74,6 +74,49 @@ describe("getMaxHitPoints — Campeão Primitivo (Bárbaro nível 20) retroage s
     character.abilities.CON.score = 20; // efetivo: 24 (mod +7)
     // nível 1: 12 + 7 = 19; níveis 2-20: 19 × (7 + 7) = 266; total 285
     expect(getMaxHitPoints(character).auto).toBe(285);
+  });
+});
+
+describe("getDraconicResilienceHpBonus — Feitiçaria Dracônica (nível 3+): +3 no 3, +1/nível depois (fonte 'INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES' §35)", () => {
+  function sorcererDraconicAt(level: number) {
+    const character = createBlankCharacter("hp-draconic-test");
+    character.classId = "feiticeiro";
+    character.level = level;
+    character.subclassId = "Feitiçaria Dracônica";
+    return character;
+  }
+
+  it("0 antes do nível 3", () => {
+    expect(getDraconicResilienceHpBonus(sorcererDraconicAt(2))).toBe(0);
+  });
+
+  it.each([
+    [3, 3],
+    [4, 4],
+    [10, 10],
+    [20, 20],
+  ])("nível %i -> +%i (bônus = nível, calculado corretamente mesmo criando direto num nível alto)", (level, expected) => {
+    expect(getDraconicResilienceHpBonus(sorcererDraconicAt(level))).toBe(expected);
+  });
+
+  it("0 para outra subclasse de Feiticeiro", () => {
+    const character = sorcererDraconicAt(10);
+    character.subclassId = "Feitiçaria Selvagem";
+    expect(getDraconicResilienceHpBonus(character)).toBe(0);
+  });
+
+  it("0 para outra classe", () => {
+    const character = createBlankCharacter("x");
+    character.classId = "mago";
+    character.level = 10;
+    expect(getDraconicResilienceHpBonus(character)).toBe(0);
+  });
+
+  it("getMaxHitPoints soma o bônus de Resiliência Dracônica ao total automático", () => {
+    const character = sorcererDraconicAt(3);
+    character.abilities.CON.score = 10; // mod 0
+    // nível 1: 6 + 0 = 6; níveis 2-3: 2 × (4 + 0) = 8; + Resiliência (+3) = 17
+    expect(getMaxHitPoints(character).auto).toBe(17);
   });
 });
 

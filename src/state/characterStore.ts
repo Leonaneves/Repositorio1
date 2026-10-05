@@ -101,6 +101,8 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
     chosenInvocations: classId === "bruxo" ? character.chosenInvocations : [],
     // Formas Conhecidas de Forma Selvagem são exclusivas do Druida — mesmo raciocínio das Invocações Místicas acima.
     knownWildShapeForms: classId === "druida" ? character.knownWildShapeForms : [],
+    // Metamagia é exclusiva do Feiticeiro — mesmo raciocínio das Invocações Místicas/Formas Conhecidas acima.
+    knownMetamagicOptions: classId === "feiticeiro" ? character.knownMetamagicOptions : [],
   };
 
   next = clampEquippedArmor(next);
@@ -234,6 +236,10 @@ interface CharacterStore {
   addInvocation: (invocationId: string) => void;
   removeInvocation: (index: number) => void;
   setInvocationSubChoice: (index: number, value: string) => void;
+
+  /** Alterna 1 opção de Metamagia conhecida (nunca duplica — mesmo padrão de addChosenFeat/removeChosenFeat). */
+  addMetamagicOption: (optionId: string) => void;
+  removeMetamagicOption: (optionId: string) => void;
 
   /** Adiciona 1 Forma Conhecida em branco de Forma Selvagem do Druida (etapa própria do Builder — ver rules/wildShapeForms.ts). */
   addKnownWildShapeForm: () => void;
@@ -558,6 +564,16 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   removeKnownWildShapeForm: (index) =>
     set((state) => ({
       character: { ...state.character, knownWildShapeForms: state.character.knownWildShapeForms.filter((_, i) => i !== index) },
+    })),
+
+  addMetamagicOption: (optionId) =>
+    set((state) => {
+      if (state.character.knownMetamagicOptions.includes(optionId)) return state;
+      return { character: { ...state.character, knownMetamagicOptions: [...state.character.knownMetamagicOptions, optionId] } };
+    }),
+  removeMetamagicOption: (optionId) =>
+    set((state) => ({
+      character: { ...state.character, knownMetamagicOptions: state.character.knownMetamagicOptions.filter((id) => id !== optionId) },
     })),
 
   resetCharacter: () => set({ character: createBlankCharacter(generateId()) }),

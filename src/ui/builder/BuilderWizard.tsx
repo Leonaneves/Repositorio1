@@ -12,6 +12,8 @@ import { Step2Class } from "./steps/Step2Class.js";
 import { Step3Subclass } from "./steps/Step3Subclass.js";
 import { StepWildShapeForms } from "./steps/StepWildShapeForms.js";
 import { StepEarthCircleTerrain } from "./steps/StepEarthCircleTerrain.js";
+import { StepElementalAffinity } from "./steps/StepElementalAffinity.js";
+import { StepMetamagic } from "./steps/StepMetamagic.js";
 import { Step4Species } from "./steps/Step4Species.js";
 import { Step5Background } from "./steps/Step5Background.js";
 import { Step6Abilities } from "./steps/Step6Abilities.js";
@@ -28,6 +30,8 @@ const STEP_COMPONENTS: Record<BuilderStepId, () => JSX.Element> = {
   subclass: Step3Subclass,
   wildShapeForms: StepWildShapeForms,
   earthCircleTerrain: StepEarthCircleTerrain,
+  elementalAffinity: StepElementalAffinity,
+  metamagic: StepMetamagic,
   species: Step4Species,
   background: Step5Background,
   abilities: Step6Abilities,

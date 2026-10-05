@@ -10,7 +10,8 @@ import { getIncompleteRequiredChoices } from "../rules/features.js";
 import { isInvocationSelectionComplete } from "../rules/invocations.js";
 import { isStartingEquipmentResolved } from "../rules/startingEquipment.js";
 import { isWildShapeFormSelectionComplete } from "../rules/wildShapeForms.js";
-import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, EARTH_CIRCLE_TERRAIN_OPTIONS } from "../data/features/subclasses.js";
+import { isMetamagicSelectionComplete } from "../rules/metamagic.js";
+import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, EARTH_CIRCLE_TERRAIN_OPTIONS, ELEMENTAL_AFFINITY_CHOICE_ID, ELEMENTAL_AFFINITY_OPTIONS } from "../data/features/subclasses.js";
 import { useCharacterStore } from "./characterStore.js";
 
 export type { AbilityGenerationMode };
@@ -139,6 +140,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
       const selection = character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]?.value;
       return typeof selection === "string" && (EARTH_CIRCLE_TERRAIN_OPTIONS as readonly string[]).includes(selection);
     }
+    if (currentStepId === "elementalAffinity") {
+      const selection = character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID]?.value;
+      return typeof selection === "string" && (ELEMENTAL_AFFINITY_OPTIONS as readonly string[]).includes(selection);
+    }
+    if (currentStepId === "metamagic") return isMetamagicSelectionComplete(character);
     return true;
   },
 }));

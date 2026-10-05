@@ -18,6 +18,19 @@ export const EARTH_CIRCLE_TERRAIN_OPTIONS = ["Árido", "Polar", "Temperado", "Tr
 export type EarthCircleTerrain = (typeof EARTH_CIRCLE_TERRAIN_OPTIONS)[number];
 
 /**
+ * Afinidade Elemental (Feitiçaria Dracônica, nível 6+) — mesma
+ * arquitetura de Terreno do Círculo da Terra acima: escolha duradoura
+ * armazenada em `featureChoiceSelections`, resolvida por etapa PRÓPRIA
+ * do Builder (`ui/builder/steps/StepElementalAffinity.tsx`). A fonte
+ * "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES" §36 não
+ * informa troca posterior — tratada como escolha duradoura fixa (nunca
+ * recalculada ao "trocar", só preenchida uma vez).
+ */
+export const ELEMENTAL_AFFINITY_CHOICE_ID = "feiticeiro-draconica-afinidade-elemental-escolha";
+export const ELEMENTAL_AFFINITY_OPTIONS = ["Ácido", "Elétrico", "Fogo", "Gelo", "Venenoso"] as const;
+export type ElementalAffinity = (typeof ELEMENTAL_AFFINITY_OPTIONS)[number];
+
+/**
  * Features de SUBCLASSE confirmadas com fonte fornecida — as 4
  * subclasses do Bárbaro ("INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES")
  * e as 4 subclasses do Bardo ("INTEGRAÇÃO COMPLETA — BARDO E
@@ -1065,5 +1078,232 @@ export const subclassFeatures: FeatureDefinition[] = [
     autoGranted: true,
     summary:
       "Modifica Ira do Mar — nunca bloco separado. Agora pode manifestar a Emanação ao redor de uma criatura voluntária a até 18m (usando a CD de magia e o modificador de Sabedoria do Druida), ou simultaneamente ao redor de você E dessa criatura, gastando 2 usos de Forma Selvagem nesse caso.",
+  },
+
+  // ============== FEITICEIRO — fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES" ==============
+  // Níveis de aquisição de subclasse do Feiticeiro são 3/6/14/18 (ver
+  // data/subclasses.ts#feiticeiro). "Magias" de cada subclasse são
+  // sempre preparadas e vão para a área de Magias
+  // (rules/sorcererAutoPreparedSpells.ts), nunca para "Características
+  // de Classe". Nomenclatura de tipos de dano desta fonte: só
+  // Contundente/Cortante/Perfurante são abreviados (Conc/Cort/Perf);
+  // todos os demais tipos (Ácido, Elétrico, Fogo, Gelo, Trovejante,
+  // Venenoso, Necrótico, Radiante, Psíquico, Energético) são escritos
+  // por extenso — nunca "Ígneo"/"Gélido"/"Ig"/"Gel"/"Elet"/etc.
+
+  // ---------- Feitiçaria Aberrante ----------
+  {
+    id: "feiticeiro-aberrante-fala-telepatica-3",
+    name: "Fala Telepática",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Aberrante",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: estabelece conexão telepática com 1 criatura visível a até 9m, a uma distância de 1,5km x modificador de Carisma (mínimo 1,5km), por uma duração em minutos igual ao seu nível de Feiticeiro. Para se entenderem, cada criatura usa mentalmente um idioma que conhece e que a outra também entende. Estabelecer uma nova conexão encerra a anterior.",
+  },
+  {
+    id: "feiticeiro-aberrante-magias-psionicas-3",
+    name: "Magias Psiônicas",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Aberrante",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/sorcererAutoPreparedSpells.ts — nunca neste campo): nível 3 — Acalmar Emoções, Braços de Hadar, Detectar Pensamentos, Sussurros Dissonantes, Talho Mental; nível 5 — Fome de Hadar, Remeter; nível 7 — Invocar Aberração, Tentáculos Negros de Evard; nível 9 — Ligação Telepática de Rary, Telecinese.",
+  },
+  {
+    id: "feiticeiro-aberrante-defesas-psiquicas-6",
+    name: "Defesas Psíquicas",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Aberrante",
+    level: 6,
+    autoGranted: true,
+    summary: "Concede Resistência a dano Psíquico, e Vantagem em salvaguardas para evitar ou encerrar os efeitos Amedrontado e Enfeitiçado.",
+  },
+  {
+    id: "feiticeiro-aberrante-feiticaria-psionica-6",
+    name: "Feitiçaria Psiônica",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Aberrante",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Aplica-se às Magias Psiônicas de 1º círculo ou superior: pode conjurá-las usando um espaço de magia normal OU gastando Pontos de Feitiçaria iguais ao círculo da magia. Se usar Pontos de Feitiçaria: conjura sem componentes Verbais nem Somáticos, e sem Materiais, exceto Material consumido ou com custo especificado. Registrado como nota nas próprias Magias Psiônicas na área de Magias (rules/sorcererAutoPreparedSpells.ts) — nunca um bloco impresso separado.",
+  },
+  {
+    id: "feiticeiro-aberrante-revelacao-em-carne-14",
+    name: "Revelação em Carne",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Aberrante",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Ação Bônus, custo de 1 ou mais Pontos de Feitiçaria, duração 10 minutos; para cada Ponto de Feitiçaria gasto, escolhe 1 benefício (sem limite declarado de repetição por benefício): Adaptação Aquática (Deslocamento de Natação = 2x Deslocamento; respira água); Movimento Vermiforme (passa por espaços de até 2,5cm; gastar 1,5m de movimento permite escapar de uma restrição não mágica ou do efeito Imobilizado); Ver o Invisível (vê criaturas Invisíveis a até 18m, exceto atrás de Cobertura Total); Voo Reluzente (Deslocamento de Voo = Deslocamento; pode pairar).",
+  },
+  {
+    id: "feiticeiro-aberrante-implosao-de-distorcao-18",
+    name: "Implosão de Distorção",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Aberrante",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Ação (Usar Magia): teleporta-se até 36m. Criaturas a até 9m do espaço de origem fazem uma Salvaguarda de Força — falha: sofrem 3d10 de dano Energético e são puxadas para o espaço deixado; sucesso: metade do dano. Uso: 1x/Descanso Longo; recuperação alternativa: gastar 5 Pontos de Feitiçaria.",
+  },
+
+  // ---------- Feitiçaria Dracônica ----------
+  {
+    id: "feiticeiro-draconica-magias-draconicas-3",
+    name: "Magias Dracônicas",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Dracônica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/sorcererAutoPreparedSpells.ts — nunca neste campo): nível 3 — Alterar-se, Comando, Orbe Cromático, Sopro de Dragão; nível 5 — Medo, Voo; nível 7 — Enfeitiçar Monstro, Olho Arcano; nível 9 — Invocar Dragão, Lendas e Histórias.",
+  },
+  {
+    id: "feiticeiro-draconica-resiliencia-draconica-3",
+    name: "Resiliência Dracônica",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Dracônica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Aplicado diretamente ao cálculo de PV e CA (rules/hp.ts#getMaxHitPoints, rules/armor.ts#getArmorClass) — nunca impresso como bloco separado. PV máximo: +3 no nível 3, soma mais +1 a cada nível de Feiticeiro posterior (equivalente a +nível a partir do 3º, calculado corretamente mesmo criando o personagem direto num nível superior). Sem armadura: CA = 10 + modificador de Destreza + modificador de Carisma.",
+  },
+  {
+    id: "feiticeiro-draconica-afinidade-elemental-6",
+    name: "Afinidade Elemental",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Dracônica",
+    level: 6,
+    autoGranted: false,
+    summary:
+      "Escolha obrigatória e duradoura entre Ácido, Elétrico, Fogo, Gelo e Venenoso — resolvida numa etapa PRÓPRIA do Builder ('Afinidade Elemental'), nunca na etapa genérica de Características, porque a fonte não informa troca posterior (tratada como escolha fixa). Concede Resistência ao tipo escolhido; ao conjurar uma magia que cause dano desse tipo, soma o modificador de Carisma em 1 rolagem de dano dessa magia.",
+  },
+  {
+    id: "feiticeiro-draconica-asas-de-dragao-14",
+    name: "Asas de Dragão",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Dracônica",
+    level: 14,
+    autoGranted: true,
+    summary: "Ação Bônus: ganha Deslocamento de Voo de 18m por 1 hora. Uso: 1x/Descanso Longo; recuperação alternativa: gastar 3 Pontos de Feitiçaria.",
+  },
+  {
+    id: "feiticeiro-draconica-companheiro-draconico-18",
+    name: "Companheiro Dracônico",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Dracônica",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Modifica Invocar Dragão (nota na própria magia, área de Magias — rules/sorcererAutoPreparedSpells.ts — nunca bloco impresso separado): pode conjurá-la sem componente Material, 1x sem gastar espaço por Descanso Longo; pode também conjurá-la sem Concentração, com duração de 1 minuto.",
+  },
+
+  // ---------- Feitiçaria Mecânica ----------
+  {
+    id: "feiticeiro-mecanica-magias-mecanicas-3",
+    name: "Magias Mecânicas",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Mecânica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/sorcererAutoPreparedSpells.ts — nunca neste campo): nível 3 — Alarme, Auxílio, Proteção Contra o Bem e o Mal, Restauração Menor; nível 5 — Dissipar Magia, Proteção contra Energia; nível 7 — Invocar Constructo, Movimentação Livre; nível 9 — Muralha de Energia, Restauração Maior.",
+  },
+  {
+    id: "feiticeiro-mecanica-restaurar-equilibrio-3",
+    name: "Restaurar Equilíbrio",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Mecânica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reação: quando uma criatura visível a até 18m vai rolar um d20 com Vantagem ou Desvantagem, remove tanto a Vantagem quanto a Desvantagem dessa jogada. Usos = modificador de Carisma, mínimo 1; recupera todos após Descanso Longo.",
+  },
+  {
+    id: "feiticeiro-mecanica-bastiao-da-lei-6",
+    name: "Bastião da Lei",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Mecânica",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ação (Usar Magia), custo de 1 a 5 Pontos de Feitiçaria: você ou 1 alvo a até 9m ganha um número de dados d8 igual aos Pontos de Feitiçaria gastos. Ao sofrer dano, pode gastar esses dados, rolá-los e reduzir o dano pelo total rolado. Duração: até um Descanso Longo ou até usar de novo.",
+  },
+  {
+    id: "feiticeiro-mecanica-transe-da-ordem-14",
+    name: "Transe da Ordem",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Mecânica",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Ação Bônus, duração 1 minuto: durante esse tempo, ataques contra você nunca ganham Vantagem, e qualquer teste de d20 seu que resultar em 9 ou menos é tratado como 10. Uso: 1x/Descanso Longo; recuperação alternativa: gastar 5 Pontos de Feitiçaria.",
+  },
+  {
+    id: "feiticeiro-mecanica-cavalgada-mecanica-18",
+    name: "Cavalgada Mecânica",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Mecânica",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Ação (Usar Magia), área de 1 Cubo de 9m: distribui até 100 PV de cura entre as criaturas que escolher; encerra magias de 6º círculo ou inferior em criaturas/objetos escolhidos na área; repara inteiramente objetos danificados na área. Uso: 1x/Descanso Longo; recuperação alternativa: gastar 7 Pontos de Feitiçaria.",
+  },
+
+  // ---------- Feitiçaria Selvagem ----------
+  {
+    id: "feiticeiro-selvagem-mares-do-caos-3",
+    name: "Marés do Caos",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Selvagem",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Antes de fazer um teste de d20, pode usar este recurso para ganhar Vantagem nessa jogada. Recupera o uso ao conjurar uma magia de Feiticeiro com espaço de magia, ou após um Descanso Longo. Se conjurar uma magia com espaço antes de recuperar por Descanso Longo (ou seja, logo depois de já ter usado), ocorre automaticamente um Surto de Magia Selvagem e o uso de Marés do Caos é recarregado.",
+  },
+  {
+    id: "feiticeiro-selvagem-surto-de-magia-selvagem-3",
+    name: "Surto de Magia Selvagem",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Selvagem",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "1x por turno, depois de conjurar uma magia de Feiticeiro usando um espaço de magia, pode rolar 1d20: em um resultado de 20, aplica um efeito da tabela de Surto de Magia Selvagem. Se o efeito for uma magia, ela não recebe nenhuma opção de Metamagia. A tabela completa de Surto de Magia Selvagem NÃO foi fornecida por esta fonte — fica marcada como conteúdo pendente (nunca inventada); ver `data/features/sorcerer.ts`/`rules/sorcererSubclassPrintedFeatures.ts` para o ponto de extensão quando a tabela chegar.",
+  },
+  {
+    id: "feiticeiro-selvagem-distorcer-a-sorte-6",
+    name: "Distorcer a Sorte",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Selvagem",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Reação, custo de 1 Ponto de Feitiçaria: depois que outra criatura visível faz um teste de d20, rola 1d4 e aplica o resultado como bônus ou penalidade (+1d4 ou -1d4) ao total daquele teste.",
+  },
+  {
+    id: "feiticeiro-selvagem-caos-controlado-14",
+    name: "Caos Controlado",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Selvagem",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Atualiza Surto de Magia Selvagem — nunca um bloco impresso separado. Ao acionar a tabela de Surto, em vez de 1 resultado só, rola 2 vezes e escolhe qual dos 2 resultados aplicar.",
+  },
+  {
+    id: "feiticeiro-selvagem-surto-controlado-18",
+    name: "Surto Controlado",
+    sourceType: "subclass",
+    subclassFullName: "Feitiçaria Selvagem",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Atualiza Surto de Magia Selvagem de novo — nunca um bloco impresso separado. 1x/Descanso Longo, depois de conjurar uma magia de Feiticeiro com espaço de magia, pode escolher o efeito desejado da tabela de Surto de Magia Selvagem em vez de rolar, exceto a última linha da tabela; se o efeito escolhido exigir uma rolagem própria, essa rolagem continua sendo feita normalmente.",
   },
 ];

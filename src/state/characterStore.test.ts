@@ -306,6 +306,35 @@ describe("useCharacterStore — Formas Conhecidas de Forma Selvagem (Druida)", (
   });
 });
 
+describe("useCharacterStore — Metamagia (Feiticeiro)", () => {
+  it("addMetamagicOption adiciona 1 opção, sem duplicar", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("feiticeiro");
+    store.addMetamagicOption("sutil");
+    store.addMetamagicOption("sutil");
+    expect(useCharacterStore.getState().character.knownMetamagicOptions).toEqual(["sutil"]);
+  });
+
+  it("removeMetamagicOption remove só a opção informada", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("feiticeiro");
+    store.addMetamagicOption("sutil");
+    store.addMetamagicOption("distante");
+    store.removeMetamagicOption("sutil");
+    expect(useCharacterStore.getState().character.knownMetamagicOptions).toEqual(["distante"]);
+  });
+
+  it("trocar de classe para fora de Feiticeiro limpa as opções conhecidas, igual às Invocações Místicas do Bruxo", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("feiticeiro");
+    store.addMetamagicOption("sutil");
+    expect(useCharacterStore.getState().character.knownMetamagicOptions).toHaveLength(1);
+
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.knownMetamagicOptions).toEqual([]);
+  });
+});
+
 describe("useCharacterStore — antecedente (fontes de proficiência, §1.1)", () => {
   it("marca as 2 perícias do antecedente escolhido", () => {
     const store = useCharacterStore.getState();

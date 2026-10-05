@@ -180,6 +180,16 @@ export interface Character {
 
   /** Formas Conhecidas de Forma Selvagem do Druida — ver `KnownWildShapeForm`. */
   knownWildShapeForms: KnownWildShapeForm[];
+
+  /**
+   * Opções de Metamagia conhecidas do Feiticeiro (ids de
+   * `data/metamagic.ts#metamagicOptions`) — etapa própria do Builder,
+   * fora de `featureChoiceSelections` pelo mesmo motivo de
+   * `chosenInvocations`/`knownWildShapeForms`: a quantidade exigida
+   * varia por nível e nunca pode haver duplicata, o que não cabe no
+   * modelo genérico de `FeatureChoice`.
+   */
+  knownMetamagicOptions: string[];
 }
 
 export interface ChosenInvocation {
@@ -270,5 +280,6 @@ export function createBlankCharacter(id: string): Character {
     chosenFeatIds: [],
     chosenInvocations: [],
     knownWildShapeForms: [],
+    knownMetamagicOptions: [],
   };
 }

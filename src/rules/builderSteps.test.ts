@@ -136,6 +136,62 @@ describe("isStepVisible — Terreno do Círculo da Terra (condicional, só Círc
   });
 });
 
+describe("isStepVisible — Metamagia (condicional, só para Feiticeiro a partir do nível 2)", () => {
+  it("some para qualquer classe que não seja Feiticeiro", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "mago";
+    character.level = 5;
+    expect(isStepVisible("metamagic", character)).toBe(false);
+  });
+
+  it("some para Feiticeiro nível 1 (Metamagia ainda não concedida)", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 1;
+    expect(isStepVisible("metamagic", character)).toBe(false);
+  });
+
+  it("aparece para Feiticeiro a partir do nível 2", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 2;
+    expect(isStepVisible("metamagic", character)).toBe(true);
+  });
+});
+
+describe("isStepVisible — Afinidade Elemental (condicional, só Feitiçaria Dracônica a partir do nível 6)", () => {
+  it("some sem subclasse", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 10;
+    expect(isStepVisible("elementalAffinity", character)).toBe(false);
+  });
+
+  it("some para outra subclasse de Feiticeiro", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 10;
+    character.subclassId = "Feitiçaria Selvagem";
+    expect(isStepVisible("elementalAffinity", character)).toBe(false);
+  });
+
+  it("some antes do nível 6 mesmo com Feitiçaria Dracônica", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 5;
+    character.subclassId = "Feitiçaria Dracônica";
+    expect(isStepVisible("elementalAffinity", character)).toBe(false);
+  });
+
+  it("aparece para Feitiçaria Dracônica a partir do nível 6", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 6;
+    character.subclassId = "Feitiçaria Dracônica";
+    expect(isStepVisible("elementalAffinity", character)).toBe(true);
+  });
+});
+
 describe("getVisibleSteps", () => {
   it("personagem em branco: 8 das 14 etapas (sem Subclasse/Formas Conhecidas/Terreno/Talentos/Invocações/Conjuração)", () => {
     const character = createBlankCharacter("step-test");
@@ -215,6 +271,36 @@ describe("getVisibleSteps", () => {
     character.classId = "druida";
     character.level = 14;
     character.subclassId = "Círculo da Terra";
+    const steps = getVisibleSteps(character);
+    const indices = steps.map((s) => BUILDER_STEP_ORDER.indexOf(s));
+    expect(indices).toEqual([...indices].sort((a, b) => a - b));
+  });
+
+  it("Feiticeiro nível 2 sem subclasse: soma Metamagia, mas nunca Subclasse/Afinidade Elemental ainda", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 2;
+    const steps = getVisibleSteps(character);
+    expect(steps).toContain("metamagic");
+    expect(steps).not.toContain("subclass");
+    expect(steps).not.toContain("elementalAffinity");
+  });
+
+  it("Feiticeiro/Feitiçaria Dracônica nível 6: soma também Afinidade Elemental", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 6;
+    character.subclassId = "Feitiçaria Dracônica";
+    const steps = getVisibleSteps(character);
+    expect(steps).toContain("metamagic");
+    expect(steps).toContain("elementalAffinity");
+  });
+
+  it("Feiticeiro/Feitiçaria Dracônica nível 6: respeita a ordem canônica também com as 2 etapas de Metamagia/Afinidade Elemental", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "feiticeiro";
+    character.level = 6;
+    character.subclassId = "Feitiçaria Dracônica";
     const steps = getVisibleSteps(character);
     const indices = steps.map((s) => BUILDER_STEP_ORDER.indexOf(s));
     expect(indices).toEqual([...indices].sort((a, b) => a - b));

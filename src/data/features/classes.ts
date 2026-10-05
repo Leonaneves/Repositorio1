@@ -5,6 +5,7 @@ import { barbarianClassFeatures, barbarianWeaponMasteryFeatures } from "./barbar
 import { bardClassFeatures } from "./bard.js";
 import { clericClassFeatures } from "./cleric.js";
 import { druidClassFeatures } from "./druid.js";
+import { sorcererClassFeatures } from "./sorcerer.js";
 import { warlockClassFeatures } from "./warlock.js";
 
 /**
@@ -142,18 +143,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/cleric.ts).
   // Druida removido daqui — fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/druid.ts).
-  feiticeiro: [
-    { name: "Conjuração", level: 1 },
-    { name: "Feitiçaria Inata", level: 1 },
-    { name: "Fonte de Magia", level: 2 },
-    { name: "Metamagia", level: 2 },
-    { name: "Opções de Metamagia", level: 2 },
-    { name: "Restauração Feiticeira", level: 5 },
-    { name: "Feitiçaria Encarnada", level: 7 },
-    { name: "Metamagia", level: 10 },
-    { name: "Metamagia", level: 17 },
-    { name: "Apoteose Arcana", level: 20 },
-  ],
+  // Feiticeiro removido daqui — fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E
+  // SUBCLASSES" tem conteúdo mecânico completo, não só nome+nível pendente (ver data/features/sorcerer.ts).
   guerreiro: [
     { name: "Estilo de Luta", level: 1 },
     { name: "Maestria em Arma", level: 1 },
@@ -279,8 +270,8 @@ const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
  * nível 19. Artífice fica de fora: a fonte própria do Artífice dá
  * "Aumento no Valor de Atributo" no nível 19 (ver `ASI_LEVELS_BY_CLASS`)
  * e "Alma do Artífice" no nível 20 como capstone — nunca Dádiva Épica.
- * Bárbaro/Bardo/Bruxo/Clérigo/Druida continuam incluídos
- * (`ASI_LEVELS_BY_CLASS` fica em 4/8/12/16, igual às outras 8) mesmo
+ * Bárbaro/Bardo/Bruxo/Clérigo/Druida/Feiticeiro continuam incluídos
+ * (`ASI_LEVELS_BY_CLASS` fica em 4/8/12/16, igual às outras 7) mesmo
  * tendo saído de `NAMED_FEATURES_BY_CLASS` — por isso são somados
  * explicitamente aqui, não lidos mais dali.
  */
@@ -291,6 +282,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   "bruxo",
   "clerigo",
   "druida",
+  "feiticeiro",
 ];
 
 function slugify(text: string): string {
@@ -449,5 +441,6 @@ export const classFeatures: FeatureDefinition[] = [
   ...bardClassFeatures,
   ...clericClassFeatures,
   ...druidClassFeatures,
+  ...sorcererClassFeatures,
   ...warlockClassFeatures,
 ];

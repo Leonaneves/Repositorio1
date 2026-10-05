@@ -40,6 +40,8 @@ import { getClericAutoPreparedSpells } from "../rules/clericAutoPreparedSpells.j
 import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
 import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js";
 import { getDruidAutoPreparedSpells } from "../rules/druidAutoPreparedSpells.js";
+import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
+import { getSorcererAutoPreparedSpells } from "../rules/sorcererAutoPreparedSpells.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockAutoPreparedSpells } from "../rules/warlockAutoPreparedSpells.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
@@ -228,11 +230,12 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * (fonte "INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES"), Bardo (fonte
  * "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES"), Bruxo (fonte
  * "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES"),
- * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES") e
- * Druida (fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES") têm o
- * texto impresso montado dinamicamente; as demais 8 classes continuam
- * com o campo manual de sempre (`Character.classFeatures`), sem
- * nenhuma mudança de comportamento.
+ * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES"), Druida
+ * (fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES") e Feiticeiro
+ * (fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES")
+ * têm o texto impresso montado dinamicamente; as demais 7 classes
+ * continuam com o campo manual de sempre (`Character.classFeatures`),
+ * sem nenhuma mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -253,6 +256,10 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   }
   if (character.classId === "druida") {
     const [column1, column2] = splitIntoTwoColumns(getDruidPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  if (character.classId === "feiticeiro") {
+    const [column1, column2] = splitIntoTwoColumns(getSorcererPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
@@ -358,7 +365,8 @@ function getEffectiveLanguages(character: Character): string {
  * Domínio das 4 subclasses + Truque extra de Taumaturgo do Clérigo —
  * `getClericAutoPreparedSpells`; Falar com Animais/Convocar Familiar/
  * Magias de Círculo/Mapa Estelar/Truque de Xamã do Druida —
- * `getDruidAutoPreparedSpells`; magias sempre preparadas dos 4
+ * `getDruidAutoPreparedSpells`; Magias das 4 subclasses de Feiticeiro
+ * — `getSorcererAutoPreparedSpells`; magias sempre preparadas dos 4
  * Patronos + Contatar Patrono + invocações que concedem magia do Bruxo
  * — `getWarlockAutoPreparedSpells`) primeiro, seguidas da lista manual
  * do jogador. Nunca grava as auto-concedidas
@@ -372,6 +380,7 @@ function getEffectiveSpellsPrepared(character: Character) {
     ...getBardAutoPreparedSpells(character),
     ...getClericAutoPreparedSpells(character),
     ...getDruidAutoPreparedSpells(character),
+    ...getSorcererAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
     ...character.spellsPrepared,
   ];

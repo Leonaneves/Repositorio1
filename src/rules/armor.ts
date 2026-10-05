@@ -30,6 +30,9 @@ export function getAvailableArmor(character: Character): ArmorDefinition[] {
  * - Sem armadura, Monge sem escudo: `10 + DEX + SAB`
  * - Sem armadura, Monge com escudo: `10 + DEX + 2` (perde a defesa sem
  *   armadura do Monge; usa a CA normal + escudo)
+ * - Sem armadura, Feiticeiro/Feitiçaria Dracônica (Resiliência
+ *   Dracônica, fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E
+ *   SUBCLASSES" §35): `10 + DEX + CAR` (+2 se escudo)
  * - Armadura leve: base + DEX inteiro
  * - Armadura média: base + DEX limitado a +2
  * - Armadura pesada: valor fixo (sem DEX)
@@ -39,6 +42,7 @@ export function getArmorClass(character: Character): ComputedValue {
   const dexMod = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
   const conMod = getAbilityModifier(getEffectiveAbilityScore(character, "CON"));
   const wisMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  const carMod = getAbilityModifier(getEffectiveAbilityScore(character, "CAR"));
   const hasShield = character.armor.shield;
 
   let auto: number;
@@ -50,6 +54,8 @@ export function getArmorClass(character: Character): ComputedValue {
       auto = 10 + dexMod + wisMod;
     } else if (character.classId === "monge" && hasShield) {
       auto = 10 + dexMod + SHIELD_AC_BONUS;
+    } else if (character.classId === "feiticeiro" && character.subclassId === "Feitiçaria Dracônica") {
+      auto = 10 + dexMod + carMod + (hasShield ? SHIELD_AC_BONUS : 0);
     } else {
       auto = 10 + dexMod + (hasShield ? SHIELD_AC_BONUS : 0);
     }

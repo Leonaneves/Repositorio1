@@ -1,0 +1,128 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 1, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Todos/DL",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 2, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/2; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 5, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/5; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 2 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 7, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/7; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 3 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 10, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/10; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 5 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 17, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/17; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 8 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta
+> Buscadora 1PF: Atq magia erra -> rerrole d20, use novo; combina com outra Meta
+> Transmutada 1PF: Ácido/Elétrico/Fogo/Gelo/Trovejante/Venenoso -> outro da lista",
+]
+`;
+
+exports[`snapshots do texto impresso por nível (Feiticeiro puro, sem subclasse) > nível 20, com Sutil+Distante (+mais conforme o nível) 1`] = `
+[
+  "#Feitiçaria Inata [__][__]
+AB, 1 min: CD magia +1; Vant Atq magia
+Sem usos: 2PF -> ativar
+Ativa: até 2 Meta por magia; 1 Meta/turno = 0 PF
+Todos/DL",
+  "#Fonte de Magia
+PF: ___/20; todos/DL
+Espaço -> PF = círculo
+AB, PF -> espaço: 1o=2, 2o=3, 3o=5, 4o=6, 5o=7; conforme Nv
+Espaços criados somem/DL
+> [__] DC: recupere até 10 PF. 1/DL",
+  "#Metamagia
+> Sutil 1PF: sem V/S/M, exc M consumido/com custo
+> Distante 1PF: alcance >=1,5m x2; Toque -> 9m
+> Cautelosa 1PF: até CAR alvos, mín 1, passam Salv; 0 dano se sucesso daria 1/2
+> Potencializada 1PF: rerrole até CAR dados de dano, mín 1; use novos; combina com outra Meta
+> Buscadora 1PF: Atq magia erra -> rerrole d20, use novo; combina com outra Meta
+> Transmutada 1PF: Ácido/Elétrico/Fogo/Gelo/Trovejante/Venenoso -> outro da lista",
+]
+`;
