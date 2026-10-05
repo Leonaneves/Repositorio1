@@ -4,6 +4,7 @@ import { getSkillProficiency } from "../rules/skills.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { getWildShapeFormsConfig } from "../rules/wildShapeForms.js";
+import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -332,6 +333,67 @@ describe("useCharacterStore — Metamagia (Feiticeiro)", () => {
 
     store.setClass("mago");
     expect(useCharacterStore.getState().character.knownMetamagicOptions).toEqual([]);
+  });
+});
+
+describe("useCharacterStore — Terreno do Círculo da Terra / Afinidade Elemental são limpos ao trocar de subclasse/classe/nível (CONSOLIDAÇÃO DO BUILDER §10/§11)", () => {
+  it("trocar de 'Círculo da Terra' para outra subclasse de Druida limpa o Terreno escolhido", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.setLevel(3);
+    store.setSubclass("Círculo da Terra");
+    store.setFeatureChoiceSelection(EARTH_CIRCLE_TERRAIN_CHOICE_ID, "Tropical");
+    expect(useCharacterStore.getState().character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]?.value).toBe("Tropical");
+
+    store.setSubclass("Círculo da Lua");
+    expect(useCharacterStore.getState().character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]).toBeUndefined();
+  });
+
+  it("baixar o nível abaixo de 3 (limpando a subclasse) também limpa o Terreno escolhido", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.setLevel(3);
+    store.setSubclass("Círculo da Terra");
+    store.setFeatureChoiceSelection(EARTH_CIRCLE_TERRAIN_CHOICE_ID, "Árido");
+
+    store.setLevel(2);
+    expect(useCharacterStore.getState().character.subclassId).toBeNull();
+    expect(useCharacterStore.getState().character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]).toBeUndefined();
+  });
+
+  it("trocar de classe para fora de Feiticeiro limpa a Afinidade Elemental escolhida", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("feiticeiro");
+    store.setLevel(6);
+    store.setSubclass("Feitiçaria Dracônica");
+    store.setFeatureChoiceSelection(ELEMENTAL_AFFINITY_CHOICE_ID, "Fogo");
+    expect(useCharacterStore.getState().character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID]?.value).toBe("Fogo");
+
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID]).toBeUndefined();
+  });
+
+  it("trocar de 'Feitiçaria Dracônica' para outra subclasse de Feiticeiro limpa a Afinidade Elemental escolhida", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("feiticeiro");
+    store.setLevel(6);
+    store.setSubclass("Feitiçaria Dracônica");
+    store.setFeatureChoiceSelection(ELEMENTAL_AFFINITY_CHOICE_ID, "Gelo");
+
+    store.setSubclass("Feitiçaria Selvagem");
+    expect(useCharacterStore.getState().character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID]).toBeUndefined();
+  });
+
+  it("não toca em outras featureChoiceSelections independentes ao limpar (§10: nunca apagar informação independente)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("druida");
+    store.setLevel(3);
+    store.setSubclass("Círculo da Terra");
+    store.setFeatureChoiceSelection(EARTH_CIRCLE_TERRAIN_CHOICE_ID, "Polar");
+    store.setFeatureChoiceSelection(ORDEM_PRIMAL_CHOICE_ID, "Xamã");
+
+    store.setSubclass("Círculo da Lua");
+    expect(useCharacterStore.getState().character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID]?.value).toBe("Xamã");
   });
 });
 

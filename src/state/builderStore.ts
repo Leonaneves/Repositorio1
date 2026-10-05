@@ -6,12 +6,7 @@ import {
   type DraftAbilityScores,
 } from "../rules/abilityGeneration.js";
 import { BUILDER_STEP_ORDER, getVisibleSteps, type BuilderStepId } from "../rules/builderSteps.js";
-import { getIncompleteRequiredChoices } from "../rules/features.js";
-import { isInvocationSelectionComplete } from "../rules/invocations.js";
-import { isStartingEquipmentResolved } from "../rules/startingEquipment.js";
-import { isWildShapeFormSelectionComplete } from "../rules/wildShapeForms.js";
-import { isMetamagicSelectionComplete } from "../rules/metamagic.js";
-import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, EARTH_CIRCLE_TERRAIN_OPTIONS, ELEMENTAL_AFFINITY_CHOICE_ID, ELEMENTAL_AFFINITY_OPTIONS } from "../data/features/subclasses.js";
+import { getStepBlockers } from "../rules/builderProgress.js";
 import { useCharacterStore } from "./characterStore.js";
 
 export type { AbilityGenerationMode };
@@ -52,16 +47,14 @@ interface BuilderStore {
   isLastStep: () => boolean;
   /**
    * Se a etapa ATUAL já resolveu toda decisão obrigatória dela (decisão
-   * §5/§11: nunca só "classe já selecionada"). Etapas com essa checagem:
-   * "featuresAndTalents" (escolhas de perícia/ferramenta de classe, via
-   * `rules/features.ts#getIncompleteRequiredChoices`), "invocations"
-   * (quantidade/validade das Invocações Místicas do Bruxo, via
-   * `rules/invocations.ts#isInvocationSelectionComplete`) e "equipment"
-   * (opção de equipamento inicial A/B/C, via
-   * `rules/startingEquipment.ts#isStartingEquipmentResolved`) — as
-   * demais etapas continuam sem trava adicional.
+   * §5/§11: nunca só "classe já selecionada") — delega 100% para
+   * `rules/builderProgress.ts#getStepBlockers`, nunca reimplementa a
+   * validação aqui (mesma lista de motivos que a Revisão usa para o
+   * banner de pendências).
    */
   canAdvance: () => boolean;
+  /** Os motivos (se houver) pelos quais a etapa ATUAL não pode avançar — usado pelo hint do `BuilderWizard`. */
+  currentStepBlockers: () => string[];
 }
 
 export const useBuilderStore = create<BuilderStore>((set, get) => ({
@@ -129,22 +122,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     return steps.indexOf(get().currentStepId) === steps.length - 1;
   },
 
-  canAdvance: () => {
+  canAdvance: () => get().currentStepBlockers().length === 0,
+
+  currentStepBlockers: () => {
     const currentStepId = get().currentStepId;
     const character = useCharacterStore.getState().character;
-    if (currentStepId === "featuresAndTalents") return getIncompleteRequiredChoices(character).length === 0;
-    if (currentStepId === "invocations") return isInvocationSelectionComplete(character);
-    if (currentStepId === "equipment") return isStartingEquipmentResolved(character);
-    if (currentStepId === "wildShapeForms") return isWildShapeFormSelectionComplete(character);
-    if (currentStepId === "earthCircleTerrain") {
-      const selection = character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]?.value;
-      return typeof selection === "string" && (EARTH_CIRCLE_TERRAIN_OPTIONS as readonly string[]).includes(selection);
-    }
-    if (currentStepId === "elementalAffinity") {
-      const selection = character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID]?.value;
-      return typeof selection === "string" && (ELEMENTAL_AFFINITY_OPTIONS as readonly string[]).includes(selection);
-    }
-    if (currentStepId === "metamagic") return isMetamagicSelectionComplete(character);
-    return true;
+    return getStepBlockers(currentStepId, character);
   },
 }));

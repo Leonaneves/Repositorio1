@@ -30,21 +30,16 @@ import {
 import { getSkillProficiency } from "../rules/skills.js";
 import { getBarbarianPrintedBlocks } from "../rules/barbarianPrintedFeatures.js";
 import { getBarbarianWeaponMasteryEntries } from "../rules/barbarianWeaponMastery.js";
-import { getBarbarianRitualSpells } from "../rules/barbarianRitualSpells.js";
 import { getBardPrintedBlocks } from "../rules/bardPrintedFeatures.js";
 import { getBardWeaponProficiencyEntries } from "../rules/bardSubclassProficiencies.js";
-import { getBardAutoPreparedSpells } from "../rules/bardAutoPreparedSpells.js";
 import { getClericPrintedBlocks } from "../rules/clericPrintedFeatures.js";
 import { getClericWeaponProficiencyEntries } from "../rules/clericProficiencies.js";
-import { getClericAutoPreparedSpells } from "../rules/clericAutoPreparedSpells.js";
 import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
 import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js";
-import { getDruidAutoPreparedSpells } from "../rules/druidAutoPreparedSpells.js";
 import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
-import { getSorcererAutoPreparedSpells } from "../rules/sorcererAutoPreparedSpells.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
-import { getWarlockAutoPreparedSpells } from "../rules/warlockAutoPreparedSpells.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
+import { getEffectiveSpellsPrepared } from "../rules/effectiveSpellsPrepared.js";
 import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
@@ -354,36 +349,6 @@ function getEffectiveLanguages(character: Character): string {
   if (character.classId !== "druida") return character.languages;
   if (character.languages.toLowerCase().includes("druídico")) return character.languages;
   return character.languages.trim() ? `Druídico, ${character.languages}` : "Druídico";
-}
-
-/**
- * Lista efetiva de magias preparadas para o PDF: magias concedidas
- * automaticamente por subclasse/classe (Arauto da Fauna/Natureza do
- * Caminho do Coração Selvagem — `getBarbarianRitualSpells`; Magia
- * Fascinante/Manto de Majestade do Colégio do Glamour e Palavras de
- * Criação do Bardo base — `getBardAutoPreparedSpells`; Magias de
- * Domínio das 4 subclasses + Truque extra de Taumaturgo do Clérigo —
- * `getClericAutoPreparedSpells`; Falar com Animais/Convocar Familiar/
- * Magias de Círculo/Mapa Estelar/Truque de Xamã do Druida —
- * `getDruidAutoPreparedSpells`; Magias das 4 subclasses de Feiticeiro
- * — `getSorcererAutoPreparedSpells`; magias sempre preparadas dos 4
- * Patronos + Contatar Patrono + invocações que concedem magia do Bruxo
- * — `getWarlockAutoPreparedSpells`) primeiro, seguidas da lista manual
- * do jogador. Nunca grava as auto-concedidas
- * de volta em `character.spellsPrepared` — só compõe no momento da
- * exportação, igual ao padrão já usado para texto automático em
- * `rules/proficiencyText.ts`.
- */
-function getEffectiveSpellsPrepared(character: Character) {
-  return [
-    ...getBarbarianRitualSpells(character),
-    ...getBardAutoPreparedSpells(character),
-    ...getClericAutoPreparedSpells(character),
-    ...getDruidAutoPreparedSpells(character),
-    ...getSorcererAutoPreparedSpells(character),
-    ...getWarlockAutoPreparedSpells(character),
-    ...character.spellsPrepared,
-  ];
 }
 
 /** Até 34 magias preparadas — o PDF-molde reserva essas 34 linhas (`circulo1.N`/`nome.magia.1.N`/`alcance.magia.N`/`notas.magia.1.N`). */

@@ -801,6 +801,12 @@ select:focus-visible {
 .builder-wizard__nav-hint {
   font-size: var(--text-xs);
   color: var(--danger);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .builder-wizard__dev-demo {
@@ -966,6 +972,42 @@ select:focus-visible {
 .review-spell-slots {
   font-size: var(--text-sm);
   margin: var(--space-2xs) 0 0;
+}
+
+.review-block--pending {
+  border: var(--border-width) solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  background: var(--field-bg);
+}
+
+.review-pending-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  font-size: var(--text-sm);
+}
+
+.review-pending-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.review-subsection {
+  margin-bottom: var(--space-sm);
+}
+
+.review-subsection h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-3xs);
 }
 
 @media (max-width: 720px) {

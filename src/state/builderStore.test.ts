@@ -8,6 +8,12 @@ beforeEach(() => {
   useBuilderStore.setState({ abilityGenerationMode: "standardArray", draftScores: {}, currentStepId: "basicInfo" });
 });
 
+/** Preenche os 6 atributos com o Array Padrão — usado para "passar" a etapa 'abilities' em testes que focam outra etapa. */
+function setValidAbilities(): void {
+  const setAbilityScore = useCharacterStore.getState().setAbilityScore;
+  (["FOR", "DEX", "CON", "INT", "SAB", "CAR"] as const).forEach((ability, i) => setAbilityScore(ability, [15, 14, 13, 12, 10, 8][i]));
+}
+
 describe("useBuilderStore — modo de geração de atributos", () => {
   it("começa em Array Padrão por padrão (decisão aprovada §9)", () => {
     expect(useBuilderStore.getState().abilityGenerationMode).toBe("standardArray");
@@ -99,6 +105,7 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
 
   it("goNext avança para a próxima etapa visível", () => {
     const store = useBuilderStore.getState();
+    useCharacterStore.getState().setBackground("acolito");
     store.goToStep("background");
     store.goNext();
     expect(useBuilderStore.getState().currentStepId).toBe("abilities");
@@ -121,6 +128,7 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
   it("pula etapas condicionais que desapareceram (ex.: Subclasse ao avançar de 'species' num Bárbaro nível 1)", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("barbaro"); // nível 1, sem acesso a Subclasse ainda
+    useCharacterStore.getState().setSpecies("humano");
     store.goToStep("species");
     store.goNext();
     expect(useBuilderStore.getState().currentStepId).toBe("background"); // pula "subclass"
@@ -146,6 +154,7 @@ describe("useBuilderStore — canAdvance/goNext travam em 'featuresAndTalents' c
   it("canAdvance() é true fora da etapa 'featuresAndTalents', mesmo com escolhas pendentes em outras classes/etapas", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro"); // tem Perícias de Classe pendente
+    setValidAbilities();
     store.goToStep("abilities");
     expect(store.canAdvance()).toBe(true);
   });
@@ -226,6 +235,7 @@ describe("useBuilderStore — canAdvance/goNext travam em 'invocations' enquanto
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("bruxo");
     useCharacterStore.getState().setLevel(5);
+    setValidAbilities();
     store.goToStep("abilities");
     expect(store.canAdvance()).toBe(true);
   });
@@ -264,6 +274,7 @@ describe("useBuilderStore — canAdvance/goNext travam em 'metamagic' enquanto a
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("feiticeiro");
     useCharacterStore.getState().setLevel(2);
+    setValidAbilities();
     store.goToStep("abilities");
     expect(store.canAdvance()).toBe(true);
   });

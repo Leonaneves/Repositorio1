@@ -11,6 +11,7 @@ import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, Spell
 import { classes } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
+import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getAvailableArmor } from "../rules/armor.js";
 import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
@@ -61,6 +62,35 @@ function clampSpellSlotsExpended(character: Character): Character {
 }
 
 /**
+ * Terreno do Círculo da Terra / Afinidade Elemental são escolhas
+ * duradouras guardadas em `featureChoiceSelections`, mas FORA do
+ * mecanismo genérico de `FeatureChoice` (ver `rules/builderSteps.ts` —
+ * etapa própria, sem `choices` na `FeatureDefinition` para não
+ * registrar 2x na etapa "Características e Talentos"). Por isso, ao
+ * contrário das escolhas genéricas (que simplesmente desaparecem de
+ * `getCharacterFeatures` quando a subclasse muda, sem precisar de
+ * limpeza), essas duas precisam ser apagadas explicitamente sempre que
+ * a subclasse deixar de ser a dona delas — "trocar Subclasse -> limpar
+ * somente escolhas específicas da subclasse anterior" (fonte
+ * "CONSOLIDAÇÃO DO BUILDER" §10/§11). Chamada depois de qualquer troca
+ * de nível/classe/subclasse.
+ */
+function clearStaleSubclassOwnedChoices(character: Character): Character {
+  const featureChoiceSelections = { ...character.featureChoiceSelections };
+  let changed = false;
+  if (character.subclassId !== "Círculo da Terra" && EARTH_CIRCLE_TERRAIN_CHOICE_ID in featureChoiceSelections) {
+    delete featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID];
+    changed = true;
+  }
+  if (character.subclassId !== "Feitiçaria Dracônica" && ELEMENTAL_AFFINITY_CHOICE_ID in featureChoiceSelections) {
+    delete featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID];
+    changed = true;
+  }
+  if (!changed) return character;
+  return { ...character, featureChoiceSelections };
+}
+
+/**
  * Efeitos colaterais da troca de classe, extraídos do comportamento do
  * PDF original: zera TODAS as salvaguardas e proficiências de armadura
  * e marca só as da nova classe. Isso permanece seguro porque, neste
@@ -107,6 +137,7 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
 
   next = clampEquippedArmor(next);
   next = clampSpellSlotsExpended(next);
+  next = clearStaleSubclassOwnedChoices(next);
   return next;
 }
 
@@ -264,7 +295,8 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   setLevel: (level) =>
     set((state) => {
       const subclassId = canChooseSubclass(level) ? state.character.subclassId : null;
-      return { character: clampSpellSlotsExpended({ ...state.character, level, subclassId }) };
+      const character = clearStaleSubclassOwnedChoices(clampSpellSlotsExpended({ ...state.character, level, subclassId }));
+      return { character };
     }),
 
   setClass: (classId) => set((state) => ({ character: applyClassChange(state.character, classId) })),
@@ -272,7 +304,9 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   setSubclass: (subclassId) =>
     set((state) => {
       if (!canChooseSubclass(state.character.level)) return state;
-      const character = applyBardSubclassProficiencies(clampSpellSlotsExpended({ ...state.character, subclassId }));
+      const character = clearStaleSubclassOwnedChoices(
+        applyBardSubclassProficiencies(clampSpellSlotsExpended({ ...state.character, subclassId })),
+      );
       return { character };
     }),
 
