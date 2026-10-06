@@ -15,7 +15,7 @@ export interface SkillRowProps {
   skillId: SkillKey;
 }
 
-const ORIGIN_LABELS = { background: "Antecedente", class: "Classe", manual: "Manual" } as const;
+const ORIGIN_LABELS = { background: "Antecedente", class: "Classe", species: "Espécie", manual: "Manual" } as const;
 
 /**
  * Uma linha de perícia — usada dentro do card do atributo que a
@@ -44,7 +44,7 @@ export function SkillRow({ skillId }: SkillRowProps) {
       <label
         className="trait-row__check"
         title={
-          !homebrew && (origin === "background" || origin === "class")
+          !homebrew && (origin === "background" || origin === "class" || origin === "species")
             ? "Proficiência automática — ative o modo Homebrew para editar manualmente"
             : undefined
         }

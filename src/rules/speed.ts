@@ -1,6 +1,7 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { species } from "../data/species.js";
+import { getSpeciesLineageSpeedBonus } from "./speciesLineage.js";
 
 /**
  * Bônus de deslocamento concedido pela classe.
@@ -37,15 +38,18 @@ export function getClassSpeedBonus(character: Character): number {
 }
 
 /**
- * Deslocamento = deslocamento base da espécie + bônus de classe/nível
- * (ver `getClassSpeedBonus`) + ajuste manual. Decisão do projeto: ao
- * contrário do PDF original (onde era 100% manual), a versão web
- * calcula automaticamente, mas preserva o ajuste manual do jogador.
+ * Deslocamento = deslocamento base da espécie + bônus de Linhagem
+ * (ex.: Elfo da Floresta, +1,5m — `getSpeciesLineageSpeedBonus`) +
+ * bônus de classe/nível (ver `getClassSpeedBonus`) + ajuste manual.
+ * Decisão do projeto: ao contrário do PDF original (onde era 100%
+ * manual), a versão web calcula automaticamente, mas preserva o
+ * ajuste manual do jogador.
  */
 export function getSpeed(character: Character): ComputedValue {
   const speciesSpeed = character.speciesId ? species[character.speciesId].baseSpeed : 0;
+  const lineageBonus = getSpeciesLineageSpeedBonus(character);
   const classBonus = getClassSpeedBonus(character);
-  const auto = speciesSpeed + classBonus;
+  const auto = speciesSpeed + lineageBonus + classBonus;
   return computedValue(auto, character.speed.manualAdjustment);
 }
 

@@ -442,6 +442,53 @@ describe("useCharacterStore — antecedente (fontes de proficiência, §1.1)", (
   });
 });
 
+describe("useCharacterStore — Linhagem/Ancestralidade de espécie (fonte \"IMPLEMENTAR LINHAGENS...\" §2)", () => {
+  it("setSpecies limpa a Linhagem/atributo élfico ao trocar de espécie de fato", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("elfo");
+    store.setSpeciesLineage("elfo-drow");
+    store.setElvenLineageSpellcastingAbility("CAR");
+
+    store.setSpecies("tiefling");
+    const character = useCharacterStore.getState().character;
+    expect(character.speciesLineageId).toBeNull();
+    expect(character.elvenLineageSpellcastingAbility).toBeNull();
+  });
+
+  it("setSpecies com o MESMO valor não apaga a linhagem já escolhida (nenhuma mudança real de espécie)", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("draconato");
+    store.setSpeciesLineage("draconato-vermelho");
+
+    store.setSpecies("draconato");
+    expect(useCharacterStore.getState().character.speciesLineageId).toBe("draconato-vermelho");
+  });
+
+  it("setSpeciesLineage/setElvenLineageSpellcastingAbility gravam o valor escolhido e aceitam null", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("elfo");
+    store.setSpeciesLineage("elfo-alto-elfo");
+    store.setElvenLineageSpellcastingAbility("INT");
+    expect(useCharacterStore.getState().character.speciesLineageId).toBe("elfo-alto-elfo");
+    expect(useCharacterStore.getState().character.elvenLineageSpellcastingAbility).toBe("INT");
+
+    store.setSpeciesLineage(null);
+    store.setElvenLineageSpellcastingAbility(null);
+    expect(useCharacterStore.getState().character.speciesLineageId).toBeNull();
+    expect(useCharacterStore.getState().character.elvenLineageSpellcastingAbility).toBeNull();
+  });
+
+  it("trocar de Linhagem Élfica (dentro do Elfo) preserva o atributo já escolhido — não é 'troca de origem'", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("elfo");
+    store.setSpeciesLineage("elfo-alto-elfo");
+    store.setElvenLineageSpellcastingAbility("SAB");
+
+    store.setSpeciesLineage("elfo-floresta");
+    expect(useCharacterStore.getState().character.elvenLineageSpellcastingAbility).toBe("SAB");
+  });
+});
+
 describe("useCharacterStore — ajustes manuais nunca substituem o input automático", () => {
   it("guarda o ajuste manual de iniciativa separado do atributo", () => {
     const store = useCharacterStore.getState();

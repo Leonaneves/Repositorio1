@@ -28,6 +28,37 @@ describe("getSpeed — deslocamento base por espécie", () => {
   });
 });
 
+describe("getSpeed — bônus de Linhagem Élfica (Elfo da Floresta, +1,5m)", () => {
+  it("Elfo da Floresta soma 1,5m ao deslocamento base da espécie (9 + 1,5 = 10,5)", () => {
+    const character = createBlankCharacter("speed-test");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-floresta";
+    expect(getSpeed(character).auto).toBe(10.5);
+  });
+
+  it("Alto Elfo e Drow não recebem o bônus (só Elfo da Floresta)", () => {
+    const altoElfo = createBlankCharacter("speed-test");
+    altoElfo.speciesId = "elfo";
+    altoElfo.speciesLineageId = "elfo-alto-elfo";
+    expect(getSpeed(altoElfo).auto).toBe(9);
+
+    const drow = createBlankCharacter("speed-test");
+    drow.speciesId = "elfo";
+    drow.speciesLineageId = "elfo-drow";
+    expect(getSpeed(drow).auto).toBe(9);
+  });
+
+  it("trocar de linhagem (Floresta → Drow) remove o bônus sem acumular (nunca soma a base de novo)", () => {
+    const character = createBlankCharacter("speed-test");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-floresta";
+    expect(getSpeed(character).auto).toBe(10.5);
+
+    character.speciesLineageId = "elfo-drow";
+    expect(getSpeed(character).auto).toBe(9);
+  });
+});
+
 describe("getClassSpeedBonus — Movimento sem Armadura do Monge", () => {
   function monkAt(level: number) {
     const character = createBlankCharacter("monk-speed-test");

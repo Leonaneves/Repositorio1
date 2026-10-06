@@ -908,8 +908,13 @@ select:focus-visible {
   margin: 0;
 }
 
-.feature-choice {
+.feature-choice,
+.species-lineage {
   margin-top: var(--space-xs);
+}
+
+.species-lineage {
+  margin-bottom: var(--space-sm);
 }
 
 .feature-choice legend {

@@ -31,6 +31,32 @@ describe("getStepBlockers — etapas genéricas exigem o campo correspondente", 
     expect(getStepBlockers("species", { ...character, speciesId: "humano" })).toEqual([]);
   });
 
+  it("'species' (Draconato/Gnomo/Golias/Tiefling) exige a Linhagem/Ancestralidade, com mensagem nomeando a escolha certa", () => {
+    const draconato: Character = { ...blank(), speciesId: "draconato" };
+    expect(getStepBlockers("species", draconato)).toEqual(["Escolha a Ancestral Dracônico para continuar."]);
+    expect(getStepBlockers("species", { ...draconato, speciesLineageId: "draconato-vermelho" })).toEqual([]);
+
+    const gnomo: Character = { ...blank(), speciesId: "gnomo" };
+    expect(getStepBlockers("species", gnomo)).toEqual(["Escolha a Linhagem Gnômica para continuar."]);
+
+    const golias: Character = { ...blank(), speciesId: "golias" };
+    expect(getStepBlockers("species", golias)).toEqual(["Escolha a Ancestralidade Gigante para continuar."]);
+
+    const tiefling: Character = { ...blank(), speciesId: "tiefling" };
+    expect(getStepBlockers("species", tiefling)).toEqual(["Escolha a Linhagem Infernal para continuar."]);
+  });
+
+  it("'species' (Elfo) exige a Linhagem Élfica E o atributo de conjuração — mensagens diferentes para cada pendência", () => {
+    const character: Character = { ...blank(), speciesId: "elfo" };
+    expect(getStepBlockers("species", character)).toEqual(["Escolha a Linhagem Élfica para continuar."]);
+
+    const comLinhagem: Character = { ...character, speciesLineageId: "elfo-drow" };
+    expect(getStepBlockers("species", comLinhagem)).toEqual(["Escolha o atributo de conjuração da Linhagem Élfica."]);
+
+    const completo: Character = { ...comLinhagem, elvenLineageSpellcastingAbility: "CAR" };
+    expect(getStepBlockers("species", completo)).toEqual([]);
+  });
+
   it("'background' bloqueia sem backgroundId; com backgroundId, ainda exige distribuir os Aumentos de Atributo", () => {
     const character = blank();
     expect(getStepBlockers("background", character)).toEqual(["Escolha um antecedente para continuar."]);

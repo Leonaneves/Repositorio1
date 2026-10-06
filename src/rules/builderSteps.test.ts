@@ -44,6 +44,21 @@ describe("isStepVisible — Conjuração (condicional, depende do atributo de co
     character.backgroundId = "sabio";
     expect(isStepVisible("spellcasting", character)).toBe(true);
   });
+
+  it("aparece para Guerreiro + Tiefling, mesmo sem conjuração de classe/antecedente (fonte \"IMPLEMENTAR LINHAGENS...\" §3)", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "guerreiro";
+    character.speciesId = "tiefling";
+    character.speciesLineageId = "tiefling-infernal";
+    expect(isStepVisible("spellcasting", character)).toBe(true);
+  });
+
+  it("continua ausente para Guerreiro + Tiefling SEM linhagem escolhida ainda (nenhuma magia concedida de fato)", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "guerreiro";
+    character.speciesId = "tiefling";
+    expect(isStepVisible("spellcasting", character)).toBe(false);
+  });
 });
 
 describe("isStepVisible — Características e Talentos (condicional — só Espécie/Antecedente/Talento, desde a REORGANIZAÇÃO DO BUILDER §1/§2)", () => {

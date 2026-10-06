@@ -6,6 +6,7 @@ import { backgrounds } from "../data/backgrounds.js";
 import { classes, getClassSkillChoiceId } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
+import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -60,6 +61,21 @@ export function isSkillGrantedByClassChoice(character: Character, skill: SkillKe
     const selected = Array.isArray(selection) ? selection : [];
     return selected.includes(skill);
   });
+}
+
+/**
+ * `true` se o jogador escolheu esta perícia em "Sentidos Aguçados" do
+ * Elfo (traço básico, independente da Linhagem Élfica escolhida —
+ * fonte "IMPLEMENTAR LINHAGENS..." §5). Única fonte de proficiência
+ * ligada à ESPÉCIE hoje; se outra espécie ganhar uma escolha
+ * equivalente no futuro, generalizar para um mapa por `SpeciesId`
+ * (mesmo padrão de `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima).
+ */
+export function isSkillGrantedBySpeciesChoice(character: Character, skill: SkillKey): boolean {
+  if (character.speciesId !== "elfo") return false;
+  const selection = character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID]?.value;
+  const selected = Array.isArray(selection) ? selection : [];
+  return selected.includes(skill);
 }
 
 /**
@@ -136,23 +152,25 @@ export function getShamanSkillBonus(character: Character, skill: SkillKey): numb
   return Math.max(1, wisdomMod);
 }
 
-export type SkillProficiencyOrigin = "manual" | "background" | "class" | null;
+export type SkillProficiencyOrigin = "manual" | "background" | "class" | "species" | null;
 
 /**
  * De onde vem a proficiência final da perícia — usado pela UI (§6/§10)
- * para diferenciar "proficiência automática" (`"background"`/`"class"`),
- * "proficiência manual" (`"manual"`, modo Homebrew) e "nenhuma"
- * (`null`). Mesma prioridade de `getSkillProficiency`: manual > fonte
- * estrutural. Quando o Antecedente E a Classe concedem a mesma perícia
- * (ex.: ambos dão "História"), prioriza "background" só para exibição
- * — a proficiência em si já não depende de qual delas "venceu" (§9: a
- * duplicata nunca consome uma escolha de Classe adicional).
+ * para diferenciar "proficiência automática" (`"background"`/`"class"`/
+ * `"species"`), "proficiência manual" (`"manual"`, modo Homebrew) e
+ * "nenhuma" (`null`). Mesma prioridade de `getSkillProficiency`: manual
+ * > fonte estrutural. Quando duas fontes estruturais concedem a mesma
+ * perícia (ex.: Antecedente e Classe dão "História"), prioriza na
+ * ordem background > class > species só para exibição — a proficiência
+ * em si já não depende de qual delas "venceu" (§9: a duplicata nunca
+ * consome uma escolha adicional de nenhuma das fontes).
  */
 export function getSkillProficiencyOrigin(character: Character, skill: SkillKey): SkillProficiencyOrigin {
   const manualOverride = character.skills[skill].manualOverride;
   if (manualOverride !== null) return manualOverride ? "manual" : null;
   if (isSkillGrantedByBackground(character, skill)) return "background";
   if (isSkillGrantedByClassChoice(character, skill)) return "class";
+  if (isSkillGrantedBySpeciesChoice(character, skill)) return "species";
   return null;
 }
 
@@ -170,7 +188,12 @@ export function getSkillProficiencyOrigin(character: Character, skill: SkillKey)
  */
 export function getSkillProficiency(character: Character, skill: SkillKey): boolean {
   const state = character.skills[skill];
-  return state.manualOverride ?? (isSkillGrantedByBackground(character, skill) || isSkillGrantedByClassChoice(character, skill));
+  return (
+    state.manualOverride ??
+    (isSkillGrantedByBackground(character, skill) ||
+      isSkillGrantedByClassChoice(character, skill) ||
+      isSkillGrantedBySpeciesChoice(character, skill))
+  );
 }
 
 /**

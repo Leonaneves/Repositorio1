@@ -2,6 +2,7 @@ import type { Character } from "../domain/character.js";
 import { canChooseSubclass } from "./subclasses.js";
 import { getOtherFeaturesWithChoices } from "./features.js";
 import { getSpellcastingAbility } from "./spellcasting.js";
+import { getAutoPreparedSpells } from "./effectiveSpellsPrepared.js";
 
 /**
  * As 11 etapas do Builder (decisão aprovada §10, com a etapa 8 nova
@@ -77,8 +78,12 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
  * - Invocações Místicas: só para a classe Bruxo (fonte "INTEGRAÇÃO
  *   COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES" §4) — etapa
  *   própria, fora do mecanismo genérico de `FeatureChoice`.
- * - Conjuração: só se a classe/antecedente atual conceder um atributo
- *   de conjuração (`getSpellcastingAbility`).
+ * - Conjuração: se a classe/antecedente atual conceder um atributo de
+ *   conjuração (`getSpellcastingAbility`) OU se a espécie conceder
+ *   magias por Linhagem (Elfo/Gnomo/Tiefling — `getAutoPreparedSpells`
+ *   inclui `getSpeciesGrantedSpells`, que não depende de classe) —
+ *   fonte "IMPLEMENTAR LINHAGENS..." §3: "Isso também deve funcionar
+ *   para personagem cuja classe não tenha conjuração".
  * - As demais etapas sempre aparecem.
  */
 export function isStepVisible(stepId: BuilderStepId, character: Character): boolean {
@@ -91,7 +96,7 @@ export function isStepVisible(stepId: BuilderStepId, character: Character): bool
     return getOtherFeaturesWithChoices(character).length > 0;
   }
   if (stepId === "invocations") return character.classId === "bruxo";
-  if (stepId === "spellcasting") return getSpellcastingAbility(character) !== null;
+  if (stepId === "spellcasting") return getSpellcastingAbility(character) !== null || getAutoPreparedSpells(character).length > 0;
   return true;
 }
 

@@ -27,6 +27,19 @@ export interface SpeciesDefinition {
   traitsText: string;
 }
 
+/**
+ * Draconato/Elfo/Gnomo/Golias/Tiefling têm Linhagem/Ancestralidade
+ * (fonte "IMPLEMENTAR LINHAGENS E ANCESTRALIDADES NA ETAPA ESPÉCIE") —
+ * para essas 5, o `traitsText` estático abaixo NUNCA é exibido:
+ * `rules/features.ts#getSpeciesFeatures`/`rules/proficiencyText.ts#getSpeciesTraitEntries`/
+ * `ui/builder/steps/Step4Species.tsx` usam
+ * `rules/speciesLineagePrintedFeatures.ts#getSpeciesTraitsPrintedText`
+ * no lugar, que resolve nível/linhagem/atributos atuais a cada
+ * chamada. O campo continua aqui só porque `traitsText` é obrigatório
+ * no tipo — mantido como estava para não arriscar remover algo usado
+ * em outro lugar que ainda não foi conferido.
+ */
+
 export const species: Record<SpeciesId, SpeciesDefinition> = {
   humano: {
     id: "humano",

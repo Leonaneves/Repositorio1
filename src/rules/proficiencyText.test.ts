@@ -32,7 +32,7 @@ describe("entradas automáticas de texto", () => {
 
     character.speciesId = "tiefling";
     const second = getSpeciesTraitEntries(character);
-    expect(second[0]?.text).toContain("TAUMATURGIA TRUQUE");
+    expect(second[0]?.text).toContain("TAUMATURGIA");
     expect(second[0]?.text).not.toContain("RESILIÊNCIA ANÃNICA");
   });
 

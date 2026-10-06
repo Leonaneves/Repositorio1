@@ -1,7 +1,7 @@
 import type { Character, AutoTextEntry } from "../domain/character.js";
 import { classes } from "../data/classes.js";
-import { species } from "../data/species.js";
 import { backgrounds } from "../data/backgrounds.js";
+import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
 /**
  * Estas funções substituem a técnica do PDF original de concatenar
@@ -28,7 +28,7 @@ export function getClassToolProficiencyEntries(character: Character): AutoTextEn
 
 export function getSpeciesTraitEntries(character: Character): AutoTextEntry[] {
   if (!character.speciesId) return [];
-  return [{ text: species[character.speciesId].traitsText, source: "species" }];
+  return [{ text: getSpeciesTraitsPrintedText(character), source: "species" }];
 }
 
 export function getBackgroundFeatEntries(character: Character): AutoTextEntry[] {

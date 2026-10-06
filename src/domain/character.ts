@@ -223,6 +223,26 @@ export interface Character {
   asiSelections: Record<number, AsiSelection>;
 
   /**
+   * Linhagem/Ancestralidade da espécie ATUAL (Draconato/Elfo/Gnomo/
+   * Golias/Tiefling — fonte "IMPLEMENTAR LINHAGENS E ANCESTRALIDADES
+   * NA ETAPA ESPÉCIE") — id estável entre as opções de
+   * `data/speciesLineages.ts#getSpeciesLineageOptions`. `null` enquanto
+   * não escolhida, ou para qualquer espécie sem linhagem (as outras 5).
+   * Trocar de espécie limpa este campo (`state/characterStore.ts#setSpecies`)
+   * — nunca acumula a linhagem antiga com a nova.
+   */
+  speciesLineageId: string | null;
+
+  /**
+   * Atributo de conjuração (INT/SAB/CAR) das magias da Linhagem Élfica
+   * — escolha do jogador, independente do atributo de conjuração da
+   * CLASSE (`rules/spellcasting.ts#getSpellcastingAbility`). Só tem
+   * efeito com `speciesId === "elfo"`; `null` para qualquer outra
+   * espécie, ou enquanto não escolhido.
+   */
+  elvenLineageSpellcastingAbility: AbilityKey | null;
+
+  /**
    * Override manual (Homebrew) das Ferramentas/Instrumentos conhecidos
    * — `null` = segue o resultado automático da escolha estruturada de
    * "Ferramentas de Classe" (`rules/tools.ts#getAutomaticClassTools`);
@@ -326,5 +346,7 @@ export function createBlankCharacter(id: string): Character {
     backgroundAbilityBonuses: {},
     asiSelections: {},
     manualToolOverrides: null,
+    speciesLineageId: null,
+    elvenLineageSpellcastingAbility: null,
   };
 }

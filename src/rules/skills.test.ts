@@ -4,6 +4,7 @@ import { getClassSkillChoiceId } from "../data/classes.js";
 import { getBardSkillExpertiseChoiceId } from "../data/features/bard.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
+import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { getInitiative } from "./derived.js";
 import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
@@ -17,6 +18,7 @@ import {
   getShamanSkillBonus,
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
+  isSkillGrantedBySpeciesChoice,
   isSkillGrantedExpertiseByClassChoice,
 } from "./skills.js";
 
@@ -503,5 +505,58 @@ describe("getSkillProficiencyOrigin — §6/§10 (de onde vem a proficiência, p
     character.classId = "guerreiro";
     character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
     expect(getSkillProficiencyOrigin(character, "atletismo")).toBe("background");
+  });
+});
+
+describe("isSkillGrantedBySpeciesChoice — Sentidos Aguçados do Elfo (fonte \"IMPLEMENTAR LINHAGENS...\" §5)", () => {
+  it("concede a perícia escolhida entre Intuição/Percepção/Sobrevivência", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["percepcao"] };
+
+    expect(isSkillGrantedBySpeciesChoice(character, "percepcao")).toBe(true);
+    expect(isSkillGrantedBySpeciesChoice(character, "intuicao")).toBe(false);
+    expect(getSkillProficiency(character, "percepcao")).toBe(true);
+  });
+
+  it("independe de qual Linhagem Élfica foi escolhida", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-drow";
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["sobrevivencia"] };
+    expect(getSkillProficiency(character, "sobrevivencia")).toBe(true);
+  });
+
+  it("nunca concede nada para outra espécie, mesmo com a mesma seleção por acidente", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "humano";
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["percepcao"] };
+    expect(isSkillGrantedBySpeciesChoice(character, "percepcao")).toBe(false);
+  });
+
+  it("trocar de espécie some com a proficiência (derivada, sem precisar apagar a seleção antiga)", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["intuicao"] };
+    expect(getSkillProficiency(character, "intuicao")).toBe(true);
+
+    character.speciesId = "anao";
+    expect(getSkillProficiency(character, "intuicao")).toBe(false);
+  });
+
+  it("getSkillProficiencyOrigin devolve 'species'", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["intuicao"] };
+    expect(getSkillProficiencyOrigin(character, "intuicao")).toBe("species");
+  });
+
+  it("override manual sempre tem prioridade sobre a escolha de espécie", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["intuicao"] };
+    character.skills.intuicao.manualOverride = false;
+    expect(getSkillProficiency(character, "intuicao")).toBe(false);
+    expect(getSkillProficiencyOrigin(character, "intuicao")).toBeNull();
   });
 });

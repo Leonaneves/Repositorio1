@@ -107,10 +107,22 @@ describe("getSubclassFeatures — catálogo ainda pendente, nunca inventado", ()
 describe("getSpeciesFeatures", () => {
   it("devolve os traços da espécie escolhida, reaproveitando o traitsText já confirmado", () => {
     const character = createBlankCharacter("features-test");
+    character.speciesId = "anao";
+    const features = getSpeciesFeatures(character);
+    expect(features).toHaveLength(1);
+    expect(features[0].summary).toContain("RESILIÊNCIA ANÃNICA");
+  });
+
+  it("para espécies com Linhagem/Ancestralidade (Golias), o summary é o texto dinâmico — FORMA GRANDE só a partir do nível 5", () => {
+    const character = createBlankCharacter("features-test");
     character.speciesId = "golias";
+    character.level = 5;
     const features = getSpeciesFeatures(character);
     expect(features).toHaveLength(1);
     expect(features[0].summary).toContain("FORMA GRANDE");
+
+    character.level = 1;
+    expect(getSpeciesFeatures(character)[0].summary).not.toContain("FORMA GRANDE");
   });
 
   it("sem espécie definida, nenhum traço", () => {

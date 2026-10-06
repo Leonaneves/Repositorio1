@@ -59,6 +59,48 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
     expect(screen.queryByText("Escolha um antecedente para continuar.")).not.toBeInTheDocument();
   });
 
+  it("'Espécie' com Linhagem (Draconato): bloqueia até a Ancestral Dracônica ser escolhida, sem criar etapa própria na navegação lateral", () => {
+    render(<App />);
+    act(() => useCharacterStore.getState().setClass("guerreiro"));
+    act(() => useBuilderStore.getState().goToStep("species"));
+
+    const stepsBefore = screen.getAllByRole("listitem").length;
+    fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "draconato" } });
+    expect(screen.getAllByRole("listitem")).toHaveLength(stepsBefore); // nenhum item novo na navegação lateral
+
+    expect(screen.getByText("Escolha a Ancestral Dracônico para continuar.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Ancestral Dracônico" }), { target: { value: "draconato-vermelho" } });
+    expect(screen.queryByText("Escolha a Ancestral Dracônico para continuar.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+    expect(screen.getByText(/Resistência a dano Fogo/)).toBeInTheDocument();
+
+    // Editável depois de preenchida — trocar o ancestral atualiza o texto, sem travar de novo.
+    fireEvent.change(screen.getByRole("combobox", { name: "Ancestral Dracônico" }), { target: { value: "draconato-azul" } });
+    expect(screen.getByText(/Resistência a dano Elétrico/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
+  it("'Espécie' com Linhagem Élfica exige a linhagem E o atributo de conjuração, cada um com seu próprio motivo", () => {
+    render(<App />);
+    act(() => useCharacterStore.getState().setClass("guerreiro"));
+    act(() => useBuilderStore.getState().goToStep("species"));
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "elfo" } });
+    expect(screen.getByText("Escolha a Linhagem Élfica para continuar.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Linhagem Élfica" }), { target: { value: "elfo-drow" } });
+    expect(screen.queryByText("Escolha a Linhagem Élfica para continuar.")).not.toBeInTheDocument();
+    expect(screen.getByText("Escolha o atributo de conjuração da Linhagem Élfica.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Atributo de Conjuração da Linhagem Élfica" }), { target: { value: "CAR" } });
+    expect(screen.queryByText("Escolha o atributo de conjuração da Linhagem Élfica.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+    expect(screen.getByText(/VISÃO NO ESCURO 36m/)).toBeInTheDocument(); // Drow sobrescreve para 36m
+  });
+
   it("'Atributos' bloqueia Avançar enquanto os 6 atributos não forem gerados/confirmados", () => {
     render(<App />);
     act(() => {
@@ -205,6 +247,21 @@ describe("BuilderWizard — Conjuração mostra truques/magias/magias automátic
 
     expect(screen.getByText("Truques Conhecidos")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Magias Concedidas Automaticamente" })).toBeInTheDocument();
+  });
+
+  it("Guerreiro + Tiefling: etapa Conjuração aparece mesmo sem conjuração de classe, mostrando a magia de espécie (fonte \"IMPLEMENTAR LINHAGENS...\" §3)", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("guerreiro");
+      useCharacterStore.getState().setSpecies("tiefling");
+      useCharacterStore.getState().setSpeciesLineage("tiefling-infernal");
+    });
+    act(() => useBuilderStore.getState().goToStep("spellcasting"));
+
+    expect(screen.getByRole("heading", { name: "Magias Concedidas Automaticamente" })).toBeInTheDocument();
+    expect(screen.getByText("Taumaturgia")).toBeInTheDocument();
+    expect(screen.getByText("Raio de Fogo")).toBeInTheDocument();
+    expect(screen.getByText(/aguardam o catálogo completo/)).toBeInTheDocument();
   });
 
   it("Bruxo mostra o aviso de Magia de Pacto junto dos espaços de magia", () => {

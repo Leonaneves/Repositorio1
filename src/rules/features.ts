@@ -5,6 +5,8 @@ import { classFeatures } from "../data/features/classes.js";
 import { generalFeats } from "../data/features/feats.js";
 import { speciesFeatures } from "../data/features/species.js";
 import { subclassFeatures } from "../data/features/subclasses.js";
+import { hasSpeciesLineage } from "../data/speciesLineages.js";
+import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
 /** Features de classe já adquiridas (nível de aquisição ≤ nível atual). */
 export function getClassFeatures(character: Character): FeatureDefinition[] {
@@ -22,10 +24,20 @@ export function getSubclassFeatures(character: Character): FeatureDefinition[] {
   );
 }
 
-/** Traços da espécie escolhida. */
+/**
+ * Traços da espécie escolhida. Para Draconato/Elfo/Gnomo/Golias/
+ * Tiefling (fonte "IMPLEMENTAR LINHAGENS..."), `summary` é sobrescrito
+ * com o texto DINÂMICO de `getSpeciesTraitsPrintedText` (resolve
+ * nível/linhagem/atributos atuais) — nunca o `traitsText` estático do
+ * `FeatureDefinition` base, que para essas 5 fica sem uso (só
+ * continua existindo porque o campo é obrigatório no tipo). As outras
+ * 5 espécies continuam com o `summary` estático de sempre.
+ */
 export function getSpeciesFeatures(character: Character): FeatureDefinition[] {
   if (!character.speciesId) return [];
-  return speciesFeatures.filter((feature) => feature.speciesId === character.speciesId);
+  const features = speciesFeatures.filter((feature) => feature.speciesId === character.speciesId);
+  if (!hasSpeciesLineage(character.speciesId)) return features;
+  return features.map((feature) => ({ ...feature, summary: getSpeciesTraitsPrintedText(character) }));
 }
 
 /** Talento de origem do antecedente escolhido. */

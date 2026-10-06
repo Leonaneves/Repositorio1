@@ -5,6 +5,7 @@ import { getClericAutoPreparedSpells } from "./clericAutoPreparedSpells.js";
 import { getDruidAutoPreparedSpells } from "./druidAutoPreparedSpells.js";
 import { getSorcererAutoPreparedSpells } from "./sorcererAutoPreparedSpells.js";
 import { getWarlockAutoPreparedSpells } from "./warlockAutoPreparedSpells.js";
+import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
 
 /**
  * Todas as magias concedidas automaticamente por classe/subclasse
@@ -17,10 +18,13 @@ import { getWarlockAutoPreparedSpells } from "./warlockAutoPreparedSpells.js";
  * Truque de Xamã do Druida — `getDruidAutoPreparedSpells`; Magias das 4
  * subclasses de Feiticeiro — `getSorcererAutoPreparedSpells`; magias
  * sempre preparadas dos 4 Patronos + Contatar Patrono + invocações que
- * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`), sem a
- * lista manual do jogador — usada tanto pelo PDF (`pdf/fieldMap.ts`)
- * quanto pela etapa de Conjuração do Builder/Ficha Web, para nunca
- * duplicar a regra em dois lugares.
+ * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`; truque/
+ * magias de Linhagem Élfica/Gnômica/Infernal — `getSpeciesGrantedSpells`,
+ * a única fonte aqui que não depende de classe, então pode aparecer
+ * mesmo num personagem sem conjuração), sem a lista manual do jogador —
+ * usada tanto pelo PDF (`pdf/fieldMap.ts`) quanto pela etapa de
+ * Conjuração do Builder/Ficha Web, para nunca duplicar a regra em dois
+ * lugares.
  */
 export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[] {
   return [
@@ -30,6 +34,7 @@ export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[
     ...getDruidAutoPreparedSpells(character),
     ...getSorcererAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
+    ...getSpeciesGrantedSpells(character),
   ];
 }
 

@@ -23,15 +23,35 @@ export function SpellcastingSection() {
   const removeSpellPrepared = useCharacterStore((s) => s.removeSpellPrepared);
 
   const ability = getSpellcastingAbility(character);
+  const autoPrepared = getAutoPreparedSpells(character);
 
   // §11: personagem sem nenhuma fonte de conjuração não precisa de uma
   // grande seção vazia — mantém uma área compacta e desativada, em vez
   // de ocultar por completo (a ficha original sempre reserva o espaço).
+  // Mesmo sem conjuração de CLASSE, a espécie pode conceder magias por
+  // Linhagem (Elfo/Gnomo/Tiefling — fonte "IMPLEMENTAR LINHAGENS..."
+  // §3: "Isso também deve funcionar para personagem cuja classe não
+  // tenha conjuração") — por isso a lista automática aparece mesmo aqui.
   if (!ability) {
     return (
       <section className="sheet-section sheet-section--spellcasting sheet-section--empty" aria-label="Conjuração">
         <h2>Conjuração</h2>
-        <p className="empty-note">Este personagem não tem uma fonte de conjuração.</p>
+        {autoPrepared.length > 0 ? (
+          <div className="spells-prepared">
+            <h3>Magias Concedidas Automaticamente</h3>
+            <ul className="review-feature-list">
+              {autoPrepared.map((spell, i) => (
+                <li key={i}>
+                  <strong>{spell.name}</strong>
+                  {spell.notes ? ` — ${spell.notes}` : ""}
+                </li>
+              ))}
+            </ul>
+            <p className="empty-note">Detalhes da magia (círculo, alcance etc.) aguardam o catálogo completo.</p>
+          </div>
+        ) : (
+          <p className="empty-note">Este personagem não tem uma fonte de conjuração.</p>
+        )}
       </section>
     );
   }
@@ -41,7 +61,6 @@ export function SpellcastingSection() {
   const slots = getSpellSlots(character);
   const circlesWithSlots = SPELL_CIRCLES.filter((circle) => slots[circle] > 0);
   const progression = getClassProgression(character);
-  const autoPrepared = getAutoPreparedSpells(character);
 
   return (
     <section className="sheet-section sheet-section--spellcasting" aria-label="Conjuração">
