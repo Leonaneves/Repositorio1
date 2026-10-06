@@ -420,8 +420,10 @@ select:focus-visible {
   white-space: nowrap;
 }
 
-.trait-row__origin-dot {
-  color: var(--accent);
+.trait-row__origin-label {
+  font-size: var(--text-2xs);
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .trait-row__expertise {
@@ -910,6 +912,26 @@ select:focus-visible {
   margin-top: var(--space-xs);
 }
 
+.feature-choice legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.homebrew-toggle {
+  font-size: var(--text-xs);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--field-bg);
+  cursor: pointer;
+}
+
+.feature-choice--homebrew {
+  border-left: 3px solid var(--danger);
+  padding-left: var(--space-sm);
+}
+
 .attack-row,
 .attuned-item-row {
   display: grid;
@@ -1008,6 +1030,55 @@ select:focus-visible {
   justify-content: space-between;
   font-size: var(--text-sm);
   margin: 0 0 var(--space-3xs);
+}
+
+.ability-allocator__hint,
+.ability-allocator__remaining {
+  font-size: var(--text-sm);
+  margin: var(--space-2xs) 0;
+}
+
+.ability-allocator__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.ability-allocator__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2xs) var(--space-sm);
+  background: var(--field-bg);
+}
+
+.ability-allocator__score {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ability-allocator__bonus {
+  font-size: var(--text-xs);
+  color: var(--accent, inherit);
+}
+
+.ability-allocator__arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ability-allocator__arrows button {
+  line-height: 1;
+  padding: 0 var(--space-2xs);
+  cursor: pointer;
+}
+
+.ability-allocator__arrows button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 @media (max-width: 720px) {

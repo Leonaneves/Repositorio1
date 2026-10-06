@@ -35,7 +35,7 @@ describe("integração completa: Builder → resolver escolhas → exportar → 
     characterStore.setClass("guerreiro");
 
     // Ainda não pode avançar: falta resolver a escolha obrigatória de perícias.
-    builderStore.goToStep("featuresAndTalents");
+    builderStore.goToStep("class");
     expect(useBuilderStore.getState().canAdvance()).toBe(false);
 
     // Resolve a escolha exatamente como FeatureChoiceControl faria (mesma action, mesmo id de escolha).
@@ -93,13 +93,13 @@ describe("integração completa: Builder → resolver escolhas → exportar → 
     characterStore.setName("Kova Duskryn");
     characterStore.setClass("artifice");
 
-    builderStore.goToStep("featuresAndTalents");
+    builderStore.goToStep("class");
     expect(useBuilderStore.getState().canAdvance()).toBe(false); // nada resolvido ainda
 
     characterStore.setFeatureChoiceSelection("classe-artifice-pericias", ["arcanismo", "investigacao"]);
     expect(useBuilderStore.getState().canAdvance()).toBe(false); // faltam ferramenta + 2 armas + armadura
 
-    characterStore.setFeatureChoiceSelection("classe-artifice-ferramentas", "Ferramentas de Ferreiro");
+    characterStore.setFeatureChoiceSelection("classe-artifice-ferramentas", ["ferramentas-ferreiro"]);
     characterStore.setFeatureChoiceSelection("artifice-equipamento-arma-simples-1-escolha", "adaga");
     characterStore.setFeatureChoiceSelection("artifice-equipamento-arma-simples-2-escolha", "azagaia");
     characterStore.setFeatureChoiceSelection("artifice-equipamento-armadura-escolha", "Cota de Escamas");

@@ -61,20 +61,34 @@ const classSkillChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId)
         {
           id: getClassSkillChoiceId(classId),
           prompt: `Escolha ${skillChoice.count} ${skillChoice.count === 1 ? "perícia" : "perícias"} de ${classes[classId].name}`,
-          effect: { kind: "skillProficiency", options: skillChoice.from, count: skillChoice.count },
+          // `excludeAlreadyProficient` (fonte "REORGANIZAÇÃO DO BUILDER" §9): uma perícia já concedida
+          // pelo Antecedente some das opções desta escolha — nunca consome 1 das N escolhas de Classe.
+          effect: { kind: "skillProficiency", options: skillChoice.from, count: skillChoice.count, excludeAlreadyProficient: true },
         },
       ],
     } satisfies FeatureDefinition;
   },
 );
 
+const TOOL_CATEGORY_LABELS: Record<string, string> = {
+  artisanTool: "Ferramenta de Artesão",
+  musicalInstrument: "Instrumento Musical",
+  thievesTools: "Ferramentas de Ladrão",
+};
+
+function toolCategoryLabel(category: string | string[]): string {
+  const categories = Array.isArray(category) ? category : [category];
+  return categories.map((c) => TOOL_CATEGORY_LABELS[c] ?? c).join(" ou ");
+}
+
 /**
  * Uma feature "Ferramentas de Classe" por classe com `toolChoice`
- * confirmado (Bardo: 3 Instrumentos Musicais; Monge: 1 Ferramenta de
- * Artesão OU Instrumento Musical) — sempre nível 1, sempre com uma
- * `FeatureChoice` do tipo `toolProficiency` (entrada de texto livre:
- * não existe catálogo de instrumentos/ferramentas ainda, então o
- * jogador escreve, nunca escolhe de uma lista inventada). Classes com
+ * confirmado (Artífice: 1 Ferramenta de Artesão; Bardo: 3 Instrumentos
+ * Musicais; Monge: 1 Ferramenta de Artesão OU Instrumento Musical) —
+ * sempre nível 1, sempre com uma `FeatureChoice` do tipo
+ * `toolProficiency`, escolha ESTRUTURADA a partir do catálogo
+ * (`data/tools.ts`/`rules/tools.ts#getEligibleTools`) — nunca mais
+ * texto livre (fonte "REORGANIZAÇÃO DO BUILDER" §4/§5). Classes com
  * concessão automática fixa (ex.: Druida → Kit de Herbalismo, Ladino →
  * Ferramentas de Ladrão) não entram aqui — não há escolha nenhuma a
  * registrar, só `toolProficiencyText`.
@@ -82,6 +96,7 @@ const classSkillChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId)
 const classToolChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId) => classes[classId].toolChoice !== undefined).map(
   (classId) => {
     const toolChoice = classes[classId].toolChoice!;
+    const categoryLabel = toolCategoryLabel(toolChoice.category);
     return {
       id: `${classId}-ferramentas-de-classe`,
       name: "Ferramentas de Classe",
@@ -89,12 +104,12 @@ const classToolChoiceFeatures: FeatureDefinition[] = CLASS_IDS.filter((classId) 
       classId,
       level: 1,
       autoGranted: false,
-      summary: `Escolha ${toolChoice.count} ${toolChoice.count === 1 ? "ferramenta" : "ferramentas"}: ${toolChoice.optionsText}.`,
+      summary: `Escolha ${toolChoice.count} ${toolChoice.count === 1 ? "ferramenta" : "ferramentas"}: ${categoryLabel}.`,
       choices: [
         {
           id: getClassToolChoiceId(classId),
-          prompt: `Escolha ${toolChoice.count} ${toolChoice.count === 1 ? "ferramenta" : "ferramentas"} de ${classes[classId].name} (${toolChoice.optionsText})`,
-          effect: { kind: "toolProficiency", optionsText: toolChoice.optionsText, count: toolChoice.count },
+          prompt: `Escolha ${toolChoice.count} ${toolChoice.count === 1 ? "ferramenta" : "ferramentas"} de ${classes[classId].name} (${categoryLabel})`,
+          effect: { kind: "toolProficiency", category: toolChoice.category, count: toolChoice.count },
         },
       ],
     } satisfies FeatureDefinition;
@@ -249,7 +264,7 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
  * no Valor de Atributo" nesse nível, no lugar da Dádiva Épica — ver
  * `DADIVA_EPICA_CLASSES`, que exclui o Artífice por isso).
  */
-const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
+export const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
   artifice: [4, 8, 12, 16, 19],
   bardo: [4, 8, 12, 16],
   barbaro: [4, 8, 12, 16],
@@ -312,9 +327,14 @@ const namedClassFeatures: FeatureDefinition[] = (Object.entries(NAMED_FEATURES_B
 );
 
 /**
- * "Aumento no Valor de Atributo" (decisão §9 das regras de integração):
- * feature estruturada com uma escolha — fallback `manualText` até o
- * sistema de +2/+1 em atributos e o catálogo de talentos existirem.
+ * "Aumento no Valor de Atributo" (fonte "REORGANIZAÇÃO DO BUILDER"
+ * §22-§29): `choices` fica vazio de propósito — a escolha agora tem UI
+ * PRÓPRIA (`ui/builder/AsiControl.tsx` + `rules/asi.ts`, com o mesmo
+ * componente genérico de distribuição usado pelo Antecedente), fora do
+ * `FeatureChoiceControl` genérico, para nunca registrar 2x (mesma razão
+ * de Metamagia/Invocações/Terreno/Afinidade). Esta `FeatureDefinition`
+ * continua existindo só para nome/nível aparecerem corretamente onde
+ * fizer sentido (nunca no PDF — já excluído nos composers de texto).
  */
 const abilityScoreImprovementFeatures: FeatureDefinition[] = (Object.entries(ASI_LEVELS_BY_CLASS) as [ClassId, number[]][]).flatMap(
   ([classId, levels]) =>
@@ -327,16 +347,6 @@ const abilityScoreImprovementFeatures: FeatureDefinition[] = (Object.entries(ASI
         level,
         autoGranted: false,
         summary: "+2 em um atributo, +1 em dois atributos, ou um talento geral (catálogo de talentos ainda pendente).",
-        choices: [
-          {
-            id: `${classId}-asi-${level}-escolha`,
-            prompt: "Aumento no Valor de Atributo ou Talento",
-            effect: {
-              kind: "manualText",
-              placeholder: "Ex.: +2 em Força; ou +1 em Força e +1 em Constituição; ou um talento (catálogo pendente)",
-            },
-          },
-        ],
       }),
     ),
 );

@@ -97,14 +97,14 @@ describe("buildExportedPdf — gera um PDF válido a partir do molde interativo"
   });
 });
 
-describe("fillPdfForm — Artífice (fonte própria): classe, PV, Dado de Vida, conjuração e espaços de magia no PDF", () => {
-  it("preenche CLASSE, PV máximo, Dados de Vida, atributo/CD de conjuração e o espaço de 1º círculo gasto", async () => {
+describe("fillPdfForm — Artífice (fonte própria): classe, PV, Dado de Vida e conjuração no PDF", () => {
+  it("preenche CLASSE, PV máximo, Dados de Vida e atributo/CD de conjuração — nunca pré-marca espaços de magia gastos (estado de sessão, fora da criação)", async () => {
     const character = createBlankCharacter("pdf-export-artifice");
     character.name = "Kova Duskryn";
     character.classId = "artifice";
     character.level = 5;
     character.abilities.INT.score = 16; // mod +3
-    character.spellcasting.slots[1].expended = 1;
+    character.spellcasting.slots[1].expended = 1; // estado de sessão — nunca lido pelo PDF
 
     const pdfDoc = await PDFDocument.load(readTemplateBytes());
     const form = pdfDoc.getForm();
@@ -115,9 +115,47 @@ describe("fillPdfForm — Artífice (fonte própria): classe, PV, Dado de Vida, 
     expect(form.getTextField("ATRIBUTO.conju").getText()).toBe("Inteligência");
     expect(form.getTextField("HP.max").getText()).not.toBe("");
     expect(form.getTextField("CD.magia").getText()).not.toBe("");
-    // Espaço de magia gasto (nível 5 → 4/2 no 1º/2º círculo — 1 gasto no 1º círculo marca só a 1ª caixa).
-    expect(form.getCheckBox("1o.circ.1").isChecked()).toBe(true);
+    // §32-37: espaços de magia gastos nunca são pré-marcados no PDF inicial, mesmo com `expended` definido no domínio.
+    expect(form.getCheckBox("1o.circ.1").isChecked()).toBe(false);
     expect(form.getCheckBox("1o.circ.2").isChecked()).toBe(false);
+  });
+});
+
+describe("fillPdfForm — PV Atual/Temporário/Dados de Vida Gastos ficam em branco no PDF (§32-37 — estado de sessão, fora do escopo da criação)", () => {
+  it("nunca escreve PV Atual/Temporário/Dados Gastos, mesmo com valores definidos no domínio — nunca '0' literal", async () => {
+    const character = makeCharacter();
+    character.hp.current = 10;
+    character.hp.temp = 3;
+    character.hp.hitDiceSpent = 2;
+
+    const pdfDoc = await PDFDocument.load(readTemplateBytes());
+    const form = pdfDoc.getForm();
+    fillPdfForm(pdfDoc, form, character);
+
+    expect(form.getTextField("HP.atual").getText()).toBeFalsy();
+    expect(form.getTextField("HP.temp").getText()).toBeFalsy();
+    expect(form.getTextField("HP.Dados.Gasto").getText()).toBeFalsy();
+  });
+
+  it("PV Máximo e Dados de Vida Máximos (estruturais) continuam preenchidos normalmente", async () => {
+    const character = makeCharacter();
+    const pdfDoc = await PDFDocument.load(readTemplateBytes());
+    const form = pdfDoc.getForm();
+    fillPdfForm(pdfDoc, form, character);
+
+    expect(form.getTextField("HP.max").getText()).not.toBe("");
+    expect(form.getTextField("HP.Dados.max").getText()).not.toBe("");
+  });
+
+  it("também fica em branco para um personagem completamente em branco (nunca '0' por padrão)", async () => {
+    const blank = createBlankCharacter("pdf-export-blank-hp");
+    const pdfDoc = await PDFDocument.load(readTemplateBytes());
+    const form = pdfDoc.getForm();
+    fillPdfForm(pdfDoc, form, blank);
+
+    expect(form.getTextField("HP.atual").getText()).toBeFalsy();
+    expect(form.getTextField("HP.temp").getText()).toBeFalsy();
+    expect(form.getTextField("HP.Dados.Gasto").getText()).toBeFalsy();
   });
 });
 
@@ -191,18 +229,18 @@ describe("fillPdfForm — checkboxes (chamado antes do flatten, ver docstring da
     expect(form.getCheckBox("O.item.magico.3").isChecked()).toBe(true);
   });
 
-  it("marca espaços de magia gastos cumulativamente por círculo (2 gastos no 1º círculo marca 1 e 2, não 3 ou 4)", async () => {
+  it("nunca pré-marca espaços de magia gastos, mesmo com `expended` definido no domínio (§32-37 — estado de sessão, fora do escopo da criação)", async () => {
     const form = await loadFormWithCharacter((c) => {
       c.spellcasting.slots[1].expended = 2;
       c.spellcasting.slots[3].expended = 1;
     });
-    expect(form.getCheckBox("1o.circ.1").isChecked()).toBe(true);
-    expect(form.getCheckBox("1o.circ.2").isChecked()).toBe(true);
+    expect(form.getCheckBox("1o.circ.1").isChecked()).toBe(false);
+    expect(form.getCheckBox("1o.circ.2").isChecked()).toBe(false);
     expect(form.getCheckBox("1o.circ.3").isChecked()).toBe(false);
     expect(form.getCheckBox("1o.circ.4").isChecked()).toBe(false);
-    expect(form.getCheckBox("3o.circ.1").isChecked()).toBe(true);
+    expect(form.getCheckBox("3o.circ.1").isChecked()).toBe(false);
     expect(form.getCheckBox("3o.circ.2").isChecked()).toBe(false);
-    // Círculos com só 1 caixa no molde (8º/9º) continuam endereçáveis.
+    // Círculos com só 1 caixa no molde (8º/9º) continuam endereçáveis, e também nunca pré-marcados.
     expect(form.getCheckBox("8o.circ.1").isChecked()).toBe(false);
     expect(form.getCheckBox("9o.circ.1").isChecked()).toBe(false);
   });

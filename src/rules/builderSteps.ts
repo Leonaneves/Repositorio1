@@ -1,6 +1,6 @@
 import type { Character } from "../domain/character.js";
 import { canChooseSubclass } from "./subclasses.js";
-import { getCharacterFeatures } from "./features.js";
+import { getOtherFeaturesWithChoices } from "./features.js";
 import { getSpellcastingAbility } from "./spellcasting.js";
 
 /**
@@ -67,8 +67,13 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
  *   própria, fora do mecanismo genérico de `FeatureChoice` (mesma
  *   razão de Invocações Místicas/Formas Conhecidas: quantidade por
  *   nível + nunca duplicar).
- * - Características e Talentos: só se existir ao menos uma feature com
- *   escolha (`FeatureChoice`) pendente de resposta.
+ * - Características e Talentos: desde a "REORGANIZAÇÃO DO BUILDER" (§1/§2),
+ *   escolhas de Classe/Subclasse moraram para as etapas Classe/Subclasse
+ *   (`getClassFeaturesWithChoices`/`getSubclassFeaturesWithChoices`) —
+ *   esta etapa só continua visível se existir uma `FeatureChoice`
+ *   pendente de ESPÉCIE/ANTECEDENTE/TALENTO (`getOtherFeaturesWithChoices`,
+ *   hoje sempre vazio — nenhum catálogo confirmado ainda usa `choices`
+ *   nessas 3 origens). Nunca mostra etapa vazia.
  * - Invocações Místicas: só para a classe Bruxo (fonte "INTEGRAÇÃO
  *   COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES" §4) — etapa
  *   própria, fora do mecanismo genérico de `FeatureChoice`.
@@ -83,7 +88,7 @@ export function isStepVisible(stepId: BuilderStepId, character: Character): bool
   if (stepId === "elementalAffinity") return character.classId === "feiticeiro" && character.subclassId === "Feitiçaria Dracônica" && character.level >= 6;
   if (stepId === "metamagic") return character.classId === "feiticeiro" && character.level >= 2;
   if (stepId === "featuresAndTalents") {
-    return getCharacterFeatures(character).some((feature) => (feature.choices?.length ?? 0) > 0);
+    return getOtherFeaturesWithChoices(character).length > 0;
   }
   if (stepId === "invocations") return character.classId === "bruxo";
   if (stepId === "spellcasting") return getSpellcastingAbility(character) !== null;

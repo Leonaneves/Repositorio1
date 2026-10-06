@@ -60,11 +60,11 @@ export function getCharacterFeatures(character: Character): FeatureDefinition[] 
 export function isFeatureChoiceComplete(choice: FeatureChoice, character: Character): boolean {
   const selection = character.featureChoiceSelections[choice.id]?.value;
 
-  if (choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise") {
+  if (choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise" || choice.effect.kind === "toolProficiency") {
     const selected = Array.isArray(selection) ? selection : [];
     return selected.length === choice.effect.count;
   }
-  if (choice.effect.kind === "toolProficiency" || choice.effect.kind === "weaponPicker") {
+  if (choice.effect.kind === "weaponPicker") {
     return typeof selection === "string" && selection.trim().length > 0;
   }
   if (choice.effect.kind === "optionPick") {
@@ -86,6 +86,23 @@ export function isFeatureComplete(feature: FeatureDefinition, character: Charact
  */
 export function getIncompleteRequiredChoices(character: Character): FeatureDefinition[] {
   return getCharacterFeatures(character).filter((feature) => !isFeatureComplete(feature, character));
+}
+
+/** Features com `choices` da CLASSE atual — fonte "REORGANIZAÇÃO DO BUILDER" §1/§2: todas resolvidas dentro da própria etapa Classe, nunca em "Características e Talentos". */
+export function getClassFeaturesWithChoices(character: Character): FeatureDefinition[] {
+  return getCharacterFeatures(character).filter((feature) => feature.sourceType === "class" && (feature.choices?.length ?? 0) > 0);
+}
+
+/** Features com `choices` da SUBCLASSE atual — mesma lógica, resolvidas dentro da etapa Subclasse. */
+export function getSubclassFeaturesWithChoices(character: Character): FeatureDefinition[] {
+  return getCharacterFeatures(character).filter((feature) => feature.sourceType === "subclass" && (feature.choices?.length ?? 0) > 0);
+}
+
+/** Features com `choices` que NÃO vêm de Classe/Subclasse (Espécie/Antecedente/Talento) — o que resta em "Características e Talentos" depois da redistribuição. */
+export function getOtherFeaturesWithChoices(character: Character): FeatureDefinition[] {
+  return getCharacterFeatures(character).filter(
+    (feature) => feature.sourceType !== "class" && feature.sourceType !== "subclass" && (feature.choices?.length ?? 0) > 0,
+  );
 }
 
 const ORIGIN_LABELS: Record<FeatureDefinition["sourceType"], string> = {

@@ -8,7 +8,9 @@ import {
   type SpellPreparedEntry,
 } from "../domain/character.js";
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
+import type { AsiSelection } from "../domain/character.js";
 import { classes } from "../data/classes.js";
+import { ASI_LEVELS_BY_CLASS } from "../data/features/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
@@ -16,6 +18,10 @@ import { getAvailableArmor } from "../rules/armor.js";
 import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
 import { getSpellSlots } from "../rules/spellcasting.js";
 import { formatStartingEquipmentItems, getStartingEquipmentOptions } from "../rules/startingEquipment.js";
+import { ASI_ALLOCATION_CONFIG } from "../rules/asi.js";
+import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
+import { decreaseAbility, increaseAbility } from "../rules/abilityAllocation.js";
+import { getAutomaticClassTools } from "../rules/tools.js";
 
 /**
  * Store central do personagem em construção.
@@ -88,6 +94,25 @@ function clearStaleSubclassOwnedChoices(character: Character): Character {
   }
   if (!changed) return character;
   return { ...character, featureChoiceSelections };
+}
+
+/** `asiSelections` só com os níveis cuja chave ainda está na lista informada — nunca muta o objeto recebido. */
+function filterAsiSelections(character: Character, keepLevels: number[]): Character {
+  const entries = Object.entries(character.asiSelections).filter(([level]) => keepLevels.includes(Number(level)));
+  if (entries.length === Object.keys(character.asiSelections).length) return character;
+  return { ...character, asiSelections: Object.fromEntries(entries.map(([level, selection]) => [Number(level), selection])) };
+}
+
+/** Remove ASIs de níveis que a CLASSE informada não concede (§38: trocar de classe remove só o que deixa de existir). */
+function clampAsiSelectionsToClass(character: Character, classId: ClassId | null): Character {
+  const levels = classId ? ASI_LEVELS_BY_CLASS[classId] ?? [] : [];
+  return filterAsiSelections(character, levels);
+}
+
+/** Remove ASIs de níveis acima do nível ATUAL (§40: baixar o nível remove os ASIs que não existem mais). */
+function clampAsiSelectionsToLevel(character: Character): Character {
+  const levels = character.classId ? (ASI_LEVELS_BY_CLASS[character.classId] ?? []).filter((level) => level <= character.level) : [];
+  return filterAsiSelections(character, levels);
 }
 
 /**
@@ -277,6 +302,21 @@ interface CharacterStore {
   updateKnownWildShapeForm: (index: number, patch: Partial<{ name: string; challengeRating: string; hasFlySpeed: boolean }>) => void;
   removeKnownWildShapeForm: (index: number) => void;
 
+  /** Aumenta/diminui em 1 o bônus de atributo do Antecedente ATUAL (componente genérico de distribuição — ver rules/abilityAllocation.ts). Sem efeito se o Antecedente atual não tiver `abilityScoreOptions`. */
+  increaseBackgroundAbilityBonus: (ability: AbilityKey) => void;
+  decreaseBackgroundAbilityBonus: (ability: AbilityKey) => void;
+
+  /** Define o modo de um ASI (nível específico) — "feat" ou "abilityIncrease" (sempre reinicia a distribuição anterior, nunca deixa bônus ocultos de uma escolha anterior). */
+  setAsiMode: (level: number, kind: AsiSelection["kind"]) => void;
+  increaseAsiAbility: (level: number, ability: AbilityKey) => void;
+  decreaseAsiAbility: (level: number, ability: AbilityKey) => void;
+
+  /** Modo Homebrew de Ferramentas/Instrumentos — `manualToolOverrides !== null` é o próprio estado "ativo" (ver rules/tools.ts#getKnownTools). Ativar copia a escolha automática atual; desativar volta a `null` (nunca perde os dados automáticos). */
+  enableToolsHomebrew: () => void;
+  disableToolsHomebrew: () => void;
+  addManualTool: (toolId: string) => void;
+  removeManualTool: (toolId: string) => void;
+
   /** Começa um personagem inteiramente novo (novo id anônimo, portanto um novo build de analytics). */
   resetCharacter: () => void;
 }
@@ -295,11 +335,14 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   setLevel: (level) =>
     set((state) => {
       const subclassId = canChooseSubclass(level) ? state.character.subclassId : null;
-      const character = clearStaleSubclassOwnedChoices(clampSpellSlotsExpended({ ...state.character, level, subclassId }));
+      let character = clearStaleSubclassOwnedChoices(clampSpellSlotsExpended({ ...state.character, level, subclassId }));
+      // Baixar o nível remove os ASIs que deixaram de existir na progressão (§40) — nunca os de nível ainda alcançável.
+      character = clampAsiSelectionsToLevel(character);
       return { character };
     }),
 
-  setClass: (classId) => set((state) => ({ character: applyClassChange(state.character, classId) })),
+  setClass: (classId) =>
+    set((state) => ({ character: clampAsiSelectionsToClass(applyClassChange(state.character, classId), classId) })),
 
   setSubclass: (subclassId) =>
     set((state) => {
@@ -321,7 +364,8 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
    * antecedente (ver §1.1 do pedido: Nobre → Soldado troca as
    * proficiências automáticas sem apagar escolhas manuais).
    */
-  setBackground: (backgroundId) => set((state) => ({ character: { ...state.character, backgroundId } })),
+  // Trocar de Antecedente nunca acumula o bônus do antigo com o novo (§39) — a distribuição de Aumentos de Atributo volta sempre a {}, exigindo nova distribuição.
+  setBackground: (backgroundId) => set((state) => ({ character: { ...state.character, backgroundId, backgroundAbilityBonuses: {} } })),
 
   setAbilityScore: (ability, score) =>
     set((state) => ({
@@ -608,6 +652,58 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   removeMetamagicOption: (optionId) =>
     set((state) => ({
       character: { ...state.character, knownMetamagicOptions: state.character.knownMetamagicOptions.filter((id) => id !== optionId) },
+    })),
+
+  increaseBackgroundAbilityBonus: (ability) =>
+    set((state) => {
+      if (!state.character.backgroundId) return state;
+      const config = getBackgroundAbilityAllocationConfig(state.character.backgroundId);
+      const backgroundAbilityBonuses = increaseAbility(config, state.character.backgroundAbilityBonuses, ability);
+      return { character: { ...state.character, backgroundAbilityBonuses } };
+    }),
+  decreaseBackgroundAbilityBonus: (ability) =>
+    set((state) => ({
+      character: { ...state.character, backgroundAbilityBonuses: decreaseAbility(state.character.backgroundAbilityBonuses, ability) },
+    })),
+
+  // Trocar de modo nunca deixa bônus ocultos de uma escolha anterior (§28) — sempre reinicia do zero.
+  setAsiMode: (level, kind) =>
+    set((state) => {
+      const selection: AsiSelection = kind === "feat" ? { kind: "feat" } : { kind: "abilityIncrease", allocations: {} };
+      return { character: { ...state.character, asiSelections: { ...state.character.asiSelections, [level]: selection } } };
+    }),
+  increaseAsiAbility: (level, ability) =>
+    set((state) => {
+      const current = state.character.asiSelections[level];
+      if (!current || current.kind !== "abilityIncrease") return state;
+      const allocations = increaseAbility(ASI_ALLOCATION_CONFIG, current.allocations, ability);
+      const selection: AsiSelection = { kind: "abilityIncrease", allocations };
+      return { character: { ...state.character, asiSelections: { ...state.character.asiSelections, [level]: selection } } };
+    }),
+  decreaseAsiAbility: (level, ability) =>
+    set((state) => {
+      const current = state.character.asiSelections[level];
+      if (!current || current.kind !== "abilityIncrease") return state;
+      const allocations = decreaseAbility(current.allocations, ability);
+      const selection: AsiSelection = { kind: "abilityIncrease", allocations };
+      return { character: { ...state.character, asiSelections: { ...state.character.asiSelections, [level]: selection } } };
+    }),
+
+  enableToolsHomebrew: () =>
+    set((state) => {
+      if (state.character.manualToolOverrides !== null) return state;
+      return { character: { ...state.character, manualToolOverrides: getAutomaticClassTools(state.character) } };
+    }),
+  disableToolsHomebrew: () => set((state) => ({ character: { ...state.character, manualToolOverrides: null } })),
+  addManualTool: (toolId) =>
+    set((state) => {
+      const current = state.character.manualToolOverrides ?? [];
+      if (current.includes(toolId)) return state;
+      return { character: { ...state.character, manualToolOverrides: [...current, toolId] } };
+    }),
+  removeManualTool: (toolId) =>
+    set((state) => ({
+      character: { ...state.character, manualToolOverrides: (state.character.manualToolOverrides ?? []).filter((id) => id !== toolId) },
     })),
 
   resetCharacter: () => set({ character: createBlankCharacter(generateId()) }),

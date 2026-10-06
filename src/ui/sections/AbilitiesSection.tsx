@@ -1,4 +1,5 @@
 import { useCharacterStore } from "../../state/characterStore.js";
+import { useBuilderUiStore } from "../../state/builderUiStore.js";
 import type { AbilityKey } from "../../domain/common.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "../../rules/abilities.js";
 import { skillsByAbility } from "../../data/skills.js";
@@ -33,6 +34,8 @@ export function AbilitiesSection({ abilityHighest }: AbilitiesSectionProps) {
   const character = useCharacterStore((s) => s.character);
   const abilities = character.abilities;
   const setAbilityScore = useCharacterStore((s) => s.setAbilityScore);
+  const homebrew = useBuilderUiStore((s) => s.skillsHomebrew);
+  const toggleSkillsHomebrew = useBuilderUiStore((s) => s.toggleSkillsHomebrew);
 
   const renderColumn = (keys: readonly AbilityKey[]) => (
     <div className="ability-column">
@@ -71,6 +74,9 @@ export function AbilitiesSection({ abilityHighest }: AbilitiesSectionProps) {
   return (
     <section className="sheet-section sheet-section--abilities" aria-label="Atributos, perícias e salvaguardas">
       <h2>Atributos</h2>
+      <button type="button" className="homebrew-toggle" onClick={toggleSkillsHomebrew} aria-pressed={homebrew}>
+        ✎ {homebrew ? "Desativar edição manual de perícias (Homebrew)" : "Editar perícias"}
+      </button>
       {abilityHighest && <InsightCard insight={abilityHighest} />}
       <div className="ability-grid">
         {renderColumn(LEFT_COLUMN)}

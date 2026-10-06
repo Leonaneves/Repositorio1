@@ -1,8 +1,10 @@
 import type { FeatureChoice } from "../../domain/features.js";
 import { SKILL_KEYS } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
+import { tools } from "../../data/tools.js";
 import { getWeaponsByCategory, weapons } from "../../rules/weapons.js";
 import { getSkillProficiency } from "../../rules/skills.js";
+import { getEligibleTools } from "../../rules/tools.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 
 export interface FeatureChoiceControlProps {
@@ -22,6 +24,10 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   const character = useCharacterStore((s) => s.character);
   const selection = character.featureChoiceSelections[choice.id];
   const setFeatureChoiceSelection = useCharacterStore((s) => s.setFeatureChoiceSelection);
+  const enableToolsHomebrew = useCharacterStore((s) => s.enableToolsHomebrew);
+  const disableToolsHomebrew = useCharacterStore((s) => s.disableToolsHomebrew);
+  const addManualTool = useCharacterStore((s) => s.addManualTool);
+  const removeManualTool = useCharacterStore((s) => s.removeManualTool);
   const { effect } = choice;
 
   if (effect.kind === "skillProficiency") {
@@ -122,18 +128,58 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   }
 
   if (effect.kind === "toolProficiency") {
-    const value = typeof selection?.value === "string" ? selection.value : "";
+    // Modo Homebrew (§5): substitui por completo a escolha automática — todas as
+    // ferramentas do catálogo ficam disponíveis, sem restrição de categoria/quantidade.
+    // Nunca destrói a escolha automática: ela só volta a valer quando o Homebrew é desativado.
+    if (character.manualToolOverrides !== null) {
+      const selected = character.manualToolOverrides;
+      return (
+        <fieldset className="feature-choice feature-choice--homebrew">
+          <legend>
+            {choice.prompt} — Modo manual / Homebrew
+            <button type="button" className="homebrew-toggle" onClick={disableToolsHomebrew} aria-label="Desativar edição manual de ferramentas">
+              ✎ Editar ferramentas
+            </button>
+          </legend>
+          {tools.map((tool) => (
+            <label key={tool.id} className="checkbox-field checkbox-field--compact">
+              <input
+                type="checkbox"
+                checked={selected.includes(tool.id)}
+                onChange={(e) => (e.target.checked ? addManualTool(tool.id) : removeManualTool(tool.id))}
+              />
+              <span>{tool.name}</span>
+            </label>
+          ))}
+        </fieldset>
+      );
+    }
+
+    const options = getEligibleTools(effect.category);
+    const selected = Array.isArray(selection?.value) ? selection.value : [];
     return (
-      <label className="field feature-choice">
-        <span>{choice.prompt}</span>
-        <p className="builder-step__hint">{effect.optionsText}</p>
-        <input
-          type="text"
-          value={value}
-          placeholder="Escreva sua escolha"
-          onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}
-        />
-      </label>
+      <fieldset className="feature-choice">
+        <legend>
+          {choice.prompt} ({selected.length}/{effect.count})
+          <button type="button" className="homebrew-toggle" onClick={enableToolsHomebrew} aria-label="Editar ferramentas manualmente (Homebrew)">
+            ✎ Editar ferramentas
+          </button>
+        </legend>
+        {options.map((tool) => (
+          <label key={tool.id} className="checkbox-field checkbox-field--compact">
+            <input
+              type="checkbox"
+              checked={selected.includes(tool.id)}
+              disabled={!selected.includes(tool.id) && selected.length >= effect.count}
+              onChange={(e) => {
+                const next = e.target.checked ? [...selected, tool.id] : selected.filter((v) => v !== tool.id);
+                setFeatureChoiceSelection(choice.id, next);
+              }}
+            />
+            <span>{tool.name}</span>
+          </label>
+        ))}
+      </fieldset>
     );
   }
 

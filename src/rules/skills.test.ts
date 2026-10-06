@@ -12,6 +12,7 @@ import {
   getSkillBonus,
   getSkillExpertise,
   getSkillProficiency,
+  getSkillProficiencyOrigin,
   getThaumaturgeSkillBonus,
   getShamanSkillBonus,
   isSkillGrantedByBackground,
@@ -453,5 +454,54 @@ describe("getShamanSkillBonus — Xamã (Ordem Primal do Druida), INCONDICIONAL 
     character.abilities.SAB.score = 16;
     character.featureChoiceSelections[ORDEM_PRIMAL_CHOICE_ID] = { value: "Xamã" };
     expect(getThaumaturgeSkillBonus(character, "arcanismo")).toBe(0); // classId !== "clerigo"
+  });
+});
+
+describe("getSkillProficiencyOrigin — §6/§10 (de onde vem a proficiência, para a UI diferenciar automática/manual)", () => {
+  it("sem nenhuma fonte, retorna null", () => {
+    const character = createBlankCharacter("t");
+    expect(getSkillProficiencyOrigin(character, "arcanismo")).toBeNull();
+  });
+
+  it("concedida pelo antecedente → 'background'", () => {
+    const character = createBlankCharacter("t");
+    character.backgroundId = "sabio"; // Arcanismo, História
+    expect(getSkillProficiencyOrigin(character, "arcanismo")).toBe("background");
+  });
+
+  it("concedida pela escolha de Perícias de Classe → 'class'", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+    expect(getSkillProficiencyOrigin(character, "atletismo")).toBe("class");
+  });
+
+  it("override manual true → 'manual', mesmo sem nenhuma fonte estrutural", () => {
+    const character = createBlankCharacter("t");
+    character.skills.furtividade.manualOverride = true;
+    expect(getSkillProficiencyOrigin(character, "furtividade")).toBe("manual");
+  });
+
+  it("override manual false → null, mesmo que o antecedente concedesse a perícia (removida deliberadamente)", () => {
+    const character = createBlankCharacter("t");
+    character.backgroundId = "nobre"; // História, Persuasão
+    character.skills.historia.manualOverride = false;
+    expect(getSkillProficiencyOrigin(character, "historia")).toBeNull();
+  });
+
+  it("override manual sempre tem prioridade sobre as fontes estruturais, nos dois sentidos", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+    character.skills.atletismo.manualOverride = false; // jogador desmarca o que a classe concedeu
+    expect(getSkillProficiencyOrigin(character, "atletismo")).toBeNull();
+  });
+
+  it("antecedente E classe concedendo a mesma perícia: prioriza 'background' só para exibição (a proficiência em si não depende de qual 'venceu')", () => {
+    const character = createBlankCharacter("t");
+    character.backgroundId = "guarda"; // Atletismo, Percepção
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+    expect(getSkillProficiencyOrigin(character, "atletismo")).toBe("background");
   });
 });

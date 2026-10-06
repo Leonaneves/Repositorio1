@@ -136,6 +136,26 @@ export function getShamanSkillBonus(character: Character, skill: SkillKey): numb
   return Math.max(1, wisdomMod);
 }
 
+export type SkillProficiencyOrigin = "manual" | "background" | "class" | null;
+
+/**
+ * De onde vem a proficiência final da perícia — usado pela UI (§6/§10)
+ * para diferenciar "proficiência automática" (`"background"`/`"class"`),
+ * "proficiência manual" (`"manual"`, modo Homebrew) e "nenhuma"
+ * (`null`). Mesma prioridade de `getSkillProficiency`: manual > fonte
+ * estrutural. Quando o Antecedente E a Classe concedem a mesma perícia
+ * (ex.: ambos dão "História"), prioriza "background" só para exibição
+ * — a proficiência em si já não depende de qual delas "venceu" (§9: a
+ * duplicata nunca consome uma escolha de Classe adicional).
+ */
+export function getSkillProficiencyOrigin(character: Character, skill: SkillKey): SkillProficiencyOrigin {
+  const manualOverride = character.skills[skill].manualOverride;
+  if (manualOverride !== null) return manualOverride ? "manual" : null;
+  if (isSkillGrantedByBackground(character, skill)) return "background";
+  if (isSkillGrantedByClassChoice(character, skill)) return "class";
+  return null;
+}
+
 /**
  * Proficiência final da perícia = override manual do jogador, se
  * houver; senão, concedida pelo antecedente atual OU pela escolha de

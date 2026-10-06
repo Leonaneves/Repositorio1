@@ -18,7 +18,6 @@ export function SpellcastingSection() {
   const character = useCharacterStore((s) => s.character);
   const setSpellSaveDCManualAdjustment = useCharacterStore((s) => s.setSpellSaveDCManualAdjustment);
   const setSpellAttackBonusManualAdjustment = useCharacterStore((s) => s.setSpellAttackBonusManualAdjustment);
-  const setSpellSlotExpended = useCharacterStore((s) => s.setSpellSlotExpended);
   const addSpellPrepared = useCharacterStore((s) => s.addSpellPrepared);
   const updateSpellPrepared = useCharacterStore((s) => s.updateSpellPrepared);
   const removeSpellPrepared = useCharacterStore((s) => s.removeSpellPrepared);
@@ -85,24 +84,12 @@ export function SpellcastingSection() {
             <>
               {/* Magia de Pacto do Bruxo já entra no mesmo cálculo de `getSpellSlots` (concentrada num único círculo) — só o rótulo distingue, nunca uma tabela separada. */}
               {progression.pactMagic && <p className="builder-step__hint">Magia de Pacto — os espaços abaixo recuperam num Descanso Curto, não só Longo.</p>}
+              {/* Só o total de espaços MÁXIMOS — "Gastos" é estado de sessão, fora do escopo da criação (§32-37). */}
               <ul className="spell-slot-list">
                 {circlesWithSlots.map((circle) => (
                   <li key={circle} className="spell-slot-row">
                     <span className="spell-slot-row__circle">{circle}º</span>
                     <span className="spell-slot-row__total">{slots[circle]}</span>
-                    <label className="spell-slot-row__expended">
-                      <span>Gastos</span>
-                      <input
-                        type="number"
-                        min={0}
-                        max={slots[circle]}
-                        value={character.spellcasting.slots[circle].expended}
-                        onChange={(e) => {
-                          const value = Number(e.target.value);
-                          if (value >= 0 && value <= slots[circle]) setSpellSlotExpended(circle, value);
-                        }}
-                      />
-                    </label>
                   </li>
                 ))}
               </ul>

@@ -1,11 +1,17 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
-import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
+import { getOtherFeaturesWithChoices, getFeatureView } from "../../../rules/features.js";
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
 
-/** Etapa 8 (nova, condicional) — só as features com escolha pendente, com controle genérico por FeatureChoice.effect. */
+/**
+ * Etapa 8 (condicional) — só as features de Espécie/Antecedente/Talento
+ * com escolha pendente (fonte "REORGANIZAÇÃO DO BUILDER" §1/§2: as de
+ * Classe/Subclasse moraram para as etapas Classe/Subclasse). Hoje
+ * nenhum catálogo confirmado usa `choices` nessas 3 origens, então a
+ * etapa fica sempre vazia e some automaticamente (ver `rules/builderSteps.ts`).
+ */
 export function Step8FeaturesAndTalents() {
   const character = useCharacterStore((s) => s.character);
-  const features = getCharacterFeatures(character).filter((feature) => (feature.choices?.length ?? 0) > 0);
+  const features = getOtherFeaturesWithChoices(character);
 
   return (
     <div className="builder-step" aria-label="Características e Talentos">

@@ -36,7 +36,7 @@ describe("classes — dados da base consolidada aprovada (12 classes) + fonte do
   it("Artífice: Ferramentas de Ladrão + Funileiro automáticas, 1 Ferramenta de Artesão à escolha", () => {
     expect(classes.artifice.toolProficiencyText).toContain("Ferramentas de Ladrão");
     expect(classes.artifice.toolProficiencyText).toContain("Ferramentas de Funileiro");
-    expect(classes.artifice.toolChoice).toEqual({ count: 1, optionsText: "Ferramenta de Artesão" });
+    expect(classes.artifice.toolChoice).toEqual({ count: 1, category: "artisanTool" });
   });
 
   it("Artífice: espaços de magia próprios (casterKind), não a fórmula genérica de meio-conjurador", () => {

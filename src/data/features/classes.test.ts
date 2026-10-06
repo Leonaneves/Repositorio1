@@ -14,20 +14,25 @@ describe("classFeatures — 'Perícias de Classe' gerada a partir de classes[].s
 
   it("Artífice: escolha de 2 perícias entre as 7 da fonte própria do Artífice", () => {
     const feature = classFeatures.find((f) => f.classId === "artifice" && f.name === "Perícias de Classe");
-    expect(feature?.choices?.[0].effect).toEqual({ kind: "skillProficiency", options: classes.artifice.skillChoice!.from, count: 2 });
+    expect(feature?.choices?.[0].effect).toEqual({
+      kind: "skillProficiency",
+      options: classes.artifice.skillChoice!.from,
+      count: 2,
+      excludeAlreadyProficient: true,
+    });
   });
 
   it("Bardo: 1 FeatureChoice skillProficiency com count=3 e options='any'", () => {
     const feature = classFeatures.find((f) => f.classId === "bardo" && f.name === "Perícias de Classe");
     expect(feature?.choices).toHaveLength(1);
-    expect(feature?.choices?.[0].effect).toEqual({ kind: "skillProficiency", options: "any", count: 3 });
+    expect(feature?.choices?.[0].effect).toEqual({ kind: "skillProficiency", options: "any", count: 3, excludeAlreadyProficient: true });
     expect(feature?.choices?.[0].id).toBe(getClassSkillChoiceId("bardo"));
   });
 
   it("Ladino: count=4 e a lista de opções exata de classes.ladino.skillChoice", () => {
     const feature = classFeatures.find((f) => f.classId === "ladino" && f.name === "Perícias de Classe");
     const effect = feature?.choices?.[0].effect;
-    expect(effect).toEqual({ kind: "skillProficiency", options: classes.ladino.skillChoice!.from, count: 4 });
+    expect(effect).toEqual({ kind: "skillProficiency", options: classes.ladino.skillChoice!.from, count: 4, excludeAlreadyProficient: true });
   });
 
   it("nível sempre 1 (perícias de classe são escolhidas na criação)", () => {
@@ -43,24 +48,24 @@ describe("classFeatures — 'Ferramentas de Classe' gerada a partir de classes[]
     expect(toolChoiceFeatures.map((f) => f.classId).sort()).toEqual(["artifice", "bardo", "monge"]);
   });
 
-  it("Artífice: escolha de 1, 'Ferramenta de Artesão'", () => {
+  it("Artífice: escolha de 1, categoria 'artisanTool'", () => {
     const feature = classFeatures.find((f) => f.classId === "artifice" && f.name === "Ferramentas de Classe");
-    expect(feature?.choices?.[0].effect).toEqual({ kind: "toolProficiency", optionsText: "Ferramenta de Artesão", count: 1 });
+    expect(feature?.choices?.[0].effect).toEqual({ kind: "toolProficiency", category: "artisanTool", count: 1 });
   });
 
-  it("Bardo: escolha de 3, effect toolProficiency com o texto correto", () => {
+  it("Bardo: escolha de 3, categoria 'musicalInstrument'", () => {
     const feature = classFeatures.find((f) => f.classId === "bardo" && f.name === "Ferramentas de Classe");
     expect(feature?.level).toBe(1);
     expect(feature?.choices).toHaveLength(1);
-    expect(feature?.choices?.[0].effect).toEqual({ kind: "toolProficiency", optionsText: "Instrumentos Musicais", count: 3 });
+    expect(feature?.choices?.[0].effect).toEqual({ kind: "toolProficiency", category: "musicalInstrument", count: 3 });
     expect(feature?.choices?.[0].id).toBe(getClassToolChoiceId("bardo"));
   });
 
-  it("Monge: escolha de 1, 'Ferramenta de Artesão OU Instrumento Musical'", () => {
+  it("Monge: escolha de 1, categorias 'artisanTool' OU 'musicalInstrument'", () => {
     const feature = classFeatures.find((f) => f.classId === "monge" && f.name === "Ferramentas de Classe");
     expect(feature?.choices?.[0].effect).toEqual({
       kind: "toolProficiency",
-      optionsText: "Ferramenta de Artesão OU Instrumento Musical",
+      category: ["artisanTool", "musicalInstrument"],
       count: 1,
     });
   });

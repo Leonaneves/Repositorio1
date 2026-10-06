@@ -27,7 +27,7 @@ function fillStandardArrayAbilities() {
 }
 
 describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDAÇÃO DO BUILDER §9)", () => {
-  it("'Classe' bloqueia Avançar e mostra o motivo até uma classe ser escolhida", () => {
+  it("'Classe' bloqueia Avançar e mostra o motivo até uma classe ser escolhida e suas escolhas (Perícias de Classe) resolvidas", () => {
     render(<App />);
     clickAvancar(); // basicInfo -> class
     expect(screen.getByRole("heading", { name: "Classe" })).toBeInTheDocument();
@@ -36,6 +36,11 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
 
     fireEvent.change(screen.getByRole("combobox", { name: "Classe" }), { target: { value: "guerreiro" } });
     expect(screen.queryByText("Escolha uma classe para continuar.")).not.toBeInTheDocument();
+    // Guerreiro ainda tem "Perícias de Classe" pendente — a escolha mora agora na própria etapa Classe (§1/§2).
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Atletismo" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Intimidação" }));
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 
@@ -121,7 +126,10 @@ describe("BuilderWizard — Revisão detecta pendências e bloqueia a exportaç�
       store.setClass("bruxo");
       store.setLevel(1);
       store.setSpecies("humano");
-      store.setBackground("acolito");
+      store.setBackground("acolito"); // INT, SAB, CAR
+      store.increaseBackgroundAbilityBonus("INT");
+      store.increaseBackgroundAbilityBonus("INT");
+      store.increaseBackgroundAbilityBonus("SAB");
       store.setAbilityScore("FOR", 10);
       store.setAbilityScore("DEX", 14);
       store.setAbilityScore("CON", 13);
@@ -223,5 +231,17 @@ describe("BuilderWizard — Conjuração mostra truques/magias/magias automátic
     fireEvent.change(nameInput, { target: { value: "Curar Feridas" } });
 
     expect(useCharacterStore.getState().character.spellsPrepared[0]?.name).toBe("Curar Feridas");
+  });
+
+  it("nunca mostra o controle 'Gastos' de espaços de magia — a criação só mostra o total máximo (§32-37, estado de sessão fora do escopo)", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("clerigo");
+      useCharacterStore.getState().setLevel(3);
+      useCharacterStore.getState().setSubclass("Domínio da Vida");
+    });
+    act(() => useBuilderStore.getState().goToStep("spellcasting"));
+
+    expect(screen.queryByText("Gastos")).not.toBeInTheDocument();
   });
 });

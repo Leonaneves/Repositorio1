@@ -2,6 +2,7 @@ import { ABILITY_KEYS } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { warlockInvocationsById } from "../data/invocations.js";
 import { metamagicOptionsById } from "../data/metamagic.js";
+import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
 import {
   EARTH_CIRCLE_TERRAIN_CHOICE_ID,
   EARTH_CIRCLE_TERRAIN_OPTIONS,
@@ -10,11 +11,13 @@ import {
 } from "../data/features/subclasses.js";
 import { getInvocationsKnown } from "./classResources.js";
 import { BUILDER_STEP_LABELS, getVisibleSteps, type BuilderStepId } from "./builderSteps.js";
-import { getIncompleteRequiredChoices } from "./features.js";
+import { getClassFeaturesWithChoices, getOtherFeaturesWithChoices, getSubclassFeaturesWithChoices, isFeatureComplete } from "./features.js";
 import { getInvalidChosenInvocations } from "./invocations.js";
 import { getKnownMetamagicOptions, getMetamagicOptionsKnownCount } from "./metamagic.js";
 import { isStartingEquipmentResolved } from "./startingEquipment.js";
 import { getWildShapeFormsConfig, validateKnownWildShapeForm } from "./wildShapeForms.js";
+import { getAsiLevelAllocatedPoints, getUnlockedAsiLevels, isAsiLevelComplete, ASI_ALLOCATION_CONFIG } from "./asi.js";
+import { isAllocationComplete } from "./abilityAllocation.js";
 
 /**
  * Motivos pelos quais a etapa ATUAL não pode avançar — usado por
@@ -30,10 +33,26 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
 
   if (stepId === "class") {
     if (!character.classId) blockers.push("Escolha uma classe para continuar.");
+    for (const feature of getClassFeaturesWithChoices(character)) {
+      if (!isFeatureComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+    }
+    for (const level of getUnlockedAsiLevels(character)) {
+      const selection = character.asiSelections[level];
+      if (!isAsiLevelComplete(selection)) {
+        if (!selection) blockers.push(`Nível ${level}: escolha "Aumentar Atributos" ou "Talento".`);
+        else {
+          const allocated = getAsiLevelAllocatedPoints(selection);
+          blockers.push(`Nível ${level}: distribua os ${ASI_ALLOCATION_CONFIG.totalPoints} pontos de atributo (${allocated}/${ASI_ALLOCATION_CONFIG.totalPoints}).`);
+        }
+      }
+    }
   }
 
   if (stepId === "subclass") {
     if (!character.subclassId) blockers.push("Escolha uma subclasse para continuar.");
+    for (const feature of getSubclassFeaturesWithChoices(character)) {
+      if (!isFeatureComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+    }
   }
 
   if (stepId === "species") {
@@ -42,6 +61,12 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
 
   if (stepId === "background") {
     if (!character.backgroundId) blockers.push("Escolha um antecedente para continuar.");
+    if (character.backgroundId) {
+      const config = getBackgroundAbilityAllocationConfig(character.backgroundId);
+      if (!isAllocationComplete(config, character.backgroundAbilityBonuses)) {
+        blockers.push("Distribua todos os pontos de Aumento de Atributo do Antecedente.");
+      }
+    }
   }
 
   if (stepId === "abilities") {
@@ -55,8 +80,8 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
   }
 
   if (stepId === "featuresAndTalents") {
-    for (const feature of getIncompleteRequiredChoices(character)) {
-      blockers.push(`Escolha pendente em "${feature.name}".`);
+    for (const feature of getOtherFeaturesWithChoices(character)) {
+      if (!isFeatureComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
     }
   }
 

@@ -172,6 +172,15 @@ export const pdfOverlayFields: PdfOverlayFieldMapping[] = [
   },
 ];
 
+/**
+ * PV Atual/Temporário e Dados de Vida Gastos são estado de SESSÃO, não
+ * de criação de personagem (fonte "REORGANIZAÇÃO DO BUILDER" §32-37) —
+ * ficam deliberadamente em branco no PDF inicial, nunca "0" literal.
+ * `Character.hp.current`/`hp.temp`/`hp.hitDiceSpent` continuam existindo
+ * no domínio (úteis para a futura ficha mobile/virtual); só não são
+ * usados aqui. PV Máximo e Dados de Vida Máximos são estruturais
+ * (derivados de classe/nível/CON) e continuam preenchidos normalmente.
+ */
 const identityAndDerived: PdfTextFieldMapping[] = [
   { kind: "text", pdfField: "Nome ", getValue: (c) => c.name },
   { kind: "text", pdfField: "Nível", getValue: (c) => formatPlain(c.level) },
@@ -181,10 +190,10 @@ const identityAndDerived: PdfTextFieldMapping[] = [
   { kind: "text", pdfField: "Deslocamento", getValue: (c) => formatComputedPlain(getSpeed(c)) },
   { kind: "text", pdfField: "Tamanho", getValue: (c) => getSize(c).total ?? "" },
   { kind: "text", pdfField: "PERCEPCAO.PASSIVA", getValue: (c) => formatComputedPlain(getPassivePerception(c)) },
-  { kind: "text", pdfField: "HP.atual", getValue: (c) => formatPlain(c.hp.current) },
-  { kind: "text", pdfField: "HP.temp", getValue: (c) => formatPlain(c.hp.temp) },
+  { kind: "text", pdfField: "HP.atual", getValue: () => "" },
+  { kind: "text", pdfField: "HP.temp", getValue: () => "" },
   { kind: "text", pdfField: "HP.max", getValue: (c) => formatComputedPlain(getMaxHitPoints(c)) },
-  { kind: "text", pdfField: "HP.Dados.Gasto", getValue: (c) => formatPlain(c.hp.hitDiceSpent) },
+  { kind: "text", pdfField: "HP.Dados.Gasto", getValue: () => "" },
   { kind: "text", pdfField: "HP.Dados.max", getValue: (c) => formatPlain(getMaxHitDice(c)) },
 ];
 
@@ -421,14 +430,20 @@ const attunedItemCheckboxes: PdfCheckboxFieldMapping[] = [1, 2, 3].map((n) => ({
 /** Quantidade real de caixas de espaço de magia por círculo no molde (`Nº.circ.M`) — 1º tem 4, 6º–9º têm menos. */
 const SPELL_SLOT_BOX_COUNT: Record<SpellCircle, number> = { 1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1 };
 
-/** Cada caixa marca "pelo menos M espaços gastos" — mesma leitura cumulativa das salvaguardas contra morte. */
+/**
+ * Espaços de magia GASTOS são estado de sessão, não de criação de
+ * personagem (fonte "REORGANIZAÇÃO DO BUILDER" §32-37) — o PDF inicial
+ * nunca pré-marca nenhuma caixa aqui. `Character.spellcasting.
+ * slots[circle].expended` continua existindo no domínio (útil para a
+ * futura ficha mobile/virtual); só não é lido aqui.
+ */
 const spellSlotExpendedCheckboxes: PdfCheckboxFieldMapping[] = SPELL_CIRCLES.flatMap((circle) =>
   Array.from({ length: SPELL_SLOT_BOX_COUNT[circle] }, (_, i) => {
     const boxNumber = i + 1;
     return {
       kind: "checkbox" as const,
       pdfField: `${circle}o.circ.${boxNumber}`,
-      getValue: (c: Character) => c.spellcasting.slots[circle].expended >= boxNumber,
+      getValue: () => false,
     };
   }),
 );

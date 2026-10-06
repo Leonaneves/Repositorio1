@@ -46,17 +46,17 @@ describe("isStepVisible — Conjuração (condicional, depende do atributo de co
   });
 });
 
-describe("isStepVisible — Características e Talentos (condicional, precisa de FeatureChoice pendente)", () => {
+describe("isStepVisible — Características e Talentos (condicional — só Espécie/Antecedente/Talento, desde a REORGANIZAÇÃO DO BUILDER §1/§2)", () => {
   it("some quando não existe nenhuma feature com escolha (personagem em branco, sem classe/espécie/antecedente)", () => {
     const character = createBlankCharacter("step-test");
     expect(isStepVisible("featuresAndTalents", character)).toBe(false);
   });
 
-  it("aparece quando a classe tem a escolha de Perícias de Classe (Bárbaro, sempre desde o nível 1)", () => {
+  it("some mesmo com a classe tendo escolha de Perícias de Classe (Bárbaro) — essa escolha agora mora na etapa Classe, não aqui", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "barbaro";
     character.level = 5;
-    expect(isStepVisible("featuresAndTalents", character)).toBe(true);
+    expect(isStepVisible("featuresAndTalents", character)).toBe(false);
   });
 });
 
@@ -207,21 +207,21 @@ describe("getVisibleSteps", () => {
     ]);
   });
 
-  it("Mago nível 3: soma Subclasse, Conjuração e Características e Talentos (a escolha de Perícias de Classe do Mago), mas nunca Invocações Místicas/Formas Conhecidas/Terreno — 11 das 14 etapas", () => {
+  it("Mago nível 3: soma Subclasse e Conjuração (a escolha de Perícias de Classe do Mago mora na etapa Classe, não mais aqui), mas nunca Invocações Místicas/Formas Conhecidas/Terreno/Características e Talentos — 10 das 14 etapas", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "mago";
     character.level = 3;
     const steps = getVisibleSteps(character);
     expect(steps).toContain("subclass");
     expect(steps).toContain("spellcasting");
-    expect(steps).toContain("featuresAndTalents");
+    expect(steps).not.toContain("featuresAndTalents");
     expect(steps).not.toContain("invocations");
     expect(steps).not.toContain("wildShapeForms");
     expect(steps).not.toContain("earthCircleTerrain");
-    expect(steps).toHaveLength(11);
+    expect(steps).toHaveLength(10);
   });
 
-  it("Bruxo nível 3: soma Subclasse, Invocações Místicas, Conjuração e Características e Talentos — 12 das 14 etapas (nunca Formas Conhecidas/Terreno)", () => {
+  it("Bruxo nível 3: soma Subclasse, Invocações Místicas e Conjuração — 11 das 14 etapas (nunca Formas Conhecidas/Terreno/Características e Talentos)", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "bruxo";
     character.level = 3;
@@ -229,11 +229,11 @@ describe("getVisibleSteps", () => {
     expect(steps).toContain("subclass");
     expect(steps).toContain("invocations");
     expect(steps).toContain("spellcasting");
-    expect(steps).toContain("featuresAndTalents");
-    expect(steps).toHaveLength(12);
+    expect(steps).not.toContain("featuresAndTalents");
+    expect(steps).toHaveLength(11);
   });
 
-  it("Druida nível 3 sem subclasse: soma Subclasse, Formas Conhecidas e Características e Talentos, mas nunca Terreno (subclasse ainda não escolhida) — 12 das 14 etapas", () => {
+  it("Druida nível 3 sem subclasse: soma Subclasse e Formas Conhecidas, mas nunca Terreno (subclasse ainda não escolhida) nem Características e Talentos — 11 das 14 etapas", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "druida";
     character.level = 3;
@@ -241,12 +241,12 @@ describe("getVisibleSteps", () => {
     expect(steps).toContain("subclass");
     expect(steps).toContain("wildShapeForms");
     expect(steps).toContain("spellcasting");
-    expect(steps).toContain("featuresAndTalents");
+    expect(steps).not.toContain("featuresAndTalents");
     expect(steps).not.toContain("earthCircleTerrain");
-    expect(steps).toHaveLength(12);
+    expect(steps).toHaveLength(11);
   });
 
-  it("Druida/Círculo da Terra nível 3: soma também Terreno — 13 das 14 etapas", () => {
+  it("Druida/Círculo da Terra nível 3: soma também Terreno — 12 das 14 etapas", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "druida";
     character.level = 3;
@@ -254,7 +254,7 @@ describe("getVisibleSteps", () => {
     const steps = getVisibleSteps(character);
     expect(steps).toContain("wildShapeForms");
     expect(steps).toContain("earthCircleTerrain");
-    expect(steps).toHaveLength(13);
+    expect(steps).toHaveLength(12);
   });
 
   it("respeita sempre a ordem canônica das etapas", () => {

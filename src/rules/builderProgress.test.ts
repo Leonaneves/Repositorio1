@@ -17,10 +17,12 @@ function setValidAbilities(character: Character): Character {
 }
 
 describe("getStepBlockers — etapas genéricas exigem o campo correspondente", () => {
-  it("'class' bloqueia sem classId, libera com classId", () => {
+  it("'class' bloqueia sem classId; com classId, ainda lista a Perícias de Classe pendente (escolha movida para esta etapa)", () => {
     const character = blank();
     expect(getStepBlockers("class", character)).toEqual(["Escolha uma classe para continuar."]);
-    expect(getStepBlockers("class", { ...character, classId: "mago" })).toEqual([]);
+    const withClass = getStepBlockers("class", { ...character, classId: "mago" });
+    expect(withClass).toHaveLength(1);
+    expect(withClass[0]).toContain("Perícias de Classe");
   });
 
   it("'species' bloqueia sem speciesId, libera com speciesId", () => {
@@ -29,10 +31,18 @@ describe("getStepBlockers — etapas genéricas exigem o campo correspondente", 
     expect(getStepBlockers("species", { ...character, speciesId: "humano" })).toEqual([]);
   });
 
-  it("'background' bloqueia sem backgroundId, libera com backgroundId", () => {
+  it("'background' bloqueia sem backgroundId; com backgroundId, ainda exige distribuir os Aumentos de Atributo", () => {
     const character = blank();
     expect(getStepBlockers("background", character)).toEqual(["Escolha um antecedente para continuar."]);
-    expect(getStepBlockers("background", { ...character, backgroundId: "acolito" })).toEqual([]);
+    const withBackground = getStepBlockers("background", { ...character, backgroundId: "acolito" });
+    expect(withBackground).toEqual(["Distribua todos os pontos de Aumento de Atributo do Antecedente."]);
+
+    const withAllocation = {
+      ...character,
+      backgroundId: "acolito" as const,
+      backgroundAbilityBonuses: { INT: 2, SAB: 1 },
+    };
+    expect(getStepBlockers("background", withAllocation)).toEqual([]);
   });
 
   it("'subclass' bloqueia sem subclassId, libera com subclassId", () => {
@@ -110,11 +120,15 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("equipment", character)).toEqual(["Escolha um pacote de Equipamento Inicial."]);
   });
 
-  it("'featuresAndTalents' lista cada escolha pendente por nome", () => {
+  it("'class' lista cada escolha pendente por nome (fonte REORGANIZAÇÃO DO BUILDER §1: Perícias de Classe do Guerreiro mora aqui)", () => {
     const character = { ...blank(), classId: "guerreiro" as const };
-    const blockers = getStepBlockers("featuresAndTalents", character);
-    expect(blockers.length).toBeGreaterThan(0);
-    expect(blockers[0]).toContain("Escolha pendente em");
+    const blockers = getStepBlockers("class", character);
+    expect(blockers.some((b) => b.includes('Escolha pendente em "Perícias de Classe"'))).toBe(true);
+  });
+
+  it("'featuresAndTalents' nunca lista escolhas de Classe/Subclasse — hoje sempre vazio, sem catálogo de Espécie/Antecedente/Talento com escolha", () => {
+    const character = { ...blank(), classId: "guerreiro" as const };
+    expect(getStepBlockers("featuresAndTalents", character)).toEqual([]);
   });
 });
 
@@ -127,15 +141,21 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
 
   it("personagem completo (classe/espécie/antecedente/atributos) sem pendências genéricas restantes", () => {
     let character = blank();
-    character = { ...character, classId: "guerreiro", speciesId: "humano", backgroundId: "acolito" };
+    character = {
+      ...character,
+      classId: "guerreiro",
+      speciesId: "humano",
+      backgroundId: "acolito",
+      backgroundAbilityBonuses: { INT: 2, SAB: 1 },
+    };
     character = setValidAbilities(character);
     const pending = getPendingBuilderSteps(character);
-    expect(pending.some((p) => p.stepId === "class")).toBe(false);
     expect(pending.some((p) => p.stepId === "species")).toBe(false);
     expect(pending.some((p) => p.stepId === "background")).toBe(false);
     expect(pending.some((p) => p.stepId === "abilities")).toBe(false);
-    // Guerreiro ainda tem Perícias de Classe (featuresAndTalents) e Equipamento Inicial pendentes.
-    expect(pending.some((p) => p.stepId === "featuresAndTalents")).toBe(true);
+    // "featuresAndTalents" nunca mais tem pendência de Classe — a Perícias de Classe do Guerreiro agora é bloqueio da própria etapa "class".
+    expect(pending.some((p) => p.stepId === "featuresAndTalents")).toBe(false);
+    expect(pending.some((p) => p.stepId === "class")).toBe(true);
     expect(pending.some((p) => p.stepId === "equipment")).toBe(true);
   });
 

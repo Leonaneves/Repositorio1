@@ -105,7 +105,10 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
 
   it("goNext avança para a próxima etapa visível", () => {
     const store = useBuilderStore.getState();
-    useCharacterStore.getState().setBackground("acolito");
+    useCharacterStore.getState().setBackground("acolito"); // INT, SAB, CAR
+    useCharacterStore.getState().increaseBackgroundAbilityBonus("INT");
+    useCharacterStore.getState().increaseBackgroundAbilityBonus("INT");
+    useCharacterStore.getState().increaseBackgroundAbilityBonus("SAB");
     store.goToStep("background");
     store.goNext();
     expect(useBuilderStore.getState().currentStepId).toBe("abilities");
@@ -134,10 +137,11 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
     expect(useBuilderStore.getState().currentStepId).toBe("background"); // pula "subclass"
   });
 
-  it("Mago nível 3: goNext de 'class' vai para 'subclass' (agora visível)", () => {
+  it("Mago nível 3: goNext de 'class' vai para 'subclass' (agora visível), depois de resolver Perícias de Classe", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setLevel(3);
+    useCharacterStore.getState().setFeatureChoiceSelection("classe-mago-pericias", ["arcanismo", "historia"]);
     store.goToStep("class");
     store.goNext();
     expect(useBuilderStore.getState().currentStepId).toBe("subclass");
@@ -150,8 +154,8 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
   });
 });
 
-describe("useBuilderStore — canAdvance/goNext travam em 'featuresAndTalents' com escolha obrigatória pendente (§5/§11)", () => {
-  it("canAdvance() é true fora da etapa 'featuresAndTalents', mesmo com escolhas pendentes em outras classes/etapas", () => {
+describe("useBuilderStore — canAdvance/goNext travam em 'class' com Perícias de Classe pendente (REORGANIZAÇÃO DO BUILDER §1: a escolha mora na etapa Classe, não mais em 'featuresAndTalents')", () => {
+  it("canAdvance() é true fora da etapa 'class', mesmo com Perícias de Classe pendentes", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro"); // tem Perícias de Classe pendente
     setValidAbilities();
@@ -159,31 +163,37 @@ describe("useBuilderStore — canAdvance/goNext travam em 'featuresAndTalents' c
     expect(store.canAdvance()).toBe(true);
   });
 
-  it("canAdvance() é false em 'featuresAndTalents' com Perícias de Classe do Guerreiro pendente", () => {
+  it("canAdvance() é false em 'class' com Perícias de Classe do Guerreiro pendente", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro");
-    store.goToStep("featuresAndTalents");
+    store.goToStep("class");
     expect(store.canAdvance()).toBe(false);
   });
 
-  it("goNext não sai de 'featuresAndTalents' enquanto a escolha não for respondida por completo", () => {
+  it("goNext não sai de 'class' enquanto a escolha não for respondida por completo", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro");
-    store.goToStep("featuresAndTalents");
+    store.goToStep("class");
     store.goNext();
-    expect(useBuilderStore.getState().currentStepId).toBe("featuresAndTalents"); // não avançou
+    expect(useBuilderStore.getState().currentStepId).toBe("class"); // não avançou
   });
 
   it("goNext avança normalmente depois que a escolha de perícias é completada", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro");
-    store.goToStep("featuresAndTalents");
+    store.goToStep("class");
 
     const setFeatureChoiceSelection = useCharacterStore.getState().setFeatureChoiceSelection;
     setFeatureChoiceSelection("classe-guerreiro-pericias", ["atletismo", "intimidacao"]);
 
     store.goNext();
-    expect(useBuilderStore.getState().currentStepId).not.toBe("featuresAndTalents");
+    expect(useBuilderStore.getState().currentStepId).not.toBe("class");
+  });
+
+  it("'featuresAndTalents' nunca mais trava — a etapa fica sempre invisível sem escolha de Espécie/Antecedente/Talento (hoje nenhuma confirmada)", () => {
+    const store = useBuilderStore.getState();
+    useCharacterStore.getState().setClass("guerreiro");
+    expect(store.visibleSteps()).not.toContain("featuresAndTalents");
   });
 });
 

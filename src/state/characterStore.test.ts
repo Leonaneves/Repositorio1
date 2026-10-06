@@ -5,6 +5,8 @@ import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { getWildShapeFormsConfig } from "../rules/wildShapeForms.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
+import { getClassToolChoiceId } from "../data/classes.js";
+import { getEffectiveAbilityScore } from "../rules/abilities.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -659,5 +661,187 @@ describe("useCharacterStore — Invocações Místicas do Bruxo (addInvocation/r
     store.setClass("guerreiro");
     store.setClass("mago");
     expect(useCharacterStore.getState().character.chosenInvocations).toEqual([]);
+  });
+});
+
+describe("useCharacterStore — Aumentos de Atributo do Antecedente (REORGANIZAÇÃO DO BUILDER §12/§19/§39)", () => {
+  it("increase/decreaseBackgroundAbilityBonus respeitam o pool (3 pontos) e o máximo (+2) do Antecedente atual", () => {
+    const store = useCharacterStore.getState();
+    store.setBackground("acolito"); // INT, SAB, CAR
+    store.increaseBackgroundAbilityBonus("INT");
+    store.increaseBackgroundAbilityBonus("INT");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses.INT).toBe(2);
+
+    store.increaseBackgroundAbilityBonus("INT"); // já no máximo — sem efeito
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses.INT).toBe(2);
+
+    store.increaseBackgroundAbilityBonus("SAB");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses).toEqual({ INT: 2, SAB: 1 });
+
+    store.decreaseBackgroundAbilityBonus("INT");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses.INT).toBe(1);
+  });
+
+  it("nunca permite distribuir numa habilidade fora das 3 elegíveis do Antecedente", () => {
+    const store = useCharacterStore.getState();
+    store.setBackground("acolito"); // INT, SAB, CAR — nunca FOR
+    store.increaseBackgroundAbilityBonus("FOR");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses.FOR).toBeUndefined();
+  });
+
+  it("trocar de Antecedente nunca acumula o bônus antigo com o novo — sempre limpa para {}", () => {
+    const store = useCharacterStore.getState();
+    store.setBackground("acolito");
+    store.increaseBackgroundAbilityBonus("INT");
+    store.increaseBackgroundAbilityBonus("INT");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses.INT).toBe(2);
+
+    store.setBackground("soldado"); // FOR, DEX, CON
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses).toEqual({});
+  });
+
+  it("o bônus do Antecedente afeta getEffectiveAbilityScore", () => {
+    const store = useCharacterStore.getState();
+    store.setBackground("acolito");
+    store.setAbilityScore("INT", 10);
+    store.increaseBackgroundAbilityBonus("INT");
+    expect(getEffectiveAbilityScore(useCharacterStore.getState().character, "INT")).toBe(11);
+  });
+});
+
+describe("useCharacterStore — ASI estruturado (REORGANIZAÇÃO DO BUILDER §22-§29, §38, §40)", () => {
+  it("setAsiMode('abilityIncrease') + increase/decreaseAsiAbility respeitam 2 pontos totais, máximo +2", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(4);
+    store.setAsiMode(4, "abilityIncrease");
+    store.increaseAsiAbility(4, "FOR");
+    store.increaseAsiAbility(4, "FOR");
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: { FOR: 2 } });
+
+    store.increaseAsiAbility(4, "DEX"); // pool já em 0 — sem efeito
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: { FOR: 2 } });
+
+    store.decreaseAsiAbility(4, "FOR");
+    store.increaseAsiAbility(4, "DEX");
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: { FOR: 1, DEX: 1 } });
+  });
+
+  it("trocar para 'feat' remove o bônus de atributo do ASI anterior (nunca deixa bônus ocultos)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(4);
+    store.setAsiMode(4, "abilityIncrease");
+    store.increaseAsiAbility(4, "FOR");
+    store.increaseAsiAbility(4, "FOR");
+
+    store.setAsiMode(4, "feat");
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat" });
+  });
+
+  it("voltar para 'abilityIncrease' começa do zero, nunca duplica bônus antigo", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(4);
+    store.setAsiMode(4, "abilityIncrease");
+    store.increaseAsiAbility(4, "FOR");
+    store.increaseAsiAbility(4, "FOR");
+    store.setAsiMode(4, "feat");
+    store.setAsiMode(4, "abilityIncrease");
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: {} });
+  });
+
+  it("cada nível de ASI é independente — alterar o nível 8 nunca afeta o nível 4", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(8);
+    store.setAsiMode(4, "abilityIncrease");
+    store.increaseAsiAbility(4, "FOR");
+    store.increaseAsiAbility(4, "FOR");
+    store.setAsiMode(8, "abilityIncrease");
+    store.increaseAsiAbility(8, "DEX");
+
+    const { asiSelections } = useCharacterStore.getState().character;
+    expect(asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: { FOR: 2 } });
+    expect(asiSelections[8]).toEqual({ kind: "abilityIncrease", allocations: { DEX: 1 } });
+  });
+
+  it("trocar de classe remove os ASIs de níveis que a nova classe não concede (§38)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro"); // tem ASI no nível 6, único entre as classes comuns
+    store.setLevel(6);
+    store.setAsiMode(6, "feat");
+    expect(useCharacterStore.getState().character.asiSelections[6]).toEqual({ kind: "feat" });
+
+    store.setClass("mago"); // não tem ASI no nível 6
+    expect(useCharacterStore.getState().character.asiSelections[6]).toBeUndefined();
+  });
+
+  it("baixar o nível remove os ASIs de níveis que não existem mais (§40)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(8);
+    store.setAsiMode(4, "feat");
+    store.setAsiMode(8, "feat");
+
+    store.setLevel(4);
+    const { asiSelections } = useCharacterStore.getState().character;
+    expect(asiSelections[4]).toEqual({ kind: "feat" });
+    expect(asiSelections[8]).toBeUndefined();
+  });
+
+  it("o bônus de ASI afeta getEffectiveAbilityScore", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(4);
+    store.setAbilityScore("FOR", 15);
+    store.setAsiMode(4, "abilityIncrease");
+    store.increaseAsiAbility(4, "FOR");
+    store.increaseAsiAbility(4, "FOR");
+    expect(getEffectiveAbilityScore(useCharacterStore.getState().character, "FOR")).toBe(17);
+  });
+});
+
+describe("useCharacterStore — Homebrew de Ferramentas (REORGANIZAÇÃO DO BUILDER §5)", () => {
+  it("enableToolsHomebrew copia a escolha automática atual, sem perder os dados automáticos", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bardo");
+    store.setFeatureChoiceSelection(getClassToolChoiceId("bardo"), ["alaude", "flauta", "tambor"]);
+
+    store.enableToolsHomebrew();
+    expect(useCharacterStore.getState().character.manualToolOverrides).toEqual(["alaude", "flauta", "tambor"]);
+    // A escolha automática original continua lá, intocada.
+    expect(useCharacterStore.getState().character.featureChoiceSelections[getClassToolChoiceId("bardo")]?.value).toEqual([
+      "alaude",
+      "flauta",
+      "tambor",
+    ]);
+  });
+
+  it("addManualTool/removeManualTool só têm efeito com Homebrew ativo", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bardo");
+    store.enableToolsHomebrew();
+    store.addManualTool("ferramentas-ladrao");
+    expect(useCharacterStore.getState().character.manualToolOverrides).toEqual(["ferramentas-ladrao"]);
+
+    store.removeManualTool("ferramentas-ladrao");
+    expect(useCharacterStore.getState().character.manualToolOverrides).toEqual([]);
+  });
+
+  it("disableToolsHomebrew volta a null — nunca perde a escolha automática", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("bardo");
+    store.setFeatureChoiceSelection(getClassToolChoiceId("bardo"), ["alaude", "flauta", "tambor"]);
+    store.enableToolsHomebrew();
+    store.addManualTool("ferramentas-ladrao");
+
+    store.disableToolsHomebrew();
+    expect(useCharacterStore.getState().character.manualToolOverrides).toBeNull();
+    expect(useCharacterStore.getState().character.featureChoiceSelections[getClassToolChoiceId("bardo")]?.value).toEqual([
+      "alaude",
+      "flauta",
+      "tambor",
+    ]);
   });
 });

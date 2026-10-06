@@ -7,6 +7,19 @@ export interface AbilityScoreState {
   score: number;
 }
 
+/**
+ * Uma escolha de "Aumento no Valor de Atributo" (fonte "REORGANIZAÇÃO
+ * DO BUILDER" §22/§29) — cada nível de ASI (4/8/12/16/19 conforme a
+ * classe) tem sua PRÓPRIA instância, guardada em `Character.asiSelections`
+ * por nível. `abilityIncrease.allocations` usa o mesmo componente
+ * genérico de distribuição de `rules/abilityAllocation.ts` (2 pontos
+ * totais, máximo +2 por atributo — `ASI_ALLOCATION_CONFIG`). `feat` não
+ * guarda nenhum id: o catálogo de Talentos ainda não existe (§27 —
+ * nunca inventado), então escolher "Talento" já é a decisão completa
+ * por ora.
+ */
+export type AsiSelection = { kind: "abilityIncrease"; allocations: Partial<Record<AbilityKey, number>> } | { kind: "feat" };
+
 export interface SkillState {
   /**
    * Override explícito do jogador sobre a proficiência: `null` =
@@ -190,6 +203,35 @@ export interface Character {
    * modelo genérico de `FeatureChoice`.
    */
   knownMetamagicOptions: string[];
+
+  /**
+   * Bônus de atributo do Antecedente ATUAL (fonte "REORGANIZAÇÃO DO
+   * BUILDER" §12/§19/§20) — distribuição própria, separada da pontuação
+   * base (`abilities[ability].score`) e de qualquer outra fonte, para
+   * nunca acumular bônus de forma destrutiva ao editar (§18). Trocar de
+   * Antecedente limpa este campo por completo (`state/characterStore.ts#setBackground`)
+   * — nunca soma o bônus do Antecedente antigo ao novo (§39).
+   */
+  backgroundAbilityBonuses: Partial<Record<AbilityKey, number>>;
+
+  /**
+   * Escolhas de "Aumento no Valor de Atributo" por nível (ex.: `{4: {...}, 8: {...}}`)
+   * — ver `AsiSelection`. Cada instância é independente (§29); trocar de
+   * classe ou baixar o nível remove as entradas que deixarem de existir
+   * na progressão (`state/characterStore.ts#setClass`/`setLevel`).
+   */
+  asiSelections: Record<number, AsiSelection>;
+
+  /**
+   * Override manual (Homebrew) das Ferramentas/Instrumentos conhecidos
+   * — `null` = segue o resultado automático da escolha estruturada de
+   * "Ferramentas de Classe" (`rules/tools.ts#getAutomaticClassTools`);
+   * um array = modo Homebrew ativo, substitui por completo o resultado
+   * automático (nunca soma), mas nunca destrói os dados automáticos —
+   * voltar a `null` restaura o resultado calculado pelas regras (fonte
+   * "REORGANIZAÇÃO DO BUILDER" §5).
+   */
+  manualToolOverrides: string[] | null;
 }
 
 export interface ChosenInvocation {
@@ -281,5 +323,8 @@ export function createBlankCharacter(id: string): Character {
     chosenInvocations: [],
     knownWildShapeForms: [],
     knownMetamagicOptions: [],
+    backgroundAbilityBonuses: {},
+    asiSelections: {},
+    manualToolOverrides: null,
   };
 }

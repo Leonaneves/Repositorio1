@@ -1,5 +1,6 @@
 import type { AbilityKey } from "../domain/common.js";
 import { CLASS_IDS, type ClassId, type SkillKey } from "../domain/ids.js";
+import type { ToolCategory } from "./tools.js";
 
 /** "artificer" = progressão própria do Artífice (tabela explícita — nunca a fórmula genérica de meio-conjurador). */
 export type CasterKind = "full" | "half" | "pact" | "artificer" | "none";
@@ -33,7 +34,8 @@ export interface ClassSkillChoice {
  */
 export interface ClassToolChoice {
   count: number;
-  optionsText: string;
+  /** Categoria(s) elegível(eis) do catálogo estruturado (`data/tools.ts`) — array = "ou" entre categorias (ex.: Monge). */
+  category: ToolCategory | ToolCategory[];
 }
 
 /**
@@ -113,7 +115,7 @@ export const classes: Record<ClassId, ClassDefinition> = {
       count: 2,
       from: ["arcanismo", "historia", "investigacao", "medicina", "natureza", "percepcao", "prestidigitacao"],
     },
-    toolChoice: { count: 1, optionsText: "Ferramenta de Artesão" },
+    toolChoice: { count: 1, category: "artisanTool" },
     startingEquipment: [
       {
         id: "padrao",
@@ -162,7 +164,7 @@ export const classes: Record<ClassId, ClassDefinition> = {
     weaponProficiencyText: "Armas Simples",
     toolProficiencyText: "3 Instrumentos Musicais à escolha",
     skillChoice: { count: 3, from: "any" },
-    toolChoice: { count: 3, optionsText: "Instrumentos Musicais" },
+    toolChoice: { count: 3, category: "musicalInstrument" },
     startingEquipment: [
       { id: "A", items: ["Armadura de Couro", "2 Adagas", "Instrumento Musical à sua escolha", "Kit de Artista"], gold: 19 },
       { id: "B", items: [], gold: 90 },
@@ -325,7 +327,7 @@ export const classes: Record<ClassId, ClassDefinition> = {
     weaponProficiencyText: "Armas Simples e Armas Marciais com propriedade Leve",
     toolProficiencyText: "1 Ferramenta de Artesão ou Instrumento Musical à escolha",
     skillChoice: { count: 2, from: ["acrobacia", "atletismo", "furtividade", "historia", "intuicao", "religiao"] },
-    toolChoice: { count: 1, optionsText: "Ferramenta de Artesão OU Instrumento Musical" },
+    toolChoice: { count: 1, category: ["artisanTool", "musicalInstrument"] },
     startingEquipment: [
       { id: "A", items: ["Lança", "5 Adagas", "Ferramenta de Artesão ou Instrumento Musical escolhido", "Kit de Aventureiro"], gold: 11 },
       { id: "B", items: [], gold: 50 },

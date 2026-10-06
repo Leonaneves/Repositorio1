@@ -71,13 +71,13 @@ describe("getClassFeatures — progressão por nível", () => {
     expect(names).not.toContain("Sábio dos Itens Mágicos"); // só a partir do nível 14
   });
 
-  it("Aumento no Valor de Atributo e Dádiva Épica vêm com uma FeatureChoice manualText (catálogo pendente)", () => {
+  it("Aumento no Valor de Atributo não tem FeatureChoice genérica (UI própria); Dádiva Épica continua manualText (catálogo pendente)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "mago";
     character.level = 20;
     const asi = getClassFeatures(character).find((f) => f.id === "mago-asi-4");
     const dadiva = getClassFeatures(character).find((f) => f.id === "mago-dadiva-epica");
-    expect(asi?.choices?.[0].effect.kind).toBe("manualText");
+    expect(asi?.choices ?? []).toHaveLength(0);
     expect(dadiva?.choices?.[0].effect.kind).toBe("manualText");
   });
 
@@ -192,7 +192,7 @@ describe("isFeatureChoiceComplete / isFeatureComplete / getIncompleteRequiredCho
     expect(isFeatureChoiceComplete(choice, character)).toBe(true);
   });
 
-  it("toolProficiency: completo com qualquer texto não vazio", () => {
+  it("toolProficiency: completo só quando a quantidade exata de ferramentas elegíveis foi escolhida", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "bardo";
     const feature = getClassFeatures(character).find((f) => f.name === "Ferramentas de Classe")!;
@@ -200,10 +200,10 @@ describe("isFeatureChoiceComplete / isFeatureComplete / getIncompleteRequiredCho
 
     expect(isFeatureChoiceComplete(choice, character)).toBe(false);
 
-    character.featureChoiceSelections[choice.id] = { value: "  " }; // só espaço não conta
+    character.featureChoiceSelections[choice.id] = { value: ["alaude"] }; // só 1 de 3
     expect(isFeatureChoiceComplete(choice, character)).toBe(false);
 
-    character.featureChoiceSelections[choice.id] = { value: "Alaúde" };
+    character.featureChoiceSelections[choice.id] = { value: ["alaude", "flauta", "tambor"] };
     expect(isFeatureChoiceComplete(choice, character)).toBe(true);
   });
 
@@ -236,7 +236,7 @@ describe("isFeatureChoiceComplete / isFeatureComplete / getIncompleteRequiredCho
     const incomplete = getIncompleteRequiredChoices(character);
     expect(incomplete.some((f) => f.name === "Ferramentas de Classe")).toBe(true);
 
-    character.featureChoiceSelections[getClassToolChoiceId("bardo")] = { value: "Alaúde, Flauta, Tambor" };
+    character.featureChoiceSelections[getClassToolChoiceId("bardo")] = { value: ["alaude", "flauta", "tambor"] };
     expect(getIncompleteRequiredChoices(character)).toEqual([]);
   });
 });
