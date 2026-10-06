@@ -234,15 +234,6 @@ export interface Character {
   speciesLineageId: string | null;
 
   /**
-   * Atributo de conjuração (INT/SAB/CAR) das magias da Linhagem Élfica
-   * — escolha do jogador, independente do atributo de conjuração da
-   * CLASSE (`rules/spellcasting.ts#getSpellcastingAbility`). Só tem
-   * efeito com `speciesId === "elfo"`; `null` para qualquer outra
-   * espécie, ou enquanto não escolhido.
-   */
-  elvenLineageSpellcastingAbility: AbilityKey | null;
-
-  /**
    * Override manual (Homebrew) das Ferramentas/Instrumentos conhecidos
    * — `null` = segue o resultado automático da escolha estruturada de
    * "Ferramentas de Classe" (`rules/tools.ts#getAutomaticClassTools`);
@@ -347,6 +338,5 @@ export function createBlankCharacter(id: string): Character {
     asiSelections: {},
     manualToolOverrides: null,
     speciesLineageId: null,
-    elvenLineageSpellcastingAbility: null,
   };
 }

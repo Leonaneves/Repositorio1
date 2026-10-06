@@ -119,7 +119,8 @@ const GOLIATH_ANCESTRY_TEXT: Record<string, string> = {
 
 function getGoliathPrintedText(character: Character): string {
   const ancestry = findSpeciesLineageOption("golias", character.speciesLineageId);
-  const lines: string[] = [];
+  // Porte Poderoso é traço básico do Golias, incondicional (não depende de ancestralidade/nível).
+  const lines: string[] = ["#PORTE PODEROSO", "Vant. contra condição Imobilizado"];
 
   if (character.level >= 5) {
     lines.push("# FORMA GRANDE", "> Dura 10min | Ação Bônus | 1 p/ DL", "> Tamanho = Grande: Vantagem em Testes de Força e +3m de desl.");

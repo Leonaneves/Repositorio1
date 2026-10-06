@@ -2,7 +2,7 @@ import type { AbilityKey } from "../domain/common.js";
 import type { Character, SpellPreparedEntry } from "../domain/character.js";
 import { findSpeciesLineageOption, INFERNAL_LINEAGES } from "../data/speciesLineages.js";
 import { getProficiencyBonus } from "./abilities.js";
-import { getGnomeOrTieflingLineageSpellcastingAbility } from "./speciesLineage.js";
+import { getSpeciesLineageSpellcastingAbility } from "./speciesLineage.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -19,7 +19,8 @@ const ABILITY_NAMES: Record<AbilityKey, string> = {
  * descrição, componentes, alcance ou dano — só o que a fonte deu (nome,
  * origem, nível mínimo via o próprio gating de `character.level`,
  * indicação de truque, disponibilidade/usos gratuitos e atributo de
- * conjuração, quando definido). Usa o MESMO formato de
+ * conjuração — sempre resolvido via `getSpeciesLineageSpellcastingAbility`,
+ * nunca uma escolha manual). Usa o MESMO formato de
  * `rules/bardAutoPreparedSpells.ts#autoEntry`/`rules/druidAutoPreparedSpells.ts#autoEntry`
  * (circle/castingTime/range sempre "", concentration/ritual/material
  * sempre `false`, tudo em `notes`) — nunca um formato paralelo. Entra
@@ -39,16 +40,16 @@ function autoEntry(name: string, notes: string): SpellPreparedEntry {
   return { circle: "", name, castingTime: "", range: "", concentration: false, ritual: false, material: false, notes };
 }
 
-function abilityNote(ability: AbilityKey | null): string {
-  return ability ? ` Atributo: ${ABILITY_NAMES[ability]}.` : "";
+function abilityNote(ability: AbilityKey): string {
+  return ` Atributo: ${ABILITY_NAMES[ability]}.`;
 }
 
-function cantripEntry(name: string, origin: string, ability: AbilityKey | null, extra?: string): SpellPreparedEntry {
+function cantripEntry(name: string, origin: string, ability: AbilityKey, extra?: string): SpellPreparedEntry {
   const extraNote = extra ? ` ${extra}` : "";
   return autoEntry(name, `Truque conhecido — ${origin}.${extraNote}${abilityNote(ability)}`);
 }
 
-function preparedEntry(name: string, origin: string, ability: AbilityKey | null, freeUses: string): SpellPreparedEntry {
+function preparedEntry(name: string, origin: string, ability: AbilityKey, freeUses: string): SpellPreparedEntry {
   return autoEntry(
     name,
     `Sempre preparada — ${origin}. ${freeUses} sem gasto de espaço por Descanso Longo, ou com espaço de magia apropriado.${abilityNote(ability)}`,
@@ -60,7 +61,7 @@ function getElvenGrantedSpells(character: Character): SpellPreparedEntry[] {
   const lineage = findSpeciesLineageOption("elfo", character.speciesLineageId);
   if (!lineage) return [];
 
-  const ability = character.elvenLineageSpellcastingAbility;
+  const ability = getSpeciesLineageSpellcastingAbility(character);
   const origin = `Linhagem Élfica — ${lineage.name}`;
   const entries: SpellPreparedEntry[] = [];
 
@@ -93,7 +94,7 @@ function getGnomishGrantedSpells(character: Character): SpellPreparedEntry[] {
   const lineage = findSpeciesLineageOption("gnomo", character.speciesLineageId);
   if (!lineage) return [];
 
-  const ability = getGnomeOrTieflingLineageSpellcastingAbility(character);
+  const ability = getSpeciesLineageSpellcastingAbility(character);
   const origin = `Linhagem Gnômica — ${lineage.name}`;
 
   if (lineage.id === "gnomo-floresta") {
@@ -113,7 +114,7 @@ function getInfernalGrantedSpells(character: Character): SpellPreparedEntry[] {
   const lineage = findSpeciesLineageOption("tiefling", character.speciesLineageId);
   if (!lineage) return [];
 
-  const ability = getGnomeOrTieflingLineageSpellcastingAbility(character);
+  const ability = getSpeciesLineageSpellcastingAbility(character);
   const infernal = INFERNAL_LINEAGES.find((option) => option.id === lineage.id);
   if (!infernal) return [];
 

@@ -46,15 +46,12 @@ describe("getStepBlockers — etapas genéricas exigem o campo correspondente", 
     expect(getStepBlockers("species", tiefling)).toEqual(["Escolha a Linhagem Infernal para continuar."]);
   });
 
-  it("'species' (Elfo) exige a Linhagem Élfica E o atributo de conjuração — mensagens diferentes para cada pendência", () => {
+  it("'species' (Elfo) exige só a Linhagem Élfica — o atributo de conjuração é sempre automático, nunca uma escolha manual separada", () => {
     const character: Character = { ...blank(), speciesId: "elfo" };
     expect(getStepBlockers("species", character)).toEqual(["Escolha a Linhagem Élfica para continuar."]);
 
     const comLinhagem: Character = { ...character, speciesLineageId: "elfo-drow" };
-    expect(getStepBlockers("species", comLinhagem)).toEqual(["Escolha o atributo de conjuração da Linhagem Élfica."]);
-
-    const completo: Character = { ...comLinhagem, elvenLineageSpellcastingAbility: "CAR" };
-    expect(getStepBlockers("species", completo)).toEqual([]);
+    expect(getStepBlockers("species", comLinhagem)).toEqual([]);
   });
 
   it("'background' bloqueia sem backgroundId; com backgroundId, ainda exige distribuir os Aumentos de Atributo", () => {

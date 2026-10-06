@@ -82,21 +82,17 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 
-  it("'Espécie' com Linhagem Élfica exige a linhagem E o atributo de conjuração, cada um com seu próprio motivo", () => {
+  it("'Espécie' com Linhagem Élfica exige só a linhagem — o atributo de conjuração é sempre automático, nunca uma escolha manual separada", () => {
     render(<App />);
     act(() => useCharacterStore.getState().setClass("guerreiro"));
     act(() => useBuilderStore.getState().goToStep("species"));
 
     fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "elfo" } });
     expect(screen.getByText("Escolha a Linhagem Élfica para continuar.")).toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Atributo de Conjuração da Linhagem Élfica" })).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByRole("combobox", { name: "Linhagem Élfica" }), { target: { value: "elfo-drow" } });
     expect(screen.queryByText("Escolha a Linhagem Élfica para continuar.")).not.toBeInTheDocument();
-    expect(screen.getByText("Escolha o atributo de conjuração da Linhagem Élfica.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
-
-    fireEvent.change(screen.getByRole("combobox", { name: "Atributo de Conjuração da Linhagem Élfica" }), { target: { value: "CAR" } });
-    expect(screen.queryByText("Escolha o atributo de conjuração da Linhagem Élfica.")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
     expect(screen.getByText(/VISÃO NO ESCURO 36m/)).toBeInTheDocument(); // Drow sobrescreve para 36m
   });

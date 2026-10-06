@@ -3,7 +3,7 @@ import type { Character } from "../domain/character.js";
 import { warlockInvocationsById } from "../data/invocations.js";
 import { metamagicOptionsById } from "../data/metamagic.js";
 import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
-import { findSpeciesLineageOption, getSpeciesLineageLabel, hasSpeciesLineage } from "../data/speciesLineages.js";
+import { getSpeciesLineageLabel, hasSpeciesLineage } from "../data/speciesLineages.js";
 import { isSpeciesLineageResolved } from "./speciesLineage.js";
 import {
   EARTH_CIRCLE_TERRAIN_CHOICE_ID,
@@ -60,9 +60,7 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
   if (stepId === "species") {
     if (!character.speciesId) blockers.push("Escolha uma espécie para continuar.");
     else if (hasSpeciesLineage(character.speciesId) && !isSpeciesLineageResolved(character)) {
-      const chosen = findSpeciesLineageOption(character.speciesId, character.speciesLineageId);
-      if (!chosen) blockers.push(`Escolha a ${getSpeciesLineageLabel(character.speciesId)} para continuar.`);
-      else blockers.push("Escolha o atributo de conjuração da Linhagem Élfica.");
+      blockers.push(`Escolha a ${getSpeciesLineageLabel(character.speciesId)} para continuar.`);
     }
   }
 

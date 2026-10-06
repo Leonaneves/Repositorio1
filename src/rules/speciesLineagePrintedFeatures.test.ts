@@ -153,6 +153,15 @@ describe("getSpeciesTraitsPrintedText — Golias", () => {
     expect(getSpeciesTraitsPrintedText(goliasAt(5, "golias-fogo"))).toContain("FORMA GRANDE");
   });
 
+  it("PORTE PODEROSO é incondicional — aparece mesmo sem ancestralidade escolhida e em qualquer nível", () => {
+    const text1 = getSpeciesTraitsPrintedText(goliasAt(1, null));
+    expect(text1).toContain("#PORTE PODEROSO");
+    expect(text1).toContain("Vant. contra condição Imobilizado");
+
+    const text20 = getSpeciesTraitsPrintedText(goliasAt(20, "golias-tempestade"));
+    expect(text20).toContain("#PORTE PODEROSO");
+  });
+
   it.each([
     ["golias-gelo", "Frio"],
     ["golias-fogo", "Fogo"],

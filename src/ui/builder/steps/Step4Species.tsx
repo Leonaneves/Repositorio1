@@ -1,18 +1,8 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
-import type { AbilityKey } from "../../../domain/common.js";
 import { SPECIES_IDS } from "../../../domain/ids.js";
 import { species } from "../../../data/species.js";
 import { getSpeciesLineageLabel, getSpeciesLineageOptions, hasSpeciesLineage } from "../../../data/speciesLineages.js";
 import { getSpeciesTraitsPrintedText } from "../../../rules/speciesLineagePrintedFeatures.js";
-
-const ABILITY_NAMES: Record<AbilityKey, string> = {
-  FOR: "Força",
-  DEX: "Destreza",
-  CON: "Constituição",
-  INT: "Inteligência",
-  SAB: "Sabedoria",
-  CAR: "Carisma",
-};
 
 /**
  * Etapa 4 — escolha de espécie, com subseção de Linhagem/Ancestralidade
@@ -21,16 +11,17 @@ const ABILITY_NAMES: Record<AbilityKey, string> = {
  * Tiefling, mostrando só a escolha correspondente à espécie ATUAL —
  * nunca um item próprio na navegação lateral (mesmo padrão de UI
  * própria fora do `FeatureChoice` genérico já usado em Metamagia/
- * Invocações/ASI). Elfo ganha ainda o atributo de conjuração da
- * Linhagem Élfica (INT/SAB/CAR), independente do atributo de
- * conjuração da classe.
+ * Invocações/ASI). O atributo de conjuração das magias de Elfo/Gnomo/
+ * Tiefling é sempre resolvido automaticamente por
+ * `rules/speciesLineage.ts#getSpeciesLineageSpellcastingAbility` (classe
+ * primeiro, senão o maior entre INT/SAB/CAR) — nunca uma escolha manual
+ * nesta etapa.
  */
 export function Step4Species() {
   const character = useCharacterStore((s) => s.character);
   const speciesId = character.speciesId;
   const setSpecies = useCharacterStore((s) => s.setSpecies);
   const setSpeciesLineage = useCharacterStore((s) => s.setSpeciesLineage);
-  const setElvenLineageSpellcastingAbility = useCharacterStore((s) => s.setElvenLineageSpellcastingAbility);
 
   const lineageOptions = speciesId ? getSpeciesLineageOptions(speciesId) : [];
   const lineageLabel = speciesId ? getSpeciesLineageLabel(speciesId) : null;
@@ -63,21 +54,6 @@ export function Step4Species() {
               ))}
             </select>
           </label>
-
-          {speciesId === "elfo" && (
-            <label className="field">
-              <span>Atributo de Conjuração da Linhagem Élfica</span>
-              <select
-                value={character.elvenLineageSpellcastingAbility ?? ""}
-                onChange={(e) => setElvenLineageSpellcastingAbility(e.target.value ? (e.target.value as AbilityKey) : null)}
-              >
-                <option value="">- Selecione -</option>
-                <option value="INT">{ABILITY_NAMES.INT}</option>
-                <option value="SAB">{ABILITY_NAMES.SAB}</option>
-                <option value="CAR">{ABILITY_NAMES.CAR}</option>
-              </select>
-            </label>
-          )}
         </fieldset>
       )}
 

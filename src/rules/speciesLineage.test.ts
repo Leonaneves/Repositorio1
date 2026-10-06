@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import {
-  getGnomeOrTieflingLineageSpellcastingAbility,
   getSpeciesLineageDamageType,
   getSpeciesLineageSpeedBonus,
+  getSpeciesLineageSpellcastingAbility,
   isSpeciesLineageResolved,
 } from "./speciesLineage.js";
 
@@ -32,19 +32,14 @@ describe("isSpeciesLineageResolved", () => {
     expect(isSpeciesLineageResolved(character)).toBe(true);
   });
 
-  it("Elfo exige a linhagem E o atributo de conjuração — nenhum dos dois basta isoladamente", () => {
-    const character = createBlankCharacter("t");
-    character.speciesId = "elfo";
-    expect(isSpeciesLineageResolved(character)).toBe(false);
+  it("Elfo/Gnomo/Tiefling/Golias só exigem a linhagem/ancestralidade — o atributo de conjuração é sempre automático, nunca uma escolha manual separada", () => {
+    const elfo = createBlankCharacter("t");
+    elfo.speciesId = "elfo";
+    expect(isSpeciesLineageResolved(elfo)).toBe(false);
 
-    character.speciesLineageId = "elfo-alto-elfo";
-    expect(isSpeciesLineageResolved(character)).toBe(false); // falta o atributo
+    elfo.speciesLineageId = "elfo-alto-elfo";
+    expect(isSpeciesLineageResolved(elfo)).toBe(true);
 
-    character.elvenLineageSpellcastingAbility = "INT";
-    expect(isSpeciesLineageResolved(character)).toBe(true);
-  });
-
-  it("Gnomo/Tiefling/Golias só exigem a linhagem/ancestralidade (sem atributo manual)", () => {
     const gnomo = createBlankCharacter("t");
     gnomo.speciesId = "gnomo";
     gnomo.speciesLineageId = "gnomo-rocha";
@@ -109,13 +104,22 @@ describe("getSpeciesLineageSpeedBonus — Elfo da Floresta (+1,5m)", () => {
   });
 });
 
-describe("getGnomeOrTieflingLineageSpellcastingAbility — mesma regra para Gnomo e Tiefling", () => {
+describe("getSpeciesLineageSpellcastingAbility — mesma regra para Elfo/Gnomo/Tiefling (ajuste pedido: usar getSpellcastingAbility para o Elfo também)", () => {
   it("usa o atributo de conjuração da CLASSE quando ela já define um", () => {
     const character = createBlankCharacter("t");
     character.speciesId = "gnomo";
     character.classId = "mago"; // INT
     character.abilities.SAB.score = 20; // mesmo SAB bem maior, a classe vence
-    expect(getGnomeOrTieflingLineageSpellcastingAbility(character)).toBe("INT");
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("INT");
+  });
+
+  it("vale também para o Elfo — classe conjuradora vence qualquer atributo mais alto", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-drow";
+    character.classId = "clerigo"; // SAB
+    character.abilities.CAR.score = 20;
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("SAB");
   });
 
   it("sem classe conjuradora, usa o maior valor efetivo entre INT/SAB/CAR", () => {
@@ -125,7 +129,16 @@ describe("getGnomeOrTieflingLineageSpellcastingAbility — mesma regra para Gnom
     character.abilities.INT.score = 10;
     character.abilities.SAB.score = 16;
     character.abilities.CAR.score = 12;
-    expect(getGnomeOrTieflingLineageSpellcastingAbility(character)).toBe("SAB");
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("SAB");
+  });
+
+  it("Elfo sem classe conjuradora também usa o maior valor efetivo entre INT/SAB/CAR (nunca precisa de escolha manual)", () => {
+    const character = createBlankCharacter("t");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-alto-elfo";
+    character.classId = "guerreiro";
+    character.abilities.CAR.score = 18;
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("CAR");
   });
 
   it("empate decidido por INT > SAB > CAR — nunca escolhe INT só por ser o primeiro quando não empata", () => {
@@ -134,12 +147,12 @@ describe("getGnomeOrTieflingLineageSpellcastingAbility — mesma regra para Gnom
     character.abilities.INT.score = 10;
     character.abilities.SAB.score = 10;
     character.abilities.CAR.score = 14; // maior isolado — não é empate, deve vencer
-    expect(getGnomeOrTieflingLineageSpellcastingAbility(character)).toBe("CAR");
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("CAR");
 
     character.abilities.CAR.score = 10; // agora os 3 empatam em 10
-    expect(getGnomeOrTieflingLineageSpellcastingAbility(character)).toBe("INT");
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("INT");
 
     character.abilities.INT.score = 8; // INT cai, SAB e CAR empatam em 10 — SAB vence (prioridade sobre CAR)
-    expect(getGnomeOrTieflingLineageSpellcastingAbility(character)).toBe("SAB");
+    expect(getSpeciesLineageSpellcastingAbility(character)).toBe("SAB");
   });
 });

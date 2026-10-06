@@ -29,12 +29,13 @@ describe("getSpeciesGrantedSpells — Draconato/Golias nunca concedem magia", ()
 });
 
 describe("getSpeciesGrantedSpells — Elfo", () => {
-  function elfoAt(level: number, lineageId: string, ability: "INT" | "SAB" | "CAR" | null = "SAB") {
+  // Sem classe conjuradora e com os 6 atributos iguais (base de createBlankCharacter), o atributo
+  // resolvido automaticamente é sempre INT (empate de 3 — ver getSpeciesLineageSpellcastingAbility).
+  function elfoAt(level: number, lineageId: string) {
     const character = createBlankCharacter("t");
     character.speciesId = "elfo";
     character.level = level;
     character.speciesLineageId = lineageId;
-    character.elvenLineageSpellcastingAbility = ability;
     return character;
   }
 
@@ -86,12 +87,20 @@ describe("getSpeciesGrantedSpells — Elfo", () => {
     expect(entries[1].notes).toContain("1x sem gasto de espaço");
   });
 
-  it("atributo de conjuração aparece em notes quando definido, some quando null", () => {
-    const comAtributo = getSpeciesGrantedSpells(elfoAt(1, "elfo-drow", "CAR"));
-    expect(comAtributo[0].notes).toContain("Atributo: Carisma");
+  it("atributo de conjuração sempre aparece em notes (usa getSpellcastingAbility da classe, ou o maior entre INT/SAB/CAR)", () => {
+    const comClasse = elfoAt(1, "elfo-drow");
+    comClasse.classId = "bruxo"; // CAR
+    expect(getSpeciesGrantedSpells(comClasse)[0].notes).toContain("Atributo: Carisma");
 
-    const semAtributo = getSpeciesGrantedSpells(elfoAt(1, "elfo-drow", null));
-    expect(semAtributo[0].notes).not.toContain("Atributo:");
+    const semClasse = elfoAt(1, "elfo-drow"); // 6 atributos iguais → empate → INT
+    expect(getSpeciesGrantedSpells(semClasse)[0].notes).toContain("Atributo: Inteligência");
+  });
+
+  it("usa a MESMA regra de atributo de Gnomo/Tiefling (ajuste pedido: getSpellcastingAbility também para o Elfo)", () => {
+    const character = elfoAt(1, "elfo-floresta");
+    character.classId = "clerigo"; // SAB
+    character.abilities.CAR.score = 20; // mesmo CAR maior, a classe vence
+    expect(getSpeciesGrantedSpells(character)[0].notes).toContain("Atributo: Sabedoria");
   });
 
   it("Alto Elfo registra a troca de truque pendente de catálogo, sem inventar as opções", () => {

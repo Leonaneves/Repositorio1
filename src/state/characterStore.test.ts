@@ -443,16 +443,13 @@ describe("useCharacterStore — antecedente (fontes de proficiência, §1.1)", (
 });
 
 describe("useCharacterStore — Linhagem/Ancestralidade de espécie (fonte \"IMPLEMENTAR LINHAGENS...\" §2)", () => {
-  it("setSpecies limpa a Linhagem/atributo élfico ao trocar de espécie de fato", () => {
+  it("setSpecies limpa a Linhagem ao trocar de espécie de fato", () => {
     const store = useCharacterStore.getState();
     store.setSpecies("elfo");
     store.setSpeciesLineage("elfo-drow");
-    store.setElvenLineageSpellcastingAbility("CAR");
 
     store.setSpecies("tiefling");
-    const character = useCharacterStore.getState().character;
-    expect(character.speciesLineageId).toBeNull();
-    expect(character.elvenLineageSpellcastingAbility).toBeNull();
+    expect(useCharacterStore.getState().character.speciesLineageId).toBeNull();
   });
 
   it("setSpecies com o MESMO valor não apaga a linhagem já escolhida (nenhuma mudança real de espécie)", () => {
@@ -464,28 +461,14 @@ describe("useCharacterStore — Linhagem/Ancestralidade de espécie (fonte \"IMP
     expect(useCharacterStore.getState().character.speciesLineageId).toBe("draconato-vermelho");
   });
 
-  it("setSpeciesLineage/setElvenLineageSpellcastingAbility gravam o valor escolhido e aceitam null", () => {
+  it("setSpeciesLineage grava o valor escolhido e aceita null", () => {
     const store = useCharacterStore.getState();
     store.setSpecies("elfo");
     store.setSpeciesLineage("elfo-alto-elfo");
-    store.setElvenLineageSpellcastingAbility("INT");
     expect(useCharacterStore.getState().character.speciesLineageId).toBe("elfo-alto-elfo");
-    expect(useCharacterStore.getState().character.elvenLineageSpellcastingAbility).toBe("INT");
 
     store.setSpeciesLineage(null);
-    store.setElvenLineageSpellcastingAbility(null);
     expect(useCharacterStore.getState().character.speciesLineageId).toBeNull();
-    expect(useCharacterStore.getState().character.elvenLineageSpellcastingAbility).toBeNull();
-  });
-
-  it("trocar de Linhagem Élfica (dentro do Elfo) preserva o atributo já escolhido — não é 'troca de origem'", () => {
-    const store = useCharacterStore.getState();
-    store.setSpecies("elfo");
-    store.setSpeciesLineage("elfo-alto-elfo");
-    store.setElvenLineageSpellcastingAbility("SAB");
-
-    store.setSpeciesLineage("elfo-floresta");
-    expect(useCharacterStore.getState().character.elvenLineageSpellcastingAbility).toBe("SAB");
   });
 });
 

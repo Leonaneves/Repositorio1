@@ -228,8 +228,6 @@ interface CharacterStore {
 
   /** Linhagem/Ancestralidade da espécie ATUAL (Draconato/Elfo/Gnomo/Golias/Tiefling) — ver `data/speciesLineages.ts`. */
   setSpeciesLineage: (lineageId: string | null) => void;
-  /** Atributo de conjuração (INT/SAB/CAR) da Linhagem Élfica — só tem efeito com `speciesId === "elfo"`. */
-  setElvenLineageSpellcastingAbility: (ability: AbilityKey | null) => void;
 
   setSkillManualOverride: (skill: SkillKey, value: boolean | null) => void;
   setSkillExpertise: (skill: SkillKey, expertise: boolean) => void;
@@ -358,18 +356,16 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
       return { character };
     }),
 
-  // Trocar de espécie limpa a Linhagem/Ancestralidade escolhida (e o atributo élfico) — nunca acumula a
-  // linhagem antiga com a nova (fonte "IMPLEMENTAR LINHAGENS..." §2). Sem mudança real de espécie, não
-  // apaga a escolha já feita (ex.: o próprio <select> disparando o mesmo valor de novo).
+  // Trocar de espécie limpa a Linhagem/Ancestralidade escolhida — nunca acumula a linhagem antiga com a
+  // nova (fonte "IMPLEMENTAR LINHAGENS..." §2). Sem mudança real de espécie, não apaga a escolha já feita
+  // (ex.: o próprio <select> disparando o mesmo valor de novo).
   setSpecies: (speciesId) =>
     set((state) => {
       if (speciesId === state.character.speciesId) return state;
-      return { character: { ...state.character, speciesId, speciesLineageId: null, elvenLineageSpellcastingAbility: null } };
+      return { character: { ...state.character, speciesId, speciesLineageId: null } };
     }),
 
   setSpeciesLineage: (lineageId) => set((state) => ({ character: { ...state.character, speciesLineageId: lineageId } })),
-  setElvenLineageSpellcastingAbility: (ability) =>
-    set((state) => ({ character: { ...state.character, elvenLineageSpellcastingAbility: ability } })),
 
   /**
    * Trocar de antecedente é agora uma escrita trivial: nenhuma perícia
