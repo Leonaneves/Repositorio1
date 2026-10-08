@@ -3,6 +3,8 @@ import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
 import { ABILITY_KEYS } from "../domain/common.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
+import { getClassSkillChoiceId } from "../data/classes.js";
+import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { getPendingBuilderSteps, getStepBlockers } from "./builderProgress.js";
 
 function blank(): Character {
@@ -54,30 +56,41 @@ describe("getStepBlockers — etapas genéricas exigem o campo correspondente", 
     expect(getStepBlockers("species", comLinhagem)).toEqual([]);
   });
 
-  it("'background' bloqueia sem backgroundId; com backgroundId, ainda exige distribuir os Aumentos de Atributo", () => {
+  it("'background' bloqueia sem backgroundId; libera assim que escolhido — a distribuição dos Aumentos de Atributo do Antecedente agora só é validada em 'abilities' (fonte \"REORGANIZAR O BUILDER...\" §3: distribuições transferidas para Atributos não bloqueiam o avanço em Classe/Antecedente)", () => {
     const character = blank();
     expect(getStepBlockers("background", character)).toEqual(["Escolha um antecedente para continuar."]);
-    const withBackground = getStepBlockers("background", { ...character, backgroundId: "acolito" });
-    expect(withBackground).toEqual(["Distribua todos os pontos de Aumento de Atributo do Antecedente."]);
-
-    const withAllocation = {
-      ...character,
-      backgroundId: "acolito" as const,
-      backgroundAbilityBonuses: { INT: 2, SAB: 1 },
-    };
-    expect(getStepBlockers("background", withAllocation)).toEqual([]);
+    expect(getStepBlockers("background", { ...character, backgroundId: "acolito" })).toEqual([]);
   });
 
-  it("'subclass' bloqueia sem subclassId, libera com subclassId", () => {
-    const character = blank();
-    expect(getStepBlockers("subclass", character)).toEqual(["Escolha uma subclasse para continuar."]);
-    expect(getStepBlockers("subclass", { ...character, subclassId: "Evocador" })).toEqual([]);
+  it("'class' exige a DECISÃO de subclasse a partir do nível 3 (canChooseSubclass) — a subclasse não é mais uma etapa própria, mora dentro de 'class' (§2)", () => {
+    const character = { ...blank(), classId: "mago" as const, level: 1 };
+    expect(getStepBlockers("class", character).some((b) => b.includes("subclasse"))).toBe(false);
+    const atLevel3 = { ...character, level: 3 };
+    expect(getStepBlockers("class", atLevel3)).toContain("Escolha uma subclasse para continuar.");
+    expect(getStepBlockers("class", { ...atLevel3, subclassId: "Evocador" })).not.toContain("Escolha uma subclasse para continuar.");
   });
 
   it("'abilities' bloqueia com os 6 atributos ainda no padrão (10), libera depois de gerados", () => {
     const character = blank();
     expect(getStepBlockers("abilities", character)).toEqual(["Gere e confirme os 6 atributos antes de continuar."]);
     expect(getStepBlockers("abilities", setValidAbilities(character))).toEqual([]);
+  });
+
+  it("'abilities' exige distribuir os Aumentos de Atributo do Antecedente — única etapa que valida essa distribuição (§3)", () => {
+    const character = setValidAbilities({ ...blank(), backgroundId: "acolito" as const });
+    expect(getStepBlockers("abilities", character)).toEqual(["Distribua todos os pontos de Aumento de Atributo do Antecedente."]);
+    const withAllocation = { ...character, backgroundAbilityBonuses: { INT: 2, SAB: 1 } };
+    expect(getStepBlockers("abilities", withAllocation)).toEqual([]);
+  });
+
+  it("'abilities' exige distribuir os pontos de cada ASI já no modo 'Aumentar Atributos' — a DECISÃO (ASI vs Talento) continua bloqueando em 'class', só a distribuição mora aqui", () => {
+    const character = setValidAbilities({ ...blank(), classId: "guerreiro" as const, level: 4 });
+    const withMode = { ...character, asiSelections: { 4: { kind: "abilityIncrease" as const, allocations: {} } } };
+    expect(getStepBlockers("abilities", withMode)).toEqual(["Nível 4: distribua os 2 pontos de atributo (0/2)."]);
+    expect(getStepBlockers("class", withMode).some((b) => b.includes("Aumentar Atributos"))).toBe(false);
+
+    const withAllocation = { ...character, asiSelections: { 4: { kind: "abilityIncrease" as const, allocations: { FOR: 2 } } } };
+    expect(getStepBlockers("abilities", withAllocation)).toEqual([]);
   });
 
   it("'basicInfo' nunca bloqueia (nenhuma regra definida para ela)", () => {
@@ -118,24 +131,24 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("wildShapeForms", character)).toEqual(["Escolha mais 4 Forma(s) Conhecida(s) (0/4)."]);
   });
 
-  it("'earthCircleTerrain' bloqueia sem escolha, libera com uma opção válida", () => {
+  it("'class' bloqueia a seção de Terreno do Círculo da Terra sem escolha, libera com uma opção válida (seção dentro de Classe, não etapa própria — §2)", () => {
     const character = { ...blank(), classId: "druida" as const, subclassId: "Círculo da Terra", level: 3 };
-    expect(getStepBlockers("earthCircleTerrain", character)).toEqual(["Escolha o Terreno do Círculo da Terra."]);
+    expect(getStepBlockers("class", character)).toContain("Escolha o Terreno do Círculo da Terra.");
     const withChoice = {
       ...character,
       featureChoiceSelections: { [EARTH_CIRCLE_TERRAIN_CHOICE_ID]: { value: "Tropical" } },
     };
-    expect(getStepBlockers("earthCircleTerrain", withChoice)).toEqual([]);
+    expect(getStepBlockers("class", withChoice)).not.toContain("Escolha o Terreno do Círculo da Terra.");
   });
 
-  it("'elementalAffinity' bloqueia sem escolha, libera com uma opção válida", () => {
+  it("'class' bloqueia a seção de Afinidade Elemental sem escolha, libera com uma opção válida (seção dentro de Classe, não etapa própria — §2)", () => {
     const character = { ...blank(), classId: "feiticeiro" as const, subclassId: "Feitiçaria Dracônica", level: 6 };
-    expect(getStepBlockers("elementalAffinity", character)).toEqual(["Escolha o tipo de Afinidade Elemental."]);
+    expect(getStepBlockers("class", character)).toContain("Escolha o tipo de Afinidade Elemental.");
     const withChoice = {
       ...character,
       featureChoiceSelections: { [ELEMENTAL_AFFINITY_CHOICE_ID]: { value: "Fogo" } },
     };
-    expect(getStepBlockers("elementalAffinity", withChoice)).toEqual([]);
+    expect(getStepBlockers("class", withChoice)).not.toContain("Escolha o tipo de Afinidade Elemental.");
   });
 
   it("'equipment' explica pacote pendente", () => {
@@ -190,5 +203,59 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
 
     character = { ...character, knownMetamagicOptions: ["sutil", "distante"] };
     expect(getPendingBuilderSteps(character).some((p) => p.stepId === "metamagic")).toBe(false);
+  });
+});
+
+describe("getStepBlockers — perícia redundante entre origens, independente da ordem de escolha (§4)", () => {
+  it("'class' explica a perícia redundante e aponta para a feature certa (Classe escolhida antes do Antecedente)", () => {
+    let character: Character = { ...blank(), classId: "guerreiro" };
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
+    character = { ...character, backgroundId: "acolito" }; // concede "intuicao" automaticamente, depois da escolha de Classe já feita
+
+    const blockers = getStepBlockers("class", character);
+    expect(blockers).toContain(
+      'Perícia "Intuição" escolhida em "Perícias de Classe" já é concedida por outra origem — escolha outra perícia em "Perícias de Classe".',
+    );
+  });
+
+  it("o mesmo aviso aparece mesmo quando o Antecedente já estava presente antes da escolha de Classe (detecção independente da ordem)", () => {
+    let character: Character = { ...blank(), backgroundId: "acolito", classId: "guerreiro" };
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
+
+    expect(getStepBlockers("class", character)).toContain(
+      'Perícia "Intuição" escolhida em "Perícias de Classe" já é concedida por outra origem — escolha outra perícia em "Perícias de Classe".',
+    );
+  });
+
+  it("escolher outra perícia no lugar resolve o aviso, sem o jogador precisar remover o Antecedente", () => {
+    let character: Character = { ...blank(), classId: "guerreiro", backgroundId: "acolito" };
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
+    expect(getStepBlockers("class", character).some((b) => b.includes("Intuição"))).toBe(true);
+
+    character = {
+      ...character,
+      featureChoiceSelections: { [getClassSkillChoiceId("guerreiro")]: { value: ["percepcao", "atletismo"] } },
+    };
+    expect(getStepBlockers("class", character).some((b) => b.includes("Intuição"))).toBe(false);
+  });
+
+  it("'species' explica a perícia redundante da escolha de Sentidos Aguçados do Elfo quando o Antecedente concede a mesma perícia", () => {
+    let character: Character = { ...blank(), speciesId: "elfo", speciesLineageId: "elfo-drow" };
+    character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["intuicao"] };
+    character = { ...character, backgroundId: "acolito" };
+
+    expect(getStepBlockers("species", character)).toContain(
+      'Perícia "Intuição" escolhida em "Traços de Elfo" já é concedida por outra origem — escolha outra perícia em "Traços de Elfo".',
+    );
+  });
+
+  it("remover o Antecedente que causava a redundância limpa o aviso sem apagar a escolha de perícia feita em Classe", () => {
+    let character: Character = { ...blank(), classId: "guerreiro", backgroundId: "acolito" };
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
+    expect(getStepBlockers("class", character).some((b) => b.includes("Intuição"))).toBe(true);
+
+    const semAntecedente = { ...character, backgroundId: null };
+    expect(getStepBlockers("class", semAntecedente).some((b) => b.includes("Intuição"))).toBe(false);
+    expect(semAntecedente.featureChoiceSelections[getClassSkillChoiceId("guerreiro")]?.value).toEqual(["intuicao", "atletismo"]);
   });
 });

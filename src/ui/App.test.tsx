@@ -52,14 +52,17 @@ describe("App — modo padrão é o Builder (decisão aprovada §10: interface p
     expect(useCharacterStore.getState().character.classId).toBe("mago");
   });
 
-  it("Mago no nível 3 passa a mostrar a etapa Subclasse e Conjuração no indicador", () => {
+  it("Mago no nível 3 passa a mostrar Conjuração no indicador; Subclasse nunca ganha item próprio — aparece como seção dentro de 'Classe' (§2)", () => {
     render(<App />);
     act(() => {
       useCharacterStore.getState().setClass("mago");
       useCharacterStore.getState().setLevel(3);
     });
-    expect(screen.getByRole("button", { name: /Subclasse/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Subclasse/ })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Conjuração/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /2\. Classe/ }));
+    expect(screen.getByRole("heading", { name: "Subclasse", level: 3 })).toBeInTheDocument();
   });
 });
 

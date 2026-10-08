@@ -4,31 +4,24 @@ import { getSubclassFeaturesWithChoices, getFeatureView } from "../../../rules/f
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
 
 /**
- * Etapa 3 — subclasse (só é exibida a partir do nível 3, ver
- * BuilderWizard/isStepVisible), COM subseções para as escolhas que
- * nascem da própria subclasse (fonte "REORGANIZAÇÃO DO BUILDER" §2 —
- * qualquer `FeatureDefinition` de subclasse com `choices`, nunca uma
- * lista fixa). Terreno do Círculo da Terra e Afinidade Elemental
- * continuam em etapas próprias (escolhas duradouras com UI dedicada,
- * fora do `FeatureChoice` genérico — ver `rules/builderSteps.ts`).
+ * Seção de Subclasse — renderizada DENTRO da etapa Classe (fonte
+ * "REORGANIZAR O BUILDER E CORRIGIR VALIDAÇÕES EXISTENTES" §2: "Classe
+ * e Subclasse devem ocupar um único item na navegação lateral").
+ * `Step2Class` só monta este componente quando já há `classId` e o
+ * nível já permite escolher subclasse (`canChooseSubclass`) — por isso
+ * aqui não há mais nenhuma verificação de pré-condição, nem etapa
+ * própria no `BuilderWizard`/`rules/builderSteps.ts`.
  */
 export function Step3Subclass() {
   const character = useCharacterStore((s) => s.character);
   const setSubclass = useCharacterStore((s) => s.setSubclass);
 
-  if (!character.classId) {
-    return (
-      <div className="builder-step" aria-label="Subclasse">
-        <p className="empty-note">Escolha uma classe na etapa anterior antes de escolher a subclasse.</p>
-      </div>
-    );
-  }
-
-  const available = getAvailableSubclasses(character.classId);
+  const available = character.classId ? getAvailableSubclasses(character.classId) : [];
   const choiceFeatures = getSubclassFeaturesWithChoices(character);
 
   return (
-    <div className="builder-step" aria-label="Subclasse">
+    <section className="feature-card" aria-label="Subclasse">
+      <h3>Subclasse</h3>
       <label className="field">
         <span>Subclasse</span>
         <select value={character.subclassId ?? ""} onChange={(e) => setSubclass(e.target.value ? e.target.value : null)}>
@@ -51,6 +44,6 @@ export function Step3Subclass() {
           </article>
         );
       })}
-    </div>
+    </section>
   );
 }

@@ -44,6 +44,29 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 
+  it("perícia redundante entre Classe e Antecedente é detectada independente da ordem de escolha, sem auto-selecionar substituta (§4 — exemplo literal: escolher perícia de Classe e depois um Antecedente que concede a mesma)", () => {
+    render(<App />);
+    clickAvancar(); // basicInfo -> class
+    fireEvent.change(screen.getByRole("combobox", { name: "Classe" }), { target: { value: "guerreiro" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Intuição" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Atletismo" }));
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+
+    act(() => useCharacterStore.getState().setBackground("acolito")); // concede "Intuição" automaticamente, depois da escolha já feita
+    expect(
+      screen.getByText('Perícia "Intuição" escolhida em "Perícias de Classe" já é concedida por outra origem — escolha outra perícia em "Perícias de Classe".'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    // Nunca escolhe uma substituta sozinho — o checkbox de Intuição continua marcado até o jogador decidir.
+    expect(screen.getByRole("checkbox", { name: "Intuição" })).toBeChecked();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Intuição" })); // jogador desmarca
+    fireEvent.click(screen.getByRole("checkbox", { name: "Percepção" })); // e escolhe outra no lugar
+    expect(screen.queryByText(/já é concedida por outra origem/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
   it("'Espécie' e 'Antecedente' bloqueiam Avançar até serem escolhidos", () => {
     render(<App />);
     act(() => useCharacterStore.getState().setClass("guerreiro"));
@@ -103,6 +126,11 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
       useCharacterStore.getState().setClass("guerreiro");
       useCharacterStore.getState().setSpecies("humano");
       useCharacterStore.getState().setBackground("acolito");
+      // Distribui também os Aumentos de Atributo do Antecedente — essa distribuição agora é validada
+      // dentro da própria etapa Atributos (§3), não é o foco deste teste (foco é a heurística dos 6 em 10).
+      useCharacterStore.getState().increaseBackgroundAbilityBonus("INT");
+      useCharacterStore.getState().increaseBackgroundAbilityBonus("INT");
+      useCharacterStore.getState().increaseBackgroundAbilityBonus("SAB");
     });
     act(() => useBuilderStore.getState().goToStep("abilities"));
 
@@ -114,13 +142,14 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 
-  it("'Subclasse' bloqueia Avançar até uma subclasse ser escolhida (Mago nível 3)", () => {
+  it("a seção de Subclasse (dentro de 'Classe', não mais uma etapa própria — §2) bloqueia Avançar até uma subclasse ser escolhida (Mago nível 3)", () => {
     render(<App />);
     act(() => {
       useCharacterStore.getState().setClass("mago");
       useCharacterStore.getState().setLevel(3);
+      useCharacterStore.getState().setFeatureChoiceSelection(getClassSkillChoiceId("mago"), ["arcanismo", "historia"]);
     });
-    act(() => useBuilderStore.getState().goToStep("subclass"));
+    act(() => useBuilderStore.getState().goToStep("class"));
 
     expect(screen.getByText("Escolha uma subclasse para continuar.")).toBeInTheDocument();
     fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Evocador" } });
@@ -213,6 +242,22 @@ describe("BuilderWizard — Revisão mostra as escolhas específicas de classe/s
 
     expect(screen.getByRole("heading", { name: "Escolhas de Subclasse" })).toBeInTheDocument();
     expect(screen.getByText("Fogo")).toBeInTheDocument();
+  });
+
+  it("Editar numa linha de 'Escolhas de Subclasse' leva para 'Classe' (a Subclasse não tem etapa própria — destino da tabela do §7: 'Classe, na seção de Subclasse')", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("feiticeiro");
+      useCharacterStore.getState().setLevel(6);
+      useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
+      useCharacterStore.getState().setFeatureChoiceSelection(ELEMENTAL_AFFINITY_CHOICE_ID, "Fogo");
+    });
+    act(() => useBuilderStore.getState().goToStep("review"));
+
+    const affinityHeading = screen.getByRole("heading", { name: /Afinidade Elemental/ });
+    fireEvent.click(within(affinityHeading).getByRole("button", { name: /Editar/ }));
+    expect(screen.getByRole("heading", { name: "Classe", level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Afinidade Elemental", level: 3 })).toBeInTheDocument();
   });
 
   it("Editar numa linha de 'Escolhas de Classe' volta para a etapa certa", () => {

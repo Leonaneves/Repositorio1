@@ -830,6 +830,31 @@ describe("useCharacterStore — ASI estruturado (REORGANIZAÇÃO DO BUILDER §22
     store.increaseAsiAbility(4, "FOR");
     expect(getEffectiveAbilityScore(useCharacterStore.getState().character, "FOR")).toBe(17);
   });
+
+  it("Antecedente e cada ASI são pools totalmente independentes — nunca somados num pool só, e alterar um nunca move pontos do outro (fonte \"REORGANIZAR O BUILDER...\" §3: 'nunca fundir Antecedente+ASI em um único pool')", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setLevel(4);
+    store.setBackground("acolito"); // INT, SAB, CAR
+    store.increaseBackgroundAbilityBonus("INT");
+    store.increaseBackgroundAbilityBonus("INT");
+    store.setAsiMode(4, "abilityIncrease");
+    store.increaseAsiAbility(4, "INT");
+
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses).toEqual({ INT: 2 });
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: { INT: 1 } });
+
+    // Esvaziar o ASI nunca afeta o Antecedente.
+    store.decreaseAsiAbility(4, "INT");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses).toEqual({ INT: 2 });
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: {} });
+
+    // Trocar de Antecedente (limpa só o próprio bônus) nunca afeta o ASI já distribuído.
+    store.increaseAsiAbility(4, "INT");
+    store.setBackground("soldado");
+    expect(useCharacterStore.getState().character.backgroundAbilityBonuses).toEqual({});
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: { INT: 1 } });
+  });
 });
 
 describe("useCharacterStore — Homebrew de Ferramentas (REORGANIZAÇÃO DO BUILDER §5)", () => {

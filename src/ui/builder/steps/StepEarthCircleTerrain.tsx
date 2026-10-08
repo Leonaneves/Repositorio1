@@ -2,16 +2,16 @@ import { useCharacterStore } from "../../../state/characterStore.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, EARTH_CIRCLE_TERRAIN_OPTIONS } from "../../../data/features/subclasses.js";
 
 /**
- * Etapa PRÓPRIA do Builder — "Terreno do Círculo da Terra" (fonte
- * "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES" §27) — só visível para
- * Druida/Círculo da Terra a partir do nível 3 (rules/builderSteps.ts).
- * Primeira aplicação da regra arquitetural do §21: uma escolha de
- * subclasse duradoura que altera várias partes da ficha (Magias do
- * Círculo da Terra, Resistência de Proteção Natural, Santuário Natural)
- * ganha etapa condicional própria — mesmo guardando a resposta no
- * mesmo `featureChoiceSelections` genérico usado pelas demais escolhas,
- * para reaproveitar 100% da recomputação automática já existente.
- * Pode ser trocada livremente aqui (representa "trocar após Descanso
+ * Seção "Terreno do Círculo da Terra" (fonte "INTEGRAÇÃO COMPLETA —
+ * DRUIDA E SUBCLASSES" §27), renderizada DENTRO da etapa Classe —
+ * `Step2Class` só monta este componente quando
+ * `isEarthCircleTerrainApplicable` é verdadeiro (Druida/Círculo da
+ * Terra a partir do nível 3). Antes era uma etapa própria do Builder;
+ * a fonte "REORGANIZAR O BUILDER..." §2 pede um único item lateral
+ * para Classe/Subclasse, então esta escolha (duradoura, guardada no
+ * mesmo `featureChoiceSelections` genérico de sempre, para reaproveitar
+ * 100% da recomputação automática já existente) virou uma seção aqui.
+ * Pode ser trocada livremente (representa "trocar após Descanso
  * Longo" — a ficção da regra não é imposta pelo código, igual a outras
  * escolhas "alteráveis após DL" já aprovadas, ex.: Aspecto dos
  * Selvagens do Bárbaro).
@@ -24,7 +24,8 @@ export function StepEarthCircleTerrain() {
   const current = typeof selection === "string" ? selection : "";
 
   return (
-    <div className="builder-step" aria-label="Terreno do Círculo da Terra">
+    <section className="feature-card" aria-label="Terreno do Círculo da Terra">
+      <h3>Terreno do Círculo da Terra</h3>
       <p className="builder-step__hint">
         Escolha o terreno atual — altera automaticamente as Magias do Círculo da Terra, a Resistência de Proteção Natural (nível 10+) e Santuário
         Natural (nível 14+). Pode ser trocado depois de um Descanso Longo.
@@ -44,6 +45,6 @@ export function StepEarthCircleTerrain() {
           </label>
         ))}
       </fieldset>
-    </div>
+    </section>
   );
 }

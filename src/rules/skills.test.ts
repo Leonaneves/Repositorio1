@@ -168,6 +168,20 @@ describe("isSkillGrantedByClassChoice / getSkillProficiency — escolha de Perí
     expect(getSkillProficiency(character, "atletismo")).toBe(true);
     expect(character.skills.atletismo.expertise).toBe(false); // expertise continua exigindo escolha explícita do jogador
   });
+
+  it("remover UMA das origens nunca apaga a proficiência enquanto a OUTRA ainda concede a mesma perícia (fonte \"REORGANIZAR O BUILDER...\" §4: 'preservar a origem dos benefícios')", () => {
+    const character = createBlankCharacter("t");
+    character.backgroundId = "guarda"; // Atletismo, Percepção
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+
+    character.backgroundId = null; // remove o Antecedente — a escolha de Classe continua concedendo "atletismo"
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: [] }; // agora remove também a escolha de Classe
+    expect(getSkillProficiency(character, "atletismo")).toBe(false);
+  });
 });
 
 function bardoAt(level: number) {

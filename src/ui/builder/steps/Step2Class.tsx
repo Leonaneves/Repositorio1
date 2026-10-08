@@ -3,20 +3,26 @@ import { CLASS_IDS } from "../../../domain/ids.js";
 import { classes } from "../../../data/classes.js";
 import { getClassFeaturesWithChoices, getFeatureView } from "../../../rules/features.js";
 import { getUnlockedAsiLevels } from "../../../rules/asi.js";
+import { canChooseSubclass, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
 import { AsiControl } from "../AsiControl.js";
+import { Step3Subclass } from "./Step3Subclass.js";
+import { StepEarthCircleTerrain } from "./StepEarthCircleTerrain.js";
+import { StepElementalAffinity } from "./StepElementalAffinity.js";
 
 /**
- * Etapa 2 — escolha de classe, COM subseções dinâmicas para tudo que
- * nasce da classe (fonte "REORGANIZAÇÃO DO BUILDER" §1-§3): Perícias de
- * Classe, Ferramentas de Classe, Características com escolha
- * (Conhecimento Primordial, Especialista, Ordem Divina/Primal, Golpes
- * Abençoados, Fúria Elemental, Dádiva Épica etc. — qualquer
- * `FeatureDefinition` de classe com `choices`, nunca uma lista fixa) e
- * Aumento no Valor de Atributo/Talento por nível desbloqueado. Nunca
- * aparecem aqui: Metamagia/Invocações Místicas (etapas próprias — ver
- * `rules/builderSteps.ts`) e escolhas de SUBCLASSE (ficam na etapa
- * Subclasse).
+ * Etapa 2 — Classe E Subclasse num único item de navegação (fonte
+ * "REORGANIZAR O BUILDER E CORRIGIR VALIDAÇÕES EXISTENTES" §2): além da
+ * escolha de Classe e suas subseções dinâmicas (Perícias de Classe,
+ * Ferramentas de Classe, Características com escolha, decisão de ASI
+ * por nível — a DISTRIBUIÇÃO em si mora na etapa Atributos, §3), renderiza
+ * a seção de Subclasse quando `canChooseSubclass` permitir (nunca exige
+ * Subclasse antes do nível 3), e as seções de Terreno do Círculo da
+ * Terra / Afinidade Elemental quando a subclasse/nível aplicáveis as
+ * tornarem relevantes — as 3 condições reaproveitadas de
+ * `rules/builderSteps.ts`, nunca duplicadas aqui. Nunca aparecem
+ * aqui: Metamagia/Invocações Místicas (etapas próprias — têm quantidade
+ * por nível e nunca duplicam, não cabem no modelo genérico).
  */
 export function Step2Class() {
   const character = useCharacterStore((s) => s.character);
@@ -59,6 +65,13 @@ export function Step2Class() {
       {unlockedAsiLevels.map((level) => (
         <AsiControl key={level} level={level} />
       ))}
+
+      {classId && !canChooseSubclass(character.level) && (
+        <p className="builder-step__hint">Subclasse disponível a partir do nível 3.</p>
+      )}
+      {classId && canChooseSubclass(character.level) && <Step3Subclass />}
+      {isEarthCircleTerrainApplicable(character) && <StepEarthCircleTerrain />}
+      {isElementalAffinityApplicable(character) && <StepElementalAffinity />}
     </div>
   );
 }

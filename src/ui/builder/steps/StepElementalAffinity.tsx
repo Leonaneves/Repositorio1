@@ -2,15 +2,16 @@ import { useCharacterStore } from "../../../state/characterStore.js";
 import { ELEMENTAL_AFFINITY_CHOICE_ID, ELEMENTAL_AFFINITY_OPTIONS } from "../../../data/features/subclasses.js";
 
 /**
- * Etapa PRÓPRIA do Builder — "Afinidade Elemental" (Feitiçaria
- * Dracônica, nível 6 — fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO,
- * METAMAGIA E SUBCLASSES" §36) — só visível para Feiticeiro/Feitiçaria
- * Dracônica a partir do nível 6 (rules/builderSteps.ts). Mesma
- * arquitetura de `StepEarthCircleTerrain`: armazenada em
- * `featureChoiceSelections`, mas com UI dedicada. A fonte não informa
- * troca posterior — tratada como escolha duradoura fixa (o campo
- * continua tecnicamente editável, como qualquer `FeatureChoiceSelection`,
- * mas a regra narrativa não prevê re-escolha).
+ * Seção "Afinidade Elemental" (Feitiçaria Dracônica, nível 6 — fonte
+ * "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES" §36),
+ * renderizada DENTRO da etapa Classe — `Step2Class` só monta este
+ * componente quando `isElementalAffinityApplicable` é verdadeiro.
+ * Mesma arquitetura de `StepEarthCircleTerrain`: armazenada em
+ * `featureChoiceSelections`, mas com UI dedicada, agora como seção em
+ * vez de etapa própria (fonte "REORGANIZAR O BUILDER..." §2). A fonte
+ * não informa troca posterior — tratada como escolha duradoura fixa (o
+ * campo continua tecnicamente editável, como qualquer
+ * `FeatureChoiceSelection`, mas a regra narrativa não prevê re-escolha).
  */
 export function StepElementalAffinity() {
   const character = useCharacterStore((s) => s.character);
@@ -20,7 +21,8 @@ export function StepElementalAffinity() {
   const current = typeof selection === "string" ? selection : "";
 
   return (
-    <div className="builder-step" aria-label="Afinidade Elemental">
+    <section className="feature-card" aria-label="Afinidade Elemental">
+      <h3>Afinidade Elemental</h3>
       <p className="builder-step__hint">
         Escolha o tipo elemental — concede Resistência a esse tipo e soma o modificador de Carisma em 1 rolagem de dano quando conjurar uma magia
         desse tipo. A fonte não prevê trocar essa escolha depois.
@@ -40,6 +42,6 @@ export function StepElementalAffinity() {
           </label>
         ))}
       </fieldset>
-    </div>
+    </section>
   );
 }

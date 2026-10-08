@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { useBuilderStore } from "./builderStore.js";
 import { useCharacterStore } from "./characterStore.js";
 import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
+import { getClassSkillChoiceId } from "../data/classes.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -128,23 +129,30 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
     expect(useBuilderStore.getState().currentStepId).toBe("basicInfo");
   });
 
-  it("pula etapas condicionais que desapareceram (ex.: Subclasse ao avançar de 'species' num Bárbaro nível 1)", () => {
+  it("pula etapas condicionais que desapareceram (ex.: Formas Conhecidas/Metamagia ao avançar de 'species' para 'background' num Bárbaro)", () => {
     const store = useBuilderStore.getState();
-    useCharacterStore.getState().setClass("barbaro"); // nível 1, sem acesso a Subclasse ainda
+    useCharacterStore.getState().setClass("barbaro");
     useCharacterStore.getState().setSpecies("humano");
     store.goToStep("species");
     store.goNext();
-    expect(useBuilderStore.getState().currentStepId).toBe("background"); // pula "subclass"
+    expect(useBuilderStore.getState().currentStepId).toBe("background"); // Bárbaro não tem Formas Conhecidas/Metamagia
   });
 
-  it("Mago nível 3: goNext de 'class' vai para 'subclass' (agora visível), depois de resolver Perícias de Classe", () => {
+  it("Mago nível 3: 'class' exige resolver Perícias de Classe E a escolha de Subclasse (seção dentro da mesma etapa, não mais etapa própria — §2); resolvidas as duas, goNext sai direto de 'class' para 'species'", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setLevel(3);
-    useCharacterStore.getState().setFeatureChoiceSelection("classe-mago-pericias", ["arcanismo", "historia"]);
     store.goToStep("class");
+    expect(store.canAdvance()).toBe(false);
+
+    useCharacterStore.getState().setFeatureChoiceSelection("classe-mago-pericias", ["arcanismo", "historia"]);
+    expect(store.canAdvance()).toBe(false); // ainda falta a Subclasse
+
+    useCharacterStore.getState().setSubclass("Evocador");
+    expect(store.canAdvance()).toBe(true);
+
     store.goNext();
-    expect(useBuilderStore.getState().currentStepId).toBe("subclass");
+    expect(useBuilderStore.getState().currentStepId).toBe("species");
   });
 
   it("goToStep salta direto para qualquer etapa (usado pelo botão 'Editar' da Revisão)", () => {
@@ -290,34 +298,36 @@ describe("useBuilderStore — canAdvance/goNext travam em 'metamagic' enquanto a
   });
 });
 
-describe("useBuilderStore — canAdvance/goNext travam em 'elementalAffinity' sem o tipo elemental escolhido (Feitiçaria Dracônica)", () => {
-  it("canAdvance() é false em 'elementalAffinity' sem escolha", () => {
+describe("useBuilderStore — canAdvance/goNext travam em 'class' sem o tipo de Afinidade Elemental escolhido (Feitiçaria Dracônica — seção dentro de Classe, não etapa própria, §2)", () => {
+  it("canAdvance() é false em 'class' sem escolha de Afinidade Elemental", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("feiticeiro");
     useCharacterStore.getState().setLevel(6);
     useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
-    store.goToStep("elementalAffinity");
+    store.goToStep("class");
     expect(store.canAdvance()).toBe(false);
   });
 
-  it("canAdvance() é true em 'elementalAffinity' depois de escolher um tipo válido", () => {
+  it("canAdvance() é true em 'class' depois de escolher um tipo de Afinidade Elemental válido (junto com as demais pendências da etapa já resolvidas)", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("feiticeiro");
     useCharacterStore.getState().setLevel(6);
     useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
+    useCharacterStore.getState().setFeatureChoiceSelection(getClassSkillChoiceId("feiticeiro"), ["arcanismo", "persuasao"]);
+    useCharacterStore.getState().setAsiMode(4, "feat");
     useCharacterStore.getState().setFeatureChoiceSelection(ELEMENTAL_AFFINITY_CHOICE_ID, "Fogo");
-    store.goToStep("elementalAffinity");
+    store.goToStep("class");
     expect(store.canAdvance()).toBe(true);
   });
 
-  it("goNext não sai de 'elementalAffinity' sem escolha", () => {
+  it("goNext não sai de 'class' sem escolha de Afinidade Elemental", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("feiticeiro");
     useCharacterStore.getState().setLevel(6);
     useCharacterStore.getState().setSubclass("Feitiçaria Dracônica");
-    store.goToStep("elementalAffinity");
+    store.goToStep("class");
     store.goNext();
-    expect(useBuilderStore.getState().currentStepId).toBe("elementalAffinity");
+    expect(useBuilderStore.getState().currentStepId).toBe("class");
   });
 });
 

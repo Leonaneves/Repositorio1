@@ -21,7 +21,7 @@ import { getSpellcastingAbility, getSpellAttackBonus, getSpellSaveDC } from "../
 import { getClassProgression } from "../../../rules/classProgression.js";
 import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
 import { getPendingBuilderSteps } from "../../../rules/builderProgress.js";
-import { isStepVisible } from "../../../rules/builderSteps.js";
+import { isStepVisible, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
 import { getKnownMetamagicOptions } from "../../../rules/metamagic.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import type { BuilderStepId } from "../../../rules/builderSteps.js";
@@ -130,26 +130,35 @@ function getClassChoiceRows(character: Character): ClassChoiceRow[] {
   return rows;
 }
 
-/** Linhas de "Escolhas de Subclasse" — escolhas duradouras guardadas fora do `FeatureChoice` genérico (`featureChoiceSelections` direto), com etapa própria do Builder. */
+/**
+ * Linhas de "Escolhas de Subclasse" — escolhas duradouras guardadas fora
+ * do `FeatureChoice` genérico (`featureChoiceSelections` direto), hoje
+ * renderizadas como seções dentro da etapa única "Classe" (fonte
+ * "REORGANIZAR O BUILDER..." §2/§7 — "Subclasse e decisões de
+ * Subclasse" aponta para "Classe, na seção de Subclasse"), por isso
+ * `stepId: "class"` em ambas: reaproveita as MESMAS condições de
+ * `rules/builderSteps.ts` usadas para decidir se a seção aparece em
+ * `Step2Class`, nunca duplicadas aqui.
+ */
 function getSubclassChoiceRows(character: Character): ClassChoiceRow[] {
   const rows: ClassChoiceRow[] = [];
 
-  if (isStepVisible("earthCircleTerrain", character)) {
+  if (isEarthCircleTerrainApplicable(character)) {
     const selection = character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]?.value;
     rows.push({
       key: "earthCircleTerrain",
       label: "Terreno do Círculo da Terra",
-      stepId: "earthCircleTerrain",
+      stepId: "class",
       content: typeof selection === "string" && selection ? <p>{selection}</p> : <p className="empty-note">Nenhum terreno escolhido ainda.</p>,
     });
   }
 
-  if (isStepVisible("elementalAffinity", character)) {
+  if (isElementalAffinityApplicable(character)) {
     const selection = character.featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID]?.value;
     rows.push({
       key: "elementalAffinity",
       label: "Afinidade Elemental",
-      stepId: "elementalAffinity",
+      stepId: "class",
       content: typeof selection === "string" && selection ? <p>{selection}</p> : <p className="empty-note">Nenhum tipo escolhido ainda.</p>,
     });
   }

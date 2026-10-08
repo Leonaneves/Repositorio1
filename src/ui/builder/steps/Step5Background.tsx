@@ -1,23 +1,24 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
 import { BACKGROUND_IDS } from "../../../domain/ids.js";
-import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import { backgrounds, getBackgroundAbilityAllocationConfig } from "../../../data/backgrounds.js";
 import { skills } from "../../../data/skills.js";
-import { getEffectiveAbilityScore } from "../../../rules/abilities.js";
-import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
 
-/** Etapa 5 — escolha de antecedente, com os Aumentos de Atributo do próprio Antecedente (componente genérico de distribuição — §19). */
+/**
+ * Etapa 5 — escolha de antecedente, informações e benefícios já
+ * cadastrados. A DISTRIBUIÇÃO dos Aumentos de Atributo do Antecedente
+ * não acontece mais aqui (fonte "REORGANIZAR O BUILDER E CORRIGIR
+ * VALIDAÇÕES EXISTENTES" §3: "a escolha de quais atributos aumentar
+ * deve acontecer somente na etapa Atributos") — só um aviso apontando
+ * para lá. O estado (`backgroundAbilityBonuses`) e as regras
+ * (`getBackgroundAbilityAllocationConfig`) continuam exatamente como
+ * antes; só a UI de distribuição mudou de lugar.
+ */
 export function Step5Background() {
   const character = useCharacterStore((s) => s.character);
   const backgroundId = character.backgroundId;
   const setBackground = useCharacterStore((s) => s.setBackground);
-  const increaseBackgroundAbilityBonus = useCharacterStore((s) => s.increaseBackgroundAbilityBonus);
-  const decreaseBackgroundAbilityBonus = useCharacterStore((s) => s.decreaseBackgroundAbilityBonus);
 
   const config = backgroundId ? getBackgroundAbilityAllocationConfig(backgroundId) : null;
-  const baseScores = Object.fromEntries(
-    ABILITY_KEYS.map((ability) => [ability, getEffectiveAbilityScore(character, ability) - (character.backgroundAbilityBonuses[ability] ?? 0)]),
-  ) as Record<AbilityKey, number>;
 
   return (
     <div className="builder-step" aria-label="Antecedente">
@@ -44,16 +45,10 @@ export function Step5Background() {
       )}
 
       {config && (
-        <fieldset className="feature-choice">
-          <legend>Aumentos de Atributo</legend>
-          <AbilityPointAllocator
-            config={config}
-            allocations={character.backgroundAbilityBonuses}
-            baseScores={baseScores}
-            onIncrease={increaseBackgroundAbilityBonus}
-            onDecrease={decreaseBackgroundAbilityBonus}
-          />
-        </fieldset>
+        <p className="builder-step__hint">
+          Aumentos de Atributo disponíveis: {config.eligibleAbilities.join(", ")} (distribua {config.totalPoints}{" "}
+          {config.totalPoints === 1 ? "ponto" : "pontos"}, máximo +{config.maxPerAbility} por atributo). Distribua os aumentos na etapa Atributos.
+        </p>
       )}
     </div>
   );

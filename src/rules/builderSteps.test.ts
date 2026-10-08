@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import { BUILDER_STEP_ORDER, getVisibleSteps, isStepVisible } from "./builderSteps.js";
+import { BUILDER_STEP_ORDER, getVisibleSteps, isEarthCircleTerrainApplicable, isElementalAffinityApplicable, isStepVisible } from "./builderSteps.js";
 
 describe("isStepVisible — etapas sempre visíveis", () => {
   it.each(["basicInfo", "class", "species", "background", "abilities", "skills", "equipment", "review"] as const)(
@@ -9,19 +9,12 @@ describe("isStepVisible — etapas sempre visíveis", () => {
       expect(isStepVisible(stepId, createBlankCharacter("step-test"))).toBe(true);
     },
   );
-});
 
-describe("isStepVisible — Subclasse (condicional, nível 3+)", () => {
-  it("some antes do nível 3", () => {
+  it("'class' aparece mesmo antes do nível 3 (a seção de Subclasse dentro dela é que fica condicional a canChooseSubclass, nunca a etapa toda — fonte \"REORGANIZAR O BUILDER...\" §2)", () => {
     const character = createBlankCharacter("step-test");
-    character.level = 2;
-    expect(isStepVisible("subclass", character)).toBe(false);
-  });
-
-  it("aparece a partir do nível 3", () => {
-    const character = createBlankCharacter("step-test");
-    character.level = 3;
-    expect(isStepVisible("subclass", character)).toBe(true);
+    character.classId = "mago";
+    character.level = 1;
+    expect(isStepVisible("class", character)).toBe(true);
   });
 });
 
@@ -118,12 +111,12 @@ describe("isStepVisible — Formas Conhecidas (condicional, só para Druida a pa
   });
 });
 
-describe("isStepVisible — Terreno do Círculo da Terra (condicional, só Círculo da Terra a partir do nível 3)", () => {
+describe("isEarthCircleTerrainApplicable — Terreno do Círculo da Terra (seção dentro da etapa Classe, condicional, só Círculo da Terra a partir do nível 3 — fonte \"REORGANIZAR O BUILDER...\" §2)", () => {
   it("some sem subclasse", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "druida";
     character.level = 5;
-    expect(isStepVisible("earthCircleTerrain", character)).toBe(false);
+    expect(isEarthCircleTerrainApplicable(character)).toBe(false);
   });
 
   it("some para outra subclasse de Druida", () => {
@@ -131,7 +124,7 @@ describe("isStepVisible — Terreno do Círculo da Terra (condicional, só Círc
     character.classId = "druida";
     character.level = 5;
     character.subclassId = "Círculo da Lua";
-    expect(isStepVisible("earthCircleTerrain", character)).toBe(false);
+    expect(isEarthCircleTerrainApplicable(character)).toBe(false);
   });
 
   it("some antes do nível 3 mesmo com Círculo da Terra (subclasse ainda não escolhível)", () => {
@@ -139,7 +132,7 @@ describe("isStepVisible — Terreno do Círculo da Terra (condicional, só Círc
     character.classId = "druida";
     character.level = 2;
     character.subclassId = "Círculo da Terra";
-    expect(isStepVisible("earthCircleTerrain", character)).toBe(false);
+    expect(isEarthCircleTerrainApplicable(character)).toBe(false);
   });
 
   it("aparece para Círculo da Terra a partir do nível 3", () => {
@@ -147,7 +140,7 @@ describe("isStepVisible — Terreno do Círculo da Terra (condicional, só Círc
     character.classId = "druida";
     character.level = 3;
     character.subclassId = "Círculo da Terra";
-    expect(isStepVisible("earthCircleTerrain", character)).toBe(true);
+    expect(isEarthCircleTerrainApplicable(character)).toBe(true);
   });
 });
 
@@ -174,12 +167,12 @@ describe("isStepVisible — Metamagia (condicional, só para Feiticeiro a partir
   });
 });
 
-describe("isStepVisible — Afinidade Elemental (condicional, só Feitiçaria Dracônica a partir do nível 6)", () => {
+describe("isElementalAffinityApplicable — Afinidade Elemental (seção dentro da etapa Classe, condicional, só Feitiçaria Dracônica a partir do nível 6)", () => {
   it("some sem subclasse", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "feiticeiro";
     character.level = 10;
-    expect(isStepVisible("elementalAffinity", character)).toBe(false);
+    expect(isElementalAffinityApplicable(character)).toBe(false);
   });
 
   it("some para outra subclasse de Feiticeiro", () => {
@@ -187,7 +180,7 @@ describe("isStepVisible — Afinidade Elemental (condicional, só Feitiçaria Dr
     character.classId = "feiticeiro";
     character.level = 10;
     character.subclassId = "Feitiçaria Selvagem";
-    expect(isStepVisible("elementalAffinity", character)).toBe(false);
+    expect(isElementalAffinityApplicable(character)).toBe(false);
   });
 
   it("some antes do nível 6 mesmo com Feitiçaria Dracônica", () => {
@@ -195,7 +188,7 @@ describe("isStepVisible — Afinidade Elemental (condicional, só Feitiçaria Dr
     character.classId = "feiticeiro";
     character.level = 5;
     character.subclassId = "Feitiçaria Dracônica";
-    expect(isStepVisible("elementalAffinity", character)).toBe(false);
+    expect(isElementalAffinityApplicable(character)).toBe(false);
   });
 
   it("aparece para Feitiçaria Dracônica a partir do nível 6", () => {
@@ -203,12 +196,12 @@ describe("isStepVisible — Afinidade Elemental (condicional, só Feitiçaria Dr
     character.classId = "feiticeiro";
     character.level = 6;
     character.subclassId = "Feitiçaria Dracônica";
-    expect(isStepVisible("elementalAffinity", character)).toBe(true);
+    expect(isElementalAffinityApplicable(character)).toBe(true);
   });
 });
 
 describe("getVisibleSteps", () => {
-  it("personagem em branco: 8 das 14 etapas (sem Subclasse/Formas Conhecidas/Terreno/Talentos/Invocações/Conjuração)", () => {
+  it("personagem em branco: 8 das 13 etapas (sem Formas Conhecidas/Metamagia/Talentos/Invocações/Conjuração — Subclasse/Terreno/Afinidade não são mais etapas, são seções dentro de Classe)", () => {
     const character = createBlankCharacter("step-test");
     expect(getVisibleSteps(character)).toEqual([
       "basicInfo",
@@ -222,54 +215,51 @@ describe("getVisibleSteps", () => {
     ]);
   });
 
-  it("Mago nível 3: soma Subclasse e Conjuração (a escolha de Perícias de Classe do Mago mora na etapa Classe, não mais aqui), mas nunca Invocações Místicas/Formas Conhecidas/Terreno/Características e Talentos — 10 das 14 etapas", () => {
+  it("Mago nível 3: soma Conjuração (a escolha de Perícias de Classe e a seção de Subclasse do Mago moram dentro da etapa Classe, não em etapas próprias), mas nunca Invocações Místicas/Formas Conhecidas/Metamagia/Características e Talentos — 9 das 13 etapas", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "mago";
     character.level = 3;
     const steps = getVisibleSteps(character);
-    expect(steps).toContain("subclass");
     expect(steps).toContain("spellcasting");
     expect(steps).not.toContain("featuresAndTalents");
     expect(steps).not.toContain("invocations");
     expect(steps).not.toContain("wildShapeForms");
-    expect(steps).not.toContain("earthCircleTerrain");
-    expect(steps).toHaveLength(10);
+    expect(steps).not.toContain("metamagic");
+    expect(steps).toHaveLength(9);
   });
 
-  it("Bruxo nível 3: soma Subclasse, Invocações Místicas e Conjuração — 11 das 14 etapas (nunca Formas Conhecidas/Terreno/Características e Talentos)", () => {
+  it("Bruxo nível 3: soma Invocações Místicas e Conjuração — 10 das 13 etapas (nunca Formas Conhecidas/Metamagia/Características e Talentos)", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "bruxo";
     character.level = 3;
     const steps = getVisibleSteps(character);
-    expect(steps).toContain("subclass");
     expect(steps).toContain("invocations");
     expect(steps).toContain("spellcasting");
     expect(steps).not.toContain("featuresAndTalents");
-    expect(steps).toHaveLength(11);
+    expect(steps).toHaveLength(10);
   });
 
-  it("Druida nível 3 sem subclasse: soma Subclasse e Formas Conhecidas, mas nunca Terreno (subclasse ainda não escolhida) nem Características e Talentos — 11 das 14 etapas", () => {
+  it("Druida nível 3 sem subclasse: soma Formas Conhecidas e Conjuração, mas nunca Características e Talentos — 10 das 13 etapas (Terreno do Círculo da Terra não é uma etapa, é uma seção dentro de Classe — ver isEarthCircleTerrainApplicable)", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "druida";
     character.level = 3;
     const steps = getVisibleSteps(character);
-    expect(steps).toContain("subclass");
     expect(steps).toContain("wildShapeForms");
     expect(steps).toContain("spellcasting");
     expect(steps).not.toContain("featuresAndTalents");
-    expect(steps).not.toContain("earthCircleTerrain");
-    expect(steps).toHaveLength(11);
+    expect(steps).toHaveLength(10);
+    expect(isEarthCircleTerrainApplicable(character)).toBe(false);
   });
 
-  it("Druida/Círculo da Terra nível 3: soma também Terreno — 12 das 14 etapas", () => {
+  it("Druida/Círculo da Terra nível 3: getVisibleSteps não muda (Terreno é seção de Classe, não etapa própria), mas isEarthCircleTerrainApplicable passa a ser true", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "druida";
     character.level = 3;
     character.subclassId = "Círculo da Terra";
     const steps = getVisibleSteps(character);
     expect(steps).toContain("wildShapeForms");
-    expect(steps).toContain("earthCircleTerrain");
-    expect(steps).toHaveLength(12);
+    expect(steps).toHaveLength(10);
+    expect(isEarthCircleTerrainApplicable(character)).toBe(true);
   });
 
   it("respeita sempre a ordem canônica das etapas", () => {
@@ -281,7 +271,7 @@ describe("getVisibleSteps", () => {
     expect(indices).toEqual([...indices].sort((a, b) => a - b));
   });
 
-  it("Druida/Círculo da Terra nível 14: respeita a ordem canônica também com as 2 etapas novas", () => {
+  it("Druida/Círculo da Terra nível 14: respeita a ordem canônica também no nível máximo", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "druida";
     character.level = 14;
@@ -291,27 +281,26 @@ describe("getVisibleSteps", () => {
     expect(indices).toEqual([...indices].sort((a, b) => a - b));
   });
 
-  it("Feiticeiro nível 2 sem subclasse: soma Metamagia, mas nunca Subclasse/Afinidade Elemental ainda", () => {
+  it("Feiticeiro nível 2 sem subclasse: soma Metamagia, mas Afinidade Elemental ainda não se aplica", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "feiticeiro";
     character.level = 2;
     const steps = getVisibleSteps(character);
     expect(steps).toContain("metamagic");
-    expect(steps).not.toContain("subclass");
-    expect(steps).not.toContain("elementalAffinity");
+    expect(isElementalAffinityApplicable(character)).toBe(false);
   });
 
-  it("Feiticeiro/Feitiçaria Dracônica nível 6: soma também Afinidade Elemental", () => {
+  it("Feiticeiro/Feitiçaria Dracônica nível 6: soma Metamagia e passa a aplicar Afinidade Elemental (seção de Classe)", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "feiticeiro";
     character.level = 6;
     character.subclassId = "Feitiçaria Dracônica";
     const steps = getVisibleSteps(character);
     expect(steps).toContain("metamagic");
-    expect(steps).toContain("elementalAffinity");
+    expect(isElementalAffinityApplicable(character)).toBe(true);
   });
 
-  it("Feiticeiro/Feitiçaria Dracônica nível 6: respeita a ordem canônica também com as 2 etapas de Metamagia/Afinidade Elemental", () => {
+  it("Feiticeiro/Feitiçaria Dracônica nível 6: respeita a ordem canônica também com Metamagia", () => {
     const character = createBlankCharacter("step-test");
     character.classId = "feiticeiro";
     character.level = 6;
