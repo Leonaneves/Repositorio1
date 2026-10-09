@@ -13,7 +13,7 @@ Sem conjurar; Concent mantém
 DC: +1 uso; DL: todos",
   "#Forma Estrelada
 1 FS, AB, 10 min; escolha; início turno pode trocar:
-> Arqueiro: ao ativar e AB -> Atq mágico 18m, 2d8+SAB Rad
+> Arqueiro: ao ativar e AB -> Atq mágico 18m, 2d8+SAB Radiante
 > Dragão: testes INT/SAB e Salv CON Concent, d20 9 ou menos = 10; Voo 6m, paira
 > Taça: magia com espaço que cura -> você/alvo 9m cura 2d8+SAB
 > Res Conc/Cort/Perf",
@@ -33,8 +33,8 @@ AB: Fera conhecida por 1/2 nível h; sair AB
 PV Temp = 3 x nível; ND máx 4; CA 13+SAB se maior
 Usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv
 Sem conjurar; Concent mantém
-> Lua: Atq Fera normal/Rad; +SAB Salv CON
-> Lua: 1/turno, Atq Fera -> +2d10 Rad
+> Lua: Atq Fera normal/Radiante; +SAB Salv CON
+> Lua: 1/turno, Atq Fera -> +2d10 Radiante
 > 1/turno, 0 FS: 1 espaço -> +1 FS
 > [__] 1 FS -> +1 espaço 1o. 1/DL
 DC: +1 uso; DL: todos",
@@ -58,8 +58,8 @@ Sem conjurar; Concent mantém
 DC: +1 uso; DL: todos",
   "#Ira do Mar
 1 FS, AB: Emanação 3m por 10 min em você ou aliado voluntário a 18m
-Ao ativar e AB: alvo na área Salv CON; falha 3d6 Gel e Grande- empurra 4,5m
-> Ativa: Voo = Desl; Res Elet/Gel/Trov
+Ao ativar e AB: alvo na área Salv CON; falha 3d6 Frio e Grande- empurra 4,5m
+> Ativa: Voo = Desl; Res Elétrico/Frio/Trovão
 > 2 FS: manifeste em você + aliado simultaneamente",
 ]
 `;
@@ -77,7 +77,7 @@ Sem conjurar; Concent mantém
 DC: +1 uso; DL: todos",
   "#Auxílio da Terra
 1 FS, Ação, ponto 18m/raio 3m
-Escolhidos Salv CON -> 4d6 Necr, sucesso 1/2; 1 alvo cura 4d6",
+Escolhidos Salv CON -> 4d6 Necrótico, sucesso 1/2; 1 alvo cura 4d6",
   "#Recuperação Natural
 > [__] 1 magia do Círculo 1o+ sem espaço. 1/DL
 > [__] DC: recupere até 7 círculos de espaços, máx 5o. 1/DL",

@@ -13,9 +13,12 @@ import { create } from "zustand";
 interface BuilderUiStore {
   skillsHomebrew: boolean;
   toggleSkillsHomebrew: () => void;
+  /** Define o modo Homebrew diretamente — usado pela tela de edição de Perícias via Revisão (abre/fecha sempre em modo normal). */
+  setSkillsHomebrew: (value: boolean) => void;
 }
 
 export const useBuilderUiStore = create<BuilderUiStore>((set) => ({
   skillsHomebrew: false,
   toggleSkillsHomebrew: () => set((state) => ({ skillsHomebrew: !state.skillsHomebrew })),
+  setSkillsHomebrew: (value) => set({ skillsHomebrew: value }),
 }));

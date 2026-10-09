@@ -15,16 +15,20 @@ import { getAutoPreparedSpells } from "./effectiveSpellsPrepared.js";
  * `isElementalAffinityApplicable` abaixo) — nunca exigidas fora do
  * momento em que a subclasse dona delas está ativa. "Características e
  * Talentos" continua condicional — ver `isStepVisible`.
+ *
+ * "skills" (Perícias e Proficiências) NUNCA é etapa lateral (fonte
+ * "AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS" §3) — a edição
+ * de perícias só é alcançável pelo botão "Editar" da Revisão
+ * (`ui/builder/SkillsEditModal.tsx`), nunca pela navegação normal do
+ * Builder.
  */
 export const BUILDER_STEP_ORDER = [
   "basicInfo",
   "class",
-  "wildShapeForms",
   "metamagic",
   "species",
   "background",
   "abilities",
-  "skills",
   "featuresAndTalents",
   "invocations",
   "equipment",
@@ -36,12 +40,10 @@ export type BuilderStepId = (typeof BUILDER_STEP_ORDER)[number];
 export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
   basicInfo: "Informações Básicas",
   class: "Classe",
-  wildShapeForms: "Formas Conhecidas",
   metamagic: "Metamagia",
   species: "Espécie",
   background: "Antecedente",
   abilities: "Atributos",
-  skills: "Perícias e Proficiências",
   featuresAndTalents: "Características e Talentos",
   invocations: "Invocações Místicas",
   equipment: "Equipamento / Combate",
@@ -67,10 +69,6 @@ export function isElementalAffinityApplicable(character: Character): boolean {
 
 /**
  * Se a etapa deve aparecer para o personagem atual:
- * - Formas Conhecidas: só para Druida a partir do nível 2 (fonte
- *   "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES" §8) — etapa própria,
- *   fora do mecanismo genérico de `FeatureChoice` (mesma razão de
- *   Invocações Místicas: validação cruzada quantidade/ND/Voo).
  * - Metamagia: só para Feiticeiro a partir do nível 2 (§10) — etapa
  *   própria, fora do mecanismo genérico de `FeatureChoice` (mesma
  *   razão de Invocações Místicas/Formas Conhecidas: quantidade por
@@ -97,7 +95,6 @@ export function isElementalAffinityApplicable(character: Character): boolean {
  *   condicional a `canChooseSubclass`, nunca a etapa toda).
  */
 export function isStepVisible(stepId: BuilderStepId, character: Character): boolean {
-  if (stepId === "wildShapeForms") return character.classId === "druida" && character.level >= 2;
   if (stepId === "metamagic") return character.classId === "feiticeiro" && character.level >= 2;
   if (stepId === "featuresAndTalents") {
     return getOtherFeaturesWithChoices(character).length > 0;

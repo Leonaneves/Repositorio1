@@ -19,8 +19,10 @@ const ORIGIN_LABELS = { background: "Antecedente", class: "Classe", species: "Es
 
 /**
  * Uma linha de perícia — usada dentro do card do atributo que a
- * governa (ver AbilitiesSection) e na etapa "Perícias e Proficiências"
- * do Builder. A UI diferencia (§6/§10): automática (Antecedente/Classe,
+ * governa (ver AbilitiesSection) e na tela de edição de Perícias
+ * aberta pela Revisão (`ui/builder/SkillsEditModal.tsx` — nunca uma
+ * etapa lateral do Builder, fonte "AJUSTES NO PDF, FORMA SELVAGEM E
+ * EDIÇÃO DE PERÍCIAS" §3). A UI diferencia (§6/§10): automática (Antecedente/Classe,
  * protegida em modo normal), manual (Homebrew) e disponível/sem
  * origem (-). Fora do modo Homebrew, a caixa de proficiência fica
  * desabilitada — a única forma de concedê-la é pela fonte estruturada

@@ -9,12 +9,10 @@ function isDevMode(): boolean {
 }
 import { Step1BasicInfo } from "./steps/Step1BasicInfo.js";
 import { Step2Class } from "./steps/Step2Class.js";
-import { StepWildShapeForms } from "./steps/StepWildShapeForms.js";
 import { StepMetamagic } from "./steps/StepMetamagic.js";
 import { Step4Species } from "./steps/Step4Species.js";
 import { Step5Background } from "./steps/Step5Background.js";
 import { Step6Abilities } from "./steps/Step6Abilities.js";
-import { Step7Skills } from "./steps/Step7Skills.js";
 import { Step8FeaturesAndTalents } from "./steps/Step8FeaturesAndTalents.js";
 import { StepInvocations } from "./steps/StepInvocations.js";
 import { Step9Equipment } from "./steps/Step9Equipment.js";
@@ -24,12 +22,10 @@ import { Step11Review } from "./steps/Step11Review.js";
 const STEP_COMPONENTS: Record<BuilderStepId, () => JSX.Element> = {
   basicInfo: Step1BasicInfo,
   class: Step2Class,
-  wildShapeForms: StepWildShapeForms,
   metamagic: StepMetamagic,
   species: Step4Species,
   background: Step5Background,
   abilities: Step6Abilities,
-  skills: Step7Skills,
   featuresAndTalents: Step8FeaturesAndTalents,
   invocations: StepInvocations,
   equipment: Step9Equipment,

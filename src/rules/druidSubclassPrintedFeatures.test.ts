@@ -63,7 +63,7 @@ describe("Círculo da Lua", () => {
 describe("Círculo da Terra", () => {
   it("Auxílio da Terra (3): dano/cura = 2d6 nos níveis 3-9", () => {
     const text = getDruidSubclassPrintedBlocks(druidAt(5, SUBCLASSES.terra)).find((b) => b.text.includes("Auxílio da Terra"))!.text;
-    expect(text).toBe(["#Auxílio da Terra", "1 FS, Ação, ponto 18m/raio 3m", "Escolhidos Salv CON -> 2d6 Necr, sucesso 1/2; 1 alvo cura 2d6"].join("\n"));
+    expect(text).toBe(["#Auxílio da Terra", "1 FS, Ação, ponto 18m/raio 3m", "Escolhidos Salv CON -> 2d6 Necrótico, sucesso 1/2; 1 alvo cura 2d6"].join("\n"));
   });
 
   it("Auxílio da Terra: 3d6 nos níveis 10-13, 4d6 no 14+", () => {
@@ -124,7 +124,7 @@ describe("Círculo das Estrelas", () => {
       [
         "#Forma Estrelada",
         "1 FS, AB, 10 min; escolha:",
-        "> Arqueiro: ao ativar e AB -> Atq mágico 18m, 1d8+SAB Rad",
+        "> Arqueiro: ao ativar e AB -> Atq mágico 18m, 1d8+SAB Radiante",
         "> Dragão: testes INT/SAB e Salv CON Concent, d20 9 ou menos = 10",
         "> Taça: magia com espaço que cura -> você/alvo 9m cura 1d8+SAB",
       ].join("\n"),
@@ -135,7 +135,7 @@ describe("Círculo das Estrelas", () => {
     const blocks = getDruidSubclassPrintedBlocks(druidAt(10, SUBCLASSES.estrelas));
     const formaEstrelada = blocks.filter((b) => b.text.includes("Forma Estrelada"));
     expect(formaEstrelada).toHaveLength(1);
-    expect(formaEstrelada[0].text).toContain("2d8+SAB Rad");
+    expect(formaEstrelada[0].text).toContain("2d8+SAB Radiante");
     expect(formaEstrelada[0].text).toContain("Voo 6m, paira");
     expect(formaEstrelada[0].text).toContain("início turno pode trocar");
     expect(blocks.some((b) => b.text.includes("Constelações Cintilantes"))).toBe(false);
@@ -159,7 +159,7 @@ describe("Círculo do Mar", () => {
   it("Ira do Mar (3-5): Emanação 1,5m, dados = mod. SAB (mínimo 1), sem linhas extras", () => {
     const text = getDruidSubclassPrintedBlocks(druidAt(5, SUBCLASSES.mar, 16)).find((b) => b.text.includes("Ira do Mar"))!.text; // SAB +3
     expect(text).toBe(
-      ["#Ira do Mar", "1 FS, AB: Emanação 1,5m por 10 min", "Ao ativar e AB: alvo na área Salv CON; falha 3d6 Gel e Grande- empurra 4,5m"].join("\n"),
+      ["#Ira do Mar", "1 FS, AB: Emanação 1,5m por 10 min", "Ao ativar e AB: alvo na área Salv CON; falha 3d6 Frio e Grande- empurra 4,5m"].join("\n"),
     );
   });
 
@@ -171,11 +171,11 @@ describe("Círculo do Mar", () => {
     expect(blocks.some((b) => b.text.includes("Afinidade Aquática"))).toBe(false);
   });
 
-  it("Filho da Tempestade (10-13): soma '> Ativa: Voo = Desl; Res Elet/Gel/Trov', nunca bloco separado", () => {
+  it("Filho da Tempestade (10-13): soma '> Ativa: Voo = Desl; Res Elétrico/Frio/Trovão', nunca bloco separado", () => {
     const blocks = getDruidSubclassPrintedBlocks(druidAt(10, SUBCLASSES.mar));
     const iraDoMar = blocks.filter((b) => b.text.includes("Ira do Mar"));
     expect(iraDoMar).toHaveLength(1);
-    expect(iraDoMar[0].text).toContain("> Ativa: Voo = Desl; Res Elet/Gel/Trov");
+    expect(iraDoMar[0].text).toContain("> Ativa: Voo = Desl; Res Elétrico/Frio/Trovão");
     expect(blocks.some((b) => b.text.includes("Filho da Tempestade"))).toBe(false);
   });
 

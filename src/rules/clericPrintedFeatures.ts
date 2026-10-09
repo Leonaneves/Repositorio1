@@ -49,10 +49,10 @@ function getCanalizarDivindadeText(character: Character): string | null {
   const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
   const centelhaDiceCount = getCentelhaDiceCount(character.level);
 
-  const centelhaLine = `> Centelha: alvo 9m, ${centelhaDiceCount}d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano`;
+  const centelhaLine = `> Centelha: alvo 9m, ${centelhaDiceCount}d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano`;
   const expulsarLine =
     character.level >= 5
-      ? `> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + ${Math.max(1, wisdomMod)}d8 Rad; este dano não encerra`
+      ? `> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + ${Math.max(1, wisdomMod)}d8 Radiante; este dano não encerra`
       : "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min; dano encerra";
 
   const subclassLines = getClericChannelDivinityOptionLines(character);
@@ -76,7 +76,7 @@ function getGolpesAbencoadosText(character: Character): string | null {
 
   if (choice === "Golpe Divino") {
     const dice = character.level >= 14 ? "2d8" : "1d8";
-    return ["#Golpe Divino", `1/turno, acerto com arma -> +${dice} Necr/Rad`].join("\n");
+    return ["#Golpe Divino", `1/turno, acerto com arma -> +${dice} Necrótico/Radiante`].join("\n");
   }
 
   return null;

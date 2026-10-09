@@ -6,8 +6,8 @@ import { getKnownMetamagicOptions, getMetamagicOptionsKnownCount, getSelectableM
  * FEITICEIRO, METAMAGIA E SUBCLASSES" §10) — só visível para
  * Feiticeiro a partir do nível 2 (rules/builderSteps.ts). Modelo
  * PRÓPRIO, fora do `FeatureChoiceControl` genérico, mesmo raciocínio
- * de `StepInvocations`/`StepWildShapeForms`: a quantidade exigida varia
- * por nível e nunca pode haver duplicata.
+ * de `StepInvocations`: a quantidade exigida varia por nível e nunca
+ * pode haver duplicata.
  */
 export function StepMetamagic() {
   const character = useCharacterStore((s) => s.character);

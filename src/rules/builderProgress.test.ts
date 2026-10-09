@@ -126,11 +126,6 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("metamagic", character)).toEqual(["Escolha exatamente 2 opções de Metamagia (atualmente 0/2)."]);
   });
 
-  it("'wildShapeForms' explica quantidade pendente para o Druida", () => {
-    const character = { ...blank(), classId: "druida" as const, level: 2 };
-    expect(getStepBlockers("wildShapeForms", character)).toEqual(["Escolha mais 4 Forma(s) Conhecida(s) (0/4)."]);
-  });
-
   it("'class' bloqueia a seção de Terreno do Círculo da Terra sem escolha, libera com uma opção válida (seção dentro de Classe, não etapa própria — §2)", () => {
     const character = { ...blank(), classId: "druida" as const, subclassId: "Círculo da Terra", level: 3 };
     expect(getStepBlockers("class", character)).toContain("Escolha o Terreno do Círculo da Terra.");

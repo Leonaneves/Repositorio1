@@ -29,14 +29,14 @@ const INVOCATION_PRINT_RESOLVERS: Record<string, InvocationPrintResolver> = {
   "explosao-agonizante": (_c, subChoice) => `> Explosão Agonizante: ${subChoice || "Truque"} +CAR no dano`,
   "explosao-repulsiva": (_c, subChoice) => `> Explosão Repulsiva: ${subChoice || "Truque"}, acerto -> empurra 3m alvo Grande-`,
   "investimento-mestre-da-corrente": () =>
-    "> Investimento Mestre da Corrente: familiar Voo/Natação 12m; AB->Atq; usa sua CD; dano Conc/Cort/Perf pode virar Necr/Rad; Reação->Res ao dano",
+    "> Investimento Mestre da Corrente: familiar Voo/Natação 12m; AB->Atq; usa sua CD; dano Conc/Cort/Perf pode virar Necrótico/Radiante; Reação->Res ao dano",
   "lamina-sedenta": (_c, _s, hasInvocation) => (hasInvocation("lamina-devoradora") ? null : "> Lâmina Sedenta: arma de pacto 2 Atq"),
   "lamina-devoradora": () => "> Lâmina Devoradora: arma de pacto 3 Atq",
   "lanca-mistica": (character, subChoice) => `> Lança Mística: ${subChoice || "Truque"} alcance +${9 * character.level}m`,
   "mente-mistica": () => "> Mente Mística: Vant Salv CON p/Concent",
   "olhar-de-duas-mentes": () => "> Olhar de Duas Mentes: AB toque aliado; use seus sentidos; AB mantém; a até 18m magias podem partir de você/dele",
   "pacto-da-corrente": () => "> Pacto da Corrente: Familiar sem espaço; ao Atacar, troque 1 Atq por Atq do familiar usando Reação dele",
-  "pacto-da-lamina": () => "> Pacto da Lâmina: AB arma corpo a corpo; Prof/Foco; Atq/dano pode usar CAR; dano normal/Necr/Psiq/Rad",
+  "pacto-da-lamina": () => "> Pacto da Lâmina: AB arma corpo a corpo; Prof/Foco; Atq/dano pode usar CAR; dano normal/Necrótico/Psíquico/Radiante",
   "presente-das-profundezas": () => "> Presente das Profundezas: respira água; Natação = Desl",
   "presente-dos-protetores": (character) => {
     const carMod = Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "CAR")));
@@ -44,9 +44,9 @@ const INVOCATION_PRINT_RESOLVERS: Record<string, InvocationPrintResolver> = {
   },
   "punicao-mistica": (character) => {
     const circle = PACT_MAGIC_TABLE[character.level]?.slotCircle ?? 1;
-    return `> Punição Mística: 1/turno, acerto arma pacto +1 espaço -> +${circle + 1}d8 Energ; alvo Enorme- pode Caído`;
+    return `> Punição Mística: 1/turno, acerto arma pacto +1 espaço -> +${circle + 1}d8 Energético; alvo Enorme- pode Caído`;
   },
-  "sorvedouro-de-vida": () => "> Sorvedouro de Vida: 1/turno arma pacto +1d6 Necr/Psiq/Rad; pode gastar 1 Dado Vida e curar dado+CON",
+  "sorvedouro-de-vida": () => "> Sorvedouro de Vida: 1/turno arma pacto +1d6 Necrótico/Psíquico/Radiante; pode gastar 1 Dado Vida e curar dado+CON",
   "visao-da-bruxa": () => "> Visão da Bruxa: Visão Verdadeira 9m",
   "visao-diabolica": () => "> Visão Diabólica: vê normal em Meia-luz/Escuridão mágica ou não até 36m",
 };

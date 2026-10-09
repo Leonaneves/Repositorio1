@@ -5,6 +5,7 @@ import {
   type ArmorProficiencies,
   type AttackEntry,
   type Character,
+  type SkillState,
   type SpellPreparedEntry,
 } from "../domain/character.js";
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
@@ -232,6 +233,8 @@ interface CharacterStore {
   setSkillManualOverride: (skill: SkillKey, value: boolean | null) => void;
   setSkillExpertise: (skill: SkillKey, expertise: boolean) => void;
   setSkillManualAdjustment: (skill: SkillKey, value: number) => void;
+  /** Restaura todas as perícias a partir de um snapshot — usado pelo Cancelar da edição de Perícias via Revisão. */
+  restoreSkills: (skills: Record<SkillKey, SkillState>) => void;
 
   setSavingThrowProficient: (ability: AbilityKey, proficient: boolean) => void;
   setSavingThrowManualAdjustment: (ability: AbilityKey, value: number) => void;
@@ -406,6 +409,11 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
         ...state.character,
         skills: { ...state.character.skills, [skill]: { ...state.character.skills[skill], manualAdjustment: value } },
       },
+    })),
+
+  restoreSkills: (skills) =>
+    set((state) => ({
+      character: { ...state.character, skills },
     })),
 
   setSavingThrowProficient: (ability, proficient) =>

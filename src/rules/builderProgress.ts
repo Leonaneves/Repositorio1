@@ -20,7 +20,6 @@ import { getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 import { getInvalidChosenInvocations } from "./invocations.js";
 import { getKnownMetamagicOptions, getMetamagicOptionsKnownCount } from "./metamagic.js";
 import { isStartingEquipmentResolved } from "./startingEquipment.js";
-import { getWildShapeFormsConfig, validateKnownWildShapeForm } from "./wildShapeForms.js";
 import { getAsiLevelAllocatedPoints, getUnlockedAsiLevels, isAsiLevelComplete, ASI_ALLOCATION_CONFIG } from "./asi.js";
 import { isAllocationComplete } from "./abilityAllocation.js";
 
@@ -144,20 +143,6 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
 
   if (stepId === "equipment") {
     if (!isStartingEquipmentResolved(character)) blockers.push("Escolha um pacote de Equipamento Inicial.");
-  }
-
-  if (stepId === "wildShapeForms") {
-    const config = getWildShapeFormsConfig(character.level);
-    const filled = character.knownWildShapeForms.filter((f) => f.name.trim().length > 0);
-    if (filled.length < config.count) {
-      blockers.push(`Escolha mais ${config.count - filled.length} Forma(s) Conhecida(s) (${filled.length}/${config.count}).`);
-    }
-    for (const form of character.knownWildShapeForms) {
-      if (form.name.trim().length === 0) continue;
-      const validation = validateKnownWildShapeForm(form, config);
-      if (validation.challengeRatingOk === false) blockers.push(`"${form.name}": ND acima do máximo permitido (${config.maxChallengeRating}).`);
-      if (!validation.flySpeedOk) blockers.push(`"${form.name}": Deslocamento de Voo não é permitido neste nível.`);
-    }
   }
 
   if (stepId === "metamagic") {

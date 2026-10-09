@@ -1037,6 +1037,34 @@ select:focus-visible {
   margin: 0 0 var(--space-3xs);
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: var(--space-xl) var(--space-md);
+  z-index: 100;
+}
+
+.modal {
+  background: var(--field-bg);
+  border: var(--border-width) solid var(--border-color-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  max-width: 48rem;
+  width: 100%;
+}
+
+.skills-edit-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
 .ability-allocator__hint,
 .ability-allocator__remaining {
   font-size: var(--text-sm);

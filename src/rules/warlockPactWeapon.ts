@@ -7,7 +7,7 @@ import type { AutoTextEntry, Character } from "../domain/character.js";
  * contra um catálogo (fonte "INTEGRAÇÃO COMPLETA — BRUXO, INVOCAÇÕES
  * MÍSTICAS E SUBCLASSES" §23: "não deve representar uma limitação
  * permanente da invocação"). O detalhe mecânico completo (Atq/dano com
- * CAR, tipo de dano normal/Necr/Psiq/Rad) já aparece no bloco
+ * CAR, tipo de dano normal/Necrótico/Psíquico/Radiante) já aparece no bloco
  * "#Invocações Místicas" (rules/warlockPrintedFeatures.ts) — aqui só a
  * proficiência/arma atual, igual ao padrão já usado para Maestria em
  * Arma do Bárbaro/Treinamento Marcial do Bardo.

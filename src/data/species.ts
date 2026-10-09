@@ -151,9 +151,9 @@ export const species: Record<SpeciesId, SpeciesDefinition> = {
       "- Dura 1min | Ação Bônus | 1 p/ DL\n" +
       "> Asas Celestiais: +3 dano Radiante\n" +
       "Pode voar\n" +
-      "> Manto Necrótico: +3 dano Nec\n" +
+      "> Manto Necrótico: +3 dano Necrótico\n" +
       "a 3m de vc faz Salvaguarda de CAR CD___ ou fica Amedrontado\n" +
-      "> Radiância Interna: +3 rad\n" +
+      "> Radiância Interna: +3 dano Radiante\n" +
       "todos a 3m sofrem 3 dano radiante",
   },
   orc: {

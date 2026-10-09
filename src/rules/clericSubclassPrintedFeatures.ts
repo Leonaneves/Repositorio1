@@ -48,7 +48,7 @@ const CHANNEL_DIVINITY_OPTION_LINES: ChannelDivinityOptionLine[] = [
   {
     subclassFullName: "Domínio da Luz",
     acquisitionLevel: 3,
-    getLine: (character) => `> Brilho Amanhecer: Emanação 9m, dissipa Escuridão mágica; escolhidos Salv CON -> 2d10+${character.level} Rad, sucesso 1/2`,
+    getLine: (character) => `> Brilho Amanhecer: Emanação 9m, dissipa Escuridão mágica; escolhidos Salv CON -> 2d10+${character.level} Radiante, sucesso 1/2`,
   },
   // ---------- Domínio da Trapaça (Invocar Duplicidade evolui no mesmo lugar nos níveis 3/6/17) ----------
   {
@@ -128,7 +128,7 @@ const SUBCLASS_BLOCKS: SubclassBlock[] = [
       return [
         `#Coroa de Luz ${checkboxes(count)}`,
         "Ação: aura 1 min, Luz 18m + Meia-luz 9m",
-        "Inimigos na Luz têm Desv Salv vs Brilho e magias Íg/Rad",
+        "Inimigos na Luz têm Desv Salv vs Brilho e magias Fogo/Radiante",
         "Todos/DL",
       ].join("\n");
     },

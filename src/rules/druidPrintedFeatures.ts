@@ -72,7 +72,7 @@ function getDruidFuriaElementalText(character: Character): string | null {
 
   if (choice === "Ataque Primal") {
     const dice = character.level >= 15 ? "2d8" : "1d8";
-    return ["#Ataque Primal", `1/turno, Atq arma/Fera em FS -> +${dice} Elet/Gel/Ig/Trov`].join("\n");
+    return ["#Ataque Primal", `1/turno, Atq arma/Fera em FS -> +${dice} Elétrico/Frio/Fogo/Trovão`].join("\n");
   }
 
   if (choice === "Conjuração Poderosa") {

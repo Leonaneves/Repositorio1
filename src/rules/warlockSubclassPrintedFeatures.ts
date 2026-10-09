@@ -38,7 +38,7 @@ const ARQUIFADA: SubclassBlock[] = [
           "> Provocante: origem 1,5m Salv SAB ou Desv Atq vs outros",
           "> Revigorante: você/alvo 3m ganha 1d10 PV Temp",
           "> Desvanecedor: Invisível até próx turno/Atq/dano/magia",
-          "> Terrível: origem ou destino 1,5m Salv SAB; falha 2d10 Psiq",
+          "> Terrível: origem ou destino 1,5m Salv SAB; falha 2d10 Psíquico",
         ].join("\n");
       }
       return [
@@ -53,7 +53,7 @@ const ARQUIFADA: SubclassBlock[] = [
     subclassFullName: "Patrono Arquifada",
     acquisitionLevel: 10,
     getText: () =>
-      ["#Defesas Sedutoras [__]", "Imune Enfeit", "Reação ao ser atingido: 1/2 dano; atacante Salv SAB ou sofre Psiq = dano sofrido", "DL ou 1 espaço Pacto"].join(
+      ["#Defesas Sedutoras [__]", "Imune Enfeit", "Reação ao ser atingido: 1/2 dano; atacante Salv SAB ou sofre Psíquico = dano sofrido", "DL ou 1 espaço Pacto"].join(
         "\n",
       ),
   },
@@ -74,7 +74,7 @@ const CELESTIAL: SubclassBlock[] = [
   {
     subclassFullName: "Patrono Celestial",
     acquisitionLevel: 6,
-    getText: () => "#Alma Radiante\nRes Rad; 1/turno magia Íg/Rad -> +CAR dano em 1 alvo",
+    getText: () => "#Alma Radiante\nRes Radiante; 1/turno magia Fogo/Radiante -> +CAR dano em 1 alvo",
   },
   {
     subclassFullName: "Patrono Celestial",
@@ -93,7 +93,7 @@ const CELESTIAL: SubclassBlock[] = [
       [
         "#Vingança Calcinante [__]",
         "Você/aliado 18m faria Salv Morte -> recupera 1/2 PV máx e pode encerrar Caído",
-        "Escolhidos a 9m: 2d8+CAR Rad e Cego até fim turno. DL",
+        "Escolhidos a 9m: 2d8+CAR Radiante e Cego até fim turno. DL",
       ].join("\n"),
   },
 ];
@@ -102,7 +102,7 @@ const GRANDE_ANTIGO: SubclassBlock[] = [
   {
     subclassFullName: "Patrono Grande Antigo",
     acquisitionLevel: 3,
-    getText: () => "#Magias Psíquicas\nMagia Bruxo com dano pode virar Psiq\nEnc/Ilus de Bruxo sem V/S",
+    getText: () => "#Magias Psíquicas\nMagia Bruxo com dano pode virar Psíquico\nEnc/Ilus de Bruxo sem V/S",
   },
   {
     subclassFullName: "Patrono Grande Antigo",
@@ -123,7 +123,7 @@ const GRANDE_ANTIGO: SubclassBlock[] = [
   {
     subclassFullName: "Patrono Grande Antigo",
     acquisitionLevel: 10,
-    getText: () => "#Escudo Mental\nMente não pode ser lida sem permissão; Res Psiq\nQuem causa dano Psiq em você sofre o mesmo dano",
+    getText: () => "#Escudo Mental\nMente não pode ser lida sem permissão; Res Psíquico\nQuem causa dano Psíquico em você sofre o mesmo dano",
   },
 ];
 
@@ -147,7 +147,7 @@ const INFERO: SubclassBlock[] = [
   {
     subclassFullName: "Patrono Ínfero",
     acquisitionLevel: 10,
-    getText: () => "#Resistência Ínfera\nDC/DL: escolha dano exc Energ -> Res até nova escolha",
+    getText: () => "#Resistência Ínfera\nDC/DL: escolha dano exc Energético -> Res até nova escolha",
   },
   {
     subclassFullName: "Patrono Ínfero",
@@ -155,7 +155,7 @@ const INFERO: SubclassBlock[] = [
     getText: () =>
       [
         "#Lançar no Inferno [__]",
-        "1/turno, acerto -> Salv CAR; falha: desaparece, não-Ínfero 8d10 Psiq + Incap até fim próx turno",
+        "1/turno, acerto -> Salv CAR; falha: desaparece, não-Ínfero 8d10 Psíquico + Incap até fim próx turno",
         "DL ou 1 espaço Pacto",
       ].join("\n"),
   },

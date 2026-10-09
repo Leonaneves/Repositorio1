@@ -73,8 +73,8 @@ describe("Domínio da Guerra", () => {
       [
         "#Canalizar Divindade [__][__][__]",
         "DC: +1 uso; DL: todos",
-        "> Centelha: alvo 9m, 1d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano",
-        "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 2d8 Rad; este dano não encerra",
+        "> Centelha: alvo 9m, 1d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano",
+        "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 2d8 Radiante; este dano não encerra",
         "> Atq Direcionado: você/aliado 9m erra Atq -> +10; Reação se for aliado",
         "> Bênção Guerra: 1 uso -> Arma Espiritual/Escudo da Fé sem espaço/Concent, 1 min",
       ].join("\n"),
@@ -86,7 +86,7 @@ describe("Domínio da Guerra", () => {
 describe("Domínio da Luz", () => {
   it("Brilho do Amanhecer (3): linha de Canalizar Divindade com {NivelClerigo} resolvido numericamente", () => {
     const lines = getClericChannelDivinityOptionLines(clericAt(9, SUBCLASSES.luz));
-    expect(lines).toEqual(["> Brilho Amanhecer: Emanação 9m, dissipa Escuridão mágica; escolhidos Salv CON -> 2d10+9 Rad, sucesso 1/2"]);
+    expect(lines).toEqual(["> Brilho Amanhecer: Emanação 9m, dissipa Escuridão mágica; escolhidos Salv CON -> 2d10+9 Radiante, sucesso 1/2"]);
   });
 
   it("Labareda Protetora (3-5): checkbox = mod. SAB, recupera só DL, sem PV Temp ainda", () => {
@@ -110,7 +110,7 @@ describe("Domínio da Luz", () => {
       [
         "#Coroa de Luz [__]",
         "Ação: aura 1 min, Luz 18m + Meia-luz 9m",
-        "Inimigos na Luz têm Desv Salv vs Brilho e magias Íg/Rad",
+        "Inimigos na Luz têm Desv Salv vs Brilho e magias Fogo/Radiante",
         "Todos/DL",
       ].join("\n"),
     );

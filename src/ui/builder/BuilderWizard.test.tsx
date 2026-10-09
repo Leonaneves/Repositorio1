@@ -6,6 +6,7 @@ import { useBuilderStore } from "../../state/builderStore.js";
 import { useInsightSessionStore } from "../insights/insightSessionStore.js";
 import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../../data/features/subclasses.js";
 import { getClassSkillChoiceId } from "../../data/classes.js";
+import { getSkillProficiencyOrigin } from "../../rules/skills.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -341,5 +342,125 @@ describe("BuilderWizard — Conjuração mostra truques/magias/magias automátic
     act(() => useBuilderStore.getState().goToStep("spellcasting"));
 
     expect(screen.queryByText("Gastos")).not.toBeInTheDocument();
+  });
+});
+
+describe("BuilderWizard — Forma Selvagem nunca é escolha de criação (fonte \"AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS\" §2)", () => {
+  it("Druida de qualquer nível nunca mostra 'Formas Conhecidas' na navegação lateral, nem trava Avançar por causa dela", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("druida");
+      useCharacterStore.getState().setLevel(5);
+      useCharacterStore.getState().setSpecies("humano");
+      useCharacterStore.getState().setBackground("acolito");
+      useCharacterStore.getState().increaseBackgroundAbilityBonus("INT");
+      useCharacterStore.getState().increaseBackgroundAbilityBonus("INT");
+      useCharacterStore.getState().increaseBackgroundAbilityBonus("SAB");
+    });
+
+    expect(screen.queryByRole("button", { name: /Formas Conhecidas/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Forma\(s\) Conhecida\(s\)/)).not.toBeInTheDocument();
+
+    act(() => useBuilderStore.getState().goToStep("review"));
+    expect(screen.queryByText(/Formas Conhecidas/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Forma\(s\) Conhecida\(s\)/)).not.toBeInTheDocument();
+  });
+});
+
+describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS\" §3)", () => {
+  function setupGuerreiroAcolito() {
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("guerreiro");
+      store.setSpecies("humano");
+      store.setBackground("acolito"); // concede Intuição/Religião automaticamente
+      store.setFeatureChoiceSelection(getClassSkillChoiceId("guerreiro"), ["atletismo", "intimidacao"]);
+    });
+  }
+
+  function openSkillsModal() {
+    const periciasHeading = screen.getByRole("heading", { name: /^Perícias/, level: 3 });
+    fireEvent.click(within(periciasHeading).getByRole("button", { name: "Editar perícias" }));
+  }
+
+  it("'Perícias e Proficiências' nunca aparece como etapa lateral do Builder, em nenhum momento da criação", () => {
+    render(<App />);
+    setupGuerreiroAcolito();
+    expect(screen.queryByRole("button", { name: /Perícias e Proficiências/ })).not.toBeInTheDocument();
+
+    act(() => useBuilderStore.getState().goToStep("review"));
+    expect(screen.queryByRole("button", { name: /Perícias e Proficiências/ })).not.toBeInTheDocument();
+  });
+
+  it("botão 'Editar' de Perícias na Revisão abre a tela de edição, mostrando as origens automáticas de Antecedente e de Classe com a origem claramente identificada", () => {
+    render(<App />);
+    setupGuerreiroAcolito();
+    act(() => useBuilderStore.getState().goToStep("review"));
+    openSkillsModal();
+
+    expect(screen.getByRole("heading", { name: "Editar Perícias e Proficiências" })).toBeInTheDocument();
+    const antecedenteSubsection = screen.getByText("Antecedente — Acólito").closest("div")!;
+    expect(within(antecedenteSubsection).getByText("Religião")).toBeInTheDocument(); // perícia concedida pelo Antecedente, listada ao lado
+    expect(screen.getByText("Classe — Perícias de Classe")).toBeInTheDocument();
+    // A escolha de Classe já feita (Atletismo) é visível e editável na própria tela, sem precisar voltar à etapa Classe.
+    expect(screen.getByRole("checkbox", { name: "Atletismo" })).toBeChecked();
+  });
+
+  it("perícia redundante entre Classe e Antecedente aparece como aviso na tela, sem substituir a escolha automaticamente (mesmo caso do §4, agora também visível aqui)", () => {
+    render(<App />);
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("guerreiro");
+      store.setFeatureChoiceSelection(getClassSkillChoiceId("guerreiro"), ["intuicao", "atletismo"]);
+      store.setBackground("acolito"); // concede Intuição também, depois da escolha já feita
+    });
+    act(() => useBuilderStore.getState().goToStep("review"));
+    openSkillsModal();
+
+    const redundantSection = screen.getByRole("heading", { name: "Escolhas redundantes" }).closest("section")!;
+    expect(within(redundantSection).getByText("Intuição")).toBeInTheDocument();
+    expect(redundantSection.textContent).toContain('foi escolhida em "Perícias de Classe"');
+    expect(redundantSection.textContent).toContain("nada é substituído automaticamente");
+
+    // a seleção de Classe continua intocada — nada foi trocado sozinho
+    expect(useCharacterStore.getState().character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")]?.value).toEqual([
+      "intuicao",
+      "atletismo",
+    ]);
+  });
+
+  it("Cancelar descarta a alteração manual (Homebrew); Salvar persiste e a Revisão reflete o novo estado, sem afetar as proficiências automáticas", () => {
+    render(<App />);
+    setupGuerreiroAcolito();
+    act(() => useBuilderStore.getState().goToStep("review"));
+
+    openSkillsModal();
+    fireEvent.click(screen.getByRole("button", { name: /Editar perícias manualmente \(Homebrew\)/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Furtividade" })); // sem nenhuma origem automática neste personagem
+    // Depois de marcada manualmente, a origem passa a "Manual" e o rótulo da perícia muda de acordo (§10) — por isso o regex abaixo.
+    expect(screen.getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+    expect(screen.queryByRole("heading", { name: "Editar Perícias e Proficiências" })).not.toBeInTheDocument();
+    expect(useCharacterStore.getState().character.skills.furtividade.manualOverride).toBeNull();
+
+    // Revisão continua permitindo reabrir a mesma tela depois do Cancelar.
+    openSkillsModal();
+    fireEvent.click(screen.getByRole("button", { name: /Editar perícias manualmente \(Homebrew\)/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Furtividade" }));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(screen.queryByRole("heading", { name: "Editar Perícias e Proficiências" })).not.toBeInTheDocument();
+    const character = useCharacterStore.getState().character;
+    expect(character.skills.furtividade.manualOverride).toBe(true);
+
+    // As proficiências automáticas de Classe/Antecedente nunca são tocadas por essa edição manual — sem duplicar nem perder a origem.
+    expect(getSkillProficiencyOrigin(character, "atletismo")).toBe("class");
+    expect(character.skills.atletismo.manualOverride).toBeNull();
+    expect(getSkillProficiencyOrigin(character, "intuicao")).toBe("background");
+    expect(character.skills.intuicao.manualOverride).toBeNull();
+
+    // A Revisão (que continua visível, fora do modal) reflete a perícia recém-habilitada.
+    expect(screen.getByText(/●\s*Furtividade/)).toBeInTheDocument();
   });
 });

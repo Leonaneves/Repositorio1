@@ -89,7 +89,7 @@ const CORACAO_SELVAGEM: SubclassBlock[] = [
         "Ao entrar em Fúria, escolha:",
         "> Águia: Correr+Desengajar na mesma AB; em Fúria, AB faz ambos",
         "> Lobo: aliados têm Vant em Atq contra inimigos a 1,5m",
-        "> Urso: Res a todo dano exc Energ, Necr, Psiq e Rad",
+        "> Urso: Res a todo dano exc Energético, Necrótico, Psíquico e Radiante",
       ].join("\n"),
   },
   {
@@ -137,7 +137,7 @@ const FANATICO: SubclassBlock[] = [
     acquisitionLevel: 3,
     getText: (character) => {
       const bonus = Math.floor(character.level / 2); // {bonusResolvido}
-      return `#Fúria Divina\nFúria: 1º acerto/turno +1d6+${bonus} Necr ou Rad`;
+      return `#Fúria Divina\nFúria: 1º acerto/turno +1d6+${bonus} Necrótico ou Radiante`;
     },
   },
   {
@@ -158,7 +158,7 @@ const FANATICO: SubclassBlock[] = [
       [
         "#Fúria dos Deuses [__]",
         "Entrar em Fúria: forma divina por 1 min. DL",
-        "> Res Necr/Psiq/Rad",
+        "> Res Necrótico/Psíquico/Radiante",
         "> Reação: criatura a 9m cairia a 0 PV -> gaste 1 Fúria; PV = seu nível",
         "> Voo = Desl; pode pairar",
       ].join("\n"),

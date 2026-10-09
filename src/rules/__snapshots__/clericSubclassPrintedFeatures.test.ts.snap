@@ -4,8 +4,8 @@ exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados)
 [
   "#Canalizar Divindade [__][__][__]
 DC: +1 uso; DL: todos
-> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
-> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra
+> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Radiante; este dano não encerra
 > Atq Direcionado: você/aliado 9m erra Atq -> +10; Reação se for aliado
 > Bênção Guerra: 1 uso -> Arma Espiritual/Escudo da Fé sem espaço/Concent, 1 min",
   "#Sacerdote da Guerra [__][__][__]
@@ -22,9 +22,9 @@ exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados)
 [
   "#Canalizar Divindade [__][__][__]
 DC: +1 uso; DL: todos
-> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
-> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra
-> Brilho Amanhecer: Emanação 9m, dissipa Escuridão mágica; escolhidos Salv CON -> 2d10+17 Rad, sucesso 1/2",
+> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Radiante; este dano não encerra
+> Brilho Amanhecer: Emanação 9m, dissipa Escuridão mágica; escolhidos Salv CON -> 2d10+17 Radiante, sucesso 1/2",
   "#Labareda Protetora [__][__][__]
 Reação: Atq visível a 9m recebe Desv
 Alvo do Atq ganha 2d6+SAB PV Temp
@@ -33,7 +33,7 @@ Todos/DC/DL",
 Ação: conjure magia Clérigo até 5º, exc Reação, sem espaço/Material. 1/DL",
   "#Coroa de Luz [__][__][__]
 Ação: aura 1 min, Luz 18m + Meia-luz 9m
-Inimigos na Luz têm Desv Salv vs Brilho e magias Íg/Rad
+Inimigos na Luz têm Desv Salv vs Brilho e magias Fogo/Radiante
 Todos/DL",
 ]
 `;
@@ -42,8 +42,8 @@ exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados)
 [
   "#Canalizar Divindade [__][__][__]
 DC: +1 uso; DL: todos
-> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
-> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra
+> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Radiante; este dano não encerra
 > Invocar Duplicidade: AB, ilusão a 9m por 1 min; conjure do espaço dela; Atq contra alvo a 1,5m dela têm Vant; AB move 9m, até 36m, e pode trocar de lugar
 > Ao terminar: você/alvo a 1,5m cura 17 PV",
   "#Bênção do Trapaceiro
@@ -58,8 +58,8 @@ exports[`snapshots do texto impresso composto (classe + subclasse entrelaçados)
 [
   "#Canalizar Divindade [__][__][__]
 DC: +1 uso; DL: todos
-> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano
-> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra
+> Centelha: alvo 9m, 3d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano
+> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Radiante; este dano não encerra
 > Preservar Vida: distribua 85 PV entre criaturas Sangrando a 9m; máx 1/2 PV de cada",
   "#Discípulo da Vida
 Magia com espaço que cura -> alvo +2+círculo PV

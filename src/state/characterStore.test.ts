@@ -3,7 +3,6 @@ import { useCharacterStore } from "./characterStore.js";
 import { getSkillProficiency } from "../rules/skills.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
-import { getWildShapeFormsConfig } from "../rules/wildShapeForms.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getClassToolChoiceId } from "../data/classes.js";
 import { getEffectiveAbilityScore } from "../rules/abilities.js";
@@ -260,7 +259,11 @@ describe("useCharacterStore — Protetor (Ordem Primal do Druida, nível 1) conc
   });
 });
 
-describe("useCharacterStore — Formas Conhecidas de Forma Selvagem (Druida)", () => {
+// Fonte "AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS" §2: a escolha de Formas
+// Conhecidas deixou de fazer parte da criação de personagem (etapa/validação removidas).
+// Os mutators abaixo continuam no store só por compatibilidade com personagens já
+// salvos — nunca mais expostos por nenhuma etapa do Builder.
+describe("useCharacterStore — Formas Conhecidas de Forma Selvagem (Druida) — mutators preservados por compatibilidade, sem etapa própria no Builder", () => {
   it("addKnownWildShapeForm adiciona uma entrada em branco", () => {
     const store = useCharacterStore.getState();
     store.setClass("druida");
@@ -299,13 +302,6 @@ describe("useCharacterStore — Formas Conhecidas de Forma Selvagem (Druida)", (
 
     store.setClass("mago");
     expect(useCharacterStore.getState().character.knownWildShapeForms).toEqual([]);
-  });
-
-  it("a configuração de contagem/ND/Voo por nível é a mesma usada pelo motor de regras (nunca duplicada)", () => {
-    const store = useCharacterStore.getState();
-    store.setClass("druida");
-    store.setLevel(8);
-    expect(getWildShapeFormsConfig(useCharacterStore.getState().character.level)).toEqual({ count: 8, maxChallengeRating: 1, flyAllowed: true });
   });
 });
 

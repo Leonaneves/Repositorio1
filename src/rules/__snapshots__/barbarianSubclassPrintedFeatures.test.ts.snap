@@ -19,7 +19,7 @@ d12: [__][__][__][__][__][__][__]
 AB: gaste dados e cure o total
 Todos/DL",
   "#Fúria Divina
-Fúria: 1º acerto/turno +1d6+10 Necr ou Rad",
+Fúria: 1º acerto/turno +1d6+10 Necrótico ou Radiante",
   "#Ataque Extra",
   "#Concentração Fanática
 1x/Fúria, falha Salv: refaça com +Dano da Fúria",
@@ -41,7 +41,7 @@ Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Fúria dos Deuses [__]
 Entrar em Fúria: forma divina por 1 min. DL
-> Res Necr/Psiq/Rad
+> Res Necrótico/Psíquico/Radiante
 > Reação: criatura a 9m cairia a 0 PV -> gaste 1 Fúria; PV = seu nível
 > Voo = Desl; pode pairar",
   "#Força Indomável
@@ -148,7 +148,7 @@ Fúria: Acro, Furt, Int, Perc e Sobr usam FOR",
 Ao entrar em Fúria, escolha:
 > Águia: Correr+Desengajar na mesma AB; em Fúria, AB faz ambos
 > Lobo: aliados têm Vant em Atq contra inimigos a 1,5m
-> Urso: Res a todo dano exc Energ, Necr, Psiq e Rad",
+> Urso: Res a todo dano exc Energético, Necrótico, Psíquico e Radiante",
   "#Ataque Extra",
   "#Aspecto dos Selvagens
 Escolha; pode trocar/DL:
@@ -194,7 +194,7 @@ d12: [__][__][__][__][__][__]
 AB: gaste dados e cure o total
 Todos/DL",
   "#Fúria Divina
-Fúria: 1º acerto/turno +1d6+7 Necr ou Rad",
+Fúria: 1º acerto/turno +1d6+7 Necrótico ou Radiante",
   "#Ataque Extra",
   "#Concentração Fanática
 1x/Fúria, falha Salv: refaça com +Dano da Fúria",
@@ -216,7 +216,7 @@ Fúria, 0 PV: Salv CON CD10; sucesso PV = 2x nível
 Novo uso: CD +5; DC/DL: CD10",
   "#Fúria dos Deuses [__]
 Entrar em Fúria: forma divina por 1 min. DL
-> Res Necr/Psiq/Rad
+> Res Necrótico/Psíquico/Radiante
 > Reação: criatura a 9m cairia a 0 PV -> gaste 1 Fúria; PV = seu nível
 > Voo = Desl; pode pairar",
 ]

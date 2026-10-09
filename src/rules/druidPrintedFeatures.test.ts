@@ -58,6 +58,21 @@ describe("Forma Selvagem — checkboxes conforme tabela, nunca antes do nível 2
     expect(block).toContain("Pode conjurar em FS, exc Material com custo/consumido; Concent mantém");
     expect(block).not.toContain("Sem conjurar");
   });
+
+  it("o texto do bloco nunca depende de 'knownWildShapeForms' — preservado mesmo sem nenhuma Forma Conhecida e sem mudar com Formas preenchidas (fonte \"AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS\" §2: a escolha de animais deixou de existir na criação, mas o texto da característica impressa continua)", () => {
+    const semFormas = druidAt(2);
+    expect(semFormas.knownWildShapeForms).toEqual([]);
+    const blockSemFormas = getDruidPrintedBlocks(semFormas).find((b) => b.startsWith("#Forma Selvagem"))!;
+    expect(blockSemFormas).toContain("#Forma Selvagem [__][__]");
+
+    const comFormas = druidAt(2);
+    comFormas.knownWildShapeForms = [
+      { name: "Lobo", challengeRating: "1/4", hasFlySpeed: false },
+      { name: "Corvo", challengeRating: "0", hasFlySpeed: true },
+    ];
+    const blockComFormas = getDruidPrintedBlocks(comFormas).find((b) => b.startsWith("#Forma Selvagem"))!;
+    expect(blockComFormas).toBe(blockSemFormas);
+  });
 });
 
 describe("Ressurgimento Selvagem (nível 5) — NUNCA cria bloco separado, atualiza Forma Selvagem", () => {
@@ -108,7 +123,7 @@ describe("Fúria Elemental — só a opção escolhida aparece, nunca as duas, n
     const character = druidAt(10);
     chooseFuriaElemental(character, "Ataque Primal");
     const block = getDruidPrintedBlocks(character).find((b) => b.startsWith("#Ataque Primal"))!;
-    expect(block).toBe("#Ataque Primal\n1/turno, Atq arma/Fera em FS -> +1d8 Elet/Gel/Ig/Trov");
+    expect(block).toBe("#Ataque Primal\n1/turno, Atq arma/Fera em FS -> +1d8 Elétrico/Frio/Fogo/Trovão");
   });
 
   it("Ataque Primal, nível 15+: a MESMA característica passa a +2d8, nunca 'Fúria Elemental Aprimorada'", () => {
@@ -117,7 +132,7 @@ describe("Fúria Elemental — só a opção escolhida aparece, nunca as duas, n
     const blocks = getDruidPrintedBlocks(character);
     const ataquePrimal = blocks.filter((b) => b.startsWith("#Ataque Primal"));
     expect(ataquePrimal).toHaveLength(1);
-    expect(ataquePrimal[0]).toBe("#Ataque Primal\n1/turno, Atq arma/Fera em FS -> +2d8 Elet/Gel/Ig/Trov");
+    expect(ataquePrimal[0]).toBe("#Ataque Primal\n1/turno, Atq arma/Fera em FS -> +2d8 Elétrico/Frio/Fogo/Trovão");
     expect(blocks.some((b) => b.includes("Fúria Elemental Aprimorada"))).toBe(false);
   });
 
@@ -155,16 +170,16 @@ describe("Círculo da Lua — modifica Forma Selvagem, nunca bloco separado", ()
     expect(block).not.toContain("PV Temp = nível;"); // nunca o texto base junto
   });
 
-  it("nível 6+: soma a linha '> Lua: Atq Fera normal/Rad; +SAB Salv CON'", () => {
+  it("nível 6+: soma a linha '> Lua: Atq Fera normal/Radiante; +SAB Salv CON'", () => {
     const block = getDruidPrintedBlocks(druidAt(6, 14, "Círculo da Lua")).find((b) => b.startsWith("#Forma Selvagem"))!;
-    expect(block).toContain("> Lua: Atq Fera normal/Rad; +SAB Salv CON");
+    expect(block).toContain("> Lua: Atq Fera normal/Radiante; +SAB Salv CON");
     expect(block).toContain("ND máx 2"); // 6/3
   });
 
-  it("nível 14+: soma também '> Lua: 1/turno, Atq Fera -> +2d10 Rad', mantendo a linha do nível 6", () => {
+  it("nível 14+: soma também '> Lua: 1/turno, Atq Fera -> +2d10 Radiante', mantendo a linha do nível 6", () => {
     const block = getDruidPrintedBlocks(druidAt(14, 14, "Círculo da Lua")).find((b) => b.startsWith("#Forma Selvagem"))!;
-    expect(block).toContain("> Lua: Atq Fera normal/Rad; +SAB Salv CON");
-    expect(block).toContain("> Lua: 1/turno, Atq Fera -> +2d10 Rad");
+    expect(block).toContain("> Lua: Atq Fera normal/Radiante; +SAB Salv CON");
+    expect(block).toContain("> Lua: 1/turno, Atq Fera -> +2d10 Radiante");
     expect(block).toContain("ND máx 4"); // 14/3 arredondado para baixo
   });
 
@@ -186,7 +201,7 @@ describe("Exemplo integral da fonte — Círculo da Lua nível 6 (item 47)", () 
         "PV Temp = 3 x nível; ND máx 2; CA 13+SAB se maior",
         "Usa bloco Fera, mantém tipo/PV/DV, INT/SAB/CAR, classe, idiomas, talentos e Prof perícias/Salv",
         "Sem conjurar; Concent mantém",
-        "> Lua: Atq Fera normal/Rad; +SAB Salv CON",
+        "> Lua: Atq Fera normal/Radiante; +SAB Salv CON",
         "> 1/turno, 0 FS: 1 espaço -> +1 FS",
         "> [__] 1 FS -> +1 espaço 1o. 1/DL",
         "DC: +1 uso; DL: todos",

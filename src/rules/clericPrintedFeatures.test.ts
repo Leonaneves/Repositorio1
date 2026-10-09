@@ -34,7 +34,7 @@ describe("Canalizar Divindade — recurso único, nunca aparece antes do nível 
   it("nível 2: checkboxes = getChannelDivinityUses (2), Centelha 1d8, Expulsar sem Fulminar", () => {
     const block = getClericPrintedBlocks(clericAt(2)).find((b) => b.startsWith("#Canalizar Divindade"))!;
     expect(block).toBe(
-      ["#Canalizar Divindade [__][__]", "DC: +1 uso; DL: todos", "> Centelha: alvo 9m, 1d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano", "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min; dano encerra"].join(
+      ["#Canalizar Divindade [__][__]", "DC: +1 uso; DL: todos", "> Centelha: alvo 9m, 1d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano", "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min; dano encerra"].join(
         "\n",
       ),
     );
@@ -58,7 +58,7 @@ describe("Centelha Divina — progressão de dados por nível (2-6:1d8, 7-12:2d8
     [20, "4d8"],
   ])("nível %i → %s", (level, dice) => {
     const block = getClericPrintedBlocks(clericAt(level)).find((b) => b.startsWith("#Canalizar Divindade"))!;
-    expect(block).toContain(`> Centelha: alvo 9m, ${dice}+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano`);
+    expect(block).toContain(`> Centelha: alvo 9m, ${dice}+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano`);
   });
 });
 
@@ -72,13 +72,13 @@ describe("Fulminar Mortos-Vivos (nível 5) — NUNCA cria bloco separado, atuali
 
   it("nível 5+, SAB +3: soma 3d8 Radiante, dano NÃO encerra o efeito — nunca um bloco '#Fulminar Mortos-Vivos'", () => {
     const block = getClericPrintedBlocks(clericAt(5, 16)).find((b) => b.startsWith("#Canalizar Divindade"))!; // SAB 16 → +3
-    expect(block).toContain("> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra");
+    expect(block).toContain("> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Radiante; este dano não encerra");
     expect(block).not.toContain("#Fulminar Mortos-Vivos");
   });
 
   it("SAB negativo: mínimo 1d8", () => {
     const block = getClericPrintedBlocks(clericAt(5, 6)).find((b) => b.startsWith("#Canalizar Divindade"))!; // SAB 6 → -2
-    expect(block).toContain("+ 1d8 Rad");
+    expect(block).toContain("+ 1d8 Radiante");
   });
 
   it("nenhum bloco separado de Fulminar Mortos-Vivos aparece em nenhum nível", () => {
@@ -102,7 +102,7 @@ describe("Golpes Abençoados — só a opção escolhida aparece, nunca as duas,
     const character = clericAt(10);
     chooseGolpesAbencoados(character, "Golpe Divino");
     const block = getClericPrintedBlocks(character).find((b) => b.startsWith("#Golpe Divino"))!;
-    expect(block).toBe("#Golpe Divino\n1/turno, acerto com arma -> +1d8 Necr/Rad");
+    expect(block).toBe("#Golpe Divino\n1/turno, acerto com arma -> +1d8 Necrótico/Radiante");
   });
 
   it("Golpe Divino escolhido, nível 14+: a MESMA característica passa a +2d8, nunca um bloco '#Golpes Abençoados Aprimorado'", () => {
@@ -111,7 +111,7 @@ describe("Golpes Abençoados — só a opção escolhida aparece, nunca as duas,
     const blocks = getClericPrintedBlocks(character);
     const golpeDivino = blocks.filter((b) => b.startsWith("#Golpe Divino"));
     expect(golpeDivino).toHaveLength(1);
-    expect(golpeDivino[0]).toBe("#Golpe Divino\n1/turno, acerto com arma -> +2d8 Necr/Rad");
+    expect(golpeDivino[0]).toBe("#Golpe Divino\n1/turno, acerto com arma -> +2d8 Necrótico/Radiante");
     expect(blocks.some((b) => b.includes("Golpes Abençoados Aprimorado"))).toBe(false);
   });
 
@@ -200,10 +200,10 @@ describe("Exemplo integral da fonte — Clérigo nível 7, sem subclasse, SAB +3
       [
         "#Canalizar Divindade [__][__][__]",
         "DC: +1 uso; DL: todos",
-        "> Centelha: alvo 9m, 2d8+SAB PV ou Salv CON -> Necr/Rad; sucesso 1/2 dano",
-        "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Rad; este dano não encerra",
+        "> Centelha: alvo 9m, 2d8+SAB PV ou Salv CON -> Necrótico/Radiante; sucesso 1/2 dano",
+        "> Expulsar Mortos-Vivos: 9m Salv SAB; falha Amed+Incap 1 min + 3d8 Radiante; este dano não encerra",
       ].join("\n"),
-      "#Golpe Divino\n1/turno, acerto com arma -> +1d8 Necr/Rad",
+      "#Golpe Divino\n1/turno, acerto com arma -> +1d8 Necrótico/Radiante",
     ]);
   });
 });

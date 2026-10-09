@@ -513,6 +513,24 @@ describe("getSkillProficiencyOrigin — §6/§10 (de onde vem a proficiência, p
     expect(getSkillProficiencyOrigin(character, "atletismo")).toBeNull();
   });
 
+  it("uma sobreposição manual redundante com a Classe nunca apaga, no estado, o fato de que a perícia também é concedida pela Classe (fonte \"AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS\" §3: 'uma alteração manual nunca deve apagar silenciosamente' a origem estrutural) — limpar o override depois reverte à origem automática, sem refazer a escolha de Classe", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo"] };
+
+    // Jogador reafirma manualmente (Homebrew) uma perícia que já é concedida pela Classe — redundante, mas não é erro.
+    character.skills.atletismo.manualOverride = true;
+    expect(getSkillProficiencyOrigin(character, "atletismo")).toBe("manual");
+    // A seleção de Classe em si nunca é tocada por uma sobreposição manual — a escolha continua lá, intocada.
+    expect(character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")]?.value).toEqual(["atletismo"]);
+
+    // Ao limpar o override (ex.: desativar o modo Homebrew e restaurar), a origem volta a 'class' automaticamente —
+    // nunca é preciso refazer a escolha de "Perícias de Classe" para recuperar a proficiência.
+    character.skills.atletismo.manualOverride = null;
+    expect(getSkillProficiencyOrigin(character, "atletismo")).toBe("class");
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+  });
+
   it("antecedente E classe concedendo a mesma perícia: prioriza 'background' só para exibição (a proficiência em si não depende de qual 'venceu')", () => {
     const character = createBlankCharacter("t");
     character.backgroundId = "guarda"; // Atletismo, Percepção

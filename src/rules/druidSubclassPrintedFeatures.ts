@@ -53,8 +53,8 @@ export function getDruidWildShapeLuaModifications(character: Character): DruidWi
 
   const ndLua = Math.floor(character.level / 3);
   const extraLines: string[] = [];
-  if (character.level >= 6) extraLines.push("> Lua: Atq Fera normal/Rad; +SAB Salv CON");
-  if (character.level >= 14) extraLines.push("> Lua: 1/turno, Atq Fera -> +2d10 Rad");
+  if (character.level >= 6) extraLines.push("> Lua: Atq Fera normal/Radiante; +SAB Salv CON");
+  if (character.level >= 14) extraLines.push("> Lua: 1/turno, Atq Fera -> +2d10 Radiante");
 
   return {
     pvTempLine: `PV Temp = 3 x nível; ND máx ${ndLua}; CA 13+SAB se maior`,
@@ -89,7 +89,7 @@ const SUBCLASS_BLOCKS: SubclassBlock[] = [
     acquisitionLevel: 3,
     getText: (character) => {
       const dice = character.level >= 14 ? "4d6" : character.level >= 10 ? "3d6" : "2d6";
-      return ["#Auxílio da Terra", "1 FS, Ação, ponto 18m/raio 3m", `Escolhidos Salv CON -> ${dice} Necr, sucesso 1/2; 1 alvo cura ${dice}`].join("\n");
+      return ["#Auxílio da Terra", "1 FS, Ação, ponto 18m/raio 3m", `Escolhidos Salv CON -> ${dice} Necrótico, sucesso 1/2; 1 alvo cura ${dice}`].join("\n");
     },
   },
   {
@@ -140,7 +140,7 @@ const SUBCLASS_BLOCKS: SubclassBlock[] = [
       const lines = [
         "#Forma Estrelada",
         header,
-        `> Arqueiro: ao ativar e AB -> Atq mágico 18m, ${dice}+SAB Rad`,
+        `> Arqueiro: ao ativar e AB -> Atq mágico 18m, ${dice}+SAB Radiante`,
         dragao,
         `> Taça: magia com espaço que cura -> você/alvo 9m cura ${dice}+SAB`,
       ];
@@ -174,8 +174,8 @@ const SUBCLASS_BLOCKS: SubclassBlock[] = [
         character.level >= 14
           ? `1 FS, AB: Emanação ${emanacao} por 10 min em você ou aliado voluntário a 18m`
           : `1 FS, AB: Emanação ${emanacao} por 10 min`;
-      const lines = ["#Ira do Mar", header, `Ao ativar e AB: alvo na área Salv CON; falha ${dice}d6 Gel e Grande- empurra 4,5m`];
-      if (character.level >= 10) lines.push("> Ativa: Voo = Desl; Res Elet/Gel/Trov");
+      const lines = ["#Ira do Mar", header, `Ao ativar e AB: alvo na área Salv CON; falha ${dice}d6 Frio e Grande- empurra 4,5m`];
+      if (character.level >= 10) lines.push("> Ativa: Voo = Desl; Res Elétrico/Frio/Trovão");
       if (character.level >= 14) lines.push("> 2 FS: manifeste em você + aliado simultaneamente");
       return lines.join("\n");
     },
