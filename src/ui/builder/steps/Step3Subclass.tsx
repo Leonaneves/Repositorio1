@@ -1,6 +1,7 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
+import { useBuilderStore } from "../../../state/builderStore.js";
 import { getAvailableSubclasses } from "../../../rules/subclasses.js";
-import { getSubclassFeaturesWithChoices, getFeatureView } from "../../../rules/features.js";
+import { getSubclassFeaturesWithChoices, getFeatureView, isSkillKindChoice } from "../../../rules/features.js";
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
 
 /**
@@ -11,10 +12,20 @@ import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
  * nível já permite escolher subclasse (`canChooseSubclass`) — por isso
  * aqui não há mais nenhuma verificação de pré-condição, nem etapa
  * própria no `BuilderWizard`/`rules/builderSteps.ts`.
+ *
+ * Mesmo tratamento de `Step2Class` para escolhas de perícia (fonte
+ * "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §2/§5):
+ * filtradas individualmente por `isSkillKindChoice` — "Estudioso da
+ * Guerra" (Mestre de Batalha) tem uma escolha de Ferramenta de Artesão
+ * (continua aqui) E uma de perícia (some daqui, com link para
+ * "Perícias"); "Glamour Transcendental" (Andarilho Feérico) é só
+ * perícia, então o card fica sem nenhum `FeatureChoiceControl`, só o
+ * link.
  */
 export function Step3Subclass() {
   const character = useCharacterStore((s) => s.character);
   const setSubclass = useCharacterStore((s) => s.setSubclass);
+  const goToStep = useBuilderStore((s) => s.goToStep);
 
   const available = character.classId ? getAvailableSubclasses(character.classId) : [];
   const choiceFeatures = getSubclassFeaturesWithChoices(character);
@@ -36,11 +47,23 @@ export function Step3Subclass() {
 
       {choiceFeatures.map((feature) => {
         const view = getFeatureView(feature);
+        const nonSkillChoices = (feature.choices ?? []).filter((choice) => !isSkillKindChoice(choice));
+        const hasSkillChoices = (feature.choices ?? []).some(isSkillKindChoice);
         return (
           <article key={feature.id} className="feature-card">
             <h3>{view.name}</h3>
             <p>{view.summary}</p>
-            {feature.choices?.map((choice) => <FeatureChoiceControl key={choice.id} choice={choice} />)}
+            {nonSkillChoices.map((choice) => (
+              <FeatureChoiceControl key={choice.id} choice={choice} />
+            ))}
+            {hasSkillChoices && (
+              <p className="builder-step__hint">
+                Escolha(s) de perícia desta característica —{" "}
+                <button type="button" className="review-edit-button" onClick={() => goToStep("skills")}>
+                  Ver em Perícias
+                </button>
+              </p>
+            )}
           </article>
         );
       })}

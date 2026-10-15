@@ -1,6 +1,6 @@
 import type { Character } from "../domain/character.js";
 import { canChooseSubclass } from "./subclasses.js";
-import { getOtherFeaturesWithChoices } from "./features.js";
+import { getOtherFeaturesWithNonSkillChoices } from "./features.js";
 import { getSpellcastingAbility } from "./spellcasting.js";
 import { getAutoPreparedSpells } from "./effectiveSpellsPrepared.js";
 
@@ -16,11 +16,14 @@ import { getAutoPreparedSpells } from "./effectiveSpellsPrepared.js";
  * momento em que a subclasse dona delas está ativa. "Características e
  * Talentos" continua condicional — ver `isStepVisible`.
  *
- * "skills" (Perícias e Proficiências) NUNCA é etapa lateral (fonte
- * "AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS" §3) — a edição
- * de perícias só é alcançável pelo botão "Editar" da Revisão
- * (`ui/builder/SkillsEditModal.tsx`), nunca pela navegação normal do
- * Builder.
+ * "skills" (Perícias) é uma etapa própria do Builder (fonte
+ * "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" —
+ * substitui a decisão anterior de nunca ter etapa lateral e manter a
+ * edição só pelo botão "Editar" da Revisão). Fica POSICIONADA depois
+ * de Classe/Subclasse, Espécie, Antecedente e Características e
+ * Talentos (todas as etapas que definem fontes de perícia) e antes de
+ * Equipamento/Conjuração/Revisão — sempre visível, pois toda classe
+ * tem ao menos "Perícias de Classe".
  */
 export const BUILDER_STEP_ORDER = [
   "basicInfo",
@@ -32,6 +35,7 @@ export const BUILDER_STEP_ORDER = [
   "abilities",
   "featuresAndTalents",
   "invocations",
+  "skills",
   "equipment",
   "spellcasting",
   "review",
@@ -48,6 +52,7 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
   abilities: "Atributos",
   featuresAndTalents: "Características e Talentos",
   invocations: "Invocações Místicas",
+  skills: "Perícias",
   equipment: "Equipamento / Combate",
   spellcasting: "Conjuração",
   review: "Revisão",
@@ -84,10 +89,12 @@ export function isElementalAffinityApplicable(character: Character): boolean {
  *   escolhas de Classe/Subclasse moraram para a etapa Classe
  *   (`getClassFeaturesWithChoices`/`getSubclassFeaturesWithChoices`,
  *   ambas renderizadas por `Step2Class`) — esta etapa só continua
- *   visível se existir uma `FeatureChoice` pendente de ESPÉCIE/
- *   ANTECEDENTE/TALENTO (`getOtherFeaturesWithChoices`, hoje sempre
- *   vazio — nenhum catálogo confirmado ainda usa `choices` nessas 3
- *   origens). Nunca mostra etapa vazia.
+ *   visível se existir uma `FeatureChoice` NÃO-perícia pendente de
+ *   ESPÉCIE/ANTECEDENTE/TALENTO (`getOtherFeaturesWithNonSkillChoices`
+ *   — as de perícia, incluindo Sentidos Aguçados do Elfo, saíram para
+ *   a etapa "Perícias"; hoje nenhum catálogo confirmado tem outra
+ *   escolha nessas 3 origens, então a etapa fica vazia na prática).
+ *   Nunca mostra etapa vazia.
  * - Invocações Místicas: só para a classe Bruxo (fonte "INTEGRAÇÃO
  *   COMPLETA — BRUXO, INVOCAÇÕES MÍSTICAS E SUBCLASSES" §4) — etapa
  *   própria, fora do mecanismo genérico de `FeatureChoice`.
@@ -105,7 +112,7 @@ export function isStepVisible(stepId: BuilderStepId, character: Character): bool
   if (stepId === "metamagic") return character.classId === "feiticeiro" && character.level >= 2;
   if (stepId === "maneuvers") return character.classId === "guerreiro" && character.subclassId === "Mestre da Batalha" && character.level >= 3;
   if (stepId === "featuresAndTalents") {
-    return getOtherFeaturesWithChoices(character).length > 0;
+    return getOtherFeaturesWithNonSkillChoices(character).length > 0;
   }
   if (stepId === "invocations") return character.classId === "bruxo";
   if (stepId === "spellcasting") return getSpellcastingAbility(character) !== null || getAutoPreparedSpells(character).length > 0;

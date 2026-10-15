@@ -16,6 +16,7 @@ import { Step6Abilities } from "./steps/Step6Abilities.js";
 import { Step8FeaturesAndTalents } from "./steps/Step8FeaturesAndTalents.js";
 import { StepInvocations } from "./steps/StepInvocations.js";
 import { StepManeuvers } from "./steps/StepManeuvers.js";
+import { StepSkills } from "./steps/StepSkills.js";
 import { Step9Equipment } from "./steps/Step9Equipment.js";
 import { Step10Spellcasting } from "./steps/Step10Spellcasting.js";
 import { Step11Review } from "./steps/Step11Review.js";
@@ -30,6 +31,7 @@ const STEP_COMPONENTS: Record<BuilderStepId, () => JSX.Element> = {
   abilities: Step6Abilities,
   featuresAndTalents: Step8FeaturesAndTalents,
   invocations: StepInvocations,
+  skills: StepSkills,
   equipment: Step9Equipment,
   spellcasting: Step10Spellcasting,
   review: Step11Review,

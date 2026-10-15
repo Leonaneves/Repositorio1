@@ -34,8 +34,13 @@ describe("integração completa: Builder → resolver escolhas → exportar → 
     characterStore.setName("Elminster Aumar");
     characterStore.setClass("guerreiro");
 
-    // Ainda não pode avançar: falta resolver a escolha obrigatória de perícias.
+    // 'class' já não bloqueia mais por essa escolha — a Perícias de Classe mora na etapa própria "Perícias"
+    // (fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA").
     builderStore.goToStep("class");
+    expect(useBuilderStore.getState().canAdvance()).toBe(true);
+
+    // Ainda não pode avançar em "Perícias": falta resolver a escolha obrigatória.
+    builderStore.goToStep("skills");
     expect(useBuilderStore.getState().canAdvance()).toBe(false);
 
     // Resolve a escolha exatamente como FeatureChoiceControl faria (mesma action, mesmo id de escolha).

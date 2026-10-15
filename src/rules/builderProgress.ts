@@ -1,5 +1,6 @@
 import { ABILITY_KEYS } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
+import type { FeatureDefinition } from "../domain/features.js";
 import { warlockInvocationsById } from "../data/invocations.js";
 import { metamagicOptionsById } from "../data/metamagic.js";
 import { skills } from "../data/skills.js";
@@ -16,22 +17,53 @@ import { getInvocationsKnown, getBattleMasterManeuversKnownCount } from "./class
 import { maneuversById } from "../data/maneuvers.js";
 import { BUILDER_STEP_LABELS, getVisibleSteps, isEarthCircleTerrainApplicable, isElementalAffinityApplicable, type BuilderStepId } from "./builderSteps.js";
 import { canChooseSubclass } from "./subclasses.js";
-import { getClassFeaturesWithChoices, getOtherFeaturesWithChoices, getSubclassFeaturesWithChoices, isFeatureComplete } from "./features.js";
-import { getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
+import {
+  getClassFeaturesWithChoices,
+  getOtherFeaturesWithNonSkillChoices,
+  getSkillChoiceFeatures,
+  getSubclassFeaturesWithChoices,
+  isFeatureChoiceComplete,
+  isSkillKindChoice,
+} from "./features.js";
+import { getInvalidExpertiseSelections, getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 import { getInvalidChosenInvocations } from "./invocations.js";
 import { getKnownMetamagicOptions, getMetamagicOptionsKnownCount } from "./metamagic.js";
 import { isStartingEquipmentResolved } from "./startingEquipment.js";
 import { getAsiLevelAllocatedPoints, getUnlockedAsiLevels, isAsiLevelComplete, ASI_ALLOCATION_CONFIG } from "./asi.js";
 import { isAllocationComplete } from "./abilityAllocation.js";
 
-/** Mensagens de perícia redundante (fonte "REORGANIZAR O BUILDER..." §4) — reaproveitadas pelas etapas "class" e "species". */
-function getRedundantSkillBlockers(character: Character, sourceTypes: Array<"class" | "subclass" | "species">): string[] {
-  return getRedundantSkillChoiceSelections(character)
-    .filter((entry) => sourceTypes.includes(entry.sourceType as "class" | "subclass" | "species"))
-    .map(
-      (entry) =>
-        `Perícia "${skills[entry.skill].name}" escolhida em "${entry.featureName}" já é concedida por outra origem — escolha outra perícia em "${entry.featureName}".`,
-    );
+/**
+ * Se as escolhas NÃO-perícia de uma feature já foram todas respondidas
+ * — usado por "class"/"subclass"/"featuresAndTalents" depois que as
+ * escolhas de perícia saíram para a etapa própria "Perícias" (fonte
+ * "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA"). Uma
+ * feature pode ter escolhas MISTURADAS (ex.: "Estudioso da Guerra" tem
+ * perícia + ferramenta) — só a parte de perícia sai daqui, nunca a
+ * feature inteira.
+ */
+function isNonSkillChoicesComplete(feature: FeatureDefinition, character: Character): boolean {
+  return (feature.choices ?? []).filter((choice) => !isSkillKindChoice(choice)).every((choice) => isFeatureChoiceComplete(choice, character));
+}
+
+/** Mesma ideia de `isNonSkillChoicesComplete`, mas só para as escolhas DE perícia — usado pela etapa "Perícias". */
+function isSkillChoicesComplete(feature: FeatureDefinition, character: Character): boolean {
+  return (feature.choices ?? []).filter(isSkillKindChoice).every((choice) => isFeatureChoiceComplete(choice, character));
+}
+
+/** Mensagens de perícia redundante (fonte "REORGANIZAR O BUILDER..." §4, centralizadas na etapa "Perícias" pela fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §4). */
+function getRedundantSkillBlockers(character: Character): string[] {
+  return getRedundantSkillChoiceSelections(character).map(
+    (entry) =>
+      `Perícia "${skills[entry.skill].name}" escolhida em "${entry.featureName}" já é concedida por outra origem — escolha outra perícia em "${entry.featureName}".`,
+  );
+}
+
+/** Mensagens de Especialização inválida (perícia sem proficiência vigente) — mesma fonte §4: "revalidar Especializações que dependam das proficiências alteradas". */
+function getInvalidExpertiseBlockers(character: Character): string[] {
+  return getInvalidExpertiseSelections(character).map(
+    (entry) =>
+      `Especialização em "${skills[entry.skill].name}" escolhida em "${entry.featureName}" não é mais válida (a perícia não é mais proficiente) — escolha outra perícia em "${entry.featureName}".`,
+  );
 }
 
 /**
@@ -58,7 +90,7 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
   if (stepId === "class") {
     if (!character.classId) blockers.push("Escolha uma classe para continuar.");
     for (const feature of getClassFeaturesWithChoices(character)) {
-      if (!isFeatureComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+      if (!isNonSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
     }
     for (const level of getUnlockedAsiLevels(character)) {
       // Só a DECISÃO (Aumentar Atributos vs Talento) bloqueia aqui — a distribuição em si
@@ -69,7 +101,7 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
     if (character.classId && canChooseSubclass(character.level)) {
       if (!character.subclassId) blockers.push("Escolha uma subclasse para continuar.");
       for (const feature of getSubclassFeaturesWithChoices(character)) {
-        if (!isFeatureComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+        if (!isNonSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
       }
       if (isEarthCircleTerrainApplicable(character)) {
         const selection = character.featureChoiceSelections[EARTH_CIRCLE_TERRAIN_CHOICE_ID]?.value;
@@ -84,8 +116,6 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
         }
       }
     }
-
-    blockers.push(...getRedundantSkillBlockers(character, ["class", "subclass"]));
   }
 
   if (stepId === "species") {
@@ -93,7 +123,6 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
     else if (hasSpeciesLineage(character.speciesId) && !isSpeciesLineageResolved(character)) {
       blockers.push(`Escolha a ${getSpeciesLineageLabel(character.speciesId)} para continuar.`);
     }
-    blockers.push(...getRedundantSkillBlockers(character, ["species"]));
   }
 
   if (stepId === "background") {
@@ -126,9 +155,17 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
   }
 
   if (stepId === "featuresAndTalents") {
-    for (const feature of getOtherFeaturesWithChoices(character)) {
-      if (!isFeatureComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+    for (const feature of getOtherFeaturesWithNonSkillChoices(character)) {
+      if (!isNonSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
     }
+  }
+
+  if (stepId === "skills") {
+    for (const feature of getSkillChoiceFeatures(character)) {
+      if (!isSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+    }
+    blockers.push(...getRedundantSkillBlockers(character));
+    blockers.push(...getInvalidExpertiseBlockers(character));
   }
 
   if (stepId === "invocations" && character.classId === "bruxo") {

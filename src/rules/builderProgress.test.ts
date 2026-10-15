@@ -19,12 +19,13 @@ function setValidAbilities(character: Character): Character {
 }
 
 describe("getStepBlockers — etapas genéricas exigem o campo correspondente", () => {
-  it("'class' bloqueia sem classId; com classId, ainda lista a Perícias de Classe pendente (escolha movida para esta etapa)", () => {
+  it("'class' bloqueia sem classId; com classId, a Perícias de Classe passa a ser pendência da etapa 'skills' (escolha centralizada nela, fonte CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA)", () => {
     const character = blank();
     expect(getStepBlockers("class", character)).toEqual(["Escolha uma classe para continuar."]);
-    const withClass = getStepBlockers("class", { ...character, classId: "mago" });
-    expect(withClass).toHaveLength(1);
-    expect(withClass[0]).toContain("Perícias de Classe");
+    expect(getStepBlockers("class", { ...character, classId: "mago" })).toEqual([]);
+    const skillBlockers = getStepBlockers("skills", { ...character, classId: "mago" });
+    expect(skillBlockers).toHaveLength(1);
+    expect(skillBlockers[0]).toContain("Perícias de Classe");
   });
 
   it("'species' bloqueia sem speciesId, libera com speciesId", () => {
@@ -187,9 +188,9 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("equipment", character)).toEqual(["Escolha um pacote de Equipamento Inicial."]);
   });
 
-  it("'class' lista cada escolha pendente por nome (fonte REORGANIZAÇÃO DO BUILDER §1: Perícias de Classe do Guerreiro mora aqui)", () => {
+  it("'skills' lista cada escolha de perícia pendente por nome (fonte CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA §2: Perícias de Classe do Guerreiro mora aqui)", () => {
     const character = { ...blank(), classId: "guerreiro" as const };
-    const blockers = getStepBlockers("class", character);
+    const blockers = getStepBlockers("skills", character);
     expect(blockers.some((b) => b.includes('Escolha pendente em "Perícias de Classe"'))).toBe(true);
   });
 
@@ -206,7 +207,7 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
     expect(pending.some((p) => p.stepId === "review")).toBe(false);
   });
 
-  it("personagem completo (classe/espécie/antecedente/atributos) sem pendências genéricas restantes", () => {
+  it("personagem completo (classe/espécie/antecedente/atributos) sem pendências genéricas restantes, exceto a escolha de perícia centralizada em 'skills'", () => {
     let character = blank();
     character = {
       ...character,
@@ -220,9 +221,10 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
     expect(pending.some((p) => p.stepId === "species")).toBe(false);
     expect(pending.some((p) => p.stepId === "background")).toBe(false);
     expect(pending.some((p) => p.stepId === "abilities")).toBe(false);
-    // "featuresAndTalents" nunca mais tem pendência de Classe — a Perícias de Classe do Guerreiro agora é bloqueio da própria etapa "class".
     expect(pending.some((p) => p.stepId === "featuresAndTalents")).toBe(false);
-    expect(pending.some((p) => p.stepId === "class")).toBe(true);
+    // A Perícias de Classe do Guerreiro saiu de "class" — agora é pendência exclusiva de "skills" (fonte CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA).
+    expect(pending.some((p) => p.stepId === "class")).toBe(false);
+    expect(pending.some((p) => p.stepId === "skills")).toBe(true);
     expect(pending.some((p) => p.stepId === "equipment")).toBe(true);
   });
 
@@ -237,13 +239,13 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
   });
 });
 
-describe("getStepBlockers — perícia redundante entre origens, independente da ordem de escolha (§4)", () => {
-  it("'class' explica a perícia redundante e aponta para a feature certa (Classe escolhida antes do Antecedente)", () => {
+describe("getStepBlockers — perícia redundante entre origens, independente da ordem de escolha (§4, centralizada na etapa 'skills')", () => {
+  it("'skills' explica a perícia redundante e aponta para a feature certa (Classe escolhida antes do Antecedente)", () => {
     let character: Character = { ...blank(), classId: "guerreiro" };
     character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
     character = { ...character, backgroundId: "acolito" }; // concede "intuicao" automaticamente, depois da escolha de Classe já feita
 
-    const blockers = getStepBlockers("class", character);
+    const blockers = getStepBlockers("skills", character);
     expect(blockers).toContain(
       'Perícia "Intuição" escolhida em "Perícias de Classe" já é concedida por outra origem — escolha outra perícia em "Perícias de Classe".',
     );
@@ -253,7 +255,7 @@ describe("getStepBlockers — perícia redundante entre origens, independente da
     let character: Character = { ...blank(), backgroundId: "acolito", classId: "guerreiro" };
     character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
 
-    expect(getStepBlockers("class", character)).toContain(
+    expect(getStepBlockers("skills", character)).toContain(
       'Perícia "Intuição" escolhida em "Perícias de Classe" já é concedida por outra origem — escolha outra perícia em "Perícias de Classe".',
     );
   });
@@ -261,21 +263,21 @@ describe("getStepBlockers — perícia redundante entre origens, independente da
   it("escolher outra perícia no lugar resolve o aviso, sem o jogador precisar remover o Antecedente", () => {
     let character: Character = { ...blank(), classId: "guerreiro", backgroundId: "acolito" };
     character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
-    expect(getStepBlockers("class", character).some((b) => b.includes("Intuição"))).toBe(true);
+    expect(getStepBlockers("skills", character).some((b) => b.includes("Intuição"))).toBe(true);
 
     character = {
       ...character,
       featureChoiceSelections: { [getClassSkillChoiceId("guerreiro")]: { value: ["percepcao", "atletismo"] } },
     };
-    expect(getStepBlockers("class", character).some((b) => b.includes("Intuição"))).toBe(false);
+    expect(getStepBlockers("skills", character).some((b) => b.includes("Intuição"))).toBe(false);
   });
 
-  it("'species' explica a perícia redundante da escolha de Sentidos Aguçados do Elfo quando o Antecedente concede a mesma perícia", () => {
+  it("'skills' explica a perícia redundante da escolha de Sentidos Aguçados do Elfo quando o Antecedente concede a mesma perícia", () => {
     let character: Character = { ...blank(), speciesId: "elfo", speciesLineageId: "elfo-drow" };
     character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID] = { value: ["intuicao"] };
     character = { ...character, backgroundId: "acolito" };
 
-    expect(getStepBlockers("species", character)).toContain(
+    expect(getStepBlockers("skills", character)).toContain(
       'Perícia "Intuição" escolhida em "Traços de Elfo" já é concedida por outra origem — escolha outra perícia em "Traços de Elfo".',
     );
   });
@@ -283,10 +285,10 @@ describe("getStepBlockers — perícia redundante entre origens, independente da
   it("remover o Antecedente que causava a redundância limpa o aviso sem apagar a escolha de perícia feita em Classe", () => {
     let character: Character = { ...blank(), classId: "guerreiro", backgroundId: "acolito" };
     character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["intuicao", "atletismo"] };
-    expect(getStepBlockers("class", character).some((b) => b.includes("Intuição"))).toBe(true);
+    expect(getStepBlockers("skills", character).some((b) => b.includes("Intuição"))).toBe(true);
 
     const semAntecedente = { ...character, backgroundId: null };
-    expect(getStepBlockers("class", semAntecedente).some((b) => b.includes("Intuição"))).toBe(false);
+    expect(getStepBlockers("skills", semAntecedente).some((b) => b.includes("Intuição"))).toBe(false);
     expect(semAntecedente.featureChoiceSelections[getClassSkillChoiceId("guerreiro")]?.value).toEqual(["intuicao", "atletismo"]);
   });
 });

@@ -1,6 +1,6 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import type { ClassId, SkillKey } from "../domain/ids.js";
+import { SKILL_KEYS, type ClassId, type SkillKey } from "../domain/ids.js";
 import { skills } from "../data/skills.js";
 import { backgrounds } from "../data/backgrounds.js";
 import { classes, getClassSkillChoiceId } from "../data/classes.js";
@@ -205,6 +205,37 @@ export function getGlamourTranscendentalBonus(character: Character, skill: Skill
 
   const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
   return Math.max(1, wisdomMod);
+}
+
+export interface AutomaticSkillProficiencyGrant {
+  skill: SkillKey;
+  /** Origens SEM escolha alguma que concedem esta perícia — hoje só `"background"` pode aparecer aqui (ver comentário da função). */
+  origins: Array<"background">;
+}
+
+/**
+ * Perícias concedidas SEM nenhuma escolha do jogador — hoje só pelo
+ * Antecedente (lista fixa `grantedSkills`). Nenhuma Classe/Subclasse/
+ * Espécie atual concede perícia automaticamente sem passar por uma
+ * `FeatureChoice` (toda concessão delas já aparece como um bloco de
+ * escolha na etapa "Perícias" — ver `rules/features.ts#getSkillChoiceFeatures`);
+ * por isso a única origem possível aqui é `"background"`. Usado pela
+ * seção "Perícias concedidas automaticamente" da etapa "Perícias"
+ * (fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA"
+ * §2) — nunca inventa uma origem automática de Classe/Subclasse/
+ * Espécie/Talento que não exista no catálogo atual; se uma vier a
+ * existir, basta somar sua própria checagem aqui, sem mudar a forma
+ * de uso pela UI. Se uma perícia tiver mais de uma origem automática,
+ * aparece uma única vez, com todas as origens listadas.
+ */
+export function getAutomaticSkillProficiencyGrants(character: Character): AutomaticSkillProficiencyGrant[] {
+  const grants: AutomaticSkillProficiencyGrant[] = [];
+  for (const skill of SKILL_KEYS) {
+    const origins: Array<"background"> = [];
+    if (isSkillGrantedByBackground(character, skill)) origins.push("background");
+    if (origins.length > 0) grants.push({ skill, origins });
+  }
+  return grants;
 }
 
 export type SkillProficiencyOrigin = "manual" | "background" | "class" | "subclass" | "species" | null;

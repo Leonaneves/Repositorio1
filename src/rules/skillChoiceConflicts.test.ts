@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
+import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
-import { getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
+import { getInvalidExpertiseSelections, getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 
 /**
  * Fonte "REORGANIZAR O BUILDER E CORRIGIR VALIDAÇÕES EXISTENTES" §4:
@@ -107,5 +108,85 @@ describe("getRedundantSkillChoiceSelections — detecção independente da ordem
 
     // nunca escolhe uma substituta sozinho — a seleção de subclasse continua intocada.
     expect(character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID]?.value).toEqual(["persuasao"]);
+  });
+});
+
+/**
+ * Fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §4:
+ * "revalidar Especializações que dependam das proficiências alteradas"
+ * — Especialização (`skillExpertise`) exige proficiência vigente; se a
+ * origem da proficiência some depois da escolha, a seleção de
+ * Especialização fica inválida (sinalizada, nunca trocada sozinha).
+ */
+describe("getInvalidExpertiseSelections — revalida Especialização contra a proficiência vigente, independente da ordem (§4)", () => {
+  function patrulheiroComExplorarorHabilEmIntuicao() {
+    const character = createBlankCharacter("expertise-conflict-test");
+    character.classId = "patrulheiro";
+    character.level = 2;
+    character.backgroundId = "acolito"; // concede "intuicao"/"religiao" — proficiência de origem da Especialização
+    character.featureChoiceSelections[RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID] = { value: ["intuicao"] };
+    return character;
+  }
+
+  it("proficiência ainda vigente (via Antecedente): nenhuma pendência", () => {
+    expect(getInvalidExpertiseSelections(patrulheiroComExplorarorHabilEmIntuicao())).toEqual([]);
+  });
+
+  it("Antecedente removido depois da escolha: a Especialização em 'Intuição' fica sem proficiência de origem — sinalizada, nunca trocada sozinha", () => {
+    const character = { ...patrulheiroComExplorarorHabilEmIntuicao(), backgroundId: null };
+    const entries = getInvalidExpertiseSelections(character);
+    expect(entries).toEqual([
+      {
+        choiceId: RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID,
+        featureName: "Explorador Hábil",
+        sourceType: "class",
+        skill: "intuicao",
+      },
+    ]);
+    expect(character.featureChoiceSelections[RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID]?.value).toEqual(["intuicao"]);
+  });
+
+  it("mesmo estado final, construído sem nunca ter passado pelo Antecedente: resultado idêntico — independe da ordem", () => {
+    const comAntecedenteRemovidoDepois = { ...patrulheiroComExplorarorHabilEmIntuicao(), backgroundId: null };
+
+    const semAntecedenteDesdeOInicio = createBlankCharacter("expertise-conflict-test-2");
+    semAntecedenteDesdeOInicio.classId = "patrulheiro";
+    semAntecedenteDesdeOInicio.level = 2;
+    semAntecedenteDesdeOInicio.featureChoiceSelections[RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID] = { value: ["intuicao"] };
+
+    expect(getInvalidExpertiseSelections(semAntecedenteDesdeOInicio)).toEqual(getInvalidExpertiseSelections(comAntecedenteRemovidoDepois));
+  });
+
+  it("resolvida a troca (jogador escolhe outra perícia ainda proficiente), a pendência desaparece", () => {
+    const character = { ...patrulheiroComExplorarorHabilEmIntuicao(), backgroundId: null };
+    expect(getInvalidExpertiseSelections(character)).toHaveLength(1);
+
+    character.featureChoiceSelections[getClassSkillChoiceId("patrulheiro")] = { value: ["atletismo"] };
+    character.featureChoiceSelections[RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID] = { value: ["atletismo"] };
+    expect(getInvalidExpertiseSelections(character)).toEqual([]);
+  });
+
+  it("proficiência mantida por OUTRA origem (Classe) depois de perder o Antecedente: nenhuma pendência — a Especialização em si nunca concede a proficiência", () => {
+    const character = patrulheiroComExplorarorHabilEmIntuicao();
+    character.backgroundId = null;
+    character.featureChoiceSelections[getClassSkillChoiceId("patrulheiro")] = { value: ["intuicao"] };
+    expect(getInvalidExpertiseSelections(character)).toEqual([]);
+  });
+
+  it("segunda escolha de Especialização do Patrulheiro (nível 9, 'Especialista') é verificada da mesma forma", () => {
+    const character = createBlankCharacter("expertise-conflict-test-3");
+    character.classId = "patrulheiro";
+    character.level = 9;
+    character.featureChoiceSelections[RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID] = { value: ["natureza", "furtividade"] };
+    // Sem nenhuma origem concedendo "natureza"/"furtividade" — ambas inválidas.
+    const entries = getInvalidExpertiseSelections(character);
+    expect(entries.map((e) => e.skill).sort()).toEqual(["furtividade", "natureza"]);
+    expect(entries.every((e) => e.featureName === "Especialista" && e.sourceType === "class")).toBe(true);
+  });
+
+  it("classe/subclasse sem nenhuma escolha de Especialização — []", () => {
+    const character = createBlankCharacter("expertise-conflict-test-4");
+    character.classId = "mago";
+    expect(getInvalidExpertiseSelections(character)).toEqual([]);
   });
 });

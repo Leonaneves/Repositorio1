@@ -29,7 +29,7 @@ function fillStandardArrayAbilities() {
 }
 
 describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDAÇÃO DO BUILDER §9)", () => {
-  it("'Classe' bloqueia Avançar e mostra o motivo até uma classe ser escolhida e suas escolhas (Perícias de Classe) resolvidas", () => {
+  it("'Classe' bloqueia Avançar só até uma classe ser escolhida — a escolha de Perícias de Classe não bloqueia mais esta etapa (mora na etapa própria 'Perícias', fonte \"CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA\")", () => {
     render(<App />);
     clickAvancar(); // basicInfo -> class
     expect(screen.getByRole("heading", { name: "Classe" })).toBeInTheDocument();
@@ -38,20 +38,25 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
 
     fireEvent.change(screen.getByRole("combobox", { name: "Classe" }), { target: { value: "guerreiro" } });
     expect(screen.queryByText("Escolha uma classe para continuar.")).not.toBeInTheDocument();
-    // Guerreiro ainda tem "Perícias de Classe" pendente — a escolha mora agora na própria etapa Classe (§1/§2).
-    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Atletismo" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Intimidação" }));
+    act(() => useBuilderStore.getState().goToStep("skills"));
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // Perícias de Classe ainda pendente, agora nesta etapa
+
+    // Escopado à subseção certa — "Atletismo" também existe (sem origem ainda) na grade Homebrew ao final da etapa.
+    const classeSubsection1 = screen.getByText("Classe — Perícias de Classe").closest("div")!;
+    fireEvent.click(within(classeSubsection1).getByRole("checkbox", { name: "Atletismo" }));
+    fireEvent.click(within(classeSubsection1).getByRole("checkbox", { name: "Intimidação" }));
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 
   it("perícia redundante entre Classe e Antecedente é detectada independente da ordem de escolha, sem auto-selecionar substituta (§4 — exemplo literal: escolher perícia de Classe e depois um Antecedente que concede a mesma)", () => {
     render(<App />);
-    clickAvancar(); // basicInfo -> class
-    fireEvent.change(screen.getByRole("combobox", { name: "Classe" }), { target: { value: "guerreiro" } });
-    fireEvent.click(screen.getByRole("checkbox", { name: "Intuição" }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Atletismo" }));
+    act(() => useCharacterStore.getState().setClass("guerreiro"));
+    act(() => useBuilderStore.getState().goToStep("skills"));
+    const classeSubsection = screen.getByText("Classe — Perícias de Classe").closest("div")!;
+    fireEvent.click(within(classeSubsection).getByRole("checkbox", { name: "Intuição" }));
+    fireEvent.click(within(classeSubsection).getByRole("checkbox", { name: "Atletismo" }));
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
 
     act(() => useCharacterStore.getState().setBackground("acolito")); // concede "Intuição" automaticamente, depois da escolha já feita
@@ -61,10 +66,10 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
     expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
 
     // Nunca escolhe uma substituta sozinho — o checkbox de Intuição continua marcado até o jogador decidir.
-    expect(screen.getByRole("checkbox", { name: "Intuição" })).toBeChecked();
+    expect(within(classeSubsection).getByRole("checkbox", { name: "Intuição" })).toBeChecked();
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Intuição" })); // jogador desmarca
-    fireEvent.click(screen.getByRole("checkbox", { name: "Percepção" })); // e escolhe outra no lugar
+    fireEvent.click(within(classeSubsection).getByRole("checkbox", { name: "Intuição" })); // jogador desmarca
+    fireEvent.click(within(classeSubsection).getByRole("checkbox", { name: "Percepção" })); // e escolhe outra no lugar
     expect(screen.queryByText(/já é concedida por outra origem/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
@@ -368,7 +373,7 @@ describe("BuilderWizard — Forma Selvagem nunca é escolha de criação (fonte 
   });
 });
 
-describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJUSTES NO PDF, FORMA SELVAGEM E EDIÇÃO DE PERÍCIAS\" §3)", () => {
+describe("BuilderWizard — etapa 'Perícias' centraliza as escolhas (fonte \"CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA\" — substitui a decisão anterior de nunca ter etapa lateral e editar só pela Revisão)", () => {
   function setupGuerreiroAcolito() {
     act(() => {
       const store = useCharacterStore.getState();
@@ -379,35 +384,34 @@ describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJU
     });
   }
 
-  function openSkillsModal() {
+  function openSkillsStep() {
     const periciasHeading = screen.getByRole("heading", { name: /^Perícias/, level: 3 });
     fireEvent.click(within(periciasHeading).getByRole("button", { name: "Editar perícias" }));
   }
 
-  it("'Perícias e Proficiências' nunca aparece como etapa lateral do Builder, em nenhum momento da criação", () => {
+  it("'Perícias' aparece na navegação lateral do Builder, em qualquer momento da criação", () => {
     render(<App />);
     setupGuerreiroAcolito();
-    expect(screen.queryByRole("button", { name: /Perícias e Proficiências/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Perícias$/ })).toBeInTheDocument();
 
     act(() => useBuilderStore.getState().goToStep("review"));
-    expect(screen.queryByRole("button", { name: /Perícias e Proficiências/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Perícias$/ })).toBeInTheDocument();
   });
 
-  it("botão 'Editar' de Perícias na Revisão abre a tela de edição, mostrando as origens automáticas de Antecedente e de Classe com a origem claramente identificada", () => {
+  it("botão 'Editar' de Perícias na Revisão leva direto à etapa 'Perícias', mostrando as origens automáticas de Antecedente e a escolha já feita em Classe, com a origem claramente identificada", () => {
     render(<App />);
     setupGuerreiroAcolito();
     act(() => useBuilderStore.getState().goToStep("review"));
-    openSkillsModal();
+    openSkillsStep();
 
-    expect(screen.getByRole("heading", { name: "Editar Perícias e Proficiências" })).toBeInTheDocument();
-    const antecedenteSubsection = screen.getByText("Antecedente — Acólito").closest("div")!;
-    expect(within(antecedenteSubsection).getByText("Religião")).toBeInTheDocument(); // perícia concedida pelo Antecedente, listada ao lado
+    expect(screen.getByRole("heading", { name: "Perícias", level: 2 })).toBeInTheDocument();
+    expect(screen.getByText("Religião — Antecedente")).toBeInTheDocument(); // perícia concedida pelo Antecedente, origem identificada ao lado
     expect(screen.getByText("Classe — Perícias de Classe")).toBeInTheDocument();
-    // A escolha de Classe já feita (Atletismo) é visível e editável na própria tela, sem precisar voltar à etapa Classe.
+    // A escolha de Classe já feita (Atletismo) é visível e editável na própria etapa, sem precisar voltar à etapa Classe.
     expect(screen.getByRole("checkbox", { name: "Atletismo" })).toBeChecked();
   });
 
-  it("perícia redundante entre Classe e Antecedente aparece como aviso na tela, sem substituir a escolha automaticamente (mesmo caso do §4, agora também visível aqui)", () => {
+  it("perícia redundante entre Classe e Antecedente aparece como aviso no próprio bloco de origem, sem substituir a escolha automaticamente (mesmo caso do §4 — a escolha fica visível ali para correção, exceção ao filtro de esconder já concedidas)", () => {
     render(<App />);
     act(() => {
       const store = useCharacterStore.getState();
@@ -415,13 +419,13 @@ describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJU
       store.setFeatureChoiceSelection(getClassSkillChoiceId("guerreiro"), ["intuicao", "atletismo"]);
       store.setBackground("acolito"); // concede Intuição também, depois da escolha já feita
     });
-    act(() => useBuilderStore.getState().goToStep("review"));
-    openSkillsModal();
+    act(() => useBuilderStore.getState().goToStep("skills"));
 
-    const redundantSection = screen.getByRole("heading", { name: "Escolhas redundantes" }).closest("section")!;
-    expect(within(redundantSection).getByText("Intuição")).toBeInTheDocument();
-    expect(redundantSection.textContent).toContain('foi escolhida em "Perícias de Classe"');
-    expect(redundantSection.textContent).toContain("nada é substituído automaticamente");
+    const classeSubsection = screen.getByText("Classe — Perícias de Classe").closest("div")!;
+    expect(within(classeSubsection).getByText(/já concedida\(s\) por outra origem/)).toBeInTheDocument();
+    expect(classeSubsection.textContent).toContain("nada é substituído automaticamente");
+    // o checkbox de Intuição continua marcado e visível no bloco de origem, para o jogador corrigir manualmente
+    expect(within(classeSubsection).getByRole("checkbox", { name: "Intuição" })).toBeChecked();
 
     // a seleção de Classe continua intocada — nada foi trocado sozinho
     expect(useCharacterStore.getState().character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")]?.value).toEqual([
@@ -430,28 +434,16 @@ describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJU
     ]);
   });
 
-  it("Cancelar descarta a alteração manual (Homebrew); Salvar persiste e a Revisão reflete o novo estado, sem afetar as proficiências automáticas", () => {
+  it("Homebrew ativado na etapa Perícias marca uma proficiência manual e persiste ao navegar para outra etapa e voltar, sem afetar as proficiências automáticas (etapa permanente, não mais um modal com Cancelar/Salvar)", () => {
     render(<App />);
     setupGuerreiroAcolito();
-    act(() => useBuilderStore.getState().goToStep("review"));
+    act(() => useBuilderStore.getState().goToStep("skills"));
 
-    openSkillsModal();
     fireEvent.click(screen.getByRole("button", { name: /Editar perícias manualmente \(Homebrew\)/ }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Furtividade" })); // sem nenhuma origem automática neste personagem
     // Depois de marcada manualmente, a origem passa a "Manual" e o rótulo da perícia muda de acordo (§10) — por isso o regex abaixo.
     expect(screen.getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
-    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
 
-    expect(screen.queryByRole("heading", { name: "Editar Perícias e Proficiências" })).not.toBeInTheDocument();
-    expect(useCharacterStore.getState().character.skills.furtividade.manualOverride).toBeNull();
-
-    // Revisão continua permitindo reabrir a mesma tela depois do Cancelar.
-    openSkillsModal();
-    fireEvent.click(screen.getByRole("button", { name: /Editar perícias manualmente \(Homebrew\)/ }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Furtividade" }));
-    fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
-
-    expect(screen.queryByRole("heading", { name: "Editar Perícias e Proficiências" })).not.toBeInTheDocument();
     const character = useCharacterStore.getState().character;
     expect(character.skills.furtividade.manualOverride).toBe(true);
 
@@ -461,7 +453,13 @@ describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJU
     expect(getSkillProficiencyOrigin(character, "intuicao")).toBe("background");
     expect(character.skills.intuicao.manualOverride).toBeNull();
 
-    // A Revisão (que continua visível, fora do modal) reflete a perícia recém-habilitada.
+    // Navegar para outra etapa e voltar preserva a seleção manual — a etapa não reseta o Homebrew a cada visita.
+    act(() => useBuilderStore.getState().goToStep("equipment"));
+    act(() => useBuilderStore.getState().goToStep("skills"));
+    expect(screen.getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
+
+    // A Revisão reflete a perícia recém-habilitada.
+    act(() => useBuilderStore.getState().goToStep("review"));
     expect(screen.getByText(/●\s*Furtividade/)).toBeInTheDocument();
   });
 });
@@ -485,18 +483,24 @@ describe("BuilderWizard — Patrulheiro, escolhas permanentes das subclasses (fo
     act(() => useBuilderStore.getState().goToStep("class"));
   }
 
-  it("Andarilho Feérico: 'Glamour Transcendental' exige escolher Atuação, Enganação ou Persuasão, e bloqueia Avançar até isso", () => {
+  it("Andarilho Feérico: 'Glamour Transcendental' exige escolher Atuação, Enganação ou Persuasão — a escolha mora na etapa 'Perícias', e não bloqueia mais 'Classe' (fonte \"CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA\")", () => {
     render(<App />);
     setupRanger();
     fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Andarilho Feérico" } });
 
     expect(screen.getByRole("heading", { name: "Glamour Transcendental" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Atuação" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Enganação" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Persuasão" })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Atuação" })).not.toBeInTheDocument(); // escolha de perícia saiu desta etapa
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled(); // 'Classe' já não tem mais pendência própria
+
+    act(() => useBuilderStore.getState().goToStep("skills"));
+    // Escopado à subseção certa — essas perícias também existem (sem origem ainda) na grade Homebrew ao final da etapa.
+    const glamourSubsection = screen.getByText("Subclasse — Glamour Transcendental").closest("div")!;
+    expect(within(glamourSubsection).getByRole("checkbox", { name: "Atuação" })).toBeInTheDocument();
+    expect(within(glamourSubsection).getByRole("checkbox", { name: "Enganação" })).toBeInTheDocument();
+    expect(within(glamourSubsection).getByRole("checkbox", { name: "Persuasão" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Persuasão" }));
+    fireEvent.click(within(glamourSubsection).getByRole("checkbox", { name: "Persuasão" }));
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 
@@ -568,7 +572,7 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     expect(screen.getByRole("option", { name: "Mestre de Batalha" })).toBeInTheDocument();
   });
 
-  it("Mestre de Batalha: 'Estudioso da Guerra' bloqueia Avançar até resolvida; 'Superioridade em Combate' nunca aparece como escolha — a CD de Manobras é automática, nunca apresentada ao jogador (fonte \"AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA\")", () => {
+  it("Mestre de Batalha: 'Estudioso da Guerra' bloqueia Avançar em 'Classe' até a Ferramenta ser escolhida — a Perícia mora agora na etapa 'Perícias' (fonte \"CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA\"); 'Superioridade em Combate' nunca aparece como escolha — a CD de Manobras é automática, nunca apresentada ao jogador (fonte \"AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA\")", () => {
     render(<App />);
     setupFighter();
     fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Mestre da Batalha" } });
@@ -576,11 +580,17 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     expect(screen.getByRole("heading", { name: "Estudioso da Guerra" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Superioridade em Combate" })).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: /CD de Manobras/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // falta Ferramenta/Perícia de Estudioso da Guerra
+    expect(screen.queryByRole("checkbox", { name: "História" })).not.toBeInTheDocument(); // escolha de perícia saiu desta etapa
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // falta a Ferramenta de Estudioso da Guerra
 
     const estudiosoCard = screen.getByRole("heading", { name: "Estudioso da Guerra" }).closest("article")!;
     fireEvent.click(within(estudiosoCard).getByRole("checkbox", { name: "Ferramentas de Ferreiro" }));
-    fireEvent.click(within(estudiosoCard).getByRole("checkbox", { name: "História" }));
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled(); // 'Classe' já não tem mais pendência própria
+
+    act(() => useBuilderStore.getState().goToStep("skills"));
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // falta a Perícia de Estudioso da Guerra
+    const estudiosoSkillsSubsection = screen.getByText("Subclasse — Estudioso da Guerra").closest("div")!;
+    fireEvent.click(within(estudiosoSkillsSubsection).getByRole("checkbox", { name: "História" }));
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 

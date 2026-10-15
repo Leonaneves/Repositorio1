@@ -141,6 +141,42 @@ export function getOtherFeaturesWithChoices(character: Character): FeatureDefini
   );
 }
 
+/** `true` para `skillProficiency`/`skillExpertise` — usado para separar escolhas de perícia (centralizadas na etapa "Perícias", fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA") das demais escolhas de uma mesma feature. */
+export function isSkillKindChoice(choice: FeatureChoice): boolean {
+  return choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise";
+}
+
+/**
+ * Mesmo filtro de `getOtherFeaturesWithChoices` (Espécie/Antecedente/
+ * Talento), mas só as features com ao menos UMA escolha que NÃO seja
+ * de perícia — essas saíram para a etapa "Perícias" (ver
+ * `getSkillChoiceFeatures` acima), então "Características e Talentos"
+ * só continua visível/renderizando quando resta outro tipo de escolha
+ * dessas 3 origens. Hoje nenhum catálogo confirmado tem uma escolha
+ * assim (só a perícia de Sentidos Aguçados do Elfo existe), então esta
+ * lista fica vazia na prática — preparada para quando um catálogo
+ * futuro de Antecedente/Espécie/Talento vier a ter outra escolha,
+ * nunca inventada agora.
+ */
+export function getOtherFeaturesWithNonSkillChoices(character: Character): FeatureDefinition[] {
+  return getOtherFeaturesWithChoices(character).filter((feature) => (feature.choices ?? []).some((choice) => !isSkillKindChoice(choice)));
+}
+
+/**
+ * Todas as features do personagem, de QUALQUER origem, com ao menos
+ * uma escolha de perícia (proficiência ou Especialização) — usado pela
+ * etapa "Perícias", que reúne essas escolhas independentemente de
+ * vir de Classe, Subclasse, Espécie, Antecedente ou Talento. Uma
+ * mesma feature pode ter TAMBÉM outras escolhas (ex.: a Ferramenta de
+ * Artesão de "Estudioso da Guerra", ao lado da perícia) — essas
+ * continuam nas etapas de origem; só os `choices` de perícia saem de
+ * lá, filtrados individualmente com `isSkillKindChoice`, nunca a
+ * feature inteira.
+ */
+export function getSkillChoiceFeatures(character: Character): FeatureDefinition[] {
+  return getCharacterFeatures(character).filter((feature) => (feature.choices ?? []).some(isSkillKindChoice));
+}
+
 const ORIGIN_LABELS: Record<FeatureDefinition["sourceType"], string> = {
   class: "Classe",
   subclass: "Subclasse",

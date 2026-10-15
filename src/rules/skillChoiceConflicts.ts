@@ -2,7 +2,13 @@ import type { Character } from "../domain/character.js";
 import type { FeatureSourceType } from "../domain/features.js";
 import type { SkillKey } from "../domain/ids.js";
 import { getCharacterFeatures } from "./features.js";
-import { isSkillGrantedByBackground, isSkillGrantedByClassChoice, isSkillGrantedBySpeciesChoice, isSkillGrantedBySubclassChoice } from "./skills.js";
+import {
+  getSkillProficiency,
+  isSkillGrantedByBackground,
+  isSkillGrantedByClassChoice,
+  isSkillGrantedBySpeciesChoice,
+  isSkillGrantedBySubclassChoice,
+} from "./skills.js";
 
 export interface RedundantSkillChoiceEntry {
   /** Id da `FeatureChoice` cuja seleção ficou redundante — usado pela UI para apontar o controle certo. */
@@ -50,6 +56,50 @@ export function getRedundantSkillChoiceSelections(character: Character): Redunda
           (feature.sourceType !== "subclass" && isSkillGrantedBySubclassChoice(character, skill));
 
         if (grantedElsewhere) {
+          entries.push({ choiceId: choice.id, featureName: feature.name, sourceType: feature.sourceType, skill });
+        }
+      }
+    }
+  }
+
+  return entries;
+}
+
+export interface InvalidExpertiseSelectionEntry {
+  /** Id da `FeatureChoice` (`skillExpertise`) cuja seleção ficou inválida — usado pela UI para apontar o controle certo. */
+  choiceId: string;
+  featureName: string;
+  sourceType: FeatureSourceType;
+  skill: SkillKey;
+}
+
+/**
+ * Perícias SELECIONADAS numa escolha de `skillExpertise` ("Especialista"
+ * do Bardo, "Explorador Hábil"/"Especialista" do Patrulheiro) cuja
+ * proficiência de origem deixou de existir depois da escolha já ter
+ * sido feita (ex.: trocar o Antecedente que concedia aquela perícia) —
+ * Especialização exige proficiência vigente
+ * (`domain/features.ts#FeatureChoiceEffect`, variante `skillExpertise`:
+ * "nunca concede a proficiência em si"). Mesmo princípio de
+ * `getRedundantSkillChoiceSelections` acima: detectado de forma
+ * independente da ordem, reexecutado a cada chamada, nunca trocando a
+ * perícia automaticamente — só sinaliza o `choiceId` para a UI/
+ * validação apontar o jogador ao controle certo (fonte "CENTRALIZAR AS
+ * ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §4: "revalidar
+ * Especializações que dependam das proficiências alteradas").
+ */
+export function getInvalidExpertiseSelections(character: Character): InvalidExpertiseSelectionEntry[] {
+  const entries: InvalidExpertiseSelectionEntry[] = [];
+
+  for (const feature of getCharacterFeatures(character)) {
+    for (const choice of feature.choices ?? []) {
+      if (choice.effect.kind !== "skillExpertise") continue;
+
+      const selection = character.featureChoiceSelections[choice.id]?.value;
+      const selected = Array.isArray(selection) ? (selection as SkillKey[]) : [];
+
+      for (const skill of selected) {
+        if (!getSkillProficiency(character, skill)) {
           entries.push({ choiceId: choice.id, featureName: feature.name, sourceType: feature.sourceType, skill });
         }
       }

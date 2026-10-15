@@ -10,6 +10,7 @@ import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import {
+  getAutomaticSkillProficiencyGrants,
   getGlamourTranscendentalBonus,
   getJackOfAllTradesBonus,
   getSkillBonus,
@@ -722,5 +723,49 @@ describe("getGlamourTranscendentalBonus — Andarilho Feérico, nível 3 (fonte 
     character.abilities.CAR.score = 10; // +0
     const bonus = getSkillBonus(character, "intimidacao");
     expect(bonus.auto).toBe(3); // 0 (CAR) + 0 (sem proficiência) + 3 (Glamour)
+  });
+});
+
+/**
+ * Fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §2:
+ * "Perícias concedidas automaticamente" — hoje só o Antecedente concede
+ * perícia sem nenhuma `FeatureChoice`; Classe/Subclasse/Espécie só têm
+ * concessões por escolha (aparecem na etapa "Perícias" como blocos,
+ * nunca aqui).
+ */
+describe("getAutomaticSkillProficiencyGrants — perícias concedidas SEM escolha (hoje só Antecedente)", () => {
+  it("sem Antecedente escolhido — []", () => {
+    const character = createBlankCharacter("auto-grants-test");
+    expect(getAutomaticSkillProficiencyGrants(character)).toEqual([]);
+  });
+
+  it("Acólito concede Intuição e Religião, cada uma com origem ['background']", () => {
+    const character = createBlankCharacter("auto-grants-test-2");
+    character.backgroundId = "acolito";
+    const grants = getAutomaticSkillProficiencyGrants(character);
+    expect(grants).toEqual(
+      expect.arrayContaining([
+        { skill: "intuicao", origins: ["background"] },
+        { skill: "religiao", origins: ["background"] },
+      ]),
+    );
+    expect(grants).toHaveLength(2);
+  });
+
+  it("nunca inclui uma perícia concedida só por escolha de Classe/Subclasse/Espécie, mesmo já respondida", () => {
+    const character = createBlankCharacter("auto-grants-test-3");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo", "intimidacao"] };
+    // "atletismo"/"intimidacao" vieram de uma ESCOLHA de Classe — nunca contam como "sem escolha".
+    expect(getAutomaticSkillProficiencyGrants(character)).toEqual([]);
+  });
+
+  it("troca de Antecedente recalcula a lista — nunca mantém a anterior", () => {
+    const character = createBlankCharacter("auto-grants-test-4");
+    character.backgroundId = "acolito"; // Intuição/Religião
+    expect(getAutomaticSkillProficiencyGrants(character).map((g) => g.skill).sort()).toEqual(["intuicao", "religiao"]);
+
+    character.backgroundId = "soldado"; // Atletismo/Intimidação
+    expect(getAutomaticSkillProficiencyGrants(character).map((g) => g.skill).sort()).toEqual(["atletismo", "intimidacao"]);
   });
 });

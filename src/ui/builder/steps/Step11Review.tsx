@@ -27,7 +27,6 @@ import { getKnownManeuvers } from "../../../rules/maneuvers.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import type { BuilderStepId } from "../../../rules/builderSteps.js";
 import type { Character } from "../../../domain/character.js";
-import { SkillsEditModal } from "../SkillsEditModal.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -170,7 +169,6 @@ export function Step11Review() {
   const character = useCharacterStore((s) => s.character);
   const goToStep = useBuilderStore((s) => s.goToStep);
   const [exportState, setExportState] = useState<"idle" | "exporting" | "error">("idle");
-  const [skillsModalOpen, setSkillsModalOpen] = useState(false);
 
   const ac = getArmorClass(character);
   const hp = getMaxHitPoints(character);
@@ -284,12 +282,7 @@ export function Step11Review() {
       </section>
 
       <section className="review-block">
-        <h3>
-          Perícias
-          <button type="button" className="review-edit-button" onClick={() => setSkillsModalOpen(true)} aria-label="Editar perícias">
-            Editar
-          </button>
-        </h3>
+        <h3>Perícias {editButton("perícias", "skills")}</h3>
         <ul className="review-inline-list">
           {SKILL_KEYS.map((skillId) => (
             <li key={skillId}>
@@ -299,8 +292,6 @@ export function Step11Review() {
           ))}
         </ul>
       </section>
-
-      {skillsModalOpen && <SkillsEditModal onClose={() => setSkillsModalOpen(false)} />}
 
       <section className="review-block">
         <h3>Equipamento {editButton("equipamento", "equipment")}</h3>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId, getClassToolChoiceId } from "../data/classes.js";
 import { RANGER_MENTE_DE_FERRO_CHOICE_ID, RANGER_MENTE_DE_FERRO_FEATURE_ID } from "../data/features/subclasses.js";
+import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import {
   getBackgroundFeatures,
   getCharacterFeatures,
@@ -9,10 +10,12 @@ import {
   getClassFeatures,
   getFeatureView,
   getIncompleteRequiredChoices,
+  getSkillChoiceFeatures,
   getSpeciesFeatures,
   getSubclassFeatures,
   isFeatureChoiceComplete,
   isFeatureComplete,
+  isSkillKindChoice,
 } from "./features.js";
 
 describe("getClassFeatures — progressão por nível", () => {
@@ -307,5 +310,66 @@ describe("isFeatureChoiceComplete / isFeatureComplete / getIncompleteRequiredCho
 
     character.featureChoiceSelections[getClassToolChoiceId("bardo")] = { value: ["alaude", "flauta", "tambor"] };
     expect(getIncompleteRequiredChoices(character)).toEqual([]);
+  });
+});
+
+/**
+ * Fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" —
+ * `isSkillKindChoice`/`getSkillChoiceFeatures` separam as escolhas de
+ * perícia (proficiência/Especialização) das demais, de QUALQUER
+ * origem, para a nova etapa "Perícias".
+ */
+describe("isSkillKindChoice / getSkillChoiceFeatures", () => {
+  it("isSkillKindChoice: true para skillProficiency/skillExpertise, false para as demais", () => {
+    expect(isSkillKindChoice({ id: "x", prompt: "x", effect: { kind: "skillProficiency", options: "any", count: 1 } })).toBe(true);
+    expect(isSkillKindChoice({ id: "x", prompt: "x", effect: { kind: "skillExpertise", count: 1 } })).toBe(true);
+    expect(isSkillKindChoice({ id: "x", prompt: "x", effect: { kind: "toolProficiency", category: "artisanTool", count: 1 } })).toBe(false);
+    expect(isSkillKindChoice({ id: "x", prompt: "x", effect: { kind: "optionPick", options: ["A", "B"] } })).toBe(false);
+    expect(isSkillKindChoice({ id: "x", prompt: "x", effect: { kind: "manualText", placeholder: "x" } })).toBe(false);
+  });
+
+  it("getSkillChoiceFeatures: Guerreiro recém-criado só traz 'Perícias de Classe' (Estilo de Luta é manualText, nunca entra aqui)", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "guerreiro";
+    const features = getSkillChoiceFeatures(character);
+    expect(features.map((f) => f.name)).toEqual(["Perícias de Classe"]);
+  });
+
+  it("reúne features de origens DIFERENTES (Classe + Espécie) na mesma lista", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "guerreiro";
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-drow";
+    const features = getSkillChoiceFeatures(character);
+    expect(features.map((f) => f.name).sort()).toEqual(["Perícias de Classe", "Traços de Elfo"]);
+  });
+
+  it("uma feature com escolha de perícia MISTURADA a outra escolha (Estudioso da Guerra: perícia + ferramenta) continua aparecendo — a separação é por escolha individual, nunca pela feature inteira", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "guerreiro";
+    character.subclassId = "Mestre da Batalha";
+    character.level = 3;
+    const feature = getSkillChoiceFeatures(character).find((f) => f.name === "Estudioso da Guerra");
+    expect(feature).toBeDefined();
+    // A própria feature continua com AMBAS as escolhas — quem filtra por tipo é quem renderiza, não esta função.
+    expect(feature!.choices?.some((c) => c.effect.kind === "toolProficiency")).toBe(true);
+    expect(feature!.choices?.some((c) => isSkillKindChoice(c))).toBe(true);
+  });
+
+  it("nunca inclui uma feature sem NENHUMA escolha de perícia (ex.: Dádiva Épica, só manualText)", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "mago";
+    character.level = 19;
+    const names = getSkillChoiceFeatures(character).map((f) => f.name);
+    expect(names).not.toContain("Dádiva Épica");
+  });
+
+  it("Elfo sem a escolha de Sentidos Aguçados respondida ainda aparece (pendente, não desaparece até ser resolvida)", () => {
+    const character = createBlankCharacter("features-test");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-drow";
+    const feature = getSkillChoiceFeatures(character).find((f) => f.name === "Traços de Elfo");
+    expect(feature).toBeDefined();
+    expect(character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID]).toBeUndefined();
   });
 });
