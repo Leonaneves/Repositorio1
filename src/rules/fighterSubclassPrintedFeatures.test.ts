@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID } from "../data/features/subclasses.js";
+import { getFighterPrintedBlocks } from "./fighterPrintedFeatures.js";
 import { getFighterSubclassPrintedBlocks } from "./fighterSubclassPrintedFeatures.js";
 import { getFighterManeuverTalentEntries } from "./fighterTalentEntries.js";
 
@@ -74,19 +75,28 @@ describe("Cavaleiro Místico", () => {
     expect(blocks).toContain("trocar 1 atq por truque de Mago de 1 ação");
   });
 
-  it("nível 18 (exemplo de exportação pedido): Magia de Guerra Aprimorada substitui a linha anterior, Surto de Ação com Investida Mística, nunca duplica o bloco", () => {
+  it("nível 18 (exemplo de exportação pedido): Magia de Guerra Aprimorada substitui a linha anterior, nunca duplica o bloco", () => {
     const blocks = getFighterSubclassPrintedBlocks(fighterOf("Cavaleiro Místico", 18));
     const joined = blocks.join("\n\n");
 
     expect(joined).toContain("trocar 1 atq por truque ou 2 por magia de 1º/2º círculo, de Mago e de 1 ação");
     expect(joined).not.toContain("trocar 1 atq por truque de Mago de 1 ação");
-    expect(joined).toContain("# SURTO DE AÇÃO");
-    expect(joined).toContain("Pode teleportar 9m antes/depois da ação adicional");
-    // Um único bloco "# MAGIA DE GUERRA" e um único "# SURTO DE AÇÃO" — nunca duplicado.
+    // Um único bloco "# MAGIA DE GUERRA" — nunca duplicado.
     expect(blocks.filter((b) => b.startsWith("# MAGIA DE GUERRA"))).toHaveLength(1);
-    expect(blocks.filter((b) => b.startsWith("# SURTO DE AÇÃO"))).toHaveLength(1);
     // Nunca imprime a tabela de conjuração, INT ou quantidade de magias aqui.
     expect(joined).not.toContain("CONJURAÇÃO");
+  });
+
+  it("nível 18: 'Investida Mística' NUNCA cria bloco/título próprio aqui — entra na MESMA linha do bloco 'SURTO DE AÇÃO' da classe BASE (fonte \"COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF\" §10)", () => {
+    const character = fighterOf("Cavaleiro Místico", 18);
+    const subclassOnlyBlocks = getFighterSubclassPrintedBlocks(character);
+    expect(subclassOnlyBlocks.some((b) => b.startsWith("# SURTO DE AÇÃO"))).toBe(false);
+
+    // Só o orquestrador completo (classe base + subclasse) mostra o bloco fundido, uma única vez.
+    const fullBlocks = getFighterPrintedBlocks(character);
+    expect(fullBlocks.filter((b) => b.startsWith("# SURTO DE AÇÃO"))).toHaveLength(1);
+    const actionSurgeBlock = fullBlocks.find((b) => b.startsWith("# SURTO DE AÇÃO"))!;
+    expect(actionSurgeBlock).toContain("Pode teleportar 9m antes/depois da ação adicional");
   });
 });
 

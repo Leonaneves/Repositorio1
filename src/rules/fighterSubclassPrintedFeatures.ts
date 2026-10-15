@@ -11,10 +11,11 @@ import { getManeuversCd } from "./maneuvers.js";
  * padrão de `rules/rangerSubclassPrintedFeatures.ts`. A classe BASE do
  * Guerreiro (Estilo de Luta, Maestria em Arma, Recuperar Fôlego, Mente
  * Tática, Surto de Ação, Ajuste Tático, Ataque Extra, Indomável, Mestre
- * Tático, Ataques Estudados) continua sem conteúdo mecânico fornecido
- * (ver `data/features/classes.ts#NAMED_FEATURES_BY_CLASS.guerreiro`) —
- * fora de escopo desta fonte, igual à decisão já tomada para a classe
- * base do Patrulheiro.
+ * Tático, Ataques Estudados) agora tem conteúdo mecânico completo em
+ * `rules/fighterClassPrintedFeatures.ts` (fonte "COMPLETAR A CLASSE
+ * GUERREIRO NO BUILDER E NO PDF") — este arquivo continua intocado em
+ * conteúdo, exceto pela extração de `getEldritchKnightActionSurgeExtraLines`
+ * (ver abaixo).
  *
  * As Manobras CONHECIDAS do Mestre de Batalha e o Estilo de Luta
  * Adicional do Campeão NÃO aparecem mais aqui (fonte "COMPLETAR A
@@ -82,15 +83,18 @@ function getEldritchKnightBlocks(character: Character): string[] {
     blocks.push(["# GOLPE MÍSTICO", "> Acerto com arma: alvo tem Desv na prxm Salv contra sua magia até fim do seu prxm turno"].join("\n"));
   }
 
-  // Surto de Ação (base do Guerreiro) ainda não tem bloco impresso próprio (uses/nível não
-  // fornecidos nesta fonte) — por isso esta linha nunca duplica nem inventa os usos dela, só
-  // acrescenta, sob o mesmo título, a integração desta subclasse (§4: "não criar contador separado
-  // de Surto de Ação").
-  if (character.level >= 15) {
-    blocks.push(["# SURTO DE AÇÃO", "> Pode teleportar 9m antes/depois da ação adicional"].join("\n"));
-  }
+  // Investida Mística (nível 15) NUNCA cria um bloco/título próprio aqui — entra na MESMA linha do
+  // bloco "# SURTO DE AÇÃO" da classe BASE (fonte "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO
+  // PDF" §10), via `getEldritchKnightActionSurgeExtraLines` abaixo, consumida só por
+  // `rules/fighterClassPrintedFeatures.ts` — nunca duplica nem inventa os usos de Surto de Ação.
 
   return blocks;
+}
+
+/** Linha extra de "Investida Mística" (Cavaleiro Místico, nível 15+) para o bloco "SURTO DE AÇÃO" da classe BASE — nunca cria contador separado, reaproveita os usos já existentes da característica do Guerreiro. */
+export function getEldritchKnightActionSurgeExtraLines(character: Character): string[] {
+  if (character.subclassId !== "Cavaleiro Místico" || character.level < 15) return [];
+  return ["> Pode teleportar 9m antes/depois da ação adicional"];
 }
 
 // ---------- Guerreiro Psiônico ----------

@@ -4,20 +4,23 @@ import { resolve } from "node:path";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID, FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID } from "../data/features/subclasses.js";
 import { pdfTextFields } from "./fieldMap.js";
 import { buildExportedPdf, fillPdfForm } from "./exporter.js";
 
 /**
- * Testes de integração do wiring das 4 subclasses de Guerreiro nos
- * campos do PDF (`Carac.Classe.1`/`.2`) — fonte "IMPLEMENTAR SUBCLASSES
- * DO GUERREIRO NO BUILDER E NO PDF". Não re-testa o CONTEÚDO de cada
- * texto (já coberto por rules/fighterSubclassPrintedFeatures.test.ts)
- * — só que o fieldMap realmente os invoca e entrega para o campo certo
- * do PDF-molde, e que o export de ponta a ponta funciona nos exemplos
- * explicitamente pedidos na fonte (§10): Campeão nível 18; Cavaleiro
- * Místico níveis 7 e 18; Psiônico nível 18 com 12 dados; Mestre de
- * Batalha nível 18 com nove manobras.
+ * Testes de integração do wiring da classe BASE + 4 subclasses de
+ * Guerreiro nos campos do PDF (`Carac.Classe.1`/`.2`, Talentos) —
+ * fontes "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF" e
+ * "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF". Não re-testa o
+ * CONTEÚDO de cada texto (já coberto por
+ * rules/fighterClassPrintedFeatures.test.ts/fighterSubclassPrintedFeatures.test.ts/
+ * fighterTalentEntries.test.ts) — só que o fieldMap realmente os invoca
+ * e entrega para o campo certo do PDF-molde, e que o export de ponta a
+ * ponta funciona nos exemplos explicitamente pedidos na fonte (§10):
+ * Campeão nível 18; Cavaleiro Místico níveis 7 e 18; Psiônico nível 18
+ * com 12 dados; Mestre de Batalha nível 18 com nove manobras.
  */
 function fieldValue(pdfField: string, character: Character): string {
   const mapping = pdfTextFields.find((f) => f.pdfField === pdfField);
@@ -48,16 +51,21 @@ describe("Carac.Classe.1/.2 — Guerreiro usa a composição dinâmica (só as 4
     expect(joined).not.toContain("texto manual nunca deveria aparecer");
   });
 
-  it("sem subclasse escolhida: volta para o campo manual de sempre (classe base ainda pendente)", () => {
+  it("sem subclasse escolhida: já usa a composição dinâmica da classe BASE (fonte \"COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF\"), nunca o campo manual", () => {
     const character = fullFighter(5, null);
     character.classFeatures = { column1: "texto manual do jogador", column2: "" };
-    expect(fieldValue("Carac.Classe.1", character)).toBe("texto manual do jogador");
+    const joined = classFeaturesColumns(character);
+    expect(joined).not.toContain("texto manual do jogador");
+    expect(joined).toContain("MAESTRIA EM ARMA");
+    expect(joined).toContain("RECUPERAR FÔLEGO");
+    expect(joined).toContain("ATAQUE EXTRA");
   });
 
-  it("subclasses só entram nos blocos quando character.subclassId corresponde — sem mistura entre elas", () => {
+  it("subclasses só entram nos blocos quando character.subclassId corresponde — sem mistura entre elas (blocos da classe BASE aparecem sempre)", () => {
     const character = fullFighter(10, "Campeão");
     const joined = classFeaturesColumns(character);
     expect(joined).toContain("ATLETA EXTRAORDINÁRIO");
+    expect(joined).toContain("RECUPERAR FÔLEGO"); // classe base, nunca exclusivo de uma subclasse
     expect(joined).not.toContain("VÍNCULO COM ARMA");
     expect(joined).not.toContain("ENERGIA PSIÔNICA");
     expect(joined).not.toContain("SUPERIORIDADE EM COMBATE");
@@ -167,5 +175,18 @@ describe("exportação de ponta a ponta — exemplos pedidos explicitamente na f
   it("Campeão nível 7 sem Estilo de Luta Adicional preenchido: nunca inventa nem imprime nada em Talentos", () => {
     const character = fullFighter(7, "Campeão");
     expect(fieldValue("Talentos", character)).toBe("");
+  });
+
+  it("Estilo de Luta BASE (nível 1, qualquer subclasse) preenchido: vai para a caixa de Talentos, nunca para Características de Classe, nunca como lembrete genérico (fonte \"COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF\" §1/§3)", async () => {
+    const character = fullFighter(3, "Mestre da Batalha");
+    character.name = "Exemplo Mestre de Batalha — Estilo de Luta";
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Combate com Arma Grande" };
+    const joined = await expectValidExport(character);
+    expect(joined).not.toContain("Combate com Arma Grande");
+    expect(joined).not.toContain("ESTILO DE LUTA");
+
+    const talentos = fieldValue("Talentos", character);
+    expect(talentos).toContain("Estilo de Luta: Combate com Arma Grande");
+    expect(talentos).not.toContain("escolher Estilo de Luta");
   });
 });

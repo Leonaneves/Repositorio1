@@ -18,11 +18,13 @@ import {
   DRUID_CANTRIPS_KNOWN,
   DRUID_SPELLS_PREPARED,
   DRUID_WILD_SHAPE_USES,
+  FIGHTER_ACTION_SURGE_USES,
   FIGHTER_BATTLE_MASTER_MANEUVERS_KNOWN,
   FIGHTER_BATTLE_MASTER_SUPERIORITY_DICE_COUNT,
   FIGHTER_BATTLE_MASTER_SUPERIORITY_DIE,
   FIGHTER_ELDRITCH_KNIGHT_CANTRIPS_KNOWN,
   FIGHTER_ELDRITCH_KNIGHT_SPELLS_PREPARED,
+  FIGHTER_INDOMITABLE_REROLL_USES,
   FIGHTER_PSI_WARRIOR_DICE_COUNT,
   FIGHTER_PSI_WARRIOR_DIE,
   FIGHTER_SECOND_WIND_USES,
@@ -117,6 +119,40 @@ export function getSorceryPoints(character: Character): number | null {
 export function getSecondWindUses(character: Character): number | null {
   if (character.classId !== "guerreiro") return null;
   return FIGHTER_SECOND_WIND_USES[character.level] ?? 0;
+}
+
+/**
+ * Texto da cura de Recuperar Fôlego: `1d10 + nível de Guerreiro` —
+ * resolvido numericamente (`1d10+5`, `1d10+12`...), nunca uma fórmula
+ * literal. Usa o NÍVEL DE GUERREIRO, nunca BP nem nível total do
+ * personagem.
+ */
+export function getSecondWindHealingText(character: Character): string | null {
+  if (character.classId !== "guerreiro") return null;
+  return `1d10+${character.level}`;
+}
+
+/**
+ * Usos de Surto de Ação (nível 2+): 1 uso dos níveis 2–16, 2 usos a
+ * partir do 17 (fonte "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO
+ * PDF" §2). Recupera todos em Descanso Curto ou Longo.
+ */
+export function getActionSurgeUsesCount(character: Character): number | null {
+  if (character.classId !== "guerreiro" || character.level < 2) return null;
+  return FIGHTER_ACTION_SURGE_USES[character.level] ?? 0;
+}
+
+/**
+ * Usos de Indomável — refazer uma Salvaguarda falha (nível 9+): 1 uso
+ * dos níveis 9–12, 2 dos 13–16, 3 dos 17–20 (fonte idem §2). Recupera
+ * todos em Descanso Longo (nunca Descanso Curto). Recurso DIFERENTE do
+ * "Incansável" do Patrulheiro (`getIndomitableUsesCount` abaixo, um
+ * recurso de PV Temporários) — nome em português só parecido, nunca a
+ * mesma função/fórmula.
+ */
+export function getFighterIndomitableRerollUsesCount(character: Character): number | null {
+  if (character.classId !== "guerreiro" || character.level < 9) return null;
+  return FIGHTER_INDOMITABLE_REROLL_USES[character.level] ?? 0;
 }
 
 export function getSneakAttackDice(character: Character): string | null {

@@ -5,6 +5,7 @@ import { barbarianClassFeatures, barbarianWeaponMasteryFeatures } from "./barbar
 import { bardClassFeatures } from "./bard.js";
 import { clericClassFeatures } from "./cleric.js";
 import { druidClassFeatures } from "./druid.js";
+import { fighterClassFeatures } from "./fighter.js";
 import { rangerClassFeatures } from "./ranger.js";
 import { sorcererClassFeatures } from "./sorcerer.js";
 import { warlockClassFeatures } from "./warlock.js";
@@ -163,24 +164,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // SUBCLASSES" tem conteúdo mecânico completo, não só nome+nível pendente (ver data/features/sorcerer.ts).
   // Patrulheiro removido daqui — fonte "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO
   // PDF" tem conteúdo mecânico completo, não só nome+nível pendente (ver data/features/ranger.ts).
-  guerreiro: [
-    { name: "Estilo de Luta", level: 1 },
-    { name: "Maestria em Arma", level: 1 },
-    { name: "Recuperar Fôlego", level: 1 },
-    { name: "Mente Tática", level: 2 },
-    { name: "Surto de Ação", level: 2 },
-    { name: "Ajuste Tático", level: 5 },
-    { name: "Ataque Extra", level: 5 },
-    { name: "Indomável", level: 9 },
-    { name: "Mestre Tático", level: 9 },
-    { name: "Dois Ataques Extras", level: 11 },
-    { name: "Ataques Estudados", level: 13 },
-    { name: "Indomável", level: 13 },
-    { name: "Indomável", level: 17 },
-    { name: "Surto de Ação", level: 17 },
-    { name: "Três Ataques Extras", level: 20 },
-  ],
-  // Patrulheiro removido — ver comentário acima de `guerreiro`.
+  // Guerreiro removido daqui — fonte "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF" tem
+  // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/fighter.ts).
   ladino: [
     { name: "Ataque Furtivo", level: 1 },
     { name: "Especialização", level: 1 },
@@ -273,10 +258,10 @@ export const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
  * nível 19. Artífice fica de fora: a fonte própria do Artífice dá
  * "Aumento no Valor de Atributo" no nível 19 (ver `ASI_LEVELS_BY_CLASS`)
  * e "Alma do Artífice" no nível 20 como capstone — nunca Dádiva Épica.
- * Bárbaro/Bardo/Bruxo/Clérigo/Druida/Feiticeiro/Patrulheiro continuam
- * incluídos (`ASI_LEVELS_BY_CLASS` fica em 4/8/12/16, igual às outras 7)
- * mesmo tendo saído de `NAMED_FEATURES_BY_CLASS` — por isso são somados
- * explicitamente aqui, não lidos mais dali.
+ * Bárbaro/Bardo/Bruxo/Clérigo/Druida/Feiticeiro/Guerreiro/Patrulheiro
+ * continuam incluídos (`ASI_LEVELS_BY_CLASS` já cobre cada um com seus
+ * próprios níveis) mesmo tendo saído de `NAMED_FEATURES_BY_CLASS` — por
+ * isso são somados explicitamente aqui, não lidos mais dali.
  */
 const DADIVA_EPICA_CLASSES: ClassId[] = [
   ...(Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice"),
@@ -284,6 +269,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   "bardo",
   "bruxo",
   "clerigo",
+  "guerreiro",
   "patrulheiro",
   "druida",
   "feiticeiro",
@@ -440,6 +426,7 @@ export const classFeatures: FeatureDefinition[] = [
   ...bardClassFeatures,
   ...clericClassFeatures,
   ...druidClassFeatures,
+  ...fighterClassFeatures,
   ...rangerClassFeatures,
   ...sorcererClassFeatures,
   ...warlockClassFeatures,

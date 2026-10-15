@@ -70,6 +70,26 @@ export const FIGHTER_WEAPON_MASTERIES: Record<number, number> = {
   11: 5, 12: 5, 13: 5, 14: 5, 15: 5, 16: 6, 17: 6, 18: 6, 19: 6, 20: 6,
 };
 
+/** Guerreiro — quantidade de usos de Surto de Ação por Descanso Curto/Longo (fonte "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF" §2). Sem a característica antes do nível 2 — chave ausente, nunca "0". */
+export const FIGHTER_ACTION_SURGE_USES: Record<number, number> = {
+  2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1,
+  11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1,
+  17: 2, 18: 2, 19: 2, 20: 2,
+};
+
+/**
+ * Guerreiro — usos de Indomável (refazer uma Salvaguarda falha) por
+ * Descanso Longo (fonte idem §2) — DIFERENTE do "Incansável" do
+ * Patrulheiro (`RANGER_...`/`getIndomitableUsesCount`, um recurso de PV
+ * Temporários; o nome em português só é parecido). Sem a característica
+ * antes do nível 9 — chave ausente, nunca "0".
+ */
+export const FIGHTER_INDOMITABLE_REROLL_USES: Record<number, number> = {
+  9: 1, 10: 1, 11: 1, 12: 1,
+  13: 2, 14: 2, 15: 2, 16: 2,
+  17: 3, 18: 3, 19: 3, 20: 3,
+};
+
 /** Ladino — dado de dano do Ataque Furtivo (ex.: "3d6"). */
 export const ROGUE_SNEAK_ATTACK_DICE: Record<number, string> = {
   1: "1d6", 2: "1d6", 3: "2d6", 4: "2d6", 5: "3d6", 6: "3d6", 7: "4d6", 8: "4d6", 9: "5d6", 10: "5d6",

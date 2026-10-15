@@ -281,10 +281,10 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
     const [column1, column2] = splitIntoTwoColumns(getRangerPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
-  // Guerreiro: mesmo raciocínio do Patrulheiro acima — só troca para a composição dinâmica quando
-  // há subclasse escolhida (as 4 cobertas por esta fonte); a classe BASE ainda não tem conteúdo, e
-  // getFighterPrintedBlocks() devolve [] sem subclasse, preservando o campo manual de sempre.
-  if (character.classId === "guerreiro" && character.subclassId) {
+  // Guerreiro: classe BASE completa (fonte "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO
+  // PDF") — troca para a composição dinâmica desde o nível 1, com ou sem subclasse escolhida
+  // (mesmo raciocínio já aplicado ao Patrulheiro acima).
+  if (character.classId === "guerreiro") {
     const [column1, column2] = splitIntoTwoColumns(getFighterPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }

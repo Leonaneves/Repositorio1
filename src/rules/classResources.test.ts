@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import {
+  getActionSurgeUsesCount,
   getBardicInspirationDie,
   getBardicInspirationUses,
   getBattleMasterManeuversKnownCount,
@@ -8,6 +9,7 @@ import {
   getChannelDivinityUses,
   getExtraAttacksCount,
   getFavoredEnemyCount,
+  getFighterIndomitableRerollUsesCount,
   getFocusPoints,
   getInfusedItemsMax,
   getInfusionsKnown,
@@ -18,6 +20,7 @@ import {
   getPsiWarriorDiceCount,
   getRageCount,
   getRageDamageBonus,
+  getSecondWindHealingText,
   getSecondWindUses,
   getSneakAttackDice,
   getSorceryPoints,
@@ -201,6 +204,37 @@ describe("Guerreiro — Recuperar Fôlego / Maestrias", () => {
     const level20 = characterOf("guerreiro", 20);
     expect(getSecondWindUses(level20)).toBe(4);
     expect(getWeaponMasteryCount(level20)).toBe(6);
+  });
+
+  it("getSecondWindHealingText: 1d10 + nível de Guerreiro, nunca BP nem nível total (fonte \"COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF\" §9)", () => {
+    expect(getSecondWindHealingText(characterOf("guerreiro", 1))).toBe("1d10+1");
+    expect(getSecondWindHealingText(characterOf("guerreiro", 5))).toBe("1d10+5");
+    expect(getSecondWindHealingText(characterOf("guerreiro", 12))).toBe("1d10+12");
+    expect(getSecondWindHealingText(characterOf("mago", 12))).toBeNull();
+  });
+});
+
+describe("Guerreiro — Surto de Ação (usos)", () => {
+  it("null antes do nível 2; 1 uso dos níveis 2–16; 2 usos dos níveis 17–20", () => {
+    expect(getActionSurgeUsesCount(characterOf("guerreiro", 1))).toBeNull();
+    expect(getActionSurgeUsesCount(characterOf("guerreiro", 2))).toBe(1);
+    expect(getActionSurgeUsesCount(characterOf("guerreiro", 16))).toBe(1);
+    expect(getActionSurgeUsesCount(characterOf("guerreiro", 17))).toBe(2);
+    expect(getActionSurgeUsesCount(characterOf("guerreiro", 20))).toBe(2);
+    expect(getActionSurgeUsesCount(characterOf("mago", 20))).toBeNull();
+  });
+});
+
+describe("Guerreiro — Indomável (refazer Salvaguarda, DIFERENTE do Incansável do Patrulheiro)", () => {
+  it("null antes do nível 9; 1 uso dos níveis 9–12; 2 dos 13–16; 3 dos 17–20", () => {
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 8))).toBeNull();
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 9))).toBe(1);
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 12))).toBe(1);
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 13))).toBe(2);
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 16))).toBe(2);
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 17))).toBe(3);
+    expect(getFighterIndomitableRerollUsesCount(characterOf("guerreiro", 20))).toBe(3);
+    expect(getFighterIndomitableRerollUsesCount(characterOf("patrulheiro", 20))).toBeNull();
   });
 });
 
