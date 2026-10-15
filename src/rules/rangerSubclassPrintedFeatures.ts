@@ -94,14 +94,25 @@ function getFeyWandererBlocks(character: Character): string[] {
 }
 
 // ---------- Caçador ----------
+/**
+ * Linhas EXTRA que o Caçador acrescenta ao bloco único "Marca do
+ * Predador" (fonte "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO
+ * PDF" §7: "Para Caçador, integrar ao mesmo bloco as linhas já
+ * aprovadas... Não criar dois títulos MARCA DO PREDADOR nem dois
+ * contadores de usos"). Nunca inclui o título ou a linha-base do
+ * recurso — isso é responsabilidade exclusiva de
+ * `rules/rangerClassPrintedFeatures.ts`, que monta o bloco único.
+ */
+export function getHunterFavoredEnemyExtraLines(character: Character): string[] {
+  const lines = ["> Sabe Imunidades, Resistências e Vulnerabilidades do alvo"];
+  if (character.level >= 11) {
+    lines.push("> 1/turno, ao causar dano ao marcado: dano da marca em outro alvo 9m dele");
+  }
+  return lines;
+}
+
 function getHunterBlocks(character: Character): string[] {
   const blocks: string[] = [];
-
-  const marcaDoPredadorLines = ["# MARCA DO PREDADOR", "> Sabe Imunidades, Resistências e Vulnerabilidades do alvo"];
-  if (character.level >= 11) {
-    marcaDoPredadorLines.push("> 1/turno, ao causar dano ao marcado: dano da marca em outro alvo 9m dele");
-  }
-  blocks.push(marcaDoPredadorLines.join("\n"));
 
   blocks.push(
     [

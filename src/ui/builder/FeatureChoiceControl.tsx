@@ -3,7 +3,7 @@ import { SKILL_KEYS } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
 import { tools } from "../../data/tools.js";
 import { getWeaponsByCategory, weapons } from "../../rules/weapons.js";
-import { getSkillProficiency } from "../../rules/skills.js";
+import { getSkillExpertise, getSkillProficiency } from "../../rules/skills.js";
 import { getEligibleTools } from "../../rules/tools.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 
@@ -64,9 +64,13 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
 
   if (effect.kind === "skillExpertise") {
     const selected = Array.isArray(selection?.value) ? selection.value : [];
-    // Só perícias já proficientes entram na lista (nunca concede a proficiência) — uma perícia já
-    // SELECIONADA nesta mesma escolha nunca some, mesmo que algo externo mude sua proficiência depois.
-    const options = SKILL_KEYS.filter((skillId) => selected.includes(skillId) || getSkillProficiency(character, skillId));
+    // Só perícias já proficientes E AINDA sem Especialização entram na lista (nunca concede a
+    // proficiência, nunca reaplica Especialização numa perícia que já a tenha por outra escolha —
+    // ex.: Explorador Hábil e Especialista do Patrulheiro nunca podem repetir a mesma perícia) —
+    // uma perícia já SELECIONADA nesta mesma escolha nunca some, mesmo que isso mude depois.
+    const options = SKILL_KEYS.filter(
+      (skillId) => selected.includes(skillId) || (getSkillProficiency(character, skillId) && !getSkillExpertise(character, skillId)),
+    );
     return (
       <fieldset className="feature-choice">
         <legend>

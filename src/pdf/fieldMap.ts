@@ -43,6 +43,7 @@ import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
 import { getEffectiveSpellsPrepared } from "../rules/effectiveSpellsPrepared.js";
 import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
+import { getFighterFightingStyleTalentEntries, getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
 /**
@@ -239,12 +240,15 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES"), Druida
  * (fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES"), Feiticeiro
  * (fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES") e
- * Patrulheiro e Guerreiro (ambos só nas respectivas 4 subclasses —
- * fontes "IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" e
- * "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF") têm o
- * texto impresso montado dinamicamente; as demais 5 classes continuam
- * com o campo manual de sempre (`Character.classFeatures`), sem nenhuma
- * mudança de comportamento.
+ * Patrulheiro (classe base completa — fonte "COMPLETAR A CLASSE
+ * PATRULHEIRO NO BUILDER E NO PDF" — mais as 4 subclasses) têm o texto
+ * impresso montado dinamicamente desde o nível 1, sem depender de
+ * subclasse escolhida. Guerreiro só troca para a composição dinâmica
+ * quando há subclasse escolhida (as 4 cobertas por "IMPLEMENTAR
+ * SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF") — a classe BASE dele
+ * ainda não tem conteúdo. As demais 4 classes continuam com o campo
+ * manual de sempre (`Character.classFeatures`), sem nenhuma mudança de
+ * comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -271,11 +275,9 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
     const [column1, column2] = splitIntoTwoColumns(getSorcererPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
-  // Patrulheiro: só troca para a composição dinâmica quando há subclasse escolhida (as 4 cobertas
-  // por esta fonte) — a classe BASE ainda não tem conteúdo (ver NAMED_FEATURES_BY_CLASS.patrulheiro),
-  // então getRangerPrintedBlocks() pode devolver [] sem subclasse; nesse caso o campo manual de
-  // sempre continua sendo a única fonte, para nunca apagar um texto já digitado pelo jogador.
-  if (character.classId === "patrulheiro" && character.subclassId) {
+  // Patrulheiro: classe BASE completa (fonte "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO
+  // PDF") — troca para a composição dinâmica desde o nível 1, com ou sem subclasse escolhida.
+  if (character.classId === "patrulheiro") {
     const [column1, column2] = splitIntoTwoColumns(getRangerPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
@@ -319,7 +321,16 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
   {
     kind: "text",
     pdfField: "Talentos",
-    getValue: (c) => renderAutoTextBlock([...getBackgroundFeatEntries(c), ...getWarlockLessonsOfTheOldOnesTalentEntries(c)], c.talentsNotes),
+    getValue: (c) =>
+      renderAutoTextBlock(
+        [
+          ...getBackgroundFeatEntries(c),
+          ...getWarlockLessonsOfTheOldOnesTalentEntries(c),
+          ...getFighterManeuverTalentEntries(c),
+          ...getFighterFightingStyleTalentEntries(c),
+        ],
+        c.talentsNotes,
+      ),
   },
   { kind: "text", pdfField: "Carac.Classe.1", getValue: (c) => getClassFeaturesColumn(c, 1) },
   { kind: "text", pdfField: "Carac.Classe.2", getValue: (c) => getClassFeaturesColumn(c, 2) },

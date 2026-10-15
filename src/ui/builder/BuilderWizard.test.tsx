@@ -5,6 +5,7 @@ import { useCharacterStore } from "../../state/characterStore.js";
 import { useBuilderStore } from "../../state/builderStore.js";
 import { useInsightSessionStore } from "../insights/insightSessionStore.js";
 import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../../data/features/subclasses.js";
+import { RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID } from "../../data/features/ranger.js";
 import { getClassSkillChoiceId } from "../../data/classes.js";
 import { getSkillProficiencyOrigin } from "../../rules/skills.js";
 
@@ -471,9 +472,14 @@ describe("BuilderWizard — Patrulheiro, escolhas permanentes das subclasses (fo
       const store = useCharacterStore.getState();
       store.setClass("patrulheiro");
       store.setLevel(level);
-      // Resolve escolhas NÃO relacionadas (Perícias de Classe + ASI de nível 4) — sem isso,
-      // Avançar já ficaria bloqueado por um motivo que nada tem a ver com a subclasse sob teste.
+      // Resolve escolhas NÃO relacionadas (Perícias de Classe + Estilo de Luta/Combatente
+      // Druídico do nível 2 + Especialização de Explorador Hábil do nível 2 + ASI de nível 4) —
+      // sem isso, Avançar já ficaria bloqueado por um motivo que nada tem a ver com a subclasse
+      // sob teste (fonte "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF" §4: a escolha de
+      // Estilo de Luta é um optionPick obrigatório, e Explorador Hábil é um skillExpertise).
       store.setFeatureChoiceSelection(getClassSkillChoiceId("patrulheiro"), ["furtividade", "percepcao", "sobrevivencia"]);
+      store.setFeatureChoiceSelection(RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, "Estilo de Luta");
+      store.setFeatureChoiceSelection(RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, ["furtividade"]);
       if (level >= 4) store.setAsiMode(4, "feat");
     });
     act(() => useBuilderStore.getState().goToStep("class"));

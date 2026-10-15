@@ -2,7 +2,7 @@ import type { Character } from "../domain/character.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 import { getPsiWarriorDie, getPsiWarriorDiceCount, getSuperiorityDie, getSuperiorityDiceCount } from "./classResources.js";
 import { getKineticThrustCd, getPsionicDieWithIntText, getPsionicLeapFlySpeed, getEnergyBastionTargetCount } from "./psionics.js";
-import { getKnownManeuvers, getManeuverPrintedLine, getManeuversCd } from "./maneuvers.js";
+import { getManeuversCd } from "./maneuvers.js";
 
 /**
  * Texto compacto para impressão das 4 subclasses de Guerreiro (fonte
@@ -15,6 +15,13 @@ import { getKnownManeuvers, getManeuverPrintedLine, getManeuversCd } from "./man
  * (ver `data/features/classes.ts#NAMED_FEATURES_BY_CLASS.guerreiro`) —
  * fora de escopo desta fonte, igual à decisão já tomada para a classe
  * base do Patrulheiro.
+ *
+ * As Manobras CONHECIDAS do Mestre de Batalha e o Estilo de Luta
+ * Adicional do Campeão NÃO aparecem mais aqui (fonte "COMPLETAR A
+ * CLASSE PATRULHEIRO NO BUILDER E NO PDF" §8) — foram movidos para a
+ * caixa de Talentos (`rules/fighterTalentEntries.ts`), saindo de
+ * "Características de Classe". "SUPERIORIDADE EM COMBATE" continua
+ * aqui com quantidade/tipo de Dado de Superioridade, CD e Implacável.
  */
 
 /** `[__]` com espaço entre marcadores, igual ao exemplo literal da fonte ("quatro dados: `[__] [__] [__] [__]`"). */
@@ -46,8 +53,9 @@ function getChampionBlocks(character: Character): string[] {
     );
   }
 
-  // "Estilo de Luta Adicional" (nível 7) nunca aparece aqui como lembrete de escolha — o talento
-  // escolhido aparece pela sua própria integração (§3), ainda pendente de catálogo (§2).
+  // "Estilo de Luta Adicional" (nível 7) nunca aparece aqui — vai para a caixa de Talentos
+  // (rules/fighterTalentEntries.ts#getFighterFightingStyleTalentEntries), nunca em Características
+  // de Classe, e só quando o jogador já preencheu o nome (catálogo de Estilos de Luta pendente).
 
   return blocks;
 }
@@ -152,10 +160,9 @@ function getBattleMasterBlocks(character: Character): string[] {
     const secondLine = character.level >= 15 ? "> 1 manobra/atq; gasta 1 DS ou, 1/turno, usa 1d8 sem gastar" : "> 1 manobra/atq; cada uso gasta 1 DS";
     blocks.push(["# SUPERIORIDADE EM COMBATE", `> DS d${die} ${checkboxes(diceCount)}/DC ou DL | CD ${cdText}`, secondLine].join("\n"));
 
-    const knownManeuvers = getKnownManeuvers(character);
-    if (knownManeuvers.length > 0) {
-      blocks.push(["# MANOBRAS", ...knownManeuvers.map((maneuver) => getManeuverPrintedLine(maneuver, character))].join("\n"));
-    }
+    // As Manobras CONHECIDAS saíram daqui para a caixa de Talentos (fonte "COMPLETAR A CLASSE
+    // PATRULHEIRO NO BUILDER E NO PDF" §8 — ver `rules/fighterTalentEntries.ts`); este bloco
+    // mantém só quantidade/tipo de Dado de Superioridade, CD e Implacável.
   }
 
   if (character.level >= 7) {

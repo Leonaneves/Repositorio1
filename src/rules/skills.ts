@@ -8,6 +8,7 @@ import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
+import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -22,11 +23,15 @@ const EXTRA_SKILL_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
 
 /**
  * IDs de `FeatureChoice` (`skillExpertise`) que concedem Especialização
- * (nunca proficiência) — hoje só "Especialista" do Bardo, nos níveis 2
- * e 9 (fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" §4/§10).
+ * (nunca proficiência) — "Especialista" do Bardo, nos níveis 2 e 9
+ * (fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" §4/§10); e
+ * Explorador Hábil (nível 2, 1 perícia) + Especialista (nível 9, 2
+ * perícias) do Patrulheiro, duas escolhas independentes (fonte
+ * "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF" §5).
  */
 const EXPERTISE_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
   bardo: ["bardo-especialista-1-escolha", "bardo-especialista-2-escolha"],
+  patrulheiro: [RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID],
 };
 
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";

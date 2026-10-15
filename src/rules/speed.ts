@@ -1,6 +1,7 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { species } from "../data/species.js";
+import { armors } from "../data/armors.js";
 import { getSpeciesLineageSpeedBonus } from "./speciesLineage.js";
 
 /**
@@ -13,6 +14,11 @@ import { getSpeciesLineageSpeedBonus } from "./speciesLineage.js";
  *   estiver sem armadura. Confirmado por você; a regra não menciona
  *   restrição de escudo, então aqui o bônus vale com ou sem escudo —
  *   sinalize se isso precisar mudar.
+ * - Patrulheiro ("Errante", fonte "COMPLETAR A CLASSE PATRULHEIRO NO
+ *   BUILDER E NO PDF" §6): +3m a partir do nível 6, enquanto NÃO
+ *   estiver usando Armadura PESADA especificamente (ao contrário de
+ *   Monge/Bárbaro acima, Armadura Leve/Média e Escudo nunca bloqueiam
+ *   este bônus).
  */
 export function getClassSpeedBonus(character: Character): number {
   const usingArmor = character.armor.equipped !== "unarmed";
@@ -32,6 +38,13 @@ export function getClassSpeedBonus(character: Character): number {
   if (character.classId === "barbaro") {
     if (usingArmor) return 0;
     return character.level >= 5 ? 3 : 0;
+  }
+
+  if (character.classId === "patrulheiro") {
+    if (character.level < 6) return 0;
+    const equipped = character.armor.equipped;
+    const usingHeavyArmor = equipped !== "unarmed" && armors[equipped].category === "heavy";
+    return usingHeavyArmor ? 0 : 3;
   }
 
   return 0;
@@ -64,5 +77,23 @@ export function getSpeed(character: Character): ComputedValue {
  */
 export function getSwimSpeed(character: Character): ComputedValue | null {
   if (character.classId !== "druida" || character.subclassId !== "Círculo do Mar" || character.level < 6) return null;
+  return getSpeed(character);
+}
+
+/**
+ * Errante (Patrulheiro, nível 6+ — fonte "COMPLETAR A CLASSE PATRULHEIRO
+ * NO BUILDER E NO PDF" §6): Deslocamento de Escalada = o Deslocamento
+ * efetivo, JÁ incluindo o +3m de Errante quando aplicável (mesma ordem
+ * de cálculo de `getClassSpeedBonus` — nunca soma o +3m de novo).
+ * `null` para qualquer personagem sem essa característica.
+ */
+export function getRangerClimbSpeed(character: Character): ComputedValue | null {
+  if (character.classId !== "patrulheiro" || character.level < 6) return null;
+  return getSpeed(character);
+}
+
+/** Mesma regra de `getRangerClimbSpeed`, para Deslocamento de Natação. */
+export function getRangerSwimSpeed(character: Character): ComputedValue | null {
+  if (character.classId !== "patrulheiro" || character.level < 6) return null;
   return getSpeed(character);
 }

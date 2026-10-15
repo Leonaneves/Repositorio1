@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
-import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID } from "../data/features/subclasses.js";
+import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID, FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID } from "../data/features/subclasses.js";
 import { pdfTextFields } from "./fieldMap.js";
 import { buildExportedPdf, fillPdfForm } from "./exporter.js";
 
@@ -123,7 +123,7 @@ describe("exportação de ponta a ponta — exemplos pedidos explicitamente na f
     expect(joined).toContain("MESTRE TELECINÉTICO");
   });
 
-  it("Mestre de Batalha nível 18 (nove manobras): exporta um PDF válido com DS d12 e as 9 manobras escolhidas", async () => {
+  it("Mestre de Batalha nível 18 (nove manobras): exporta um PDF válido com DS d12 em Carac.Classe; as 9 manobras vão para a caixa de Talentos, preservando talentos já existentes (fonte \"COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF\" §8)", async () => {
     const character = fullFighter(18, "Mestre da Batalha");
     character.name = "Exemplo Mestre de Batalha 18";
     character.abilities.FOR.score = 16;
@@ -139,11 +139,33 @@ describe("exportação de ponta a ponta — exemplos pedidos explicitamente na f
       "avaliacao-tatica",
       "contra-ataque",
     ];
+    character.talentsNotes = "Talento manual do jogador, preservado";
     const joined = await expectValidExport(character);
     expect(joined).toContain("DS d12");
-    expect(joined).toContain("# MANOBRAS");
-    expect(joined).toContain("Aparar:");
-    expect(joined).toContain("Contra-ataque:");
     expect(joined).toContain("CONHEÇA SEU INIMIGO");
+    expect(joined).not.toContain("# MANOBRAS");
+    expect(joined).not.toContain("Aparar:");
+
+    const talentos = fieldValue("Talentos", character);
+    expect(talentos).toContain("Manobras:");
+    expect(talentos).toContain("Aparar:");
+    expect(talentos).toContain("Contra-ataque:");
+    expect(talentos).toContain("Talento manual do jogador, preservado");
+  });
+
+  it("Campeão nível 7 com Estilo de Luta Adicional preenchido: vai para a caixa de Talentos, nunca para Características de Classe", async () => {
+    const character = fullFighter(7, "Campeão");
+    character.name = "Exemplo Campeão — Estilo de Luta Adicional";
+    character.featureChoiceSelections[FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID] = { value: "Duelista" };
+    const joined = await expectValidExport(character);
+    expect(joined).not.toContain("Duelista");
+
+    const talentos = fieldValue("Talentos", character);
+    expect(talentos).toContain("Estilo de Luta Adicional: Duelista");
+  });
+
+  it("Campeão nível 7 sem Estilo de Luta Adicional preenchido: nunca inventa nem imprime nada em Talentos", () => {
+    const character = fullFighter(7, "Campeão");
+    expect(fieldValue("Talentos", character)).toBe("");
   });
 });

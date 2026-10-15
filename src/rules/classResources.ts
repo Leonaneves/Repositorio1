@@ -139,6 +139,57 @@ export function getFavoredEnemyCount(character: Character): number | null {
   return RANGER_FAVORED_ENEMY_COUNT[character.level] ?? 0;
 }
 
+/**
+ * Dado de dano da Marca do Predador (Inimigo Favorito) — `1d6` até o
+ * nível 19; `1d10` a partir do nível 20 (Matador de Inimigos
+ * Favoritos). Única fonte deste valor no projeto — toda referência ao
+ * dano adicional da magia (Presa do Caçador Superior, Fúria Bestial)
+ * deve consultar esta função, nunca duplicar o número.
+ */
+export function getFavoredEnemyDie(character: Character): string | null {
+  if (character.classId !== "patrulheiro") return null;
+  return character.level >= 20 ? "1d10" : "1d6";
+}
+
+/** `1dN` + modificador formatado — `+N`/`-N` quando o modificador é diferente de zero, só `1dN` quando é zero (nunca `1dN+0`). */
+function formatDieWithModifier(die: number, modifier: number): string {
+  if (modifier > 0) return `1d${die}+${modifier}`;
+  if (modifier < 0) return `1d${die}${modifier}`;
+  return `1d${die}`;
+}
+
+/**
+ * Usos de Incansável (nível 10+): máximo(1, modificador de Sabedoria).
+ * Recurso SEPARADO de Véu da Natureza (`getNatureVeilUsesCount`), mesmo
+ * compartilhando a fórmula.
+ */
+export function getIndomitableUsesCount(character: Character): number | null {
+  if (character.classId !== "patrulheiro" || character.level < 10) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "SAB")));
+}
+
+/**
+ * `{pvTemporarios}` de Incansável: `1d8` + modificador de Sabedoria,
+ * resolvido como texto (`1d8+3`/`1d8-1`/`1d8`) — nunca uma fórmula
+ * literal. O mínimo 1 do total obtido é uma regra de uso (aplicada ao
+ * resultado da rolagem), não uma alteração desta fórmula.
+ */
+export function getIndomitableTempHpText(character: Character): string | null {
+  if (character.classId !== "patrulheiro" || character.level < 10) return null;
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return formatDieWithModifier(8, wisdomMod);
+}
+
+/**
+ * Usos de Véu da Natureza (nível 14+): máximo(1, modificador de
+ * Sabedoria). Recurso SEPARADO de Incansável (`getIndomitableUsesCount`),
+ * mesmo compartilhando a fórmula — nunca o mesmo contador.
+ */
+export function getNatureVeilUsesCount(character: Character): number | null {
+  if (character.classId !== "patrulheiro" || character.level < 14) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "SAB")));
+}
+
 const CANTRIPS_KNOWN_TABLES = {
   artifice: ARTIFICER_CANTRIPS_KNOWN,
   bardo: BARD_CANTRIPS_KNOWN,

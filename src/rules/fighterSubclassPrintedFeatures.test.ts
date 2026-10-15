@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getFighterSubclassPrintedBlocks } from "./fighterSubclassPrintedFeatures.js";
+import { getFighterManeuverTalentEntries } from "./fighterTalentEntries.js";
 
 function fighterOf(subclassId: string, level: number) {
   const character = createBlankCharacter("fighter-printed-test");
@@ -139,17 +140,20 @@ describe("Mestre da Batalha", () => {
     expect(blocks).not.toContain("CONHEÇA SEU INIMIGO");
   });
 
-  it("nível 7: Conheça Seu Inimigo aparece após as manobras escolhidas", () => {
+  it("nível 7: Conheça Seu Inimigo aparece em Características de Classe; as manobras escolhidas NUNCA aparecem aqui (foram para Talentos — fonte \"COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF\" §8)", () => {
     const character = fighterOf("Mestre da Batalha", 7);
     character.chosenManeuvers = ["desarme"];
     const blocks = getFighterSubclassPrintedBlocks(character);
-    const maneuversIndex = blocks.findIndex((b) => b.startsWith("# MANOBRAS"));
-    const conheçaIndex = blocks.findIndex((b) => b.startsWith("# CONHEÇA SEU INIMIGO"));
-    expect(maneuversIndex).toBeGreaterThanOrEqual(0);
-    expect(conheçaIndex).toBeGreaterThan(maneuversIndex);
+    expect(blocks.some((b) => b.startsWith("# MANOBRAS"))).toBe(false);
+    expect(blocks.some((b) => b.startsWith("# CONHEÇA SEU INIMIGO"))).toBe(true);
+
+    // As manobras escolhidas aparecem, em vez disso, na área de Talentos.
+    const talentEntries = getFighterManeuverTalentEntries(character);
+    expect(talentEntries).toHaveLength(1);
+    expect(talentEntries[0].text).toContain("Desarme:");
   });
 
-  it("nível 18 (exemplo de exportação pedido, com nove manobras): DS d12, segunda linha de Implacável, nove manobras impressas sob um único título, nunca 'Superioridade Aprimorada/Suprema'", () => {
+  it("nível 18 (exemplo de exportação pedido, com nove manobras): DS d12, segunda linha de Implacável, nunca 'Superioridade Aprimorada/Suprema', nunca 'MANOBRAS' em Características de Classe", () => {
     const character = fighterOf("Mestre da Batalha", 18);
     character.abilities.FOR.score = 16; // mod +3
     character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID] = { value: "Força" };
@@ -171,10 +175,12 @@ describe("Mestre da Batalha", () => {
     expect(joined).toContain("1 manobra/atq; gasta 1 DS ou, 1/turno, usa 1d8 sem gastar");
     expect(joined).not.toContain("Superioridade Aprimorada");
     expect(joined).not.toContain("Superioridade Suprema");
+    expect(joined).not.toContain("# MANOBRAS");
 
-    const maneuversBlock = blocks.find((b) => b.startsWith("# MANOBRAS"))!;
-    const lines = maneuversBlock.split("\n").filter((l) => l.startsWith(">"));
+    // As nove manobras, sob um único título, agora vivem na área de Talentos.
+    const talentEntries = getFighterManeuverTalentEntries(character);
+    expect(talentEntries).toHaveLength(1);
+    const lines = talentEntries[0].text.split("\n").filter((l) => l !== "Manobras:");
     expect(lines).toHaveLength(9);
-    expect(blocks.filter((b) => b.startsWith("# MANOBRAS"))).toHaveLength(1);
   });
 });

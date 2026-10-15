@@ -18,7 +18,8 @@ import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
  * Falar com Animais/Convocar Familiar/Magias de Círculo/Mapa Estelar/
  * Truque de Xamã do Druida — `getDruidAutoPreparedSpells`; magias
  * sempre preparadas de Andarilho Feérico/Vigilante das Sombras do
- * Patrulheiro — `getRangerAutoPreparedSpells`; Magias das 4 subclasses
+ * Patrulheiro, além de Marca do Predador (base) e dos truques de
+ * Combatente Druídico (base) — `getRangerAutoPreparedSpells`; Magias das 4 subclasses
  * de Feiticeiro — `getSorcererAutoPreparedSpells`; magias
  * sempre preparadas dos 4 Patronos + Contatar Patrono + invocações que
  * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`; truque/

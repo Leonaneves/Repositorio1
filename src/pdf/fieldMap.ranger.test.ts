@@ -39,7 +39,7 @@ function classFeaturesColumns(character: Character): string {
   return fieldValue("Carac.Classe.1", character) + fieldValue("Carac.Classe.2", character);
 }
 
-describe("Carac.Classe.1/.2 — Patrulheiro usa a composição dinâmica (só as 4 subclasses)", () => {
+describe("Carac.Classe.1/.2 — Patrulheiro usa a composição dinâmica (classe base completa + as 4 subclasses)", () => {
   it("o conteúdo vem de getRangerPrintedBlocks, nunca de character.classFeatures", () => {
     const character = fullRanger(5, "Andarilho Feérico");
     character.classFeatures = { column1: "texto manual nunca deveria aparecer", column2: "" };
@@ -48,10 +48,13 @@ describe("Carac.Classe.1/.2 — Patrulheiro usa a composição dinâmica (só as
     expect(joined).not.toContain("texto manual nunca deveria aparecer");
   });
 
-  it("sem subclasse escolhida: volta para o campo manual de sempre (classe base ainda pendente)", () => {
+  it("sem subclasse escolhida: já usa a composição dinâmica da classe BASE (fonte \"COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF\"), nunca o campo manual", () => {
     const character = fullRanger(5, null);
     character.classFeatures = { column1: "texto manual do jogador", column2: "" };
-    expect(fieldValue("Carac.Classe.1", character)).toBe("texto manual do jogador");
+    const joined = classFeaturesColumns(character);
+    expect(joined).not.toContain("texto manual do jogador");
+    expect(joined).toContain("MAESTRIA EM ARMA");
+    expect(joined).toContain("MARCA DO PREDADOR");
   });
 
   it.each(["Andarilho Feérico", "Caçador", "Senhor das Feras", "Vigilante das Sombras"])(
@@ -78,12 +81,12 @@ describe("Carac.Classe.1/.2 — Patrulheiro usa a composição dinâmica (só as
     expect(joined).not.toContain("Persuasão");
   });
 
-  it("subclasses só entram nos blocos quando character.subclassId corresponde — sem mistura entre elas", () => {
+  it("subclasses só entram nos blocos quando character.subclassId corresponde — sem mistura entre elas (Marca do Predador é da classe BASE, aparece sempre)", () => {
     const character = fullRanger(15, "Senhor das Feras");
     const joined = classFeaturesColumns(character);
     expect(joined).toContain("COMPANHEIRO PRIMAL");
+    expect(joined).toContain("MARCA DO PREDADOR"); // classe base, nunca exclusivo de uma subclasse
     expect(joined).not.toContain("GLAMOUR TRANSCENDENTAL");
-    expect(joined).not.toContain("MARCA DO PREDADOR");
     expect(joined).not.toContain("EMBOSCADOR DAS SOMBRAS");
   });
 });
@@ -94,9 +97,10 @@ describe("Magias preparadas — Andarilho Feérico/Vigilante das Sombras entram 
     character.spellsPrepared = [
       { circle: "1", name: "Magia Manual do Jogador", castingTime: "", range: "", concentration: false, ritual: false, material: false, notes: "" },
     ];
-    expect(fieldValue("nome.magia.1.0", character)).toBe("Enfeitiçar Pessoa");
-    expect(fieldValue("nome.magia.1.1", character)).toBe("Passo Nebuloso");
-    expect(fieldValue("nome.magia.1.2", character)).toBe("Convocar Feérico");
+    expect(fieldValue("nome.magia.1.0", character)).toBe("Marca do Predador");
+    expect(fieldValue("nome.magia.1.1", character)).toBe("Enfeitiçar Pessoa");
+    expect(fieldValue("nome.magia.1.2", character)).toBe("Passo Nebuloso");
+    expect(fieldValue("nome.magia.1.3", character)).toBe("Convocar Feérico");
     expect(fieldValue("circulo1.0", character)).toBe("");
   });
 
