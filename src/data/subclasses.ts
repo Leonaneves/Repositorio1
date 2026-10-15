@@ -117,8 +117,10 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
   patrulheiro: [
     { shortName: "Senhor das Feras", fullName: "Senhor das Feras" },
     { shortName: "Andarilho Feérico", fullName: "Andarilho Feérico" },
-    // Valor interno NÃO encurtado: reconhecido pela progressão de conjuração de meio-conjurador (igual às demais subclasses de Patrulheiro).
-    { shortName: "das Sombras", fullName: "Perseguidor das Sombras" },
+    // Renomeada de "Perseguidor das Sombras" para "Vigilante das Sombras" (fonte "IMPLEMENTAR
+    // SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" §5) — nenhum conteúdo mecânico dependia
+    // ainda do nome antigo (subclassFeatures ficava vazio até esta fonte).
+    { shortName: "das Sombras", fullName: "Vigilante das Sombras" },
     { shortName: "Caçador", fullName: "Caçador" },
     { shortName: "Guardião Oco", fullName: "Guardião Oco" },
   ],

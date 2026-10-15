@@ -3,9 +3,16 @@ import type { Character } from "../domain/character.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 import { getSkillBonus } from "./skills.js";
 
-/** Iniciativa = modificador de Destreza + ajuste manual. */
+/**
+ * Iniciativa = modificador de Destreza + ajuste manual. "Emboscador das
+ * Sombras" (Vigilante das Sombras, nível 3 — fonte "IMPLEMENTAR
+ * SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" §5) troca a base para
+ * Sabedoria, sem mínimo +1 — aplicado direto aqui, nunca repetido como
+ * texto em Características de Classe.
+ */
 export function getInitiative(character: Character): ComputedValue {
-  const auto = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  const ability = character.subclassId === "Vigilante das Sombras" && character.level >= 3 ? "SAB" : "DEX";
+  const auto = getAbilityModifier(getEffectiveAbilityScore(character, ability));
   return computedValue(auto, character.initiative.manualAdjustment);
 }
 

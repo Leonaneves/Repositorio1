@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
+import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import { getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 
 /**
@@ -89,5 +90,22 @@ describe("getRedundantSkillChoiceSelections — detecção independente da ordem
     // mesmo que a própria "Perícias de Classe" do Bardo tenha sido preenchida.
     character.featureChoiceSelections[getClassSkillChoiceId("bardo")] = { value: ["atuacao", "enganacao"] };
     expect(getRedundantSkillChoiceSelections(character)).toEqual([]);
+  });
+
+  it("Subclasse (Glamour Transcendental do Andarilho Feérico) redundante com Antecedente — mesma detecção para a origem 'subclass' (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §2/§6)", () => {
+    const character = createBlankCharacter("skill-conflict-ranger");
+    character.classId = "patrulheiro";
+    character.subclassId = "Andarilho Feérico";
+    character.level = 3;
+    character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID] = { value: ["persuasao"] };
+    character.backgroundId = "artesao"; // concede Investigação/Persuasão automaticamente, depois da escolha já feita
+
+    const entries = getRedundantSkillChoiceSelections(character);
+    expect(entries).toEqual([
+      { choiceId: RANGER_GLAMOUR_SKILL_CHOICE_ID, featureName: "Glamour Transcendental", sourceType: "subclass", skill: "persuasao" },
+    ]);
+
+    // nunca escolhe uma substituta sozinho — a seleção de subclasse continua intocada.
+    expect(character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID]?.value).toEqual(["persuasao"]);
   });
 });

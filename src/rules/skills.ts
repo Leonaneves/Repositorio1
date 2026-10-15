@@ -7,6 +7,7 @@ import { classes, getClassSkillChoiceId } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
+import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -74,6 +75,21 @@ export function isSkillGrantedByClassChoice(character: Character, skill: SkillKe
 export function isSkillGrantedBySpeciesChoice(character: Character, skill: SkillKey): boolean {
   if (character.speciesId !== "elfo") return false;
   const selection = character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID]?.value;
+  const selected = Array.isArray(selection) ? selection : [];
+  return selected.includes(skill);
+}
+
+/**
+ * `true` se o jogador escolheu esta perícia em "Glamour Transcendental"
+ * (Andarilho Feérico, nível 3 — fonte "IMPLEMENTAR SUBCLASSES DO
+ * PATRULHEIRO NO BUILDER E NO PDF" §2). Primeira e única fonte de
+ * proficiência ligada à SUBCLASSE hoje; se outra subclasse ganhar uma
+ * escolha equivalente no futuro, generalizar para um mapa por nome de
+ * subclasse (mesmo padrão de `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima).
+ */
+export function isSkillGrantedBySubclassChoice(character: Character, skill: SkillKey): boolean {
+  if (character.subclassId !== "Andarilho Feérico") return false;
+  const selection = character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID]?.value;
   const selected = Array.isArray(selection) ? selection : [];
   return selected.includes(skill);
 }
@@ -152,24 +168,47 @@ export function getShamanSkillBonus(character: Character, skill: SkillKey): numb
   return Math.max(1, wisdomMod);
 }
 
-export type SkillProficiencyOrigin = "manual" | "background" | "class" | "species" | null;
+/**
+ * Bônus de "Glamour Transcendental" (Andarilho Feérico, nível 3 — fonte
+ * "IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" §2):
+ * modificador de Sabedoria, mínimo +1, somado a TODAS as perícias de
+ * Carisma — mesma mecânica INCONDICIONAL de `getThaumaturgeSkillBonus`/
+ * `getShamanSkillBonus` (soma mesmo sem proficiência, nunca concede a
+ * proficiência em si, nunca é dobrado por Especialização porque entra
+ * fora do termo `proficiencyBonus * multiplier` em `getSkillBonus`). O
+ * bônus também vale para testes de Carisma SEM perícia associada — sem
+ * campo próprio para isso no PDF, por isso o texto impresso
+ * (`rules/rangerSubclassPrintedFeatures.ts`) mantém um lembrete, nunca
+ * duplicando o valor já somado aqui.
+ */
+export function getGlamourTranscendentalBonus(character: Character, skill: SkillKey): number {
+  if (character.classId !== "patrulheiro" || character.subclassId !== "Andarilho Feérico") return 0;
+  if (skills[skill].ability !== "CAR") return 0;
+
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return Math.max(1, wisdomMod);
+}
+
+export type SkillProficiencyOrigin = "manual" | "background" | "class" | "subclass" | "species" | null;
 
 /**
  * De onde vem a proficiência final da perícia — usado pela UI (§6/§10)
  * para diferenciar "proficiência automática" (`"background"`/`"class"`/
- * `"species"`), "proficiência manual" (`"manual"`, modo Homebrew) e
- * "nenhuma" (`null`). Mesma prioridade de `getSkillProficiency`: manual
- * > fonte estrutural. Quando duas fontes estruturais concedem a mesma
- * perícia (ex.: Antecedente e Classe dão "História"), prioriza na
- * ordem background > class > species só para exibição — a proficiência
- * em si já não depende de qual delas "venceu" (§9: a duplicata nunca
- * consome uma escolha adicional de nenhuma das fontes).
+ * `"subclass"`/`"species"`), "proficiência manual" (`"manual"`, modo
+ * Homebrew) e "nenhuma" (`null`). Mesma prioridade de
+ * `getSkillProficiency`: manual > fonte estrutural. Quando duas fontes
+ * estruturais concedem a mesma perícia (ex.: Antecedente e Classe dão
+ * "História"), prioriza na ordem background > class > subclass >
+ * species só para exibição — a proficiência em si já não depende de
+ * qual delas "venceu" (§9: a duplicata nunca consome uma escolha
+ * adicional de nenhuma das fontes).
  */
 export function getSkillProficiencyOrigin(character: Character, skill: SkillKey): SkillProficiencyOrigin {
   const manualOverride = character.skills[skill].manualOverride;
   if (manualOverride !== null) return manualOverride ? "manual" : null;
   if (isSkillGrantedByBackground(character, skill)) return "background";
   if (isSkillGrantedByClassChoice(character, skill)) return "class";
+  if (isSkillGrantedBySubclassChoice(character, skill)) return "subclass";
   if (isSkillGrantedBySpeciesChoice(character, skill)) return "species";
   return null;
 }
@@ -192,6 +231,7 @@ export function getSkillProficiency(character: Character, skill: SkillKey): bool
     state.manualOverride ??
     (isSkillGrantedByBackground(character, skill) ||
       isSkillGrantedByClassChoice(character, skill) ||
+      isSkillGrantedBySubclassChoice(character, skill) ||
       isSkillGrantedBySpeciesChoice(character, skill))
   );
 }
@@ -221,7 +261,8 @@ export function getSkillBonus(character: Character, skill: SkillKey): ComputedVa
   const jackOfAllTradesBonus = proficient ? 0 : getJackOfAllTradesBonus(character);
   const thaumaturgeBonus = getThaumaturgeSkillBonus(character, skill);
   const shamanBonus = getShamanSkillBonus(character, skill);
-  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus + thaumaturgeBonus + shamanBonus;
+  const glamourBonus = getGlamourTranscendentalBonus(character, skill);
+  const auto = abilityMod + proficiencyBonus * multiplier + jackOfAllTradesBonus + thaumaturgeBonus + shamanBonus + glamourBonus;
 
   return computedValue(auto, state.manualAdjustment);
 }

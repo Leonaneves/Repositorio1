@@ -3,6 +3,7 @@ import { getBarbarianRitualSpells } from "./barbarianRitualSpells.js";
 import { getBardAutoPreparedSpells } from "./bardAutoPreparedSpells.js";
 import { getClericAutoPreparedSpells } from "./clericAutoPreparedSpells.js";
 import { getDruidAutoPreparedSpells } from "./druidAutoPreparedSpells.js";
+import { getRangerAutoPreparedSpells } from "./rangerAutoPreparedSpells.js";
 import { getSorcererAutoPreparedSpells } from "./sorcererAutoPreparedSpells.js";
 import { getWarlockAutoPreparedSpells } from "./warlockAutoPreparedSpells.js";
 import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
@@ -15,8 +16,10 @@ import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
  * `getBardAutoPreparedSpells`; Magias de Domínio das 4 subclasses +
  * Truque extra de Taumaturgo do Clérigo — `getClericAutoPreparedSpells`;
  * Falar com Animais/Convocar Familiar/Magias de Círculo/Mapa Estelar/
- * Truque de Xamã do Druida — `getDruidAutoPreparedSpells`; Magias das 4
- * subclasses de Feiticeiro — `getSorcererAutoPreparedSpells`; magias
+ * Truque de Xamã do Druida — `getDruidAutoPreparedSpells`; magias
+ * sempre preparadas de Andarilho Feérico/Vigilante das Sombras do
+ * Patrulheiro — `getRangerAutoPreparedSpells`; Magias das 4 subclasses
+ * de Feiticeiro — `getSorcererAutoPreparedSpells`; magias
  * sempre preparadas dos 4 Patronos + Contatar Patrono + invocações que
  * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`; truque/
  * magias de Linhagem Élfica/Gnômica/Infernal — `getSpeciesGrantedSpells`,
@@ -32,6 +35,7 @@ export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[
     ...getBardAutoPreparedSpells(character),
     ...getClericAutoPreparedSpells(character),
     ...getDruidAutoPreparedSpells(character),
+    ...getRangerAutoPreparedSpells(character),
     ...getSorcererAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
     ...getSpeciesGrantedSpells(character),

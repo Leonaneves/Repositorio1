@@ -31,6 +31,34 @@ export const ELEMENTAL_AFFINITY_OPTIONS = ["Ácido", "Elétrico", "Fogo", "Gelo"
 export type ElementalAffinity = (typeof ELEMENTAL_AFFINITY_OPTIONS)[number];
 
 /**
+ * Perícia escolhida em "Glamour Transcendental" (Andarilho Feérico,
+ * nível 3) — primeira e única fonte de proficiência de perícia ligada
+ * à SUBCLASSE no projeto hoje (mesmo papel de
+ * `ELFO_SENTIDOS_AGUCADOS_CHOICE_ID` para Espécie — ver
+ * `rules/skills.ts#isSkillGrantedBySubclassChoice`). Resolvida pela
+ * `FeatureChoiceControl` genérica dentro da seção de Subclasse,
+ * integrando a mesma validação de conflitos de
+ * `rules/skillChoiceConflicts.ts` (via `excludeAlreadyProficient`).
+ */
+export const RANGER_GLAMOUR_SKILL_CHOICE_ID = "patrulheiro-feerico-glamour-pericia-escolha";
+
+/**
+ * "Mente de Ferro" (Vigilante das Sombras, nível 7, fonte "IMPLEMENTAR
+ * SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" §5): concede
+ * proficiência em Salvaguarda de Sabedoria automaticamente; se SAB já
+ * for proficiente por OUTRA origem (checada ANTES desta própria
+ * característica — ela nunca escreve em `character.savingThrows`, só
+ * deriva, ver `rules/savingThrows.ts#getMenteDeFerroGrantedAbility`), o
+ * jogador escolhe Carisma ou Inteligência no lugar. A `FeatureChoice`
+ * só é anexada à `FeatureDefinition` de id `RANGER_MENTE_DE_FERRO_FEATURE_ID`
+ * quando essa condição se aplica (`rules/features.ts#getSubclassFeatures`)
+ * — nunca exigida fora disso, e a proficiência final nunca é impressa em
+ * Características de Classe (aparece direto nas Salvaguardas).
+ */
+export const RANGER_MENTE_DE_FERRO_FEATURE_ID = "patrulheiro-sombras-mente-de-ferro-7";
+export const RANGER_MENTE_DE_FERRO_CHOICE_ID = "patrulheiro-sombras-mente-de-ferro-escolha";
+
+/**
  * Features de SUBCLASSE confirmadas com fonte fornecida — as 4
  * subclasses do Bárbaro ("INTEGRAÇÃO COMPLETA — BÁRBARO E SUBCLASSES")
  * e as 4 subclasses do Bardo ("INTEGRAÇÃO COMPLETA — BARDO E
@@ -1305,5 +1333,240 @@ export const subclassFeatures: FeatureDefinition[] = [
     autoGranted: true,
     summary:
       "Atualiza Surto de Magia Selvagem de novo — nunca um bloco impresso separado. 1x/Descanso Longo, depois de conjurar uma magia de Feiticeiro com espaço de magia, pode escolher o efeito desejado da tabela de Surto de Magia Selvagem em vez de rolar, exceto a última linha da tabela; se o efeito escolhido exigir uma rolagem própria, essa rolagem continua sendo feita normalmente.",
+  },
+
+  // ============== PATRULHEIRO — fonte "IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO
+  // PDF" ==============
+  // Características BASE do Patrulheiro (Inimigo Favorito, Explorador Hábil, Errante, Especialista,
+  // Incansável, Predador Implacável, Véu da Natureza, Caçador Preciso, Sentidos Selvagens, Matador
+  // de Inimigos Favoritos) continuam pendentes em NAMED_FEATURES_BY_CLASS
+  // (data/features/classes.ts) — esta fonte só cobre as 4 SUBCLASSES (Andarilho Feérico, Caçador,
+  // Senhor das Feras, Vigilante das Sombras), nunca inventa conteúdo da classe base. "Marca do
+  // Predador"/criatura marcada (referenciada pelo Caçador e pelo Senhor das Feras) pressupõe a
+  // característica-base "Inimigo Favorito" (pendente) — nunca inventa o que ela faz, só assume a
+  // existência da marca, exatamente como a fonte a usa.
+
+  // ---------- Andarilho Feérico ----------
+  {
+    id: "patrulheiro-feerico-glamour-transcendental-3",
+    name: "Glamour Transcendental",
+    sourceType: "subclass",
+    subclassFullName: "Andarilho Feérico",
+    level: 3,
+    autoGranted: false,
+    summary:
+      "Soma modificador de Sabedoria (mínimo +1) a todos os testes de Carisma, incluindo os sem perícia associada — nunca aumenta o próprio Carisma nem afeta Salvaguardas de Carisma, e nunca é multiplicado por Especialização (rules/skills.ts#getGlamourTranscendentalBonus). Exige escolher proficiência em Atuação, Enganação ou Persuasão.",
+    choices: [
+      {
+        id: RANGER_GLAMOUR_SKILL_CHOICE_ID,
+        prompt: "Glamour Transcendental: perícia (Atuação, Enganação ou Persuasão)",
+        effect: { kind: "skillProficiency", options: ["atuacao", "enganacao", "persuasao"], count: 1, excludeAlreadyProficient: true },
+      },
+    ],
+  },
+  {
+    id: "patrulheiro-feerico-golpes-terriveis-3",
+    name: "Golpes Terríveis",
+    sourceType: "subclass",
+    subclassFullName: "Andarilho Feérico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao acertar uma criatura com uma arma, 1x em cada um dos seus turnos, pode causar dano Psíquico adicional: 1d4 (1d6 a partir do nível 11, mesmo bloco impresso — nunca 'Golpes Terríveis Aprimorados'). Nunca soma automaticamente a todos os ataques.",
+  },
+  {
+    id: "patrulheiro-feerico-magias-sempre-preparadas-3",
+    name: "Magias de Andarilho Feérico",
+    sourceType: "subclass",
+    subclassFullName: "Andarilho Feérico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/rangerAutoPreparedSpells.ts — nunca neste campo): nível 3 — Enfeitiçar Pessoa; nível 5 — Passo Nebuloso; nível 9 — Convocar Feérico; nível 13 — Porta Dimensional; nível 17 — Despistar.",
+  },
+  {
+    id: "patrulheiro-feerico-detalhe-sedutor-7",
+    name: "Detalhe Sedutor",
+    sourceType: "subclass",
+    subclassFullName: "Andarilho Feérico",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Vantagem em Salvaguardas para evitar ou encerrar as condições Amedrontado ou Enfeitiçado. Quando você, ou outra criatura à vista a até 36m, passa numa dessas Salvaguardas, pode usar sua Reação para forçar outra criatura à vista a até 36m a fazer uma Salvaguarda de Sabedoria contra sua CD de magia; falha → fica Amedrontada ou Enfeitiçada (à escolha) por 1 minuto, repetindo a Salvaguarda ao final de cada um dos turnos dela. Condição e alvo são decididos durante o jogo, nunca travados no Builder.",
+  },
+  {
+    id: "patrulheiro-feerico-reforcos-feericos-11",
+    name: "Reforços Feéricos",
+    sourceType: "subclass",
+    subclassFullName: "Andarilho Feérico",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Convocar Feérico pode ser conjurada sem componente Material. Uma vez por Descanso Longo, pode conjurá-la sem gastar espaço de magia. Ao iniciar qualquer conjuração dessa magia (gratuita ou não), pode dispensar a Concentração; nesse caso, a duração passa a ser 1 minuto — essa duração alternativa não se limita ao uso gratuito.",
+  },
+  {
+    id: "patrulheiro-feerico-andarilho-nebuloso-15",
+    name: "Andarilho Nebuloso",
+    sourceType: "subclass",
+    subclassFullName: "Andarilho Feérico",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Pode conjurar Passo Nebuloso sem gastar espaço de magia: modificador de Sabedoria (mínimo 1) vezes por Descanso Longo. Sempre que conjurar essa magia (gratuita ou não), pode levar 1 criatura voluntária à vista a até 1,5m; ela chega a um espaço desocupado a até 1,5m do seu destino.",
+  },
+
+  // ---------- Caçador ----------
+  {
+    id: "patrulheiro-cacador-conhecimento-do-cacador-3",
+    name: "Conhecimento do Caçador",
+    sourceType: "subclass",
+    subclassFullName: "Caçador",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao marcar uma criatura com Marca do Predador (Inimigo Favorito), passa a conhecer as Imunidades, Resistências e Vulnerabilidades dela. Nunca cria dados automáticos de monstros — essa informação em si não existe no projeto.",
+  },
+  {
+    id: "patrulheiro-cacador-presa-do-cacador-3",
+    name: "Presa do Caçador",
+    sourceType: "subclass",
+    subclassFullName: "Caçador",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Escolha 1 opção por vez, podendo trocar após um Descanso Curto ou Longo — decisão de jogo, nunca exigida no Builder nem travada no PDF: 1) Assassino de Colossos — 1x em cada um dos seus turnos, acerto com arma contra criatura abaixo do PV máximo causa +1d8; 2) Destruidor de Hordas — 1x em cada um dos seus turnos, ao atacar com uma arma, pode fazer outro ataque com a mesma arma contra uma segunda criatura a até 1,5m da primeira, no alcance da arma, que ainda não tenha sido atacada por você nesse turno.",
+  },
+  {
+    id: "patrulheiro-cacador-taticas-defensivas-7",
+    name: "Táticas Defensivas",
+    sourceType: "subclass",
+    subclassFullName: "Caçador",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Escolha 1 opção por vez, podendo trocar após um Descanso Curto ou Longo — decisão de jogo, nunca exigida no Builder nem travada no PDF: 1) Defesa Contra Ataques Múltiplos — uma criatura que te acerte tem Desvantagem nas demais jogadas de ataque contra você naquele turno; 2) Escapar de Hordas — ataques de oportunidade contra você são feitos com Desvantagem.",
+  },
+  {
+    id: "patrulheiro-cacador-presa-do-cacador-superior-11",
+    name: "Presa do Caçador Superior",
+    sourceType: "subclass",
+    subclassFullName: "Caçador",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Atualiza Marca do Predador — nunca um bloco impresso separado. Uma vez em cada um dos seus turnos, ao causar dano à criatura marcada por Marca do Predador, pode causar o mesmo dano adicional da magia a uma segunda criatura à vista a até 9m da primeira. Nunca inventa o dado da magia (não fornecido pela fonte).",
+  },
+  {
+    id: "patrulheiro-cacador-defesa-do-cacador-superior-15",
+    name: "Defesa do Caçador Superior",
+    sourceType: "subclass",
+    subclassFullName: "Caçador",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Reação ao sofrer dano: ganha Resistência a esse tipo de dano, e a qualquer outro dano do mesmo tipo, até o final do turno atual. Nunca uma Resistência permanente.",
+  },
+
+  // ---------- Senhor das Feras ----------
+  {
+    id: "patrulheiro-feras-companheiro-primal-3",
+    name: "Companheiro Primal",
+    sourceType: "subclass",
+    subclassFullName: "Senhor das Feras",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Uma Fera amigável a você e seus aliados, que obedece aos seus comandos — SEM escolha de animal/aparência/bloco de estatísticas no Builder, e sem ficha de criatura no PDF (fonte explícita: nenhum catálogo registrado). Age no seu turno (pode se mover e usar a própria Reação; sem comando, usa Esquivar). Ação Bônus: ordena 1 ação a ela, OU troca um dos seus próprios ataques da ação Atacar por 1 Golpe da Fera. Se você ficar Incapacitado, ela age por conta própria (sem se limitar a Esquivar); se você morrer, ela desaparece. Se morreu há 1h ou menos, gastando uma ação Usar Magia, tocando-a e gastando 1 espaço de magia, ela revive em 1 minuto com os PV máximos (sem nível mínimo de espaço exigido pela fonte). Após um Descanso Longo, pode reinvocar outra Fera a 1,5m de você — a anterior desaparece.",
+  },
+  {
+    id: "patrulheiro-feras-treinamento-excepcional-7",
+    name: "Treinamento Excepcional",
+    sourceType: "subclass",
+    subclassFullName: "Senhor das Feras",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Atualiza Companheiro Primal — nunca um bloco impresso separado. Ao comandá-la com Ação Bônus, também pode ordenar que ela use a própria Ação Bônus para Ajudar, Correr, Desengajar ou Esquivar. Ao acertar e causar dano, ela pode trocar o tipo normal de dano por Energético.",
+  },
+  {
+    id: "patrulheiro-feras-furia-bestial-11",
+    name: "Fúria Bestial",
+    sourceType: "subclass",
+    subclassFullName: "Senhor das Feras",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Atualiza Companheiro Primal — nunca um bloco impresso separado. O comando de Golpe da Fera passa a permitir executá-lo DUAS vezes, por qualquer uma das formas de comandá-lo. No primeiro acerto da Fera em cada um dos seus turnos contra a criatura marcada por Marca do Predador, causa dano Energético adicional igual ao dano bônus da magia.",
+  },
+  {
+    id: "patrulheiro-feras-compartilhar-magias-15",
+    name: "Compartilhar Magias",
+    sourceType: "subclass",
+    subclassFullName: "Senhor das Feras",
+    level: 15,
+    autoGranted: true,
+    summary: "Quando conjura uma magia em si mesmo, pode fazê-la afetar também sua Fera, se ela estiver a até 9m de você.",
+  },
+
+  // ---------- Vigilante das Sombras ----------
+  {
+    id: "patrulheiro-sombras-emboscador-das-sombras-3",
+    name: "Emboscador das Sombras",
+    sourceType: "subclass",
+    subclassFullName: "Vigilante das Sombras",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Iniciativa passa a usar o modificador de Sabedoria em vez de Destreza, sem mínimo +1 (rules/derived.ts#getInitiative — nunca repetido em Características de Classe). No primeiro turno de cada combate, ganha +3m de deslocamento, só até o final desse turno (nunca um aumento permanente). Golpe Terrível: ao acertar uma criatura com arma, 1x em cada um dos seus turnos, causa dano Psíquico adicional: 2d6 (2d8 a partir do nível 11, mesmo bloco impresso). Usos gratuitos (sem gastar espaço) por Descanso Longo: modificador de Sabedoria, mínimo 1.",
+  },
+  {
+    id: "patrulheiro-sombras-magias-sempre-preparadas-3",
+    name: "Magias de Vigilante das Sombras",
+    sourceType: "subclass",
+    subclassFullName: "Vigilante das Sombras",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre preparadas, não contam contra o limite normal (rules/rangerAutoPreparedSpells.ts — nunca neste campo): nível 3 — Disfarçar-se; nível 5 — Corda Extradimensional; nível 9 — Medo; nível 13 — Invisibilidade Maior; nível 17 — Similaridade.",
+  },
+  {
+    id: "patrulheiro-sombras-visao-umbrosa-3",
+    name: "Visão Umbrosa",
+    sourceType: "subclass",
+    subclassFullName: "Vigilante das Sombras",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sem Visão no Escuro de outra origem, recebe 18m; com Visão no Escuro de outra origem, o alcance dela aumenta em 18m (rules/rangerSubclassPrintedFeatures.ts — nunca soma a si mesma). Enquanto estiver inteiramente na Escuridão, fica Invisível para criaturas que dependam de Visão no Escuro para vê-lo.",
+  },
+  {
+    id: RANGER_MENTE_DE_FERRO_FEATURE_ID,
+    name: "Mente de Ferro",
+    sourceType: "subclass",
+    subclassFullName: "Vigilante das Sombras",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Concede proficiência em Salvaguardas de Sabedoria. Se já for proficiente em Sabedoria por outra origem (verificado sem considerar esta própria característica — rules/savingThrows.ts#getMenteDeFerroGrantedAbility), escolhe Carisma ou Inteligência no lugar; a escolha só aparece no Builder quando essa condição se aplica (rules/features.ts#getSubclassFeatures). A proficiência final aparece direto nas Salvaguardas, nunca em Características de Classe.",
+  },
+  {
+    id: "patrulheiro-sombras-torrente-do-vigilante-11",
+    name: "Torrente do Vigilante",
+    sourceType: "subclass",
+    subclassFullName: "Vigilante das Sombras",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Ao usar Golpe Terrível, pode adicionar um efeito, à escolha: 1) outro ataque com a mesma arma contra uma segunda criatura a até 1,5m do alvo original, no alcance da arma; 2) o alvo e cada criatura a até 3m dele fazem Salvaguarda de Sabedoria contra sua CD de magia; falha → ficam Amedrontadas até o início do seu próximo turno. Nunca uma seleção permanente nem contador separado; o segundo efeito não se limita a inimigos.",
+  },
+  {
+    id: "patrulheiro-sombras-esquiva-sombria-15",
+    name: "Esquiva Sombria",
+    sourceType: "subclass",
+    subclassFullName: "Vigilante das Sombras",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Reação quando uma criatura faz uma jogada de ataque contra você: impõe Desvantagem a essa jogada; acertando ou errando, pode se teleportar até 9m para um espaço à vista. Sem limite por Descanso.",
   },
 ];

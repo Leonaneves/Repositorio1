@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId, getClassToolChoiceId } from "../data/classes.js";
+import { RANGER_MENTE_DE_FERRO_CHOICE_ID, RANGER_MENTE_DE_FERRO_FEATURE_ID } from "../data/features/subclasses.js";
 import {
   getBackgroundFeatures,
   getCharacterFeatures,
@@ -94,13 +95,69 @@ describe("getClassFeatures — progressão por nível", () => {
   });
 });
 
-describe("getSubclassFeatures — catálogo ainda pendente, nunca inventado", () => {
-  it("sempre vazio (nenhuma subclasse tem feature confirmada nesta etapa)", () => {
+describe("getSubclassFeatures — catálogo ainda pendente para a maioria, exceto as subclasses com fonte confirmada", () => {
+  it("vazio para uma subclasse sem conteúdo confirmado (ex.: Evocador do Mago)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "mago";
     character.level = 20;
     character.subclassId = "Evocador";
     expect(getSubclassFeatures(character)).toEqual([]);
+  });
+
+  it("Patrulheiro/Andarilho Feérico nível 3 já traz Glamour Transcendental, Golpes Terríveis e as magias sempre preparadas", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "patrulheiro";
+    character.level = 3;
+    character.subclassId = "Andarilho Feérico";
+    const names = getSubclassFeatures(character).map((f) => f.name);
+    expect(names).toContain("Glamour Transcendental");
+    expect(names).toContain("Golpes Terríveis");
+    expect(names).toContain("Magias de Andarilho Feérico");
+    expect(names).not.toContain("Detalhe Sedutor"); // só a partir do nível 7
+  });
+});
+
+describe("getSubclassFeatures — 'Mente de Ferro' (Vigilante das Sombras, nível 7) só recebe FeatureChoice quando SAB já é proficiente por outra origem (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §5)", () => {
+  function gloomStalkerAt(level: number) {
+    const character = createBlankCharacter("mente-de-ferro-features-test");
+    character.classId = "patrulheiro";
+    character.subclassId = "Vigilante das Sombras";
+    character.level = level;
+    return character;
+  }
+
+  it("sem SAB proficiente por outra origem: a característica aparece, mas sem nenhuma escolha — nunca trava o Avançar", () => {
+    const character = gloomStalkerAt(7);
+    const menteDeFerro = getSubclassFeatures(character).find((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)!;
+    expect(menteDeFerro).toBeDefined();
+    expect(menteDeFerro.choices ?? []).toHaveLength(0);
+    expect(getIncompleteRequiredChoices(character).some((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)).toBe(false);
+  });
+
+  it("com SAB já proficiente por outra origem: a escolha Carisma/Inteligência aparece e trava o Avançar até ser respondida", () => {
+    const character = gloomStalkerAt(7);
+    character.savingThrows.SAB.proficient = true;
+
+    const menteDeFerro = getSubclassFeatures(character).find((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)!;
+    expect(menteDeFerro.choices).toHaveLength(1);
+    expect(menteDeFerro.choices![0].effect).toEqual({ kind: "optionPick", options: ["Carisma", "Inteligência"] });
+    expect(getIncompleteRequiredChoices(character).some((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)).toBe(true);
+
+    character.featureChoiceSelections[RANGER_MENTE_DE_FERRO_CHOICE_ID] = { value: "Carisma" };
+    expect(getIncompleteRequiredChoices(character).some((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)).toBe(false);
+  });
+
+  it("antes do nível 7, a característica nem existe ainda", () => {
+    const character = gloomStalkerAt(6);
+    character.savingThrows.SAB.proficient = true;
+    expect(getSubclassFeatures(character).some((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)).toBe(false);
+  });
+
+  it("nunca aparece para outra subclasse, mesmo com SAB proficiente", () => {
+    const character = gloomStalkerAt(7);
+    character.subclassId = "Caçador";
+    character.savingThrows.SAB.proficient = true;
+    expect(getSubclassFeatures(character).some((f) => f.id === RANGER_MENTE_DE_FERRO_FEATURE_ID)).toBe(false);
   });
 });
 

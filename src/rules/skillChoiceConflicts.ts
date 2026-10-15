@@ -2,7 +2,7 @@ import type { Character } from "../domain/character.js";
 import type { FeatureSourceType } from "../domain/features.js";
 import type { SkillKey } from "../domain/ids.js";
 import { getCharacterFeatures } from "./features.js";
-import { isSkillGrantedByBackground, isSkillGrantedByClassChoice, isSkillGrantedBySpeciesChoice } from "./skills.js";
+import { isSkillGrantedByBackground, isSkillGrantedByClassChoice, isSkillGrantedBySpeciesChoice, isSkillGrantedBySubclassChoice } from "./skills.js";
 
 export interface RedundantSkillChoiceEntry {
   /** Id da `FeatureChoice` cuja seleção ficou redundante — usado pela UI para apontar o controle certo. */
@@ -46,7 +46,8 @@ export function getRedundantSkillChoiceSelections(character: Character): Redunda
         const grantedElsewhere =
           (feature.sourceType !== "background" && isSkillGrantedByBackground(character, skill)) ||
           (feature.sourceType !== "species" && isSkillGrantedBySpeciesChoice(character, skill)) ||
-          (feature.sourceType !== "class" && isSkillGrantedByClassChoice(character, skill));
+          (feature.sourceType !== "class" && isSkillGrantedByClassChoice(character, skill)) ||
+          (feature.sourceType !== "subclass" && isSkillGrantedBySubclassChoice(character, skill));
 
         if (grantedElsewhere) {
           entries.push({ choiceId: choice.id, featureName: feature.name, sourceType: feature.sourceType, skill });

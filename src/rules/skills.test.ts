@@ -8,7 +8,9 @@ import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { getInitiative } from "./derived.js";
 import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
+import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import {
+  getGlamourTranscendentalBonus,
   getJackOfAllTradesBonus,
   getSkillBonus,
   getSkillExpertise,
@@ -19,6 +21,7 @@ import {
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
   isSkillGrantedBySpeciesChoice,
+  isSkillGrantedBySubclassChoice,
   isSkillGrantedExpertiseByClassChoice,
 } from "./skills.js";
 
@@ -590,5 +593,102 @@ describe("isSkillGrantedBySpeciesChoice — Sentidos Aguçados do Elfo (fonte \"
     character.skills.intuicao.manualOverride = false;
     expect(getSkillProficiency(character, "intuicao")).toBe(false);
     expect(getSkillProficiencyOrigin(character, "intuicao")).toBeNull();
+  });
+});
+
+describe("isSkillGrantedBySubclassChoice — Glamour Transcendental do Andarilho Feérico (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §2)", () => {
+  function feyWanderer(): ReturnType<typeof createBlankCharacter> {
+    const character = createBlankCharacter("t");
+    character.classId = "patrulheiro";
+    character.subclassId = "Andarilho Feérico";
+    character.level = 3;
+    return character;
+  }
+
+  it("concede a perícia escolhida entre Atuação/Enganação/Persuasão", () => {
+    const character = feyWanderer();
+    character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID] = { value: ["enganacao"] };
+    expect(isSkillGrantedBySubclassChoice(character, "enganacao")).toBe(true);
+    expect(isSkillGrantedBySubclassChoice(character, "atuacao")).toBe(false);
+    expect(getSkillProficiency(character, "enganacao")).toBe(true);
+    expect(getSkillProficiencyOrigin(character, "enganacao")).toBe("subclass");
+  });
+
+  it("nunca concede nada para outra subclasse, mesmo com a mesma seleção por acidente", () => {
+    const character = feyWanderer();
+    character.subclassId = "Caçador";
+    character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID] = { value: ["persuasao"] };
+    expect(isSkillGrantedBySubclassChoice(character, "persuasao")).toBe(false);
+  });
+
+  it("integra a mesma validação de conflitos: perícia redundante com o Antecedente é detectada e identifica a origem 'subclass'", () => {
+    const character = feyWanderer();
+    character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID] = { value: ["persuasao"] };
+    character.backgroundId = "artesao"; // escolhido só para o teste a seguir validar via rules/skillChoiceConflicts.ts
+    // (a asserção de redundância em si mora em skillChoiceConflicts.test.ts — aqui só confirmamos
+    // que a seleção de subclasse nunca é apagada sozinha quando outra origem passa a conceder a mesma perícia depois).
+    expect(character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID]?.value).toEqual(["persuasao"]);
+  });
+
+  it("override manual sempre tem prioridade sobre a escolha de subclasse", () => {
+    const character = feyWanderer();
+    character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID] = { value: ["atuacao"] };
+    character.skills.atuacao.manualOverride = false;
+    expect(getSkillProficiency(character, "atuacao")).toBe(false);
+    expect(getSkillProficiencyOrigin(character, "atuacao")).toBeNull();
+  });
+});
+
+describe("getGlamourTranscendentalBonus — Andarilho Feérico, nível 3 (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §2)", () => {
+  function feyWandererAt(level: number, wisdom: number): ReturnType<typeof createBlankCharacter> {
+    const character = createBlankCharacter("glamour-test");
+    character.classId = "patrulheiro";
+    character.subclassId = "Andarilho Feérico";
+    character.level = level;
+    character.abilities.SAB.score = wisdom;
+    return character;
+  }
+
+  it("soma modificador de Sabedoria (mínimo 1) a todas as 4 perícias de Carisma, nunca a outras", () => {
+    const character = feyWandererAt(3, 16); // SAB +3
+    expect(getGlamourTranscendentalBonus(character, "atuacao")).toBe(3);
+    expect(getGlamourTranscendentalBonus(character, "enganacao")).toBe(3);
+    expect(getGlamourTranscendentalBonus(character, "intimidacao")).toBe(3);
+    expect(getGlamourTranscendentalBonus(character, "persuasao")).toBe(3);
+    expect(getGlamourTranscendentalBonus(character, "furtividade")).toBe(0);
+    expect(getGlamourTranscendentalBonus(character, "arcanismo")).toBe(0);
+  });
+
+  it("mínimo +1, mesmo com modificador de Sabedoria negativo ou zero", () => {
+    const character = feyWandererAt(3, 8); // SAB -1
+    expect(getGlamourTranscendentalBonus(character, "persuasao")).toBe(1);
+  });
+
+  it("nunca se aplica fora de Andarilho Feérico, nem para outra classe", () => {
+    const outraSubclasse = feyWandererAt(3, 16);
+    outraSubclasse.subclassId = "Caçador";
+    expect(getGlamourTranscendentalBonus(outraSubclasse, "persuasao")).toBe(0);
+
+    const outraClasse = createBlankCharacter("x");
+    outraClasse.subclassId = "Andarilho Feérico"; // nome de subclasse sem a classe certa, nunca deveria bastar
+    outraClasse.abilities.SAB.score = 16;
+    expect(getGlamourTranscendentalBonus(outraClasse, "persuasao")).toBe(0);
+  });
+
+  it("soma ao bônus total da perícia, sem dobrar por Especialização (nunca multiplicado pelo bônus de proficiência)", () => {
+    const character = feyWandererAt(9, 16); // SAB +3, proficiência +4
+    character.abilities.CAR.score = 14; // +2
+    character.skills.persuasao.manualOverride = true;
+    character.skills.persuasao.expertise = true;
+    const bonus = getSkillBonus(character, "persuasao");
+    // 2 (CAR) + 4*2 (proficiência dobrada por Especialização) + 3 (Glamour, nunca dobrado) = 13
+    expect(bonus.auto).toBe(13);
+  });
+
+  it("some mesmo sem proficiência na perícia (vale para o teste 'sem perícia associada' também)", () => {
+    const character = feyWandererAt(3, 16);
+    character.abilities.CAR.score = 10; // +0
+    const bonus = getSkillBonus(character, "intimidacao");
+    expect(bonus.auto).toBe(3); // 0 (CAR) + 0 (sem proficiência) + 3 (Glamour)
   });
 });

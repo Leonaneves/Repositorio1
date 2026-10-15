@@ -464,3 +464,68 @@ describe("BuilderWizard — edição de Perícias só pela Revisão (fonte \"AJU
     expect(screen.getByText(/●\s*Furtividade/)).toBeInTheDocument();
   });
 });
+
+describe("BuilderWizard — Patrulheiro, escolhas permanentes das subclasses (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §2/§5/§6)", () => {
+  function setupRanger(level = 3) {
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("patrulheiro");
+      store.setLevel(level);
+      // Resolve escolhas NÃO relacionadas (Perícias de Classe + ASI de nível 4) — sem isso,
+      // Avançar já ficaria bloqueado por um motivo que nada tem a ver com a subclasse sob teste.
+      store.setFeatureChoiceSelection(getClassSkillChoiceId("patrulheiro"), ["furtividade", "percepcao", "sobrevivencia"]);
+      if (level >= 4) store.setAsiMode(4, "feat");
+    });
+    act(() => useBuilderStore.getState().goToStep("class"));
+  }
+
+  it("Andarilho Feérico: 'Glamour Transcendental' exige escolher Atuação, Enganação ou Persuasão, e bloqueia Avançar até isso", () => {
+    render(<App />);
+    setupRanger();
+    fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Andarilho Feérico" } });
+
+    expect(screen.getByRole("heading", { name: "Glamour Transcendental" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Atuação" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Enganação" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Persuasão" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Persuasão" }));
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
+  it("Caçador: 'Presa do Caçador' e 'Táticas Defensivas' nunca aparecem como escolha do Builder — são só referência, nunca travam Avançar", () => {
+    render(<App />);
+    setupRanger(7);
+    fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Caçador" } });
+
+    expect(screen.queryByRole("heading", { name: "Presa do Caçador" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Táticas Defensivas" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
+  it("Senhor das Feras: nenhuma escolha de animal/aparência aparece — subclasse sozinha nunca trava Avançar", () => {
+    render(<App />);
+    setupRanger();
+    fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Senhor das Feras" } });
+
+    expect(screen.queryByRole("combobox", { name: /fera|animal/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
+  it("Vigilante das Sombras: 'Mente de Ferro' só aparece como escolha quando Sabedoria já é proficiente por outra origem", () => {
+    render(<App />);
+    setupRanger(7);
+    fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Vigilante das Sombras" } });
+
+    expect(screen.queryByRole("heading", { name: "Mente de Ferro" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+
+    act(() => useCharacterStore.getState().setSavingThrowProficient("SAB", true));
+    expect(screen.getByRole("heading", { name: "Mente de Ferro" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.change(screen.getByRole("combobox", { name: /Mente de Ferro/ }), { target: { value: "Carisma" } });
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+});

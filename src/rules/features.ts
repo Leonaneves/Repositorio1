@@ -4,7 +4,7 @@ import { backgroundFeatFeatures } from "../data/features/backgrounds.js";
 import { classFeatures } from "../data/features/classes.js";
 import { generalFeats } from "../data/features/feats.js";
 import { speciesFeatures } from "../data/features/species.js";
-import { subclassFeatures } from "../data/features/subclasses.js";
+import { subclassFeatures, RANGER_MENTE_DE_FERRO_CHOICE_ID, RANGER_MENTE_DE_FERRO_FEATURE_ID } from "../data/features/subclasses.js";
 import { hasSpeciesLineage } from "../data/speciesLineages.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
@@ -16,11 +16,35 @@ export function getClassFeatures(character: Character): FeatureDefinition[] {
   );
 }
 
-/** Features de subclasse já adquiridas — vazio até existir um catálogo confirmado (ver data/features/subclasses.ts). */
+/**
+ * Features de subclasse já adquiridas. "Mente de Ferro" (Vigilante das
+ * Sombras, nível 7 — fonte "IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO
+ * BUILDER E NO PDF" §5) recebe uma `FeatureChoice` ANEXADA aqui, nunca
+ * armazenada estaticamente em `data/features/subclasses.ts`, porque ela
+ * só existe quando `character.savingThrows.SAB.proficient` já é
+ * `true` por outra origem (ver `rules/savingThrows.ts#getMenteDeFerroGrantedAbility`)
+ * — mesmo padrão de `getSpeciesFeatures` abaixo, que sobrescreve
+ * dinamicamente o `summary` das 5 espécies com Linhagem.
+ */
 export function getSubclassFeatures(character: Character): FeatureDefinition[] {
   if (!character.subclassId) return [];
-  return subclassFeatures.filter(
+  const features = subclassFeatures.filter(
     (feature) => feature.subclassFullName === character.subclassId && (feature.level === null || feature.level <= character.level),
+  );
+  if (!character.savingThrows.SAB.proficient) return features;
+  return features.map((feature) =>
+    feature.id === RANGER_MENTE_DE_FERRO_FEATURE_ID
+      ? {
+          ...feature,
+          choices: [
+            {
+              id: RANGER_MENTE_DE_FERRO_CHOICE_ID,
+              prompt: "Mente de Ferro: já proficiente em Salvaguarda de Sabedoria — escolha Carisma ou Inteligência no lugar",
+              effect: { kind: "optionPick" as const, options: ["Carisma", "Inteligência"] },
+            },
+          ],
+        }
+      : feature,
   );
 }
 

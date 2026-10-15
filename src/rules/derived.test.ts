@@ -16,6 +16,36 @@ describe("getInitiative", () => {
     const result = getInitiative(character);
     expect(result).toEqual({ auto: 2, manual: 5, total: 7 });
   });
+
+  it("Vigilante das Sombras nível 3+ (Emboscador das Sombras): usa SAB em vez de DEX, sem mínimo +1 (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §5)", () => {
+    const character = createBlankCharacter("init-test");
+    character.classId = "patrulheiro";
+    character.subclassId = "Vigilante das Sombras";
+    character.level = 3;
+    character.abilities.DEX.score = 18; // +4 — nunca usado por esta subclasse
+    character.abilities.SAB.score = 8; // -1 — vale mesmo sendo negativo, sem piso em +1
+    expect(getInitiative(character)).toEqual({ auto: -1, manual: 0, total: -1 });
+  });
+
+  it("antes do nível 3, Vigilante das Sombras ainda usa DEX normalmente", () => {
+    const character = createBlankCharacter("init-test");
+    character.classId = "patrulheiro";
+    character.subclassId = "Vigilante das Sombras";
+    character.level = 2;
+    character.abilities.DEX.score = 14; // +2
+    character.abilities.SAB.score = 18; // +4 — não se aplica ainda
+    expect(getInitiative(character).auto).toBe(2);
+  });
+
+  it("outra subclasse de Patrulheiro continua usando DEX", () => {
+    const character = createBlankCharacter("init-test");
+    character.classId = "patrulheiro";
+    character.subclassId = "Caçador";
+    character.level = 10;
+    character.abilities.DEX.score = 14; // +2
+    character.abilities.SAB.score = 18; // +4 — não se aplica
+    expect(getInitiative(character).auto).toBe(2);
+  });
 });
 
 describe("getPassivePerception", () => {
