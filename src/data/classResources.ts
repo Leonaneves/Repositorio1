@@ -198,3 +198,75 @@ export const ARTIFICER_INFUSED_ITEMS_MAX: Record<number, number> = {
   1: 0, 2: 2, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3, 8: 3, 9: 3, 10: 4,
   11: 4, 12: 4, 13: 4, 14: 5, 15: 5, 16: 5, 17: 5, 18: 6, 19: 6, 20: 6,
 };
+
+/**
+ * Guerreiro/Cavaleiro Místico — Truques e Magias Preparadas (fonte
+ * "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF" §4) — igual
+ * numericamente à progressão padrão de terço-conjurador (mesma usada
+ * por Trapaceiro Arcano), mas registrada explicitamente porque a fonte
+ * fornecida é a autoridade aqui (mesmo raciocínio de ARTIFICER_SLOT_TABLE
+ * acima). Sem conjuração antes do nível 3 — chave ausente, nunca `0`
+ * para não confundir com "concedida, mas zero".
+ */
+export const FIGHTER_ELDRITCH_KNIGHT_CANTRIPS_KNOWN: Record<number, number> = {
+  3: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2,
+  10: 3, 11: 3, 12: 3, 13: 3, 14: 3, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3, 20: 3,
+};
+
+export const FIGHTER_ELDRITCH_KNIGHT_SPELLS_PREPARED: Record<number, number> = {
+  3: 3, 4: 4, 5: 4, 6: 4, 7: 5, 8: 6, 9: 6, 10: 7,
+  11: 8, 12: 8, 13: 9, 14: 10, 15: 10, 16: 11, 17: 11, 18: 11, 19: 12, 20: 13,
+};
+
+/**
+ * Guerreiro/Psiônico — tamanho e quantidade de Dados de Energia
+ * Psiônica (fonte "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO
+ * PDF" §5). Recurso PRÓPRIO desta subclasse — nunca somado/confundido
+ * com Dado de Superioridade (DS) do Mestre de Batalha.
+ */
+export const FIGHTER_PSI_WARRIOR_DIE: Record<number, HitDie> = {
+  3: 6, 4: 6,
+  5: 8, 6: 8, 7: 8, 8: 8,
+  9: 8, 10: 8,
+  11: 10, 12: 10,
+  13: 10, 14: 10, 15: 10, 16: 10,
+  17: 12, 18: 12, 19: 12, 20: 12,
+};
+
+export const FIGHTER_PSI_WARRIOR_DICE_COUNT: Record<number, number> = {
+  3: 4, 4: 4,
+  5: 6, 6: 6, 7: 6, 8: 6,
+  9: 8, 10: 8,
+  11: 8, 12: 8,
+  13: 10, 14: 10, 15: 10, 16: 10,
+  17: 12, 18: 12, 19: 12, 20: 12,
+};
+
+/**
+ * Guerreiro/Mestre de Batalha — Manobras Conhecidas e Dado de
+ * Superioridade (DS), fonte "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO
+ * BUILDER E NO PDF" §6. "Manobras Conhecidas" permanece em 9 do nível
+ * 15 ao 20 (só o tipo de DS muda, para d12, no nível 18) — transcrito
+ * literalmente, nunca simplificado para uma progressão contínua.
+ */
+export const FIGHTER_BATTLE_MASTER_MANEUVERS_KNOWN: Record<number, number> = {
+  3: 3, 4: 3, 5: 3, 6: 3,
+  7: 5, 8: 5, 9: 5,
+  10: 7, 11: 7, 12: 7, 13: 7, 14: 7,
+  15: 9, 16: 9, 17: 9, 18: 9, 19: 9, 20: 9,
+};
+
+export const FIGHTER_BATTLE_MASTER_SUPERIORITY_DIE: Record<number, HitDie> = {
+  3: 8, 4: 8, 5: 8, 6: 8,
+  7: 8, 8: 8, 9: 8,
+  10: 10, 11: 10, 12: 10, 13: 10, 14: 10,
+  15: 10, 16: 10, 17: 10,
+  18: 12, 19: 12, 20: 12,
+};
+
+export const FIGHTER_BATTLE_MASTER_SUPERIORITY_DICE_COUNT: Record<number, number> = {
+  3: 4, 4: 4, 5: 4, 6: 4,
+  7: 5, 8: 5, 9: 5,
+  10: 5, 11: 5, 12: 5, 13: 5, 14: 5,
+  15: 6, 16: 6, 17: 6, 18: 6, 19: 6, 20: 6,
+};

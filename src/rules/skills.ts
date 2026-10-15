@@ -7,7 +7,7 @@ import { classes, getClassSkillChoiceId } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
-import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
+import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -80,16 +80,29 @@ export function isSkillGrantedBySpeciesChoice(character: Character, skill: Skill
 }
 
 /**
- * `true` se o jogador escolheu esta perícia em "Glamour Transcendental"
- * (Andarilho Feérico, nível 3 — fonte "IMPLEMENTAR SUBCLASSES DO
- * PATRULHEIRO NO BUILDER E NO PDF" §2). Primeira e única fonte de
- * proficiência ligada à SUBCLASSE hoje; se outra subclasse ganhar uma
- * escolha equivalente no futuro, generalizar para um mapa por nome de
- * subclasse (mesmo padrão de `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima).
+ * IDs de `FeatureChoice` (`skillProficiency`) ligadas à SUBCLASSE,
+ * registradas por `subclassFullName` — generalização do caso único de
+ * "Glamour Transcendental" (Andarilho Feérico, nível 3 — fonte
+ * "IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" §2) para
+ * também cobrir "Estudioso da Guerra" (Mestre de Batalha, nível 3 —
+ * fonte "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF" §6),
+ * mesmo padrão de `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima, mas por
+ * subclasse em vez de classe.
+ */
+const SUBCLASS_SKILL_CHOICE_ID_BY_SUBCLASS: Partial<Record<string, string>> = {
+  "Andarilho Feérico": RANGER_GLAMOUR_SKILL_CHOICE_ID,
+  "Mestre da Batalha": FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID,
+};
+
+/**
+ * `true` se o jogador escolheu esta perícia em uma `FeatureChoice`
+ * ligada à SUBCLASSE atual (ver mapa acima).
  */
 export function isSkillGrantedBySubclassChoice(character: Character, skill: SkillKey): boolean {
-  if (character.subclassId !== "Andarilho Feérico") return false;
-  const selection = character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID]?.value;
+  if (!character.subclassId) return false;
+  const choiceId = SUBCLASS_SKILL_CHOICE_ID_BY_SUBCLASS[character.subclassId];
+  if (!choiceId) return false;
+  const selection = character.featureChoiceSelections[choiceId]?.value;
   const selected = Array.isArray(selection) ? selection : [];
   return selected.includes(skill);
 }

@@ -12,7 +12,8 @@ import {
   ELEMENTAL_AFFINITY_CHOICE_ID,
   ELEMENTAL_AFFINITY_OPTIONS,
 } from "../data/features/subclasses.js";
-import { getInvocationsKnown } from "./classResources.js";
+import { getInvocationsKnown, getBattleMasterManeuversKnownCount } from "./classResources.js";
+import { maneuversById } from "../data/maneuvers.js";
 import { BUILDER_STEP_LABELS, getVisibleSteps, isEarthCircleTerrainApplicable, isElementalAffinityApplicable, type BuilderStepId } from "./builderSteps.js";
 import { canChooseSubclass } from "./subclasses.js";
 import { getClassFeaturesWithChoices, getOtherFeaturesWithChoices, getSubclassFeaturesWithChoices, isFeatureComplete } from "./features.js";
@@ -153,6 +154,16 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
     }
     for (const id of character.knownMetamagicOptions) {
       if (!metamagicOptionsById[id]) blockers.push(`Opção de Metamagia desconhecida: "${id}".`);
+    }
+  }
+
+  if (stepId === "maneuvers") {
+    const required = getBattleMasterManeuversKnownCount(character) ?? 0;
+    const chosenCount = character.chosenManeuvers.length;
+    if (chosenCount < required) blockers.push(`Escolha mais ${required - chosenCount} Manobra(s) (${chosenCount}/${required}).`);
+    if (chosenCount > required) blockers.push(`Remova Manobras em excesso (${chosenCount}/${required}).`);
+    for (const id of character.chosenManeuvers) {
+      if (!maneuversById[id]) blockers.push(`Manobra desconhecida: "${id}".`);
     }
   }
 

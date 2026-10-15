@@ -74,7 +74,11 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
     { shortName: "Sombras", fullName: "Feitiçaria das Sombras" },
   ],
   guerreiro: [
-    { shortName: "Mestre da Batalha", fullName: "Mestre da Batalha" },
+    // Exibição corrigida para "Mestre de Batalha" (fonte "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO
+    // BUILDER E NO PDF" §0) — `fullName` NUNCA muda: é o valor que o motor de regras compara
+    // (`character.subclassId`, `subclassFullName` das FeatureDefinitions, SUBCLASS_FEATURE_LEVELS
+    // etc.), preservando compatibilidade com personagens já salvos com esta subclasse.
+    { shortName: "Mestre de Batalha", fullName: "Mestre da Batalha" },
     { shortName: "Campeão", fullName: "Campeão" },
     // Valor interno NÃO encurtado: a progressão de espaços de magia
     // (rules/spellcasting.ts) reconhece exatamente "Cavaleiro Místico".

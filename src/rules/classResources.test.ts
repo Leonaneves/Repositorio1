@@ -3,6 +3,7 @@ import { createBlankCharacter } from "../domain/character.js";
 import {
   getBardicInspirationDie,
   getBardicInspirationUses,
+  getBattleMasterManeuversKnownCount,
   getCantripsKnown,
   getChannelDivinityUses,
   getExtraAttacksCount,
@@ -13,12 +14,16 @@ import {
   getInvocationsKnown,
   getPactMagicSlotCount,
   getMartialArtsDie,
+  getPsiWarriorDie,
+  getPsiWarriorDiceCount,
   getRageCount,
   getRageDamageBonus,
   getSecondWindUses,
   getSneakAttackDice,
   getSorceryPoints,
   getSpellsPreparedMax,
+  getSuperiorityDie,
+  getSuperiorityDiceCount,
   getWeaponMasteryCount,
   getWildShapeUses,
 } from "./classResources.js";
@@ -28,6 +33,12 @@ function characterOf(classId: ClassId, level: number) {
   const character = createBlankCharacter("resources-test");
   character.classId = classId;
   character.level = level;
+  return character;
+}
+
+function fighterSubclassOf(subclassId: string, level: number) {
+  const character = characterOf("guerreiro", level);
+  character.subclassId = subclassId;
   return character;
 }
 
@@ -341,5 +352,74 @@ describe("getInfusedItemsMax — Itens Infundidos do Artífice, por nível", () 
 
   it("classe diferente de Artífice — null", () => {
     expect(getInfusedItemsMax(characterOf("mago", 10))).toBeNull();
+  });
+});
+
+describe("Guerreiro/Cavaleiro Místico — Truques e Magias Preparadas (fonte própria, não classId-keyed)", () => {
+  it("getCantripsKnown: 2 nos níveis 3-9, 3 a partir do 10", () => {
+    expect(getCantripsKnown(fighterSubclassOf("Cavaleiro Místico", 3))).toBe(2);
+    expect(getCantripsKnown(fighterSubclassOf("Cavaleiro Místico", 9))).toBe(2);
+    expect(getCantripsKnown(fighterSubclassOf("Cavaleiro Místico", 10))).toBe(3);
+    expect(getCantripsKnown(fighterSubclassOf("Cavaleiro Místico", 20))).toBe(3);
+  });
+
+  it("getSpellsPreparedMax: 3 no nível 3, 13 no nível 20", () => {
+    expect(getSpellsPreparedMax(fighterSubclassOf("Cavaleiro Místico", 3))).toBe(3);
+    expect(getSpellsPreparedMax(fighterSubclassOf("Cavaleiro Místico", 7))).toBe(5);
+    expect(getSpellsPreparedMax(fighterSubclassOf("Cavaleiro Místico", 20))).toBe(13);
+  });
+
+  it("outra subclasse de Guerreiro — null (nunca confundido com a tabela de outra classe)", () => {
+    expect(getCantripsKnown(fighterSubclassOf("Campeão", 10))).toBeNull();
+    expect(getSpellsPreparedMax(fighterSubclassOf("Campeão", 10))).toBeNull();
+  });
+});
+
+describe("Guerreiro/Guerreiro Psiônico — Dados de Energia Psiônica", () => {
+  it("d6 x4 no nível 3; d8 x6 no 5; d8 x8 no 9; d10 x8 no 11; d10 x10 no 13; d12 x12 no 17", () => {
+    expect(getPsiWarriorDie(fighterSubclassOf("Guerreiro Psiônico", 3))).toBe(6);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 3))).toBe(4);
+    expect(getPsiWarriorDie(fighterSubclassOf("Guerreiro Psiônico", 5))).toBe(8);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 5))).toBe(6);
+    expect(getPsiWarriorDie(fighterSubclassOf("Guerreiro Psiônico", 9))).toBe(8);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 9))).toBe(8);
+    expect(getPsiWarriorDie(fighterSubclassOf("Guerreiro Psiônico", 11))).toBe(10);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 11))).toBe(8);
+    expect(getPsiWarriorDie(fighterSubclassOf("Guerreiro Psiônico", 13))).toBe(10);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 13))).toBe(10);
+    expect(getPsiWarriorDie(fighterSubclassOf("Guerreiro Psiônico", 17))).toBe(12);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 17))).toBe(12);
+    expect(getPsiWarriorDiceCount(fighterSubclassOf("Guerreiro Psiônico", 20))).toBe(12);
+  });
+
+  it("outra classe/subclasse — null", () => {
+    expect(getPsiWarriorDie(characterOf("mago", 10))).toBeNull();
+    expect(getPsiWarriorDie(fighterSubclassOf("Campeão", 10))).toBeNull();
+  });
+});
+
+describe("Guerreiro/Mestre da Batalha — Manobras Conhecidas e Dado de Superioridade (DS)", () => {
+  it("3-6: 3 manobras, 4 DS d8; 7-9: 5 manobras, 5 DS d8; 10-14: 7 manobras, 5 DS d10; 15-17: 9 manobras, 6 DS d10; 18-20: 9 manobras, 6 DS d12", () => {
+    expect(getBattleMasterManeuversKnownCount(fighterSubclassOf("Mestre da Batalha", 3))).toBe(3);
+    expect(getSuperiorityDie(fighterSubclassOf("Mestre da Batalha", 3))).toBe(8);
+    expect(getSuperiorityDiceCount(fighterSubclassOf("Mestre da Batalha", 3))).toBe(4);
+
+    expect(getBattleMasterManeuversKnownCount(fighterSubclassOf("Mestre da Batalha", 7))).toBe(5);
+    expect(getSuperiorityDiceCount(fighterSubclassOf("Mestre da Batalha", 7))).toBe(5);
+
+    expect(getBattleMasterManeuversKnownCount(fighterSubclassOf("Mestre da Batalha", 10))).toBe(7);
+    expect(getSuperiorityDie(fighterSubclassOf("Mestre da Batalha", 10))).toBe(10);
+
+    expect(getBattleMasterManeuversKnownCount(fighterSubclassOf("Mestre da Batalha", 15))).toBe(9);
+    expect(getSuperiorityDiceCount(fighterSubclassOf("Mestre da Batalha", 15))).toBe(6);
+
+    expect(getBattleMasterManeuversKnownCount(fighterSubclassOf("Mestre da Batalha", 18))).toBe(9);
+    expect(getSuperiorityDie(fighterSubclassOf("Mestre da Batalha", 18))).toBe(12);
+    expect(getSuperiorityDiceCount(fighterSubclassOf("Mestre da Batalha", 18))).toBe(6);
+  });
+
+  it("outra classe/subclasse — null", () => {
+    expect(getBattleMasterManeuversKnownCount(characterOf("ladino", 10))).toBeNull();
+    expect(getSuperiorityDie(fighterSubclassOf("Cavaleiro Místico", 10))).toBeNull();
   });
 });

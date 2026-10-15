@@ -205,6 +205,17 @@ export interface Character {
   knownMetamagicOptions: string[];
 
   /**
+   * Manobras conhecidas do Mestre de Batalha (ids de
+   * `data/maneuvers.ts#maneuvers`) — etapa própria do Builder ("Manobras"),
+   * fora de `featureChoiceSelections` pelo mesmo motivo de
+   * `chosenInvocations`/`knownMetamagicOptions`: a quantidade exigida varia
+   * por nível e nunca pode haver duplicata (fonte "IMPLEMENTAR SUBCLASSES
+   * DO GUERREIRO NO BUILDER E NO PDF" §6). Armazena só os ids — nunca o
+   * texto derivado, que é sempre recalculado a partir do catálogo.
+   */
+  chosenManeuvers: string[];
+
+  /**
    * Bônus de atributo do Antecedente ATUAL (fonte "REORGANIZAÇÃO DO
    * BUILDER" §12/§19/§20) — distribuição própria, separada da pontuação
    * base (`abilities[ability].score`) e de qualquer outra fonte, para
@@ -334,6 +345,7 @@ export function createBlankCharacter(id: string): Character {
     chosenInvocations: [],
     knownWildShapeForms: [],
     knownMetamagicOptions: [],
+    chosenManeuvers: [],
     backgroundAbilityBonuses: {},
     asiSelections: {},
     manualToolOverrides: null,

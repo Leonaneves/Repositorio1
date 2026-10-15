@@ -93,8 +93,19 @@ function clearStaleSubclassOwnedChoices(character: Character): Character {
     delete featureChoiceSelections[ELEMENTAL_AFFINITY_CHOICE_ID];
     changed = true;
   }
-  if (!changed) return character;
-  return { ...character, featureChoiceSelections };
+  let next = character;
+  if (changed) {
+    next = { ...character, featureChoiceSelections };
+  }
+  // Manobras (Mestre de Batalha) são exclusivas desta subclasse — saem junto com ela,
+  // igual a Invocações Místicas/Formas Conhecidas/Metamagia ao trocar de classe (fonte
+  // "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF" §6). Nunca truncadas por
+  // excesso ao baixar nível DENTRO da mesma subclasse — isso só bloqueia o avanço
+  // (rules/maneuvers.ts#isManeuverSelectionComplete), nunca escolhe o que apagar.
+  if (next.subclassId !== "Mestre da Batalha" && next.chosenManeuvers.length > 0) {
+    next = { ...next, chosenManeuvers: [] };
+  }
+  return next;
 }
 
 /** `asiSelections` só com os níveis cuja chave ainda está na lista informada — nunca muta o objeto recebido. */
@@ -302,6 +313,10 @@ interface CharacterStore {
   /** Alterna 1 opção de Metamagia conhecida (nunca duplica — mesmo padrão de addChosenFeat/removeChosenFeat). */
   addMetamagicOption: (optionId: string) => void;
   removeMetamagicOption: (optionId: string) => void;
+
+  /** Alterna 1 Manobra conhecida do Mestre de Batalha (nunca duplica — subetapa própria "Manobras", mesmo padrão de addMetamagicOption/removeMetamagicOption). */
+  addManeuver: (maneuverId: string) => void;
+  removeManeuver: (maneuverId: string) => void;
 
   /** Adiciona 1 Forma Conhecida em branco de Forma Selvagem do Druida (etapa própria do Builder — ver rules/wildShapeForms.ts). */
   addKnownWildShapeForm: () => void;
@@ -672,6 +687,16 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   removeMetamagicOption: (optionId) =>
     set((state) => ({
       character: { ...state.character, knownMetamagicOptions: state.character.knownMetamagicOptions.filter((id) => id !== optionId) },
+    })),
+
+  addManeuver: (maneuverId) =>
+    set((state) => {
+      if (state.character.chosenManeuvers.includes(maneuverId)) return state;
+      return { character: { ...state.character, chosenManeuvers: [...state.character.chosenManeuvers, maneuverId] } };
+    }),
+  removeManeuver: (maneuverId) =>
+    set((state) => ({
+      character: { ...state.character, chosenManeuvers: state.character.chosenManeuvers.filter((id) => id !== maneuverId) },
     })),
 
   increaseBackgroundAbilityBonus: (ability) =>

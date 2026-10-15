@@ -639,6 +639,38 @@ describe("isSkillGrantedBySubclassChoice — Glamour Transcendental do Andarilho
   });
 });
 
+describe("isSkillGrantedBySubclassChoice — Estudioso da Guerra do Mestre de Batalha (fonte \"IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF\" §6, generalização do mapa por subclasse)", () => {
+  function battleMaster(): ReturnType<typeof createBlankCharacter> {
+    const character = createBlankCharacter("t2");
+    character.classId = "guerreiro";
+    character.subclassId = "Mestre da Batalha";
+    character.level = 3;
+    return character;
+  }
+
+  it("concede a perícia escolhida entre as opções de Guerreiro nível 1, com origem 'subclass'", () => {
+    const character = battleMaster();
+    character.featureChoiceSelections["guerreiro-mestre-de-batalha-estudioso-da-guerra-pericia-escolha"] = { value: ["percepcao"] };
+    expect(isSkillGrantedBySubclassChoice(character, "percepcao")).toBe(true);
+    expect(isSkillGrantedBySubclassChoice(character, "furtividade")).toBe(false);
+    expect(getSkillProficiency(character, "percepcao")).toBe(true);
+    expect(getSkillProficiencyOrigin(character, "percepcao")).toBe("subclass");
+  });
+
+  it("nunca concede nada para outra subclasse de Guerreiro", () => {
+    const character = battleMaster();
+    character.subclassId = "Campeão";
+    character.featureChoiceSelections["guerreiro-mestre-de-batalha-estudioso-da-guerra-pericia-escolha"] = { value: ["percepcao"] };
+    expect(isSkillGrantedBySubclassChoice(character, "percepcao")).toBe(false);
+  });
+
+  it("Glamour Transcendental e Estudioso da Guerra nunca se confundem — cada subclasse só lê sua própria escolha", () => {
+    const character = battleMaster();
+    character.featureChoiceSelections[RANGER_GLAMOUR_SKILL_CHOICE_ID] = { value: ["persuasao"] };
+    expect(isSkillGrantedBySubclassChoice(character, "persuasao")).toBe(false);
+  });
+});
+
 describe("getGlamourTranscendentalBonus — Andarilho Feérico, nível 3 (fonte \"IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF\" §2)", () => {
   function feyWandererAt(level: number, wisdom: number): ReturnType<typeof createBlankCharacter> {
     const character = createBlankCharacter("glamour-test");

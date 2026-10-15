@@ -18,6 +18,13 @@ import {
   DRUID_CANTRIPS_KNOWN,
   DRUID_SPELLS_PREPARED,
   DRUID_WILD_SHAPE_USES,
+  FIGHTER_BATTLE_MASTER_MANEUVERS_KNOWN,
+  FIGHTER_BATTLE_MASTER_SUPERIORITY_DICE_COUNT,
+  FIGHTER_BATTLE_MASTER_SUPERIORITY_DIE,
+  FIGHTER_ELDRITCH_KNIGHT_CANTRIPS_KNOWN,
+  FIGHTER_ELDRITCH_KNIGHT_SPELLS_PREPARED,
+  FIGHTER_PSI_WARRIOR_DICE_COUNT,
+  FIGHTER_PSI_WARRIOR_DIE,
   FIGHTER_SECOND_WIND_USES,
   FIGHTER_WEAPON_MASTERIES,
   MONK_FOCUS_POINTS,
@@ -156,19 +163,74 @@ const SPELLS_PREPARED_TABLES = {
 /**
  * Truques conhecidos, por nível — coluna "Truques" da tabela da
  * classe. Paladino e Patrulheiro não têm essa coluna (meio-conjuradores
- * sem truques de classe no PHB 2024): `null`, nunca `0`.
+ * sem truques de classe no PHB 2024): `null`, nunca `0`. Cavaleiro
+ * Místico (Guerreiro) é um caso especial — conjuração vem da subclasse,
+ * não da classe, então a tabela não é indexada por `classId` (fonte
+ * "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF" §4).
  */
 export function getCantripsKnown(character: Character): number | null {
+  if (character.classId === "guerreiro") {
+    if (character.subclassId !== "Cavaleiro Místico") return null;
+    return FIGHTER_ELDRITCH_KNIGHT_CANTRIPS_KNOWN[character.level] ?? 0;
+  }
   if (!character.classId || !(character.classId in CANTRIPS_KNOWN_TABLES)) return null;
   const table = CANTRIPS_KNOWN_TABLES[character.classId as keyof typeof CANTRIPS_KNOWN_TABLES];
   return table[character.level] ?? 0;
 }
 
-/** Magias Preparadas máximas, por nível — coluna "Magias Preparadas" da tabela da classe. */
+/**
+ * Magias Preparadas máximas, por nível — coluna "Magias Preparadas" da
+ * tabela da classe. Mesmo caso especial do Cavaleiro Místico de
+ * `getCantripsKnown` acima.
+ */
 export function getSpellsPreparedMax(character: Character): number | null {
+  if (character.classId === "guerreiro") {
+    if (character.subclassId !== "Cavaleiro Místico") return null;
+    return FIGHTER_ELDRITCH_KNIGHT_SPELLS_PREPARED[character.level] ?? 0;
+  }
   if (!character.classId || !(character.classId in SPELLS_PREPARED_TABLES)) return null;
   const table = SPELLS_PREPARED_TABLES[character.classId as keyof typeof SPELLS_PREPARED_TABLES];
   return table[character.level] ?? 0;
+}
+
+/**
+ * Dado de Energia Psiônica (Guerreiro/Psiônico) — recurso próprio desta
+ * subclasse, nunca confundido com DS do Mestre de Batalha (fonte
+ * "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF" §5).
+ */
+export function getPsiWarriorDie(character: Character): HitDie | null {
+  if (character.classId !== "guerreiro" || character.subclassId !== "Guerreiro Psiônico") return null;
+  return FIGHTER_PSI_WARRIOR_DIE[character.level] ?? null;
+}
+
+/** Quantidade de Dados de Energia Psiônica (reserva total, não "restantes"). */
+export function getPsiWarriorDiceCount(character: Character): number | null {
+  if (character.classId !== "guerreiro" || character.subclassId !== "Guerreiro Psiônico") return null;
+  return FIGHTER_PSI_WARRIOR_DICE_COUNT[character.level] ?? 0;
+}
+
+/**
+ * Manobras Conhecidas (Guerreiro/Mestre de Batalha) — quantidade
+ * exigida pela subetapa "Manobras" (fonte idem §6). `fullName` da
+ * subclasse permanece "Mestre da Batalha" por compatibilidade de IDs
+ * (`data/subclasses.ts`) mesmo com a exibição corrigida para "Mestre de
+ * Batalha".
+ */
+export function getBattleMasterManeuversKnownCount(character: Character): number | null {
+  if (character.classId !== "guerreiro" || character.subclassId !== "Mestre da Batalha") return null;
+  return FIGHTER_BATTLE_MASTER_MANEUVERS_KNOWN[character.level] ?? 0;
+}
+
+/** Dado de Superioridade (DS) — tipo do dado, por nível. */
+export function getSuperiorityDie(character: Character): HitDie | null {
+  if (character.classId !== "guerreiro" || character.subclassId !== "Mestre da Batalha") return null;
+  return FIGHTER_BATTLE_MASTER_SUPERIORITY_DIE[character.level] ?? null;
+}
+
+/** Quantidade de Dados de Superioridade (reserva total, não "restantes"). */
+export function getSuperiorityDiceCount(character: Character): number | null {
+  if (character.classId !== "guerreiro" || character.subclassId !== "Mestre da Batalha") return null;
+  return FIGHTER_BATTLE_MASTER_SUPERIORITY_DICE_COUNT[character.level] ?? 0;
 }
 
 /** Infusões Conhecidas do Artífice, por nível — `null` para as demais classes, `0` no nível 1 (indisponível na fonte). */

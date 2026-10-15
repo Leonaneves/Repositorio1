@@ -26,6 +26,7 @@ export const BUILDER_STEP_ORDER = [
   "basicInfo",
   "class",
   "metamagic",
+  "maneuvers",
   "species",
   "background",
   "abilities",
@@ -41,6 +42,7 @@ export const BUILDER_STEP_LABELS: Record<BuilderStepId, string> = {
   basicInfo: "Informações Básicas",
   class: "Classe",
   metamagic: "Metamagia",
+  maneuvers: "Manobras",
   species: "Espécie",
   background: "Antecedente",
   abilities: "Atributos",
@@ -73,6 +75,11 @@ export function isElementalAffinityApplicable(character: Character): boolean {
  *   própria, fora do mecanismo genérico de `FeatureChoice` (mesma
  *   razão de Invocações Místicas/Formas Conhecidas: quantidade por
  *   nível + nunca duplicar).
+ * - Manobras: só para Guerreiro/Mestre de Batalha a partir do nível 3
+ *   (fonte "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF"
+ *   §1/§6: "as escolhas de Subclasse ficam dentro de Classe, exceto
+ *   Manobras, que terão uma subetapa própria condicional") — mesma
+ *   arquitetura de Metamagia/Invocações Místicas.
  * - Características e Talentos: desde a "REORGANIZAÇÃO DO BUILDER" (§1/§2),
  *   escolhas de Classe/Subclasse moraram para a etapa Classe
  *   (`getClassFeaturesWithChoices`/`getSubclassFeaturesWithChoices`,
@@ -96,6 +103,7 @@ export function isElementalAffinityApplicable(character: Character): boolean {
  */
 export function isStepVisible(stepId: BuilderStepId, character: Character): boolean {
   if (stepId === "metamagic") return character.classId === "feiticeiro" && character.level >= 2;
+  if (stepId === "maneuvers") return character.classId === "guerreiro" && character.subclassId === "Mestre da Batalha" && character.level >= 3;
   if (stepId === "featuresAndTalents") {
     return getOtherFeaturesWithChoices(character).length > 0;
   }

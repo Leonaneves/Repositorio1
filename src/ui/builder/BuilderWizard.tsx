@@ -15,6 +15,7 @@ import { Step5Background } from "./steps/Step5Background.js";
 import { Step6Abilities } from "./steps/Step6Abilities.js";
 import { Step8FeaturesAndTalents } from "./steps/Step8FeaturesAndTalents.js";
 import { StepInvocations } from "./steps/StepInvocations.js";
+import { StepManeuvers } from "./steps/StepManeuvers.js";
 import { Step9Equipment } from "./steps/Step9Equipment.js";
 import { Step10Spellcasting } from "./steps/Step10Spellcasting.js";
 import { Step11Review } from "./steps/Step11Review.js";
@@ -23,6 +24,7 @@ const STEP_COMPONENTS: Record<BuilderStepId, () => JSX.Element> = {
   basicInfo: Step1BasicInfo,
   class: Step2Class,
   metamagic: StepMetamagic,
+  maneuvers: StepManeuvers,
   species: Step4Species,
   background: Step5Background,
   abilities: Step6Abilities,

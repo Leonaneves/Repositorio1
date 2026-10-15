@@ -37,6 +37,7 @@ import { getClericWeaponProficiencyEntries } from "../rules/clericProficiencies.
 import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
 import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js";
 import { getRangerPrintedBlocks } from "../rules/rangerPrintedFeatures.js";
+import { getFighterPrintedBlocks } from "../rules/fighterPrintedFeatures.js";
 import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
@@ -238,11 +239,12 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * Clérigo (fonte "INTEGRAÇÃO COMPLETA — CLÉRIGO E SUBCLASSES"), Druida
  * (fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES"), Feiticeiro
  * (fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES") e
- * Patrulheiro (só as 4 subclasses — fonte "IMPLEMENTAR SUBCLASSES DO
- * PATRULHEIRO NO BUILDER E NO PDF") têm o texto impresso montado
- * dinamicamente; as demais 6 classes continuam com o campo manual de
- * sempre (`Character.classFeatures`), sem nenhuma mudança de
- * comportamento.
+ * Patrulheiro e Guerreiro (ambos só nas respectivas 4 subclasses —
+ * fontes "IMPLEMENTAR SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" e
+ * "IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF") têm o
+ * texto impresso montado dinamicamente; as demais 5 classes continuam
+ * com o campo manual de sempre (`Character.classFeatures`), sem nenhuma
+ * mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -275,6 +277,13 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   // sempre continua sendo a única fonte, para nunca apagar um texto já digitado pelo jogador.
   if (character.classId === "patrulheiro" && character.subclassId) {
     const [column1, column2] = splitIntoTwoColumns(getRangerPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  // Guerreiro: mesmo raciocínio do Patrulheiro acima — só troca para a composição dinâmica quando
+  // há subclasse escolhida (as 4 cobertas por esta fonte); a classe BASE ainda não tem conteúdo, e
+  // getFighterPrintedBlocks() devolve [] sem subclasse, preservando o campo manual de sempre.
+  if (character.classId === "guerreiro" && character.subclassId) {
+    const [column1, column2] = splitIntoTwoColumns(getFighterPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;

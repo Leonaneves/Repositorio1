@@ -36,6 +36,27 @@ export type FeatureChoiceEffect =
   | { kind: "weaponPicker"; category: WeaponCategory | "any"; count: number; rangeKind?: WeaponRangeKind }
   /** Escolha única entre um pequeno conjunto de opções nomeadas (ex.: "Armadura de Couro Batido" OU "Cota de Escamas" do equipamento inicial do Artífice) — quando as opções não pertencem a nenhum catálogo existente (perícia/ferramenta/arma), mas ainda são uma lista fechada e conhecida, não texto livre. */
   | { kind: "optionPick"; options: string[] }
+  /**
+   * `manualText` é TAMBÉM o modelo usado hoje para Estilo de Luta — uma
+   * CATEGORIA de talento condicional (fonte "IMPLEMENTAR SUBCLASSES DO
+   * GUERREIRO NO BUILDER E NO PDF" §2), nunca disponível em seleções
+   * gerais de talento: só pode ser adquirido por uma característica que
+   * concede especificamente essa categoria (ex.: "Estilo de Luta" do
+   * Guerreiro nível 1, "Estilo de Luta Adicional" do Campeão nível 7).
+   * Possuir uma dessas características NUNCA concede todos os Estilos
+   * de Luta de uma vez — cada característica concedente é sua PRÓPRIA
+   * `FeatureDefinition`/`FeatureChoice`, com origem e quantidade (1
+   * escolha) independentes das demais; a de outras classes (Paladino,
+   * Patrulheiro etc., ainda pendentes) nunca é tocada por esta fonte.
+   * Catálogo de Estilos de Luta ainda não fornecido — por isso
+   * `manualText` (nunca um texto livre validado como escolha
+   * completa — `rules/features.ts#isFeatureChoiceComplete` trata
+   * `manualText` como sempre incompleto o suficiente para nunca travar
+   * o Avançar, e NUNCA suficiente para contar como talento adquirido).
+   * Quando o catálogo chegar, cada concessão desta categoria deve
+   * passar a validar quantidade/requisitos contra ele — nunca contra
+   * uma lista geral de talentos.
+   */
   | { kind: "manualText"; placeholder: string };
 
 export interface FeatureChoice {

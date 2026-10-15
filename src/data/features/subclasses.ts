@@ -1,4 +1,5 @@
 import type { FeatureDefinition } from "../../domain/features.js";
+import { classes } from "../classes.js";
 import { CONHECIMENTO_PROFICIENCIAS_BONUS_CHOICE_ID } from "./bard.js";
 
 /**
@@ -57,6 +58,29 @@ export const RANGER_GLAMOUR_SKILL_CHOICE_ID = "patrulheiro-feerico-glamour-peric
  */
 export const RANGER_MENTE_DE_FERRO_FEATURE_ID = "patrulheiro-sombras-mente-de-ferro-7";
 export const RANGER_MENTE_DE_FERRO_CHOICE_ID = "patrulheiro-sombras-mente-de-ferro-escolha";
+
+/**
+ * Atributo escolhido para a CD de Manobras do Mestre de Batalha (Força
+ * ou Destreza) — escolha PERSISTENTE e editável, anexada diretamente à
+ * `FeatureDefinition` de "Superioridade em Combate" (nunca condicional
+ * como Mente de Ferro acima: a CD de Manobras sempre precisa de um
+ * atributo escolhido a partir do nível 3, fonte "IMPLEMENTAR SUBCLASSES
+ * DO GUERREIRO NO BUILDER E NO PDF" §6). Independente da escolha de
+ * Força ou Destreza feita a cada uso de Aparar (§7: "não vincular essa
+ * escolha ao atributo da CD"). Lida por
+ * `rules/maneuvers.ts#getManeuversCdAbility` — nunca escolhe o maior
+ * silenciosamente.
+ */
+export const BATTLE_MASTER_CD_ABILITY_CHOICE_ID = "guerreiro-mestre-de-batalha-cd-manobras-atributo-escolha";
+
+/**
+ * Perícia escolhida em "Estudioso da Guerra" (Mestre de Batalha, nível
+ * 3) — origem "subclass" (ver `rules/skills.ts#isSkillGrantedBySubclassChoice`),
+ * independente da escolha de Perícias de Classe do Guerreiro nível 1
+ * (`getClassSkillChoiceId`), mesmo papel de `RANGER_GLAMOUR_SKILL_CHOICE_ID`
+ * acima para o Andarilho Feérico.
+ */
+export const FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID = "guerreiro-mestre-de-batalha-estudioso-da-guerra-pericia-escolha";
 
 /**
  * Features de SUBCLASSE confirmadas com fonte fornecida — as 4
@@ -1568,5 +1592,289 @@ export const subclassFeatures: FeatureDefinition[] = [
     autoGranted: true,
     summary:
       "Reação quando uma criatura faz uma jogada de ataque contra você: impõe Desvantagem a essa jogada; acertando ou errando, pode se teleportar até 9m para um espaço à vista. Sem limite por Descanso.",
+  },
+
+  // ---------- Campeão ----------
+  {
+    id: "guerreiro-campeao-atleta-extraordinario-3",
+    name: "Atleta Extraordinário",
+    sourceType: "subclass",
+    subclassFullName: "Campeão",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Vantagem em testes de Iniciativa e em testes de Força (Atletismo). Imediatamente após conseguir um Acerto Crítico, pode se mover até a metade do deslocamento sem provocar Ataques de Oportunidade — nunca soma esse movimento permanentemente ao deslocamento.",
+  },
+  {
+    id: "guerreiro-campeao-critico-aprimorado-3",
+    name: "Crítico Aprimorado",
+    sourceType: "subclass",
+    subclassFullName: "Campeão",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ataques com armas e Ataques Desarmados obtêm Acerto Crítico com resultado 19 ou 20 no d20 (nível 15: Crítico Superior substitui esse intervalo por 18–20 — nunca os dois juntos). Aplica-se só aos ataques elegíveis, nunca a ataques de magia.",
+  },
+  {
+    id: "guerreiro-campeao-estilo-de-luta-adicional-7",
+    name: "Estilo de Luta Adicional",
+    sourceType: "subclass",
+    subclassFullName: "Campeão",
+    level: 7,
+    autoGranted: false,
+    summary:
+      "Concede mais uma escolha de talento de Estilo de Luta — categoria condicional (`domain/features.ts#FeatureChoiceEffect`, variante `manualText`), SEPARADA da concessão original de Estilo de Luta do Guerreiro nível 1 (origem e quantidade próprias; possuir uma não concede a outra nem todos os Estilos de Luta de uma vez). Catálogo de Estilos de Luta ainda pendente: a escolha abaixo fica como aviso de conteúdo pendente, nunca texto livre validado como talento adquirido.",
+    choices: [
+      {
+        id: "guerreiro-campeao-estilo-de-luta-adicional-escolha",
+        prompt: "Campeão nível 7 — Estilo de Luta Adicional (catálogo de Estilos de Luta ainda pendente)",
+        effect: { kind: "manualText", placeholder: "Estilo de Luta Adicional (catálogo pendente)" },
+      },
+    ],
+  },
+  {
+    id: "guerreiro-campeao-combatente-heroico-10",
+    name: "Combatente Heroico",
+    sourceType: "subclass",
+    subclassFullName: "Campeão",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Durante combate, no início de cada um dos seus turnos, se não tiver Inspiração Heroica, pode recebê-la. Nunca cria contador por Descanso nem permite acúmulo além do comportamento já existente de Inspiração Heroica.",
+  },
+  {
+    id: "guerreiro-campeao-critico-superior-15",
+    name: "Crítico Superior",
+    sourceType: "subclass",
+    subclassFullName: "Campeão",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Atualiza Crítico Aprimorado — nunca um bloco impresso separado. O intervalo de Acerto Crítico em ataques com armas e Ataques Desarmados passa a 18–20, substituindo por completo o intervalo anterior (nunca os dois juntos).",
+  },
+  {
+    id: "guerreiro-campeao-sobrevivente-18",
+    name: "Sobrevivente",
+    sourceType: "subclass",
+    subclassFullName: "Campeão",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Vantagem em Salvaguardas Contra a Morte; nessa salvaguarda, um resultado de 18 a 20 no d20 é tratado como 20. No início de cada um dos seus turnos, se estiver Sangrando e com pelo menos 1 PV, recupera 5 + modificador de Constituição em PV. Usa a definição de \"Sangrando\" já cadastrada no projeto — NENHUMA definição estruturada dessa condição existe hoje, então fica registrada como condição textual, com a falta de automação sinalizada como pendência (nunca inventada). Nunca aplica um mínimo de cura não fornecido pela fonte.",
+  },
+
+  // ---------- Cavaleiro Místico ----------
+  {
+    id: "guerreiro-cavaleiro-mistico-conjuracao-3",
+    name: "Conjuração",
+    sourceType: "subclass",
+    subclassFullName: "Cavaleiro Místico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Atributo de conjuração: Inteligência (já reconhecido por rules/spellcasting.ts via SUBCLASS_SPELLCASTERS). Pode usar Foco Arcano. Conhece 2 truques da lista de Mago (3 a partir do nível 10 — rules/classResources.ts#getCantripsKnown); ao ganhar nível de Guerreiro, pode substituir um truque. Prepara inicialmente 3 magias de 1º círculo da lista de Mago, com progressão própria de Magias Preparadas/espaços (rules/classResources.ts#getSpellsPreparedMax, rules/spellcasting.ts#getSpellSlots — numericamente igual à progressão de terço-conjurador, mas registrada à parte); magias escolhidas precisam ter círculo para o qual a progressão concede espaços; ao ganhar nível de Guerreiro, pode substituir uma magia preparada por outra elegível; espaços gastos são recuperados em Descanso Longo. Recomendações (NUNCA concessões automáticas nem escolhas obrigatórias): truques Raio de Gelo e Toque Chocante; magias Escudo Arcano, Mãos Flamejantes e Salto. Sem catálogo completo de magias no projeto: truques e magias preparadas usam o mesmo campo de texto livre já existente para todo conjurador, nunca validados só pelo nome digitado. Não impresso em Características de Classe — usa os campos próprios de Conjuração.",
+  },
+  {
+    id: "guerreiro-cavaleiro-mistico-vinculo-com-arma-3",
+    name: "Vínculo com Arma",
+    sourceType: "subclass",
+    subclassFullName: "Cavaleiro Místico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ritual de 1 hora (pode ocorrer durante um Descanso Curto) com uma arma ao alcance durante o ritual, tocada ao concluir: vincula até 2 armas. Falha se a arma já estiver vinculada a outro Guerreiro ou, sendo mágica, estiver sintonizada com outra pessoa. Não pode ser desarmado de uma arma vinculada, salvo se estiver Incapacitado. Ação Bônus invoca uma arma vinculada para a mão, se estiver no mesmo plano de existência. Um novo vínculo além do limite de 2 exige encerrar um vínculo anterior. Nunca exige escolha de arma vinculada na criação do personagem — decisão feita durante o jogo.",
+  },
+  {
+    id: "guerreiro-cavaleiro-mistico-magia-de-guerra-7",
+    name: "Magia de Guerra",
+    sourceType: "subclass",
+    subclassFullName: "Cavaleiro Místico",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Na ação Atacar do próprio turno, pode substituir um dos ataques por um truque de Mago com tempo de conjuração de uma ação (nível 18: Magia de Guerra Aprimorada acrescenta a opção de substituir dois ataques por uma magia de 1º ou 2º círculo — preservando esta opção do truque).",
+  },
+  {
+    id: "guerreiro-cavaleiro-mistico-golpe-mistico-10",
+    name: "Golpe Místico",
+    sourceType: "subclass",
+    subclassFullName: "Cavaleiro Místico",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Ao acertar uma criatura com uma arma, ela fica com Desvantagem na próxima salvaguarda contra uma magia conjurada pelo personagem antes do fim do próximo turno dele. Nunca Desvantagem permanente nem em todas as salvaguardas.",
+  },
+  {
+    id: "guerreiro-cavaleiro-mistico-investida-mistica-15",
+    name: "Investida Mística",
+    sourceType: "subclass",
+    subclassFullName: "Cavaleiro Místico",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Ao usar Surto de Ação, pode teleportar até 9m para um espaço desocupado à vista, antes ou depois da ação adicional. Nunca cria um contador separado de Surto de Ação — reutiliza os usos já existentes dessa característica do Guerreiro.",
+  },
+  {
+    id: "guerreiro-cavaleiro-mistico-magia-de-guerra-aprimorada-18",
+    name: "Magia de Guerra Aprimorada",
+    sourceType: "subclass",
+    subclassFullName: "Cavaleiro Místico",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Atualiza Magia de Guerra — nunca um bloco impresso separado. Na ação Atacar do próprio turno, também pode substituir dois ataques por uma magia de Mago de 1º ou 2º círculo com tempo de conjuração de uma ação, preservando a opção anterior de substituir um ataque por um truque.",
+  },
+
+  // ---------- Guerreiro Psiônico ----------
+  {
+    id: "guerreiro-psionico-energia-psionica-3",
+    name: "Energia Psiônica",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reserva de Dados de Energia Psiônica: d6 x4 no nível 3; d8 x6 no 5; d8 x8 no 9; d10 x8 no 11; d10 x10 no 13; d12 x12 no 17 (rules/classResources.ts#getPsiWarriorDie/getPsiWarriorDiceCount). Recupera um dado gasto em Descanso Curto; recupera todos em Descanso Longo. Só os dados desta subclasse alimentam os poderes abaixo — nunca somados a DS (Mestre de Batalha) ou a dados de outra origem. Um poder que exige gasto de dado nunca pode ser usado sem dado disponível.",
+  },
+  {
+    id: "guerreiro-psionico-golpe-psionico-3",
+    name: "Golpe Psiônico",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Uma vez no próprio turno, imediatamente após acertar um alvo a até 9m e causar dano com arma: gasta 1 dado de Energia Psiônica e causa dano Energético adicional igual ao dado + modificador de Inteligência. Nunca soma a todos os ataques nem aplica mínimo não fornecido (nível 7: Estocada Telecinética acrescenta uma Salvaguarda de Força opcional ao causar esse dano — mesmo bloco impresso, nunca separado).",
+  },
+  {
+    id: "guerreiro-psionico-movimento-telecinetico-3",
+    name: "Movimento Telecinético",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Usar Magia: escolhe um objeto solto Grande ou menor, ou outra criatura voluntária, à vista a até 9m, e o transporta até 9m para um espaço desocupado à vista (um objeto Minúsculo também pode ser transportado de ou para a própria mão). Um uso por Descanso Curto ou Longo; gastar 1 dado de Energia Psiônica, sem ação, recupera o uso. Nunca pode ser usado tendo o próprio personagem como criatura-alvo.",
+  },
+  {
+    id: "guerreiro-psionico-vinculo-protetivo-3",
+    name: "Vínculo Protetivo",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reação quando você, ou outra criatura à vista a até 9m, sofre dano: gasta 1 dado de Energia Psiônica e reduz o dano em dado + modificador de Inteligência, no mínimo 1.",
+  },
+  {
+    id: "guerreiro-psionico-estocada-telecinetica-7",
+    name: "Estocada Telecinética",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Atualiza Golpe Psiônico — nunca um bloco impresso separado. Ao causar dano com Golpe Psiônico, pode exigir que o alvo faça uma Salvaguarda de Força, CD própria = 8 + BP + modificador de Inteligência (fórmula independente da CD de magia — rules/psionics.ts#getKineticThrustCd); falha: o alvo fica Caído, ou é deslocado horizontalmente até 3m, à escolha. Sem gasto adicional de dado; condição ou movimento são escolhidos no momento do uso.",
+  },
+  {
+    id: "guerreiro-psionico-salto-com-impulsao-psiquica-7",
+    name: "Salto com Impulsão Psíquica",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: concede a si mesmo voo igual a duas vezes o deslocamento efetivo até o fim do turno. Um uso por Descanso Curto ou Longo; gastar 1 dado de Energia Psiônica, sem ação, recupera o uso. Nunca adiciona voo permanente à ficha.",
+  },
+  {
+    id: "guerreiro-psionico-resguardo-mental-10",
+    name: "Resguardo Mental",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Resistência a dano Psíquico (aplicada pelo sistema textual de resistências já existente, preservando outras origens). No início de cada um dos seus turnos, se estiver Amedrontado ou Enfeitiçado, pode gastar 1 dado de Energia Psiônica, sem ação, para encerrar TODOS os efeitos que impõem essas condições.",
+  },
+  {
+    id: "guerreiro-psionico-baluarte-de-energia-15",
+    name: "Baluarte de Energia",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: escolhe até máximo(1, modificador de Inteligência) criaturas a até 9m, incluindo a si mesmo, e concede Cobertura Parcial por 1 minuto (termina antes se o personagem ficar Incapacitado). Um uso por Descanso Longo; gastar 1 dado de Energia Psiônica, sem ação, recupera o uso. Nunca aplica bônus permanente de CA; reutiliza a regra de Cobertura Parcial já existente no projeto, sem inventar seus efeitos.",
+  },
+  {
+    id: "guerreiro-psionico-mestre-telecinetico-18",
+    name: "Mestre Telecinético",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro Psiônico",
+    level: 18,
+    autoGranted: true,
+    summary:
+      "Telecinese fica sempre preparada, usando Inteligência como atributo de conjuração (referência registrada mesmo sem catálogo completo de magias — nunca cria espaços de magia só por esta característica). Uma conjuração gratuita por Descanso Longo, sem espaço nem componentes; gastar 1 dado de Energia Psiônica, sem ação, recupera esse uso. Em cada turno mantendo Concentração nela, inclusive no turno da própria conjuração, pode fazer um ataque com arma usando Ação Bônus.",
+  },
+
+  // ---------- Mestre da Batalha ----------
+  {
+    id: "guerreiro-mestre-de-batalha-estudioso-da-guerra-3",
+    name: "Estudioso da Guerra",
+    sourceType: "subclass",
+    subclassFullName: "Mestre da Batalha",
+    level: 3,
+    autoGranted: false,
+    summary:
+      "Concede proficiência em 1 Ferramenta de Artesão e em 1 perícia entre as opções de perícia do Guerreiro no nível 1. Reutiliza os catálogos já existentes (data/tools.ts/rules/tools.ts#getEligibleTools; perícias de Guerreiro) — nunca inventa ferramentas nem amplia a lista de perícias. Aplicada nos campos próprios de proficiência; nunca impressa em Características de Classe.",
+    choices: [
+      {
+        id: "guerreiro-mestre-de-batalha-estudioso-da-guerra-ferramenta-escolha",
+        prompt: "Estudioso da Guerra — escolha 1 Ferramenta de Artesão",
+        effect: { kind: "toolProficiency", category: "artisanTool", count: 1 },
+      },
+      {
+        id: FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID,
+        prompt: "Estudioso da Guerra — escolha 1 perícia entre as opções de Guerreiro",
+        effect: { kind: "skillProficiency", options: classes.guerreiro.skillChoice!.from, count: 1, excludeAlreadyProficient: true },
+      },
+    ],
+  },
+  {
+    id: "guerreiro-mestre-de-batalha-superioridade-em-combate-3",
+    name: "Superioridade em Combate",
+    sourceType: "subclass",
+    subclassFullName: "Mestre da Batalha",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reserva de Dados de Superioridade (DS): 4 d8 nos níveis 3–6; 5 d8 nos níveis 7–9; 5 d10 nos níveis 10–14; 6 d10 nos níveis 15–17; 6 d12 nos níveis 18–20 (rules/classResources.ts#getSuperiorityDie/getSuperiorityDiceCount). Cada uso de manobra gasta 1 DS, salvo uso de Implacável (nível 15). Recupera todos os DS em Descanso Curto ou Longo. Apenas 1 manobra por ataque. Ao aprender novas manobras (subetapa própria \"Manobras\"), pode substituir uma conhecida. CD de Manobras = 8 + BP + modificador de Força ou Destreza, escolhido abaixo (rules/maneuvers.ts#getManeuversCd) — escolha PERSISTENTE e editável, independente da escolha de Força ou Destreza feita a cada uso de Aparar.",
+    choices: [
+      {
+        id: BATTLE_MASTER_CD_ABILITY_CHOICE_ID,
+        prompt: "CD de Manobras — escolha Força ou Destreza",
+        effect: { kind: "optionPick", options: ["Força", "Destreza"] },
+      },
+    ],
+  },
+  {
+    id: "guerreiro-mestre-de-batalha-conheca-seu-inimigo-7",
+    name: "Conheça Seu Inimigo",
+    sourceType: "subclass",
+    subclassFullName: "Mestre da Batalha",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: examina uma criatura à vista a até 9m e revela suas Imunidades, Resistências e Vulnerabilidades. Um uso por Descanso Longo; pode gastar 1 DS, sem ação, para recuperar um uso. Nunca inventa informações de criaturas — o projeto não tem catálogo de monstros.",
+  },
+  {
+    id: "guerreiro-mestre-de-batalha-implacavel-15",
+    name: "Implacável",
+    sourceType: "subclass",
+    subclassFullName: "Mestre da Batalha",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Uma vez por turno, ao usar uma manobra, pode rolar 1d8 em vez de gastar 1 DS. Esse d8 não consome a reserva de DS, não exige DS restante, e nunca vira d10/d12 nos níveis seguintes (mantém d8 fixo até o nível 20). Mantém a ação e as demais condições da manobra usada; não concede usos gratuitos de Conheça Seu Inimigo (que não é manobra); preserva a regra de 1 manobra por ataque.",
   },
 ];

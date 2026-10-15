@@ -23,6 +23,7 @@ import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js
 import { getPendingBuilderSteps } from "../../../rules/builderProgress.js";
 import { isStepVisible, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
 import { getKnownMetamagicOptions } from "../../../rules/metamagic.js";
+import { getKnownManeuvers } from "../../../rules/maneuvers.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import type { BuilderStepId } from "../../../rules/builderSteps.js";
 import type { Character } from "../../../domain/character.js";
@@ -100,6 +101,25 @@ function getClassChoiceRows(character: Character): ClassChoiceRow[] {
           <ul className="review-inline-list">
             {known.map((option) => (
               <li key={option.id}>{option.name}</li>
+            ))}
+          </ul>
+        ),
+    });
+  }
+
+  if (isStepVisible("maneuvers", character)) {
+    const known = getKnownManeuvers(character);
+    rows.push({
+      key: "maneuvers",
+      label: "Manobras",
+      stepId: "maneuvers",
+      content:
+        known.length === 0 ? (
+          <p className="empty-note">Nenhuma manobra escolhida ainda.</p>
+        ) : (
+          <ul className="review-inline-list">
+            {known.map((maneuver) => (
+              <li key={maneuver.id}>{maneuver.name}</li>
             ))}
           </ul>
         ),

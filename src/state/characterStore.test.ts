@@ -334,6 +334,80 @@ describe("useCharacterStore — Metamagia (Feiticeiro)", () => {
   });
 });
 
+describe("useCharacterStore — Manobras (Mestre de Batalha, Guerreiro)", () => {
+  it("addManeuver adiciona 1 manobra, sem duplicar", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(3);
+    store.setSubclass("Mestre da Batalha");
+    store.addManeuver("desarme");
+    store.addManeuver("desarme");
+    expect(useCharacterStore.getState().character.chosenManeuvers).toEqual(["desarme"]);
+  });
+
+  it("removeManeuver remove só a manobra informada", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(3);
+    store.setSubclass("Mestre da Batalha");
+    store.addManeuver("desarme");
+    store.addManeuver("finta");
+    store.removeManeuver("desarme");
+    expect(useCharacterStore.getState().character.chosenManeuvers).toEqual(["finta"]);
+  });
+
+  it("trocar de subclasse para fora de Mestre de Batalha limpa as manobras conhecidas, igual às outras escolhas por-subclasse", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(3);
+    store.setSubclass("Mestre da Batalha");
+    store.addManeuver("desarme");
+    expect(useCharacterStore.getState().character.chosenManeuvers).toHaveLength(1);
+
+    store.setSubclass("Campeão");
+    expect(useCharacterStore.getState().character.chosenManeuvers).toEqual([]);
+  });
+
+  it("trocar de classe para fora de Guerreiro também limpa as manobras conhecidas", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(3);
+    store.setSubclass("Mestre da Batalha");
+    store.addManeuver("desarme");
+
+    store.setClass("mago");
+    expect(useCharacterStore.getState().character.chosenManeuvers).toEqual([]);
+  });
+
+  it("baixar o nível abaixo de 3 (limpando a subclasse) também limpa as manobras conhecidas", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(3);
+    store.setSubclass("Mestre da Batalha");
+    store.addManeuver("desarme");
+
+    store.setLevel(2);
+    expect(useCharacterStore.getState().character.subclassId).toBeNull();
+    expect(useCharacterStore.getState().character.chosenManeuvers).toEqual([]);
+  });
+
+  it("baixar o nível DENTRO da mesma subclasse (sem perder a subclasse) nunca trunca manobras em excesso arbitrariamente — fica para o bloqueio da etapa resolver", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("guerreiro");
+    store.setLevel(7);
+    store.setSubclass("Mestre da Batalha");
+    store.addManeuver("desarme");
+    store.addManeuver("finta");
+    store.addManeuver("emboscada");
+    store.addManeuver("prostrar");
+    store.addManeuver("avaliacao-tatica");
+    expect(useCharacterStore.getState().character.chosenManeuvers).toHaveLength(5);
+
+    store.setLevel(3); // nível 3 exige só 3 manobras — nunca escolhe quais remover
+    expect(useCharacterStore.getState().character.chosenManeuvers).toHaveLength(5);
+  });
+});
+
 describe("useCharacterStore — Terreno do Círculo da Terra / Afinidade Elemental são limpos ao trocar de subclasse/classe/nível (CONSOLIDAÇÃO DO BUILDER §10/§11)", () => {
   it("trocar de 'Círculo da Terra' para outra subclasse de Druida limpa o Terreno escolhido", () => {
     const store = useCharacterStore.getState();

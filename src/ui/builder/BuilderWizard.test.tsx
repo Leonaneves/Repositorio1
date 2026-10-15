@@ -529,3 +529,84 @@ describe("BuilderWizard — Patrulheiro, escolhas permanentes das subclasses (fo
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 });
+
+describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (fonte \"IMPLEMENTAR SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF\" §3/§6)", () => {
+  function setupFighter(level = 3) {
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("guerreiro");
+      store.setLevel(level);
+      // Resolve escolhas NÃO relacionadas (Perícias de Classe + ASI de cada nível já
+      // alcançado) — sem isso, Avançar já ficaria bloqueado por um motivo que nada tem a
+      // ver com a subclasse sob teste.
+      store.setFeatureChoiceSelection(getClassSkillChoiceId("guerreiro"), ["atletismo", "percepcao"]);
+      for (const asiLevel of [4, 6, 8, 12, 14, 16]) {
+        if (level >= asiLevel) store.setAsiMode(asiLevel, "feat");
+      }
+    });
+    act(() => useBuilderStore.getState().goToStep("class"));
+  }
+
+  it("Campeão: nenhuma escolha própria trava Avançar (Estilo de Luta Adicional nunca aparece como lembrete de escolha estruturada)", () => {
+    render(<App />);
+    setupFighter(7);
+    fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Campeão" } });
+
+    expect(screen.getByRole("heading", { name: "Estilo de Luta Adicional" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
+  it("Mestre de Batalha: exibido com o nome corrigido na lista de subclasses", () => {
+    render(<App />);
+    setupFighter();
+    expect(screen.getByRole("option", { name: "Mestre de Batalha" })).toBeInTheDocument();
+  });
+
+  it("Mestre de Batalha: 'Estudioso da Guerra' e a CD de Manobras ('Superioridade em Combate') bloqueiam Avançar até resolvidas", () => {
+    render(<App />);
+    setupFighter();
+    fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Mestre da Batalha" } });
+
+    expect(screen.getByRole("heading", { name: "Estudioso da Guerra" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Superioridade em Combate" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.change(screen.getByRole("combobox", { name: /CD de Manobras/ }), { target: { value: "Força" } });
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // ainda faltam Ferramenta/Perícia de Estudioso da Guerra
+
+    const estudiosoCard = screen.getByRole("heading", { name: "Estudioso da Guerra" }).closest("article")!;
+    fireEvent.click(within(estudiosoCard).getByRole("checkbox", { name: "Ferramentas de Ferreiro" }));
+    fireEvent.click(within(estudiosoCard).getByRole("checkbox", { name: "História" }));
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+  });
+
+  it("Mestre de Batalha nível 3: a subetapa 'Manobras' exige exatamente 3 manobras, permite ver a descrição antes de escolher e nunca duplica", () => {
+    render(<App />);
+    setupFighter();
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setSubclass("Mestre da Batalha");
+      store.setFeatureChoiceSelection("guerreiro-mestre-de-batalha-cd-manobras-atributo-escolha", "Força");
+      store.setFeatureChoiceSelection("guerreiro-mestre-de-batalha-estudioso-da-guerra-ferramenta-escolha", ["ferramentas-ferreiro"]);
+      store.setFeatureChoiceSelection("guerreiro-mestre-de-batalha-estudioso-da-guerra-pericia-escolha", ["historia"]);
+    });
+    act(() => useBuilderStore.getState().goToStep("maneuvers"));
+
+    expect(screen.getByText("Manobras escolhidas: 0/3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+
+    fireEvent.click(screen.getByText("Desarme"));
+    expect(screen.getByText(/solta um objeto que esteja segurando/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "+ Desarme" }));
+    fireEvent.click(screen.getByRole("button", { name: "+ Finta" }));
+    fireEvent.click(screen.getByRole("button", { name: "+ Emboscada" }));
+
+    expect(screen.getByText("Manobras escolhidas: 3/3")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "+ Desarme" })).not.toBeInTheDocument(); // já escolhida, não duplica
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Remover" })[0]);
+    expect(screen.getByText("Manobras escolhidas: 2/3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+  });
+});

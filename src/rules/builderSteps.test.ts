@@ -6,7 +6,7 @@ describe("Forma Selvagem — a escolha de Formas Conhecidas nunca faz parte da c
   it("'wildShapeForms' não existe mais em nenhuma etapa do Builder, em nenhum nível de Druida", () => {
     expect(Object.keys(BUILDER_STEP_LABELS)).not.toContain("wildShapeForms");
     expect(BUILDER_STEP_ORDER).not.toContain("wildShapeForms");
-    expect(BUILDER_STEP_ORDER).toHaveLength(11);
+    expect(BUILDER_STEP_ORDER).toHaveLength(12);
 
     for (const level of [1, 2, 3, 10, 20]) {
       const character = createBlankCharacter("wild-shape-removed-test");
@@ -156,6 +156,38 @@ describe("isStepVisible — Metamagia (condicional, só para Feiticeiro a partir
     character.classId = "feiticeiro";
     character.level = 2;
     expect(isStepVisible("metamagic", character)).toBe(true);
+  });
+});
+
+describe("isStepVisible — Manobras (condicional, só para Guerreiro/Mestre de Batalha a partir do nível 3)", () => {
+  it("some para qualquer classe que não seja Guerreiro", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "mago";
+    character.level = 10;
+    expect(isStepVisible("maneuvers", character)).toBe(false);
+  });
+
+  it("some para Guerreiro com outra subclasse", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "guerreiro";
+    character.subclassId = "Campeão";
+    character.level = 10;
+    expect(isStepVisible("maneuvers", character)).toBe(false);
+  });
+
+  it("some para Mestre de Batalha nível 1-2 (subclasse ainda não escolhida — canChooseSubclass trava subclassId em null)", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "guerreiro";
+    character.level = 2;
+    expect(isStepVisible("maneuvers", character)).toBe(false);
+  });
+
+  it("aparece para Mestre de Batalha a partir do nível 3", () => {
+    const character = createBlankCharacter("step-test");
+    character.classId = "guerreiro";
+    character.subclassId = "Mestre da Batalha";
+    character.level = 3;
+    expect(isStepVisible("maneuvers", character)).toBe(true);
   });
 });
 

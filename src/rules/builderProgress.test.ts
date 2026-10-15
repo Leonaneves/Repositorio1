@@ -126,6 +126,41 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("metamagic", character)).toEqual(["Escolha exatamente 2 opções de Metamagia (atualmente 0/2)."]);
   });
 
+  it("'maneuvers' explica quantidade pendente/excesso para o Mestre de Batalha", () => {
+    const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Mestre da Batalha", level: 3 };
+    expect(getStepBlockers("maneuvers", character)).toEqual(["Escolha mais 3 Manobra(s) (0/3)."]);
+
+    const withTwo = { ...character, chosenManeuvers: ["desarme", "finta"] };
+    expect(getStepBlockers("maneuvers", withTwo)).toEqual(["Escolha mais 1 Manobra(s) (2/3)."]);
+
+    const withExact = { ...character, chosenManeuvers: ["desarme", "finta", "emboscada"] };
+    expect(getStepBlockers("maneuvers", withExact)).toEqual([]);
+
+    const withExcess = { ...character, chosenManeuvers: ["desarme", "finta", "emboscada", "prostrar"] };
+    expect(getStepBlockers("maneuvers", withExcess)).toEqual(["Remova Manobras em excesso (4/3)."]);
+  });
+
+  it("'maneuvers' nunca bloqueia fora de Mestre de Batalha", () => {
+    const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Campeão", level: 10 };
+    expect(getStepBlockers("maneuvers", character)).toEqual([]);
+  });
+
+  it("'class' exige a escolha de Força/Destreza para a CD de Manobras (Superioridade em Combate, nível 3) — nunca escolhe o maior silenciosamente", () => {
+    const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Mestre da Batalha", level: 3 };
+    expect(getStepBlockers("class", character).some((b) => b.includes("Superioridade em Combate"))).toBe(true);
+
+    const withChoice = {
+      ...character,
+      featureChoiceSelections: { "guerreiro-mestre-de-batalha-cd-manobras-atributo-escolha": { value: "Força" } },
+    };
+    expect(getStepBlockers("class", withChoice).some((b) => b.includes("Superioridade em Combate"))).toBe(false);
+  });
+
+  it("'class' nunca bloqueia em 'Estilo de Luta Adicional' do Campeão (manualText, catálogo pendente — nunca suficiente para contar como talento adquirido, mas também nunca trava o Avançar)", () => {
+    const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Campeão", level: 7 };
+    expect(getStepBlockers("class", character).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(false);
+  });
+
   it("'class' bloqueia a seção de Terreno do Círculo da Terra sem escolha, libera com uma opção válida (seção dentro de Classe, não etapa própria — §2)", () => {
     const character = { ...blank(), classId: "druida" as const, subclassId: "Círculo da Terra", level: 3 };
     expect(getStepBlockers("class", character)).toContain("Escolha o Terreno do Círculo da Terra.");
