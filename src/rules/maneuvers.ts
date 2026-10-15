@@ -1,7 +1,5 @@
-import type { AbilityKey } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { maneuvers, maneuversById, type ManeuverDefinition } from "../data/maneuvers.js";
-import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 import { getBattleMasterManeuversKnownCount } from "./classResources.js";
 
@@ -34,32 +32,25 @@ export function isManeuverSelectionComplete(character: Character): boolean {
 }
 
 /**
- * Atributo escolhido para a CD de Manobras (Força ou Destreza) — escolha
- * PERSISTENTE e editável, independente da escolha de Força/Destreza
- * feita a cada uso de Aparar (§6: "A escolha de FOR/DEX em Aparar é
- * independente da escolha do atributo da CD"). `null` enquanto não
- * respondida — nunca escolhe o maior silenciosamente.
- */
-export function getManeuversCdAbility(character: Character): AbilityKey | null {
-  const selection = character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID]?.value;
-  if (selection === "Força") return "FOR";
-  if (selection === "Destreza") return "DEX";
-  return null;
-}
-
-/**
- * CD de Manobras = `8 + BP + mod FOR ou DEX escolhido` — fórmula PRÓPRIA
+ * CD de Manobras = `8 + BP + maior(mod FOR, mod DEX)` — fórmula PRÓPRIA
  * (§1: "não deve ser confundida com a CD de magia do personagem"),
- * calculada mesmo sem conjuração. `null` se a escolha de atributo ainda
- * não foi respondida (o Builder trava o avanço nessa `FeatureChoice`
- * antes de chegar à Revisão/PDF).
+ * calculada mesmo sem conjuração. Totalmente AUTOMÁTICA (fonte
+ * "AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA" — substitui a
+ * antiga escolha manual de Força ou Destreza, que nunca deve ser
+ * apresentada ao jogador): usa os modificadores EFETIVOS de Força e
+ * Destreza (já incluindo aumentos aplicados) e o BP calculado pela
+ * ficha, pegando o maior entre os dois sem exigir decisão alguma em
+ * caso de empate. Nunca persiste uma cópia da CD nem do atributo
+ * vencedor — recalculada do zero a cada chamada, então reflete
+ * automaticamente qualquer mudança posterior em Força, Destreza ou BP.
+ * Independente da escolha de Força ou Destreza feita a cada uso de
+ * Aparar, que continua existindo normalmente.
  */
 export function getManeuversCd(character: Character): number | null {
   if (character.classId !== "guerreiro" || character.subclassId !== "Mestre da Batalha" || character.level < 3) return null;
-  const ability = getManeuversCdAbility(character);
-  if (!ability) return null;
-  const modifier = getAbilityModifier(getEffectiveAbilityScore(character, ability));
-  return 8 + getProficiencyBonus(character.level) + modifier;
+  const forModifier = getAbilityModifier(getEffectiveAbilityScore(character, "FOR"));
+  const dexModifier = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  return 8 + getProficiencyBonus(character.level) + Math.max(forModifier, dexModifier);
 }
 
 function formatSignedModifier(value: number): string {

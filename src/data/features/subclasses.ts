@@ -60,16 +60,16 @@ export const RANGER_MENTE_DE_FERRO_FEATURE_ID = "patrulheiro-sombras-mente-de-fe
 export const RANGER_MENTE_DE_FERRO_CHOICE_ID = "patrulheiro-sombras-mente-de-ferro-escolha";
 
 /**
- * Atributo escolhido para a CD de Manobras do Mestre de Batalha (Força
- * ou Destreza) — escolha PERSISTENTE e editável, anexada diretamente à
- * `FeatureDefinition` de "Superioridade em Combate" (nunca condicional
- * como Mente de Ferro acima: a CD de Manobras sempre precisa de um
- * atributo escolhido a partir do nível 3, fonte "IMPLEMENTAR SUBCLASSES
- * DO GUERREIRO NO BUILDER E NO PDF" §6). Independente da escolha de
- * Força ou Destreza feita a cada uso de Aparar (§7: "não vincular essa
- * escolha ao atributo da CD"). Lida por
- * `rules/maneuvers.ts#getManeuversCdAbility` — nunca escolhe o maior
- * silenciosamente.
+ * ID histórico da escolha "CD de Manobras" (Força ou Destreza) do
+ * Mestre de Batalha — REMOVIDA (fonte "AUTOMATIZAR A CD DAS MANOBRAS
+ * DO MESTRE DE BATALHA": a decisão nunca deve ser apresentada ao
+ * jogador; `rules/maneuvers.ts#getManeuversCd` agora calcula
+ * `8 + BP + maior(mod FOR, mod DEX)` automaticamente). Não é mais
+ * referenciada por nenhuma `FeatureChoice` — mantida só para que uma
+ * seleção antiga eventualmente salva sob este id em personagens
+ * existentes fique inerte (nunca lida, nunca usada), sem precisar de
+ * migração. Independente da escolha de Força ou Destreza feita a cada
+ * uso de Aparar, que continua existindo normalmente.
  */
 export const BATTLE_MASTER_CD_ABILITY_CHOICE_ID = "guerreiro-mestre-de-batalha-cd-manobras-atributo-escolha";
 
@@ -1858,14 +1858,7 @@ export const subclassFeatures: FeatureDefinition[] = [
     level: 3,
     autoGranted: true,
     summary:
-      "Reserva de Dados de Superioridade (DS): 4 d8 nos níveis 3–6; 5 d8 nos níveis 7–9; 5 d10 nos níveis 10–14; 6 d10 nos níveis 15–17; 6 d12 nos níveis 18–20 (rules/classResources.ts#getSuperiorityDie/getSuperiorityDiceCount). Cada uso de manobra gasta 1 DS, salvo uso de Implacável (nível 15). Recupera todos os DS em Descanso Curto ou Longo. Apenas 1 manobra por ataque. Ao aprender novas manobras (subetapa própria \"Manobras\"), pode substituir uma conhecida. CD de Manobras = 8 + BP + modificador de Força ou Destreza, escolhido abaixo (rules/maneuvers.ts#getManeuversCd) — escolha PERSISTENTE e editável, independente da escolha de Força ou Destreza feita a cada uso de Aparar.",
-    choices: [
-      {
-        id: BATTLE_MASTER_CD_ABILITY_CHOICE_ID,
-        prompt: "CD de Manobras — escolha Força ou Destreza",
-        effect: { kind: "optionPick", options: ["Força", "Destreza"] },
-      },
-    ],
+      "Reserva de Dados de Superioridade (DS): 4 d8 nos níveis 3–6; 5 d8 nos níveis 7–9; 5 d10 nos níveis 10–14; 6 d10 nos níveis 15–17; 6 d12 nos níveis 18–20 (rules/classResources.ts#getSuperiorityDie/getSuperiorityDiceCount). Cada uso de manobra gasta 1 DS, salvo uso de Implacável (nível 15). Recupera todos os DS em Descanso Curto ou Longo. Apenas 1 manobra por ataque. Ao aprender novas manobras (subetapa própria \"Manobras\"), pode substituir uma conhecida. CD de Manobras = 8 + BP + maior entre os modificadores de Força e Destreza, calculada automaticamente a cada vez (rules/maneuvers.ts#getManeuversCd) — nunca uma escolha apresentada ao jogador, nunca persistida como cópia separada; recalcula sozinha sempre que Força, Destreza ou BP mudarem.",
   },
   {
     id: "guerreiro-mestre-de-batalha-conheca-seu-inimigo-7",

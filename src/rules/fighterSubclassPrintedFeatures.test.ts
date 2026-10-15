@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import { BATTLE_MASTER_CD_ABILITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getFighterPrintedBlocks } from "./fighterPrintedFeatures.js";
 import { getFighterSubclassPrintedBlocks } from "./fighterSubclassPrintedFeatures.js";
 import { getFighterManeuverTalentEntries } from "./fighterTalentEntries.js";
@@ -141,10 +140,11 @@ describe("Guerreiro Psiônico", () => {
 });
 
 describe("Mestre da Batalha", () => {
-  it("nível 3: Superioridade em Combate (4 DS d8) sem CD resolvida (atributo não escolhido), sem bloco de Manobras (nenhuma escolhida), sem Conheça Seu Inimigo", () => {
+  it("nível 3: Superioridade em Combate (4 DS d8) com CD já calculada automaticamente (fonte \"AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA\" — nunca exige escolha de FOR/DEX), sem bloco de Manobras (nenhuma escolhida), sem Conheça Seu Inimigo", () => {
     const blocks = getFighterSubclassPrintedBlocks(fighterOf("Mestre da Batalha", 3)).join("\n\n");
     expect(blocks).toContain("# SUPERIORIDADE EM COMBATE");
-    expect(blocks).toContain("DS d8 [__] [__] [__] [__]/DC ou DL | CD —");
+    // FOR/DEX padrão (10, mod 0) + BP 2 (nível 3) = CD 10 — já resolvida, sem escolha alguma.
+    expect(blocks).toContain("DS d8 [__] [__] [__] [__]/DC ou DL | CD 10");
     expect(blocks).toContain("1 manobra/atq; cada uso gasta 1 DS");
     expect(blocks).not.toContain("# MANOBRAS");
     expect(blocks).not.toContain("CONHEÇA SEU INIMIGO");
@@ -165,8 +165,7 @@ describe("Mestre da Batalha", () => {
 
   it("nível 18 (exemplo de exportação pedido, com nove manobras): DS d12, segunda linha de Implacável, nunca 'Superioridade Aprimorada/Suprema', nunca 'MANOBRAS' em Características de Classe", () => {
     const character = fighterOf("Mestre da Batalha", 18);
-    character.abilities.FOR.score = 16; // mod +3
-    character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID] = { value: "Força" };
+    character.abilities.FOR.score = 16; // mod +3 — CD calculada automaticamente, sem nenhuma escolha de FOR/DEX
     character.chosenManeuvers = [
       "aparar",
       "ataque-ameacador",

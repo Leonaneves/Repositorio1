@@ -6,7 +6,6 @@ import {
   getKnownManeuvers,
   getManeuverPrintedLine,
   getManeuversCd,
-  getManeuversCdAbility,
   getSelectableManeuvers,
   isManeuverSelectionComplete,
 } from "./maneuvers.js";
@@ -78,34 +77,67 @@ describe("isManeuverSelectionComplete", () => {
   });
 });
 
-describe("getManeuversCdAbility / getManeuversCd", () => {
-  it("sem escolha de atributo: ability null e CD null — nunca escolhe o maior silenciosamente", () => {
+describe("getManeuversCd — automática, fonte \"AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA\"", () => {
+  it("sem nenhuma escolha (não existe mais): já calcula a CD normalmente, nunca null por falta de escolha", () => {
     const character = battleMasterOf(3);
-    expect(getManeuversCdAbility(character)).toBeNull();
-    expect(getManeuversCd(character)).toBeNull();
+    character.abilities.FOR.score = 10; // mod 0
+    character.abilities.DEX.score = 10; // mod 0
+    // nível 3 => BP 2; CD = 8 + 2 + 0 = 10
+    expect(getManeuversCd(character)).toBe(10);
   });
 
-  it("CD = 8 + BP + mod FOR, quando Força é escolhida", () => {
+  it("FOR maior: CD = 8 + BP + mod FOR", () => {
     const character = battleMasterOf(3);
     character.abilities.FOR.score = 16; // mod +3
-    character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID] = { value: "Força" };
-    expect(getManeuversCdAbility(character)).toBe("FOR");
+    character.abilities.DEX.score = 10; // mod 0
     // nível 3 => BP 2; CD = 8 + 2 + 3 = 13
     expect(getManeuversCd(character)).toBe(13);
   });
 
-  it("CD = 8 + BP + mod DEX, quando Destreza é escolhida — independente de FOR", () => {
+  it("DEX maior: CD = 8 + BP + mod DEX, independente de FOR", () => {
     const character = battleMasterOf(5); // BP 3
-    character.abilities.FOR.score = 20; // mod +5 (nunca usado aqui)
+    character.abilities.FOR.score = 8; // mod -1
     character.abilities.DEX.score = 14; // mod +2
-    character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID] = { value: "Destreza" };
     expect(getManeuversCd(character)).toBe(13); // 8 + 3 + 2
   });
 
-  it("outra classe/subclasse — sempre null, mesmo com a escolha presente", () => {
+  it("empate entre FOR e DEX: usa o valor comum sem exigir nenhuma escolha", () => {
+    const character = battleMasterOf(3); // BP 2
+    character.abilities.FOR.score = 14; // mod +2
+    character.abilities.DEX.score = 14; // mod +2
+    expect(getManeuversCd(character)).toBe(12); // 8 + 2 + 2
+  });
+
+  it("recalcula sozinha após mudanças posteriores em FOR, DEX ou BP — nunca usa um valor persistido", () => {
+    const character = battleMasterOf(3); // BP 2
+    character.abilities.FOR.score = 10; // mod 0
+    character.abilities.DEX.score = 10; // mod 0
+    expect(getManeuversCd(character)).toBe(10); // 8 + 2 + 0
+
+    character.abilities.DEX.score = 18; // mod +4 (aumento aplicado depois)
+    expect(getManeuversCd(character)).toBe(14); // 8 + 2 + 4
+
+    character.level = 17; // BP sobe para 6
+    expect(getManeuversCd(character)).toBe(18); // 8 + 6 + 4
+  });
+
+  it("ignora qualquer seleção antiga salva sob o id da escolha removida — nunca lida, nunca usada", () => {
+    const character = battleMasterOf(5); // BP 3
+    character.abilities.FOR.score = 16; // mod +3
+    character.abilities.DEX.score = 10; // mod 0
+    character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID] = { value: "Destreza" };
+    // Se a seleção antiga ainda fosse lida, daria 8+3+0=11 (Destreza); o correto é usar o maior: 8+3+3=14.
+    expect(getManeuversCd(character)).toBe(14);
+  });
+
+  it("outra classe/subclasse — sempre null", () => {
     const character = createBlankCharacter("maneuvers-test-3");
     character.classId = "mago";
-    character.featureChoiceSelections[BATTLE_MASTER_CD_ABILITY_CHOICE_ID] = { value: "Força" };
+    expect(getManeuversCd(character)).toBeNull();
+  });
+
+  it("nível abaixo de 3 (Superioridade em Combate ainda não concedida) — null", () => {
+    const character = battleMasterOf(2);
     expect(getManeuversCd(character)).toBeNull();
   });
 });

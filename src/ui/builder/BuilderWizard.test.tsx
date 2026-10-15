@@ -568,17 +568,15 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     expect(screen.getByRole("option", { name: "Mestre de Batalha" })).toBeInTheDocument();
   });
 
-  it("Mestre de Batalha: 'Estudioso da Guerra' e a CD de Manobras ('Superioridade em Combate') bloqueiam Avançar até resolvidas", () => {
+  it("Mestre de Batalha: 'Estudioso da Guerra' bloqueia Avançar até resolvida; 'Superioridade em Combate' nunca aparece como escolha — a CD de Manobras é automática, nunca apresentada ao jogador (fonte \"AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA\")", () => {
     render(<App />);
     setupFighter();
     fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Mestre da Batalha" } });
 
     expect(screen.getByRole("heading", { name: "Estudioso da Guerra" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Superioridade em Combate" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
-
-    fireEvent.change(screen.getByRole("combobox", { name: /CD de Manobras/ }), { target: { value: "Força" } });
-    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // ainda faltam Ferramenta/Perícia de Estudioso da Guerra
+    expect(screen.queryByRole("heading", { name: "Superioridade em Combate" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: /CD de Manobras/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // falta Ferramenta/Perícia de Estudioso da Guerra
 
     const estudiosoCard = screen.getByRole("heading", { name: "Estudioso da Guerra" }).closest("article")!;
     fireEvent.click(within(estudiosoCard).getByRole("checkbox", { name: "Ferramentas de Ferreiro" }));
@@ -592,7 +590,6 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     act(() => {
       const store = useCharacterStore.getState();
       store.setSubclass("Mestre da Batalha");
-      store.setFeatureChoiceSelection("guerreiro-mestre-de-batalha-cd-manobras-atributo-escolha", "Força");
       store.setFeatureChoiceSelection("guerreiro-mestre-de-batalha-estudioso-da-guerra-ferramenta-escolha", ["ferramentas-ferreiro"]);
       store.setFeatureChoiceSelection("guerreiro-mestre-de-batalha-estudioso-da-guerra-pericia-escolha", ["historia"]);
     });

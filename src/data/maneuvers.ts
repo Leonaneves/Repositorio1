@@ -26,7 +26,7 @@ export const maneuvers: ManeuverDefinition[] = [
     id: "aparar",
     name: "Aparar",
     summary:
-      "Reação quando você sofre dano de um ataque corpo a corpo de outra criatura: reduz o dano recebido pelo DS + modificador de FOR ou DEX, escolhido no momento do uso — essa escolha é independente do atributo escolhido para a CD de Manobras.",
+      "Reação quando você sofre dano de um ataque corpo a corpo de outra criatura: reduz o dano recebido pelo DS + modificador de FOR ou DEX, escolhido no momento do uso — essa escolha é independente do cálculo automático da CD de Manobras (que usa o maior entre os dois, sem escolha alguma).",
     printedLine: "> Aparar: Reação ao sofrer dano corpo a corpo: reduz DS+{FOR ou DEX, o que for maior}",
   },
   {

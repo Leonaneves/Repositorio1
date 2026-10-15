@@ -145,15 +145,16 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("maneuvers", character)).toEqual([]);
   });
 
-  it("'class' exige a escolha de Força/Destreza para a CD de Manobras (Superioridade em Combate, nível 3) — nunca escolhe o maior silenciosamente", () => {
+  it("'class' NUNCA bloqueia em 'Superioridade em Combate' — a CD de Manobras é automática, sem escolha de FOR/DEX apresentada ao jogador (fonte \"AUTOMATIZAR A CD DAS MANOBRAS DO MESTRE DE BATALHA\")", () => {
     const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Mestre da Batalha", level: 3 };
-    expect(getStepBlockers("class", character).some((b) => b.includes("Superioridade em Combate"))).toBe(true);
+    expect(getStepBlockers("class", character).some((b) => b.includes("Superioridade em Combate"))).toBe(false);
 
-    const withChoice = {
+    // Uma seleção antiga salva sob o id da escolha removida nunca reaparece como pendência.
+    const withLegacySelection = {
       ...character,
       featureChoiceSelections: { "guerreiro-mestre-de-batalha-cd-manobras-atributo-escolha": { value: "Força" } },
     };
-    expect(getStepBlockers("class", withChoice).some((b) => b.includes("Superioridade em Combate"))).toBe(false);
+    expect(getStepBlockers("class", withLegacySelection).some((b) => b.includes("Superioridade em Combate"))).toBe(false);
   });
 
   it("'class' nunca bloqueia em 'Estilo de Luta Adicional' do Campeão (manualText, catálogo pendente — nunca suficiente para contar como talento adquirido, mas também nunca trava o Avançar)", () => {
