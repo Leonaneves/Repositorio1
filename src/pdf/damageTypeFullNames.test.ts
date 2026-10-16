@@ -13,6 +13,7 @@ import { getClericPrintedBlocks } from "../rules/clericPrintedFeatures.js";
 import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
 import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
+import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
 import { getSpeciesTraitsPrintedText } from "../rules/speciesLineagePrintedFeatures.js";
 
 /**
@@ -108,6 +109,21 @@ describe("Nenhuma abreviação de tipo de dano aparece nos textos impressos de C
 
       expectNoAbbreviatedDamageTypes(blocks.join("\n"));
     }
+  });
+});
+
+describe("Ladino — Psíquico (Adaga Espiritual) e Venenoso (Assassino) nunca abreviados nos textos impressos (fonte \"IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §3)", () => {
+  it.each(["Lâmina Psíquica", "Assassino", "Ladrão", "Trapaceiro Arcano"] as const)("subclasse %s, nível 20", (subclassFullName) => {
+    const character = baseCharacter("ladino", 20, subclassFullName);
+    const joined = getRoguePrintedBlocks(character).join("\n");
+    expectNoAbbreviatedDamageTypes(joined);
+    if (subclassFullName === "Lâmina Psíquica") expect(joined).toContain("Psíquico");
+    if (subclassFullName === "Assassino") expect(joined).toContain("Venenoso");
+  });
+
+  it("sem subclasse escolhida (só classe base)", () => {
+    const character = baseCharacter("ladino", 14, null);
+    expectNoAbbreviatedDamageTypes(getRoguePrintedBlocks(character).join("\n"));
   });
 });
 

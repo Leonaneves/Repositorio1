@@ -9,6 +9,7 @@ import { getInitiative } from "./derived.js";
 import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
+import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
 import {
   getAutomaticSkillProficiencyGrants,
   getGlamourTranscendentalBonus,
@@ -318,6 +319,52 @@ describe("Especialista do Bardo — skillExpertise (nunca concede proficiência,
     character.classId = "guerreiro";
     character.featureChoiceSelections[getBardSkillExpertiseChoiceId(1)] = { value: ["persuasao"] };
     expect(isSkillGrantedExpertiseByClassChoice(character, "persuasao")).toBe(false);
+  });
+});
+
+describe("Especialista do Ladino — nível 1 (2 perícias) e nível 6 (mais 2, choice separado)", () => {
+  function ladinoAt(level: number): ReturnType<typeof createBlankCharacter> {
+    const character = createBlankCharacter("skills-test-ladino");
+    character.classId = "ladino";
+    character.level = level;
+    return character;
+  }
+
+  it("perícia escolhida no nível 1 ganha Especialização mesmo sem o jogador marcar o checkbox manual, nunca concedendo a proficiência em si", () => {
+    const character = ladinoAt(1);
+    character.featureChoiceSelections[ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1] = { value: ["furtividade", "prestidigitacao"] };
+
+    expect(isSkillGrantedExpertiseByClassChoice(character, "furtividade")).toBe(true);
+    expect(getSkillExpertise(character, "furtividade")).toBe(true);
+    expect(getSkillProficiency(character, "furtividade")).toBe(false); // sem proficiência própria, nunca concedida por esta escolha
+  });
+
+  it("dobra o bônus quando a perícia é de fato proficiente (manualOverride ou outra origem)", () => {
+    const character = ladinoAt(9); // BP +4
+    character.abilities.DEX.score = 16; // +3
+    character.skills.furtividade.manualOverride = true;
+    character.featureChoiceSelections[ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1] = { value: ["furtividade"] };
+
+    const bonus = getSkillBonus(character, "furtividade");
+    expect(bonus.auto).toBe(11); // 3 + 4*2
+  });
+
+  it("nível 6 soma mais 2 escolhas, por um ID SEPARADO do nível 1 — nunca reaproveitando o mesmo choice", () => {
+    const character = ladinoAt(6);
+    character.featureChoiceSelections[ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1] = { value: ["furtividade", "prestidigitacao"] };
+    character.featureChoiceSelections[ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6] = { value: ["percepcao", "intuicao"] };
+
+    expect(getSkillExpertise(character, "furtividade")).toBe(true);
+    expect(getSkillExpertise(character, "prestidigitacao")).toBe(true);
+    expect(getSkillExpertise(character, "percepcao")).toBe(true);
+    expect(getSkillExpertise(character, "intuicao")).toBe(true);
+  });
+
+  it("outra classe nunca tem Especialização concedida por esses IDs (mapa isolado por classe)", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1] = { value: ["furtividade"] };
+    expect(isSkillGrantedExpertiseByClassChoice(character, "furtividade")).toBe(false);
   });
 });
 

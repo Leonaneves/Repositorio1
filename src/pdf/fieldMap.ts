@@ -38,12 +38,15 @@ import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
 import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js";
 import { getRangerPrintedBlocks } from "../rules/rangerPrintedFeatures.js";
 import { getFighterPrintedBlocks } from "../rules/fighterPrintedFeatures.js";
+import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
+import { getRogueAssassinToolProficiencyEntries } from "../rules/rogueSubclassProficiencies.js";
 import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
 import { getEffectiveSpellsPrepared } from "../rules/effectiveSpellsPrepared.js";
 import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
 import { getFighterFightingStyleTalentEntries, getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.js";
+import { getSubclassDisplayName } from "../rules/subclasses.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
 /**
@@ -164,7 +167,7 @@ export const pdfOverlayFields: PdfOverlayFieldMapping[] = [
     pdfField: "SUBCLASSE",
     pageIndex: 0,
     rect: [146.618, 769.593, 252.982, 784.32],
-    getValue: (c) => (c.subclassId ? truncate(c.subclassId, 30) : ""),
+    getValue: (c) => (c.subclassId ? truncate(getSubclassDisplayName(c.classId, c.subclassId) ?? c.subclassId, 30) : ""),
   },
   {
     kind: "overlay",
@@ -241,14 +244,15 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * (fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES"), Feiticeiro
  * (fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E SUBCLASSES") e
  * Patrulheiro (classe base completa — fonte "COMPLETAR A CLASSE
- * PATRULHEIRO NO BUILDER E NO PDF" — mais as 4 subclasses) têm o texto
- * impresso montado dinamicamente desde o nível 1, sem depender de
- * subclasse escolhida. Guerreiro só troca para a composição dinâmica
- * quando há subclasse escolhida (as 4 cobertas por "IMPLEMENTAR
- * SUBCLASSES DO GUERREIRO NO BUILDER E NO PDF") — a classe BASE dele
- * ainda não tem conteúdo. As demais 4 classes continuam com o campo
- * manual de sempre (`Character.classFeatures`), sem nenhuma mudança de
- * comportamento.
+ * PATRULHEIRO NO BUILDER E NO PDF" — mais as 4 subclasses), Guerreiro
+ * (classe base completa — fonte "COMPLETAR A CLASSE GUERREIRO NO
+ * BUILDER E NO PDF" — mais as 4 subclasses) e Ladino (classe base
+ * completa — fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E
+ * NO PDF" — mais as 4 subclasses) têm o texto impresso montado
+ * dinamicamente desde o nível 1, sem depender de subclasse escolhida.
+ * As demais 4 classes (Artífice, Mago, Monge, Paladino) continuam com
+ * o campo manual de sempre (`Character.classFeatures`), sem nenhuma
+ * mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -288,6 +292,13 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
     const [column1, column2] = splitIntoTwoColumns(getFighterPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
+  // Ladino: classe BASE completa (fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO
+  // PDF") — troca para a composição dinâmica desde o nível 1, com ou sem subclasse escolhida
+  // (mesmo raciocínio já aplicado a Guerreiro/Patrulheiro acima).
+  if (character.classId === "ladino") {
+    const [column1, column2] = splitIntoTwoColumns(getRoguePrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
 }
 
@@ -311,7 +322,8 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
   {
     kind: "text",
     pdfField: "PROF.ferramentas",
-    getValue: (c) => renderAutoTextBlock(getClassToolProficiencyEntries(c), c.toolProficienciesNotes),
+    getValue: (c) =>
+      renderAutoTextBlock([...getClassToolProficiencyEntries(c), ...getRogueAssassinToolProficiencyEntries(c)], c.toolProficienciesNotes),
   },
   {
     kind: "text",
@@ -378,17 +390,22 @@ const inventoryFields: PdfTextFieldMapping[] = [
 ];
 
 /**
- * Idioma Druídico (Druida, nível 1 — fonte "INTEGRAÇÃO COMPLETA —
- * DRUIDA E SUBCLASSES" §3) adiciona "Druídico" à área de Idiomas
- * automaticamente — mesmo padrão de `renderAutoTextBlock`, mas para um
- * campo de uma linha só (idiomas são separados por vírgula, não por
- * parágrafo): nunca duplica se o jogador já tiver digitado "Druídico"
- * manualmente.
+ * Idiomas concedidos automaticamente por classe: Druídico (Druida,
+ * nível 1 — fonte "INTEGRAÇÃO COMPLETA — DRUIDA E SUBCLASSES" §3) e
+ * Gíria dos Ladrões (Ladino, nível 1 — fonte "IMPLEMENTAR LADINO E SUAS
+ * SUBCLASSES NO BUILDER E NO PDF" §4) — mesmo padrão de
+ * `renderAutoTextBlock`, mas para um campo de uma linha só (idiomas são
+ * separados por vírgula, não por parágrafo): nunca duplica se o
+ * jogador já tiver digitado o idioma manualmente. A escolha adicional
+ * de idioma da Gíria dos Ladrões (sem catálogo estruturado de idiomas
+ * no projeto) é texto livre do próprio jogador, somada naturalmente ao
+ * mesmo campo — nunca uma segunda concessão automática.
  */
 function getEffectiveLanguages(character: Character): string {
-  if (character.classId !== "druida") return character.languages;
-  if (character.languages.toLowerCase().includes("druídico")) return character.languages;
-  return character.languages.trim() ? `Druídico, ${character.languages}` : "Druídico";
+  const autoLanguage = character.classId === "druida" ? "Druídico" : character.classId === "ladino" ? "Gíria dos Ladrões" : null;
+  if (!autoLanguage) return character.languages;
+  if (character.languages.toLowerCase().includes(autoLanguage.toLowerCase())) return character.languages;
+  return character.languages.trim() ? `${autoLanguage}, ${character.languages}` : autoLanguage;
 }
 
 /** Até 34 magias preparadas — o PDF-molde reserva essas 34 linhas (`circulo1.N`/`nome.magia.1.N`/`alcance.magia.N`/`notas.magia.1.N`). */

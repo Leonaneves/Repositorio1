@@ -25,6 +25,22 @@ export function getMenteDeFerroGrantedAbility(character: Character): AbilityKey 
 }
 
 /**
+ * "Mente Escorregadia" (Ladino, nível 15 — fonte "IMPLEMENTAR LADINO E
+ * SUAS SUBCLASSES NO BUILDER E NO PDF" §6): concede proficiência em
+ * Salvaguarda de Sabedoria E Carisma, incondicionalmente (nunca uma
+ * escolha, nunca depende de outra origem já conceder — ao contrário de
+ * Mente de Ferro, que só concede quando a Salvaguarda ainda não é
+ * proficiente). Nunca inventa compensação quando uma das duas já é
+ * proficiente por outra origem — a concessão apenas vira redundante
+ * para aquela, mesma lógica de "fontes automáticas somadas por OR" já
+ * usada no resto do projeto.
+ */
+export function getSlipperyMindGrantedAbilities(character: Character): AbilityKey[] {
+  if (character.classId !== "ladino" || character.level < 15) return [];
+  return ["SAB", "CAR"];
+}
+
+/**
  * Bônus de salvaguarda = modificador do atributo + bônus de
  * proficiência (se proficiente) + ajuste manual. Mesma fórmula das
  * perícias (extraída literalmente do PDF, onde `<ATR>.res` usa o
@@ -39,7 +55,8 @@ export function getSavingThrow(character: Character, ability: AbilityKey): Compu
 
   const abilityMod = getAbilityModifier(getEffectiveAbilityScore(character, ability));
   const proficiencyBonus = character.level ? getProficiencyBonus(character.level) : 0;
-  const proficient = state.proficient || getMenteDeFerroGrantedAbility(character) === ability;
+  const proficient =
+    state.proficient || getMenteDeFerroGrantedAbility(character) === ability || getSlipperyMindGrantedAbilities(character).includes(ability);
 
   const auto = abilityMod + (proficient ? proficiencyBonus : 0);
 

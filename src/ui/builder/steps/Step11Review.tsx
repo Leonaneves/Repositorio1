@@ -22,6 +22,7 @@ import { getClassProgression } from "../../../rules/classProgression.js";
 import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
 import { getPendingBuilderSteps } from "../../../rules/builderProgress.js";
 import { isStepVisible, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
+import { getSubclassDisplayName } from "../../../rules/subclasses.js";
 import { getKnownMetamagicOptions } from "../../../rules/metamagic.js";
 import { getKnownManeuvers } from "../../../rules/maneuvers.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
@@ -233,7 +234,7 @@ export function Step11Review() {
           {character.name || "(sem nome)"} — Nível {character.level}
           <br />
           {character.classId ? classes[character.classId].name : "(sem classe)"}
-          {character.subclassId ? ` (${character.subclassId})` : ""}
+          {character.subclassId ? ` (${getSubclassDisplayName(character.classId, character.subclassId)})` : ""}
           <br />
           {character.speciesId ? species[character.speciesId].name : "(sem espécie)"} ·{" "}
           {character.backgroundId ? backgrounds[character.backgroundId].name : "(sem antecedente)"}

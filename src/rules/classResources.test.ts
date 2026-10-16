@@ -18,11 +18,15 @@ import {
   getMartialArtsDie,
   getPsiWarriorDie,
   getPsiWarriorDiceCount,
+  getCunningStrikeMaxEffects,
   getRageCount,
   getRageDamageBonus,
+  getRogueCunningStrikeCd,
   getSecondWindHealingText,
   getSecondWindUses,
   getSneakAttackDice,
+  getSoulknifePsionicDiceCount,
+  getSoulknifePsionicDie,
   getSorceryPoints,
   getSpellsPreparedMax,
   getSuperiorityDie,
@@ -41,6 +45,12 @@ function characterOf(classId: ClassId, level: number) {
 
 function fighterSubclassOf(subclassId: string, level: number) {
   const character = characterOf("guerreiro", level);
+  character.subclassId = subclassId;
+  return character;
+}
+
+function rogueSubclassOf(subclassId: string, level: number) {
+  const character = characterOf("ladino", level);
   character.subclassId = subclassId;
   return character;
 }
@@ -249,6 +259,62 @@ describe("Ladino — Ataque Furtivo", () => {
   });
 });
 
+describe("Ladino — getRogueCunningStrikeCd (8 + BP + mod DEX, independente da CD de magia)", () => {
+  it("abaixo do nível 5 — null (Golpe Astuto ainda não concedido)", () => {
+    expect(getRogueCunningStrikeCd(characterOf("ladino", 4))).toBeNull();
+  });
+
+  it("nível 5 (BP 3) com DEX 16 (+3) → CD 14; nível 17 (BP 6) → CD 17", () => {
+    const level5 = characterOf("ladino", 5);
+    level5.abilities.DEX.score = 16;
+    expect(getRogueCunningStrikeCd(level5)).toBe(14);
+
+    const level17 = characterOf("ladino", 17);
+    level17.abilities.DEX.score = 16;
+    expect(getRogueCunningStrikeCd(level17)).toBe(17);
+  });
+
+  it("outra classe — null", () => {
+    expect(getRogueCunningStrikeCd(characterOf("guerreiro", 20))).toBeNull();
+  });
+});
+
+describe("Ladino — getCunningStrikeMaxEffects (1 efeito nos níveis 5-10, 2 a partir do 11)", () => {
+  it.each([
+    [4, null],
+    [5, 1],
+    [10, 1],
+    [11, 2],
+    [20, 2],
+  ])("nível %i → %s", (level, expected) => {
+    expect(getCunningStrikeMaxEffects(characterOf("ladino", level))).toBe(expected);
+  });
+});
+
+describe("Ladino/Lâmina Psíquica (Adaga Espiritual) — getSoulknifePsionicDie/DiceCount", () => {
+  it.each([
+    [3, 6, 4],
+    [5, 8, 6],
+    [9, 8, 8],
+    [11, 10, 8],
+    [13, 10, 10],
+    [17, 12, 12],
+  ])("nível %i: d%i, %i dados", (level, die, count) => {
+    const character = rogueSubclassOf("Lâmina Psíquica", level);
+    expect(getSoulknifePsionicDie(character)).toBe(die);
+    expect(getSoulknifePsionicDiceCount(character)).toBe(count);
+  });
+
+  it("abaixo do nível 3 (teoricamente nunca ocorre, subclasse só a partir do 3) — null", () => {
+    expect(getSoulknifePsionicDie(rogueSubclassOf("Lâmina Psíquica", 1))).toBeNull();
+  });
+
+  it("outra subclasse de Ladino — null (nunca confundido com o Guerreiro Psiônico)", () => {
+    expect(getSoulknifePsionicDie(rogueSubclassOf("Assassino", 10))).toBeNull();
+    expect(getSoulknifePsionicDie(characterOf("guerreiro", 10))).toBeNull();
+  });
+});
+
 describe("Monge — Artes Marciais / Pontos de Foco", () => {
   it("nível 1: d6, 0 pontos de foco; nível 5: d8, 5 pontos; nível 17: d12", () => {
     expect(getMartialArtsDie(characterOf("monge", 1))).toBe(6);
@@ -314,6 +380,18 @@ describe("getCantripsKnown — Truques por nível", () => {
   it("classe não conjuradora (Bárbaro) — null", () => {
     expect(getCantripsKnown(characterOf("barbaro", 5))).toBeNull();
   });
+
+  it("Ladino sem Trapaceiro Arcano — null; com Trapaceiro Arcano: 2 truques escolhidos + Mãos Mágicas = 3 total (nível 3-9), 3 escolhidos + Mãos Mágicas = 4 total (10-20) — Mãos Mágicas SEMPRE soma ao total de truques conhecidos", () => {
+    expect(getCantripsKnown(characterOf("ladino", 10))).toBeNull();
+    expect(getCantripsKnown(rogueSubclassOf("Trapaceiro Arcano", 3))).toBe(3);
+    expect(getCantripsKnown(rogueSubclassOf("Trapaceiro Arcano", 9))).toBe(3);
+    expect(getCantripsKnown(rogueSubclassOf("Trapaceiro Arcano", 10))).toBe(4);
+    expect(getCantripsKnown(rogueSubclassOf("Trapaceiro Arcano", 20))).toBe(4);
+  });
+
+  it("outra subclasse de Ladino — null (Assassino/Ladrão/Adaga Espiritual não conjuram)", () => {
+    expect(getCantripsKnown(rogueSubclassOf("Assassino", 10))).toBeNull();
+  });
 });
 
 describe("getSpellsPreparedMax — Magias Preparadas por nível", () => {
@@ -337,6 +415,17 @@ describe("getSpellsPreparedMax — Magias Preparadas por nível", () => {
 
   it("Artífice não tem coluna de Magias Preparadas na fonte própria — null, nunca inventado", () => {
     expect(getSpellsPreparedMax(characterOf("artifice", 10))).toBeNull();
+  });
+
+  it("Ladino/Trapaceiro Arcano: nível 3 → 3; nível 13 → 9; nível 20 → 13 (mesma progressão numérica do Cavaleiro Místico, fonte própria)", () => {
+    expect(getSpellsPreparedMax(rogueSubclassOf("Trapaceiro Arcano", 3))).toBe(3);
+    expect(getSpellsPreparedMax(rogueSubclassOf("Trapaceiro Arcano", 13))).toBe(9);
+    expect(getSpellsPreparedMax(rogueSubclassOf("Trapaceiro Arcano", 20))).toBe(13);
+  });
+
+  it("Ladino sem Trapaceiro Arcano — null", () => {
+    expect(getSpellsPreparedMax(characterOf("ladino", 10))).toBeNull();
+    expect(getSpellsPreparedMax(rogueSubclassOf("Ladrão", 10))).toBeNull();
   });
 });
 

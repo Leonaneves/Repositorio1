@@ -4,7 +4,7 @@ import { CLASS_IDS, BACKGROUND_IDS, SPECIES_IDS } from "../../domain/ids.js";
 import { classes } from "../../data/classes.js";
 import { species } from "../../data/species.js";
 import { backgrounds } from "../../data/backgrounds.js";
-import { canChooseSubclass, getAvailableSubclasses } from "../../rules/subclasses.js";
+import { canChooseSubclass, getAvailableSubclasses, getSubclassDisplayName } from "../../rules/subclasses.js";
 import type { ChoiceInsight } from "../../analytics/types.js";
 import { findInsightItem } from "../../services/useInsights.js";
 import { InsightPopover } from "../insights/InsightPopover.js";
@@ -104,7 +104,9 @@ export function IdentitySection({ subclassPopularity, speciesPopularity, backgro
           </label>
         </div>
 
-        {character.subclassId && <InsightTooltip insight={subclassPopularity} chosenLabel={character.subclassId} />}
+        {character.subclassId && (
+          <InsightTooltip insight={subclassPopularity} chosenLabel={getSubclassDisplayName(character.classId, character.subclassId) ?? character.subclassId} />
+        )}
         {speciesName && findInsightItem(speciesPopularity, speciesName) && <InsightTooltip insight={speciesPopularity} chosenLabel={speciesName} />}
         {backgroundName && findInsightItem(backgroundPopularity, backgroundName) && (
           <InsightTooltip

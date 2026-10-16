@@ -1,6 +1,6 @@
 import type { Character } from "../domain/character.js";
 import type { HitDie } from "../data/classes.js";
-import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 import { PACT_MAGIC_TABLE } from "../data/spellProgression.js";
 import {
   ARTIFICER_CANTRIPS_KNOWN,
@@ -35,7 +35,11 @@ import {
   PALADIN_SPELLS_PREPARED,
   RANGER_FAVORED_ENEMY_COUNT,
   RANGER_SPELLS_PREPARED,
+  ROGUE_ARCANE_TRICKSTER_CANTRIPS_KNOWN,
+  ROGUE_ARCANE_TRICKSTER_SPELLS_PREPARED,
   ROGUE_SNEAK_ATTACK_DICE,
+  ROGUE_SOULKNIFE_PSIONIC_DICE_COUNT,
+  ROGUE_SOULKNIFE_PSIONIC_DIE,
   SORCERER_CANTRIPS_KNOWN,
   SORCERER_SORCERY_POINTS,
   SORCERER_SPELLS_PREPARED,
@@ -160,6 +164,51 @@ export function getSneakAttackDice(character: Character): string | null {
   return ROGUE_SNEAK_ATTACK_DICE[character.level] ?? null;
 }
 
+/**
+ * CD de Golpe Astuto/Rasgar Mente/Golpe Mortal = `8 + mod DEX + BP`
+ * (fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF" §3:
+ * "Calcular esse valor automaticamente, sem seleção de atributo") —
+ * fórmula PRÓPRIA, independente da CD de magia do personagem (Ladrão
+ * de Magias do Trapaceiro Arcano usa a CD de magia normal, nunca esta).
+ * Reaproveitada pelas 3 características (Golpe Astuto é base, nível 5+;
+ * Rasgar Mente é da Adaga Espiritual, nível 17+; Golpe Mortal é do
+ * Assassino, nível 17+) — nunca 3 fórmulas separadas. Calculada mesmo
+ * sem conjuração, nunca persistida como cópia.
+ */
+export function getRogueCunningStrikeCd(character: Character): number | null {
+  if (character.classId !== "ladino" || character.level < 5) return null;
+  const modifier = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  return 8 + getProficiencyBonus(character.level) + modifier;
+}
+
+/**
+ * Quantidade MÁXIMA de efeitos de Golpe Astuto combináveis no mesmo
+ * Ataque Furtivo: 1 do nível 5 ao 10 (Golpe Astuto), 2 a partir do 11
+ * (Golpe Astuto Aprimorado) — nunca uma reserva de usos por descanso,
+ * só o limite de opções que podem ser pagas de uma vez com os dados do
+ * próprio Ataque Furtivo.
+ */
+export function getCunningStrikeMaxEffects(character: Character): number | null {
+  if (character.classId !== "ladino" || character.level < 5) return null;
+  return character.level >= 11 ? 2 : 1;
+}
+
+/**
+ * Dado de Energia Psiônica (Ladino/Adaga Espiritual) — recurso PRÓPRIO
+ * desta subclasse, nunca somado/confundido com o do Guerreiro Psiônico
+ * (fonte idem §8).
+ */
+export function getSoulknifePsionicDie(character: Character): HitDie | null {
+  if (character.classId !== "ladino" || character.subclassId !== "Lâmina Psíquica") return null;
+  return ROGUE_SOULKNIFE_PSIONIC_DIE[character.level] ?? null;
+}
+
+/** Quantidade de Dados de Energia Psiônica (reserva total, não "restantes"). */
+export function getSoulknifePsionicDiceCount(character: Character): number | null {
+  if (character.classId !== "ladino" || character.subclassId !== "Lâmina Psíquica") return null;
+  return ROGUE_SOULKNIFE_PSIONIC_DICE_COUNT[character.level] ?? 0;
+}
+
 export function getMartialArtsDie(character: Character): HitDie | null {
   if (character.classId !== "monge") return null;
   return MONK_MARTIAL_ARTS_DIE[character.level] ?? null;
@@ -260,6 +309,15 @@ export function getCantripsKnown(character: Character): number | null {
     if (character.subclassId !== "Cavaleiro Místico") return null;
     return FIGHTER_ELDRITCH_KNIGHT_CANTRIPS_KNOWN[character.level] ?? 0;
   }
+  if (character.classId === "ladino") {
+    if (character.subclassId !== "Trapaceiro Arcano") return null;
+    const chosen = ROGUE_ARCANE_TRICKSTER_CANTRIPS_KNOWN[character.level];
+    // +1 por Mãos Mágicas: concedida automaticamente e SEMPRE somada à quantidade TOTAL de
+    // truques conhecidos (nunca ao limite de magias preparadas de 1º círculo ou superior,
+    // que é outra tabela — getSpellsPreparedMax); nunca entra na lista de truques ESCOLHIDOS
+    // (ROGUE_ARCANE_TRICKSTER_CANTRIPS_KNOWN), que o jogador pode trocar ao subir de nível.
+    return chosen !== undefined ? chosen + 1 : 0;
+  }
   if (!character.classId || !(character.classId in CANTRIPS_KNOWN_TABLES)) return null;
   const table = CANTRIPS_KNOWN_TABLES[character.classId as keyof typeof CANTRIPS_KNOWN_TABLES];
   return table[character.level] ?? 0;
@@ -274,6 +332,10 @@ export function getSpellsPreparedMax(character: Character): number | null {
   if (character.classId === "guerreiro") {
     if (character.subclassId !== "Cavaleiro Místico") return null;
     return FIGHTER_ELDRITCH_KNIGHT_SPELLS_PREPARED[character.level] ?? 0;
+  }
+  if (character.classId === "ladino") {
+    if (character.subclassId !== "Trapaceiro Arcano") return null;
+    return ROGUE_ARCANE_TRICKSTER_SPELLS_PREPARED[character.level] ?? 0;
   }
   if (!character.classId || !(character.classId in SPELLS_PREPARED_TABLES)) return null;
   const table = SPELLS_PREPARED_TABLES[character.classId as keyof typeof SPELLS_PREPARED_TABLES];

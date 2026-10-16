@@ -42,7 +42,7 @@ describe("catálogo de features — integridade estrutural", () => {
     expect(generalFeats).toEqual([]);
   });
 
-  it("subclassFeatures: só as 4 subclasses de Bárbaro + 4 de Bardo + 4 de Bruxo + 4 de Clérigo + 4 de Druida + 4 de Feiticeiro + 4 de Patrulheiro + 4 de Guerreiro por ora (fontes fornecidas), todas com sourceType 'subclass' e subclassFullName válido", () => {
+  it("subclassFeatures: só as 4 subclasses de Bárbaro + 4 de Bardo + 4 de Bruxo + 4 de Clérigo + 4 de Druida + 4 de Feiticeiro + 4 de Patrulheiro + 4 de Guerreiro + 4 de Ladino por ora (fontes fornecidas), todas com sourceType 'subclass' e subclassFullName válido", () => {
     expect(subclassFeatures.length).toBeGreaterThan(0);
     const confirmedSubclassNames = [
       "Caminho da Árvore do Mundo",
@@ -77,6 +77,11 @@ describe("catálogo de features — integridade estrutural", () => {
       "Cavaleiro Místico",
       "Guerreiro Psiônico",
       "Mestre da Batalha",
+      // Ladino — "Lâmina Psíquica" é o fullName/valor interno (exibido como "Adaga Espiritual").
+      "Lâmina Psíquica",
+      "Assassino",
+      "Ladrão",
+      "Trapaceiro Arcano",
     ];
     for (const feature of subclassFeatures) {
       expect(feature.sourceType).toBe("subclass");

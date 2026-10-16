@@ -91,7 +91,14 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
     // Arcano" para casar com a progressão de espaços de magia.
     { shortName: "Arcano", fullName: "Trapaceiro Arcano" },
     { shortName: "Assassino", fullName: "Assassino" },
-    { shortName: "Lâmina Psíquica", fullName: "Lâmina Psíquica" },
+    // Nome de exibição corrigido para "Adaga Espiritual" (fonte "IMPLEMENTAR LADINO E SUAS
+    // SUBCLASSES NO BUILDER E NO PDF" §1 — substitui "Lâmina Psíquica"). `fullName` NUNCA muda:
+    // é o valor que o motor de regras compara (`character.subclassId`, `subclassFullName` das
+    // FeatureDefinitions, `SUBCLASS_FEATURE_LEVELS` etc.), preservando compatibilidade com
+    // personagens já salvos com esta subclasse — nenhuma reseleção é exigida. A característica
+    // de nível 3 continua chamada "Lâminas Psíquicas" (nome da HABILIDADE, nunca tocado por
+    // esta renomeação — ela identifica a arma manifestada, não a subclasse).
+    { shortName: "Adaga Espiritual", fullName: "Lâmina Psíquica" },
     { shortName: "Ladrão", fullName: "Ladrão" },
     { shortName: "Fantasma", fullName: "Fantasma" },
   ],

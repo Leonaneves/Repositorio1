@@ -4,6 +4,7 @@ import { getBardAutoPreparedSpells } from "./bardAutoPreparedSpells.js";
 import { getClericAutoPreparedSpells } from "./clericAutoPreparedSpells.js";
 import { getDruidAutoPreparedSpells } from "./druidAutoPreparedSpells.js";
 import { getRangerAutoPreparedSpells } from "./rangerAutoPreparedSpells.js";
+import { getRogueAutoPreparedSpells } from "./rogueAutoPreparedSpells.js";
 import { getSorcererAutoPreparedSpells } from "./sorcererAutoPreparedSpells.js";
 import { getWarlockAutoPreparedSpells } from "./warlockAutoPreparedSpells.js";
 import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
@@ -19,7 +20,8 @@ import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
  * Truque de Xamã do Druida — `getDruidAutoPreparedSpells`; magias
  * sempre preparadas de Andarilho Feérico/Vigilante das Sombras do
  * Patrulheiro, além de Marca do Predador (base) e dos truques de
- * Combatente Druídico (base) — `getRangerAutoPreparedSpells`; Magias das 4 subclasses
+ * Combatente Druídico (base) — `getRangerAutoPreparedSpells`; Mãos
+ * Mágicas do Trapaceiro Arcano — `getRogueAutoPreparedSpells`; Magias das 4 subclasses
  * de Feiticeiro — `getSorcererAutoPreparedSpells`; magias
  * sempre preparadas dos 4 Patronos + Contatar Patrono + invocações que
  * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`; truque/
@@ -37,6 +39,7 @@ export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[
     ...getClericAutoPreparedSpells(character),
     ...getDruidAutoPreparedSpells(character),
     ...getRangerAutoPreparedSpells(character),
+    ...getRogueAutoPreparedSpells(character),
     ...getSorcererAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
     ...getSpeciesGrantedSpells(character),

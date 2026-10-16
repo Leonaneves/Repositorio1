@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canChooseSubclass, getAvailableSubclasses } from "./subclasses.js";
+import { canChooseSubclass, getAvailableSubclasses, getSubclassDisplayName } from "./subclasses.js";
 import { CLASS_IDS } from "../domain/ids.js";
 import { SUBCLASS_FEATURE_LEVELS } from "../data/subclasses.js";
 
@@ -44,6 +44,28 @@ describe("getAvailableSubclasses", () => {
   it("Artífice inclui a subclasse de Ravenloft (Reanimador)", () => {
     const names = getAvailableSubclasses("artifice").map((s) => s.fullName);
     expect(names).toContain("Reanimador");
+  });
+});
+
+describe("getSubclassDisplayName — resolve o shortName a partir do fullName salvo (fonte \"IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §1)", () => {
+  it("Ladino/'Lâmina Psíquica' (valor interno preservado) exibe 'Adaga Espiritual'", () => {
+    expect(getSubclassDisplayName("ladino", "Lâmina Psíquica")).toBe("Adaga Espiritual");
+  });
+
+  it("demais subclasses de Ladino continuam resolvendo para o próprio shortName já existente", () => {
+    expect(getSubclassDisplayName("ladino", "Assassino")).toBe("Assassino");
+    expect(getSubclassDisplayName("ladino", "Ladrão")).toBe("Ladrão");
+    expect(getSubclassDisplayName("ladino", "Trapaceiro Arcano")).toBe("Arcano");
+  });
+
+  it("classId ou fullName nulos, ou fullName sem correspondência no catálogo: devolve o próprio fullName (nunca quebra)", () => {
+    expect(getSubclassDisplayName(null, "Lâmina Psíquica")).toBe("Lâmina Psíquica");
+    expect(getSubclassDisplayName("ladino", null)).toBeNull();
+    expect(getSubclassDisplayName("ladino", "Nome Inexistente")).toBe("Nome Inexistente");
+  });
+
+  it("não afeta outras classes (ex.: Guerreiro/Cavaleiro Místico, onde shortName === fullName)", () => {
+    expect(getSubclassDisplayName("guerreiro", "Cavaleiro Místico")).toBe("Cavaleiro Místico");
   });
 });
 

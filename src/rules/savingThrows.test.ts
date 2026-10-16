@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { RANGER_MENTE_DE_FERRO_CHOICE_ID } from "../data/features/subclasses.js";
-import { getMenteDeFerroGrantedAbility, getSavingThrow } from "./savingThrows.js";
+import { getMenteDeFerroGrantedAbility, getSavingThrow, getSlipperyMindGrantedAbilities } from "./savingThrows.js";
 
 function gloomStalkerAt(level: number): ReturnType<typeof createBlankCharacter> {
   const character = createBlankCharacter("mente-de-ferro-test");
@@ -92,5 +92,41 @@ describe("getMenteDeFerroGrantedAbility — Vigilante das Sombras, nível 7 (fon
     expect(sabSave.auto).toBe(7); // 3 + 4 — vem só da proficiência "de outra origem" marcada, não dobrada
     const carSave = getSavingThrow(character, "CAR");
     expect(carSave.auto).toBe(5); // 1 + 4 — concedida só por Mente de Ferro
+  });
+});
+
+describe("getSlipperyMindGrantedAbilities — Mente Escorregadia (Ladino, nível 15, fonte \"IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §6)", () => {
+  function rogueAt(level: number) {
+    const character = createBlankCharacter("mente-escorregadia-test");
+    character.classId = "ladino";
+    character.level = level;
+    return character;
+  }
+
+  it("abaixo do nível 15 — []; nível 15+: SAB e CAR, incondicionalmente", () => {
+    expect(getSlipperyMindGrantedAbilities(rogueAt(14))).toEqual([]);
+    expect(getSlipperyMindGrantedAbilities(rogueAt(15))).toEqual(["SAB", "CAR"]);
+    expect(getSlipperyMindGrantedAbilities(rogueAt(20))).toEqual(["SAB", "CAR"]);
+  });
+
+  it("outra classe — [] mesmo em nível alto", () => {
+    expect(getSlipperyMindGrantedAbilities(createBlankCharacter("x"))).toEqual([]);
+    const fighter = rogueAt(20);
+    fighter.classId = "guerreiro";
+    expect(getSlipperyMindGrantedAbilities(fighter)).toEqual([]);
+  });
+
+  it("concede a proficiência direto no cálculo da Salvaguarda, sem exigir marcação manual, preservando quem já era proficiente por outra origem", () => {
+    const character = rogueAt(15);
+    character.abilities.SAB.score = 14; // +2
+    character.abilities.CAR.score = 16; // +3
+    character.savingThrows.CAR.proficient = true; // já proficiente por outra origem (ex.: manual)
+
+    const sabSave = getSavingThrow(character, "SAB");
+    expect(sabSave.auto).toBe(7); // 2 + 5 (BP nível 15) — concedida por Mente Escorregadia, sem marcar o campo
+    expect(character.savingThrows.SAB.proficient).toBe(false); // nunca "promovido" a true pela própria característica
+
+    const carSave = getSavingThrow(character, "CAR");
+    expect(carSave.auto).toBe(8); // 3 + 5 — nunca dobrado por já ser proficiente por outra origem também
   });
 });

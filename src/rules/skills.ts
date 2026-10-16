@@ -9,6 +9,7 @@ import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
+import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -32,6 +33,9 @@ const EXTRA_SKILL_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
 const EXPERTISE_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
   bardo: ["bardo-especialista-1-escolha", "bardo-especialista-2-escolha"],
   patrulheiro: [RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID],
+  // Especialista do Ladino (nível 1: 2 perícias; nível 6: mais 2) — fonte "IMPLEMENTAR LADINO E
+  // SUAS SUBCLASSES NO BUILDER E NO PDF" §4, duas escolhas independentes, mesmo padrão do Patrulheiro.
+  ladino: [ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6],
 };
 
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";

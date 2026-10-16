@@ -290,3 +290,55 @@ export const FIGHTER_BATTLE_MASTER_SUPERIORITY_DICE_COUNT: Record<number, number
   10: 5, 11: 5, 12: 5, 13: 5, 14: 5,
   15: 6, 16: 6, 17: 6, 18: 6, 19: 6, 20: 6,
 };
+
+/**
+ * Ladino/Trapaceiro Arcano — Truques e Magias Preparadas (fonte
+ * "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF" §11) —
+ * mesma progressão numérica de terço-conjurador já usada por
+ * `FIGHTER_ELDRITCH_KNIGHT_CANTRIPS_KNOWN`/`..._SPELLS_PREPARED` acima,
+ * mas registrada com nome próprio porque a fonte fornecida é a
+ * autoridade aqui (mesmo raciocínio já aplicado ao Cavaleiro Místico).
+ * "Truques" aqui é só a quantidade ESCOLHIDA pelo jogador (2 do nível
+ * 3-9, 3 do 10-20) — a que pode ser substituída ao subir de nível.
+ * Mãos Mágicas é um truque ADICIONAL, sempre concedido
+ * (rules/rogueAutoPreparedSpells.ts), que nunca entra nesta tabela, mas
+ * que `rules/classResources.ts#getCantripsKnown` SEMPRE soma +1 por
+ * cima dela para formar a quantidade TOTAL de truques conhecidos
+ * exibida ao jogador (nunca ao limite de Magias Preparadas de 1º
+ * círculo ou superior — essa é outra tabela, `..._SPELLS_PREPARED`
+ * abaixo). Sem conjuração antes do nível 3 — chave ausente, nunca `0`.
+ */
+export const ROGUE_ARCANE_TRICKSTER_CANTRIPS_KNOWN: Record<number, number> = {
+  3: 2, 4: 2, 5: 2, 6: 2, 7: 2, 8: 2, 9: 2,
+  10: 3, 11: 3, 12: 3, 13: 3, 14: 3, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3, 20: 3,
+};
+
+export const ROGUE_ARCANE_TRICKSTER_SPELLS_PREPARED: Record<number, number> = {
+  3: 3, 4: 4, 5: 4, 6: 4, 7: 5, 8: 6, 9: 6, 10: 7,
+  11: 8, 12: 8, 13: 9, 14: 10, 15: 10, 16: 11, 17: 11, 18: 11, 19: 12, 20: 13,
+};
+
+/**
+ * Ladino/Adaga Espiritual — tamanho e quantidade de Dados de Energia
+ * Psiônica (fonte idem §8) — recurso PRÓPRIO desta subclasse, nunca
+ * somado/confundido com os DP do Guerreiro Psiônico
+ * (`FIGHTER_PSI_WARRIOR_DIE`/`..._DICE_COUNT`), mesmo elas
+ * compartilharem o nome em português.
+ */
+export const ROGUE_SOULKNIFE_PSIONIC_DIE: Record<number, HitDie> = {
+  3: 6, 4: 6,
+  5: 8, 6: 8, 7: 8, 8: 8,
+  9: 8, 10: 8,
+  11: 10, 12: 10,
+  13: 10, 14: 10, 15: 10, 16: 10,
+  17: 12, 18: 12, 19: 12, 20: 12,
+};
+
+export const ROGUE_SOULKNIFE_PSIONIC_DICE_COUNT: Record<number, number> = {
+  3: 4, 4: 4,
+  5: 6, 6: 6, 7: 6, 8: 6,
+  9: 8, 10: 8,
+  11: 8, 12: 8,
+  13: 10, 14: 10, 15: 10, 16: 10,
+  17: 12, 18: 12, 19: 12, 20: 12,
+};

@@ -1880,4 +1880,254 @@ export const subclassFeatures: FeatureDefinition[] = [
     summary:
       "Uma vez por turno, ao usar uma manobra, pode rolar 1d8 em vez de gastar 1 DS. Esse d8 não consome a reserva de DS, não exige DS restante, e nunca vira d10/d12 nos níveis seguintes (mantém d8 fixo até o nível 20). Mantém a ação e as demais condições da manobra usada; não concede usos gratuitos de Conheça Seu Inimigo (que não é manobra); preserva a regra de 1 manobra por ataque.",
   },
+
+  // ---------- Lâmina Psíquica (exibida como "Adaga Espiritual" — fonte "IMPLEMENTAR LADINO E
+  // SUAS SUBCLASSES NO BUILDER E NO PDF" §1/§8: `subclassFullName` preserva o valor interno
+  // antigo por compatibilidade; só o nome de EXIBIÇÃO mudou, ver data/subclasses.ts/rules/subclasses.ts#getSubclassDisplayName) ----------
+  {
+    id: "ladino-lamina-psiquica-laminas-psiquicas-3",
+    name: "Lâminas Psíquicas",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao executar a ação Atacar ou um Ataque de Oportunidade, pode manifestar uma lâmina psíquica em uma mão livre e atacar com ela: arma mágica Simples Corpo a Corpo, dano 1d6 Psíquico + o modificador usado no ataque, Acuidade, Arremesso 18/36m, Maestria Afligir (data/weapons.ts#WEAPON_MASTERIES) sem ocupar nenhuma das 2 vagas de Maestria em Arma. A lâmina desaparece imediatamente após acertar ou errar, sem deixar marca nem dano residual. Depois de atacar com ela no próprio turno, se a OUTRA mão estiver livre, pode usar Ação Bônus para manifestar e atacar com uma 2ª lâmina (1d4 Psíquico + o mesmo modificador, preservando as demais propriedades) — um ataque com DUAS armas, nunca perdendo o modificador de dano por engano. Nunca gasta Dado de Energia Psiônica para manifestar ou atacar com as lâminas.",
+  },
+  {
+    id: "ladino-lamina-psiquica-poder-psionico-3",
+    name: "Poder Psiônico",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Reserva de Dados de Energia Psiônica: d6 x4 nos níveis 3-4; d8 x6 nos níveis 5-8; d8 x8 nos níveis 9-10; d10 x8 nos níveis 11-12; d10 x10 nos níveis 13-16; d12 x12 nos níveis 17-20 (rules/classResources.ts#getSoulknifePsionicDie/getSoulknifePsionicDiceCount). Recupera um dado gasto em Descanso Curto; recupera todos em Descanso Longo. Reserva EXCLUSIVA desta subclasse — nunca somada aos Dados de Energia Psiônica do Guerreiro Psiônico, mesmo compartilhando o nome.",
+  },
+  {
+    id: "ladino-lamina-psiquica-aptidao-reforcada-psiquicamente-3",
+    name: "Aptidão Reforçada Psiquicamente",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Após falhar em um teste de perícia ou ferramenta na qual seja proficiente, pode gastar 1 Dado de Energia Psiônica e somar o resultado ao teste — só gasta o dado se o teste passar a ser um sucesso com o bônus; exige ao menos 1 dado disponível. Nunca concede um bônus permanente.",
+  },
+  {
+    id: "ladino-lamina-psiquica-sussurros-psiquicos-3",
+    name: "Sussurros Psíquicos",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Usar Magia: escolhe até um número de criaturas à vista igual ao Bônus de Proficiência e rola o dado de Energia Psiônica para determinar a duração em horas, estabelecendo comunicação telepática entre o personagem e cada criatura, a até 1500m uma da outra — mensagens não exigem ação, e qualquer participante pode encerrar sua própria conexão sem ação; nunca estabelece comunicação direta entre os demais participantes entre si. O primeiro uso após um Descanso Longo não gasta Dado de Energia Psiônica (ainda assim rola o dado da progressão para a duração); os usos seguintes gastam 1 Dado de Energia Psiônica cada.",
+  },
+  {
+    id: "ladino-lamina-psiquica-golpes-teleguiados-9",
+    name: "Golpes Teleguiados",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 9,
+    autoGranted: true,
+    summary:
+      "Após ERRAR um ataque com uma Lâmina Psíquica, pode gastar 1 Dado de Energia Psiônica e somar o resultado à jogada de ataque — só gasta o dado se o bônus fizer o ataque acertar; exige ao menos 1 dado disponível. Nunca funciona com qualquer outra arma.",
+  },
+  {
+    id: "ladino-lamina-psiquica-teleporte-psiquico-9",
+    name: "Teleporte Psíquico",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 9,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: manifesta uma Lâmina Psíquica, gasta e rola 1 Dado de Energia Psiônica, arremessa a lâmina e teleporta para um espaço desocupado à vista, a até 3 vezes o resultado do dado, em metros. Nunca usa o valor máximo ou médio do dado como distância garantida — sempre o resultado real da rolagem.",
+  },
+  {
+    id: "ladino-lamina-psiquica-veu-psiquico-13",
+    name: "Véu Psíquico",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 13,
+    autoGranted: true,
+    summary:
+      "Ação Usar Magia: fica Invisível por 1 hora. Encerra se o personagem encerrar sem gastar ação, se causar dano a uma criatura, ou se forçar uma criatura a fazer uma Salvaguarda. Um uso por Descanso Longo; gastar 1 Dado de Energia Psiônica, sem ação, recupera o uso (mas a ativação em si continua exigindo a ação Usar Magia — a recuperação do uso nunca a substitui).",
+  },
+  {
+    id: "ladino-lamina-psiquica-rasgar-mente-17",
+    name: "Rasgar Mente",
+    sourceType: "subclass",
+    subclassFullName: "Lâmina Psíquica",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Ao causar dano de Ataque Furtivo com uma Lâmina Psíquica, pode exigir que o alvo faça uma Salvaguarda de Sabedoria, CD própria = 8 + BP + modificador de Destreza (mesma fórmula de Golpe Astuto — rules/classResources.ts#getRogueCunningStrikeCd); falha: Atordoado por 1 minuto, repetindo a Salvaguarda ao fim de cada turno do alvo, encerrando no sucesso. Um uso por Descanso Longo; gastar 3 Dados de Energia Psiônica, sem ação, recupera o uso. Nunca reduz dados de Ataque Furtivo para ser ativada (diferente de Golpe Astuto) e nunca deve ser confundida com a opção \"Aturdir\" de Golpes Sujos.",
+  },
+
+  // ---------- Assassino ----------
+  {
+    id: "ladino-assassino-assassinar-3",
+    name: "Assassinar",
+    sourceType: "subclass",
+    subclassFullName: "Assassino",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Vantagem nas jogadas de Iniciativa. Na PRIMEIRA RODADA do combate, tem Vantagem nas jogadas de ataque contra qualquer criatura que ainda não tenha agido no seu próprio turno naquele combate (condição ligada à Vantagem, nunca ao dano adicional abaixo); ao acertar um Ataque Furtivo contra essa criatura ainda na primeira rodada, causa dano adicional igual ao nível de Ladino, do mesmo tipo de dano da arma — esse dano adicional NÃO exige que o alvo ainda não tenha agido, só que esteja dentro da primeira rodada. Nunca confunde \"primeira rodada\" com \"primeiro turno do personagem\".",
+  },
+  {
+    id: "ladino-assassino-ferramentas-de-assassino-3",
+    name: "Ferramentas de Assassino",
+    sourceType: "subclass",
+    subclassFullName: "Assassino",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Concede Kit de Disfarce e Kit de Veneno, com proficiência em ambos — aplicado no campo de Proficiências/Ferramentas (rules/rogueSubclassProficiencies.ts#getRogueAssassinToolProficiencyEntries), recalculado do zero a cada vez, nunca duplicado. Nunca impresso em Características de Classe.",
+  },
+  {
+    id: "ladino-assassino-mimetismo-magistral-9",
+    name: "Mimetismo Magistral",
+    sourceType: "subclass",
+    subclassFullName: "Assassino",
+    level: 9,
+    autoGranted: true,
+    summary:
+      "Após estudar a fala, a caligrafia, ou ambas, de uma pessoa ou criatura por pelo menos 1 hora, pode imitá-las com perfeição. Nunca exige um cadastro estruturado de identidades imitadas — é só uma referência textual da capacidade.",
+  },
+  {
+    id: "ladino-assassino-mira-movel-9",
+    name: "Mira Móvel",
+    sourceType: "subclass",
+    subclassFullName: "Assassino",
+    level: 9,
+    autoGranted: true,
+    summary:
+      "Atualiza Mira Firme — nunca um bloco impresso separado. Mira Firme deixa de reduzir o deslocamento a 0: a partir deste nível, pode se mover normalmente depois de usá-la. A exigência de NÃO ter se movido no turno ANTES de ativá-la continua intocada — a melhoria só afeta o que acontece depois.",
+  },
+  {
+    id: "ladino-assassino-armas-venenosas-13",
+    name: "Armas Venenosas",
+    sourceType: "subclass",
+    subclassFullName: "Assassino",
+    level: 13,
+    autoGranted: true,
+    summary:
+      "Atualiza a opção \"Envenenar\" de Golpe Astuto — nunca um bloco impresso separado. Sempre que o alvo envenenado falhar na Salvaguarda de Constituição de Envenenar (incluindo as repetições ao fim de cada turno dele), sofre também 2d6 de dano Venenoso adicional. Esse dano adicional ignora Resistência a dano Venenoso, mas nunca ignora Imunidade a dano Venenoso.",
+  },
+  {
+    id: "ladino-assassino-golpe-mortal-17",
+    name: "Golpe Mortal",
+    sourceType: "subclass",
+    subclassFullName: "Assassino",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Atualiza Assassinar — nunca um bloco impresso separado. Ao acertar um Ataque Furtivo ainda na primeira rodada do combate, pode exigir uma Salvaguarda de Constituição do alvo, CD própria = 8 + BP + modificador de Destreza (mesma fórmula de Golpe Astuto — rules/classResources.ts#getRogueCunningStrikeCd); falha: o dano TOTAL daquele ataque (nunca só os dados de Ataque Furtivo) é dobrado contra o alvo.",
+  },
+
+  // ---------- Ladrão ----------
+  {
+    id: "ladino-ladrao-andarilho-de-telhados-3",
+    name: "Andarilho de Telhados",
+    sourceType: "subclass",
+    subclassFullName: "Ladrão",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ganha deslocamento de Escalada igual ao deslocamento a pé. Ao calcular a distância de um salto, pode usar Destreza em vez de Força — uma alternativa de cálculo, nunca um aumento do atributo Força em si.",
+  },
+  {
+    id: "ladino-ladrao-mao-leve-3",
+    name: "Mão Leve",
+    sourceType: "subclass",
+    subclassFullName: "Ladrão",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Bônus para: fazer um teste de Destreza (Prestidigitação) para abrir uma fechadura ou desarmar uma armadilha com Ferramentas de Ladrão, ou para roubar um bolso; executar a ação Usar Objeto; ou executar a ação Usar Magia, só para ativar a propriedade de um item mágico que exija essa ação. Nunca permite conjurar qualquer magia comum como Ação Bônus por esta característica — só a ativação de itens mágicos.",
+  },
+  {
+    id: "ladino-ladrao-furtividade-suprema-9",
+    name: "Furtividade Suprema",
+    sourceType: "subclass",
+    subclassFullName: "Ladrão",
+    level: 9,
+    autoGranted: true,
+    summary:
+      "Acrescenta a opção \"Ataque Escondido\" (1d6) ao mesmo conjunto de Golpe Astuto — nunca um bloco impresso separado, nunca fora do mesmo limite/custo já existente. Se o personagem estiver Invisível pela ação Esconder, atacar não encerra essa invisibilidade, desde que termine o próprio turno com Cobertura de Três Quartos ou Total. Nunca estende esse benefício a qualquer outra origem de Invisibilidade.",
+  },
+  {
+    id: "ladino-ladrao-usar-dispositivo-magico-13",
+    name: "Usar Dispositivo Mágico",
+    sourceType: "subclass",
+    subclassFullName: "Ladrão",
+    level: 13,
+    autoGranted: true,
+    summary:
+      "Pode manter até 4 itens mágicos sintonizados simultaneamente (em vez de 3). Ao usar uma propriedade de item mágico que gaste cargas, rola 1d6 antes: no resultado 6, as cargas não são gastas (nunca recupera cargas já gastas anteriormente). Pode usar qualquer Pergaminho Mágico, usando Inteligência como atributo de conjuração: Truques e magias de 1º círculo conjuram sem teste; magias de círculo superior exigem um teste de Inteligência (Arcanismo), CD 10 + o círculo da magia — sucesso conjura normalmente, falha destrói o pergaminho sem efeito. Nunca concede espaços de magia ou magias preparadas permanentes por esta característica.",
+  },
+  {
+    id: "ladino-ladrao-reflexos-de-ladrao-17",
+    name: "Reflexos de Ladrão",
+    sourceType: "subclass",
+    subclassFullName: "Ladrão",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Na primeira rodada do combate, age em DOIS turnos: um na sua Iniciativa normal, outro na sua Iniciativa menos 10 (nunca reduz a Iniciativa permanentemente). Vale só para a primeira rodada — nas rodadas seguintes, volta a agir normalmente em um único turno, na Iniciativa normal.",
+  },
+
+  // ---------- Trapaceiro Arcano ----------
+  {
+    id: "ladino-trapaceiro-arcano-conjuracao-3",
+    name: "Conjuração",
+    sourceType: "subclass",
+    subclassFullName: "Trapaceiro Arcano",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Conjuração de terço-conjurador, usando Inteligência (rules/spellcasting.ts#getCasterProgressionType/getSpellcastingAbility, mesma arquitetura já usada pelo Cavaleiro Místico) — pode usar Foco Arcano. Mãos Mágicas é concedida automaticamente (rules/rogueAutoPreparedSpells.ts#getRogueAutoPreparedSpells), além de 2 outros truques de Mago à escolha do jogador (mais 1 no nível 10, somando 3 truques escolhidos — rules/classResources.ts#getCantripsKnown); Mãos Mágicas conta na quantidade TOTAL de truques conhecidos, mas nunca no limite de magias preparadas de 1º círculo ou superior. Ao ganhar um nível de Ladino, pode substituir um dos truques ESCOLHIDOS (nunca Mãos Mágicas). Prepara inicialmente 3 magias de Mago de 1º círculo (rules/classResources.ts#getSpellsPreparedMax); ao ganhar um nível de Ladino, pode substituir uma magia preparada por outra disponível na progressão. Espaços de magia recuperados em Descanso Longo (rules/spellcasting.ts#getSpellSlots). Sem catálogo de magias completo no projeto — nomes de truques/magias são texto livre do jogador (igual às demais classes conjuradoras), nunca validados contra uma lista fechada; Ilusão Menor/Talho Mental (truques) e Disfarçar-se/Enfeitiçar Pessoa/Névoa Obscurecente (magias) são só recomendações, nunca concessões automáticas.",
+  },
+  {
+    id: "ladino-trapaceiro-arcano-maos-magicas-ligeiras-3",
+    name: "Mãos Mágicas Ligeiras",
+    sourceType: "subclass",
+    subclassFullName: "Trapaceiro Arcano",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao conjurar Mãos Mágicas, pode: conjurá-la como Ação Bônus; tornar a mão espectral Invisível; controlá-la com Ação Bônus (em vez de ação); e usar a mão para fazer testes de Destreza (Prestidigitação). Nunca acrescenta nenhuma função que não esteja na magia cadastrada ou nesta própria regra.",
+  },
+  {
+    id: "ladino-trapaceiro-arcano-emboscada-magica-9",
+    name: "Emboscada Mágica",
+    sourceType: "subclass",
+    subclassFullName: "Trapaceiro Arcano",
+    level: 9,
+    autoGranted: true,
+    summary:
+      "Se estiver Invisível no momento em que conjurar uma magia contra uma criatura, essa criatura tem Desvantagem em TODAS as Salvaguardas contra essa magia específica, durante aquele mesmo turno. Nunca prolonga o benefício para os turnos seguintes, nunca restringe o efeito só à primeira Salvaguarda daquele turno.",
+  },
+  {
+    id: "ladino-trapaceiro-arcano-trapaceiro-versatil-13",
+    name: "Trapaceiro Versátil",
+    sourceType: "subclass",
+    subclassFullName: "Trapaceiro Arcano",
+    level: 13,
+    autoGranted: true,
+    summary:
+      "Ao usar uma opção de Golpe Astuto no ataque contra uma criatura, pode também aplicar essa MESMA opção a uma segunda criatura a até 1,5m da mão onde está a magia Mãos Mágicas. Preserva todas as condições e Salvaguardas da opção usada; nunca exige um segundo ataque, nunca duplica o dano do ataque ou de Ataque Furtivo, nunca cobra dados adicionais além do custo já existente da opção, e nunca cria uma seleção permanente de alvo.",
+  },
+  {
+    id: "ladino-trapaceiro-arcano-ladrao-de-magias-17",
+    name: "Ladrão de Magias",
+    sourceType: "subclass",
+    subclassFullName: "Trapaceiro Arcano",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Imediatamente após uma criatura conjurar uma magia que tenha o personagem como alvo, ou que o inclua em sua área, pode usar uma Reação: o conjurador faz uma Salvaguarda de Inteligência contra a CD de magia do personagem (CD de conjuração normal, baseada em Inteligência — rules/spellcasting.ts#getSpellSaveDC, NUNCA a CD de Golpe Astuto baseada em Destreza); falha: nega o efeito da magia contra o personagem. Separadamente, se a magia negada for de 1º círculo, ou de um círculo que o personagem já possa conjurar, rouba o conhecimento dela por 8 horas — durante esse período, a magia fica preparada e o conjurador original NÃO pode conjurá-la; a magia não precisa ser da lista de Mago. Um novo uso só fica indisponível até o próximo Descanso Longo APÓS roubar o conhecimento de uma magia — se o conjurador passar na Salvaguarda, ou se a magia negada não for elegível para roubo, o uso NÃO é consumido. Nunca concede conjuração gratuita, espaços de magia adicionais, ou conhecimento permanente da magia roubada.",
+  },
 ];

@@ -7,6 +7,7 @@ import { clericClassFeatures } from "./cleric.js";
 import { druidClassFeatures } from "./druid.js";
 import { fighterClassFeatures } from "./fighter.js";
 import { rangerClassFeatures } from "./ranger.js";
+import { rogueClassFeatures } from "./rogue.js";
 import { sorcererClassFeatures } from "./sorcerer.js";
 import { warlockClassFeatures } from "./warlock.js";
 
@@ -166,24 +167,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // PDF" tem conteúdo mecânico completo, não só nome+nível pendente (ver data/features/ranger.ts).
   // Guerreiro removido daqui — fonte "COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/fighter.ts).
-  ladino: [
-    { name: "Ataque Furtivo", level: 1 },
-    { name: "Especialização", level: 1 },
-    { name: "Gíria dos Ladrões", level: 1 },
-    { name: "Maestria em Arma", level: 1 },
-    { name: "Ação Ardilosa", level: 2 },
-    { name: "Mira Firme", level: 3 },
-    { name: "Esquiva Sobrenatural", level: 5 },
-    { name: "Golpe Astuto", level: 5 },
-    { name: "Especialista", level: 6 },
-    { name: "Evasão", level: 7 },
-    { name: "Talento Confiável", level: 7 },
-    { name: "Golpe Astuto Aprimorado", level: 11 },
-    { name: "Golpes Sujos", level: 14 },
-    { name: "Mente Escorregadia", level: 15 },
-    { name: "Elusivo", level: 18 },
-    { name: "Golpe de Sorte", level: 20 },
-  ],
+  // Ladino removido daqui — fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF" tem
+  // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/rogue.ts).
   mago: [
     { name: "Adepto de Ritual", level: 1 },
     { name: "Conjuração", level: 1 },
@@ -273,6 +258,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   "patrulheiro",
   "druida",
   "feiticeiro",
+  "ladino",
 ];
 
 function slugify(text: string): string {
@@ -428,6 +414,7 @@ export const classFeatures: FeatureDefinition[] = [
   ...druidClassFeatures,
   ...fighterClassFeatures,
   ...rangerClassFeatures,
+  ...rogueClassFeatures,
   ...sorcererClassFeatures,
   ...warlockClassFeatures,
 ];
