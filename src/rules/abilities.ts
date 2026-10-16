@@ -28,7 +28,12 @@ export function getAbilityModifier(score: number): number {
  * exibição de revisão/PDF) deve usar esta função em vez de ler
  * `character.abilities[ability].score` direto — só o EDITOR do valor
  * bruto (`Step6Abilities`/`AbilitiesSection`, onde o jogador digita a
- * pontuação-base) continua lendo/escrevendo o valor cru.
+ * pontuação-base) continua lendo/escrevendo o valor cru. Corpo e Mente
+ * do Monge (nível 20: DEX+4, SAB+4, máximo 25 — fonte "IMPLEMENTAR
+ * MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF" §7) segue o MESMO padrão
+ * do Campeão Primitivo — aplicado por último, removido automaticamente
+ * se o nível cair abaixo de 20 (gate por `character.level`, nunca um
+ * estado próprio).
  */
 export function getEffectiveAbilityScore(character: Character, ability: AbilityKey): number {
   const base = character.abilities[ability].score;
@@ -36,6 +41,9 @@ export function getEffectiveAbilityScore(character: Character, ability: AbilityK
   const asiBonus = getAsiAbilityBonus(character, ability);
   const total = base + backgroundBonus + asiBonus;
   if (character.classId === "barbaro" && character.level >= 20 && (ability === "FOR" || ability === "CON")) {
+    return Math.min(25, total + 4);
+  }
+  if (character.classId === "monge" && character.level >= 20 && (ability === "DEX" || ability === "SAB")) {
     return Math.min(25, total + 4);
   }
   return total;

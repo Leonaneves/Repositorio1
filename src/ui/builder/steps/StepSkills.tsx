@@ -18,8 +18,9 @@ const ABILITY_NAMES: Record<AbilityKey, string> = {
   CAR: "Carisma",
 };
 
-const AUTOMATIC_ORIGIN_LABELS: Record<"background", string> = {
+const AUTOMATIC_ORIGIN_LABELS: Record<"background" | "subclass", string> = {
   background: "Antecedente",
+  subclass: "Subclasse",
 };
 
 /**

@@ -6,6 +6,7 @@ import { bardClassFeatures } from "./bard.js";
 import { clericClassFeatures } from "./cleric.js";
 import { druidClassFeatures } from "./druid.js";
 import { fighterClassFeatures } from "./fighter.js";
+import { monkClassFeatures } from "./monk.js";
 import { rangerClassFeatures } from "./ranger.js";
 import { rogueClassFeatures } from "./rogue.js";
 import { sorcererClassFeatures } from "./sorcerer.js";
@@ -172,25 +173,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/rogue.ts).
   // Mago removido daqui — fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/wizard.ts).
-  monge: [
-    { name: "Artes Marciais", level: 1 },
-    { name: "Defesa sem Armadura", level: 1 },
-    { name: "Foco do Monge", level: 2 },
-    { name: "Metabolismo Incomum", level: 2 },
-    { name: "Defletir Ataques", level: 3 },
-    { name: "Ataque Extra", level: 5 },
-    { name: "Golpe Atordoante", level: 5 },
-    { name: "Ataques Potencializados", level: 6 },
-    { name: "Evasão", level: 7 },
-    { name: "Movimento Acrobático", level: 9 },
-    { name: "Autocura", level: 10 },
-    { name: "Foco Aprimorado", level: 10 },
-    { name: "Defletir Energia", level: 13 },
-    { name: "Sobrevivente Disciplinado", level: 14 },
-    { name: "Foco Perfeito", level: 15 },
-    { name: "Defesa Superior", level: 18 },
-    { name: "Corpo e Mente", level: 20 },
-  ],
+  // Monge removido daqui — fonte "IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF" tem
+  // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/monk.ts).
   paladino: [
     { name: "Conjuração", level: 1 },
     { name: "Maestria em Arma", level: 1 },
@@ -255,6 +239,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   "feiticeiro",
   "ladino",
   "mago",
+  "monge",
 ];
 
 function slugify(text: string): string {
@@ -409,6 +394,7 @@ export const classFeatures: FeatureDefinition[] = [
   ...clericClassFeatures,
   ...druidClassFeatures,
   ...fighterClassFeatures,
+  ...monkClassFeatures,
   ...rangerClassFeatures,
   ...rogueClassFeatures,
   ...sorcererClassFeatures,

@@ -43,9 +43,9 @@ describe("Carac.Classe.1/.2 — só o Bárbaro usa a composição dinâmica", ()
     expect(col1 + col2).not.toContain("texto manual nunca deveria aparecer");
   });
 
-  it("outras classes continuam usando o texto manual de character.classFeatures, sem mudança de comportamento (Guerreiro, Patrulheiro, Ladino e Mago já têm composição dinâmica própria — usa Monge, ainda pendente)", () => {
-    const character = createBlankCharacter("fieldmap-monk-test");
-    character.classId = "monge";
+  it("outras classes continuam usando o texto manual de character.classFeatures, sem mudança de comportamento (Guerreiro, Patrulheiro, Ladino, Mago e Monge já têm composição dinâmica própria — usa Paladino, ainda pendente)", () => {
+    const character = createBlankCharacter("fieldmap-paladin-test");
+    character.classId = "paladino";
     character.classFeatures = { column1: "Ataque Furtivo etc.", column2: "mais texto" };
     expect(fieldValue("Carac.Classe.1", character)).toBe("Ataque Furtivo etc.");
     expect(fieldValue("Carac.Classe.2", character)).toBe("mais texto");

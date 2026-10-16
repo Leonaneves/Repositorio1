@@ -116,11 +116,17 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
     { shortName: "Necromante", fullName: "Necromante" },
     { shortName: "Transmutador", fullName: "Transmutador" },
   ],
+  // Nomes curtos ajustados para os nomes completos exigidos pela fonte "IMPLEMENTAR MONGE E SUAS
+  // SUBCLASSES NO BUILDER E NO PDF" §1 (Caminho da Mão Aberta/da Misericórdia/das Sombras/dos
+  // Elementos) — o `fullName` de cada uma permanece INALTERADO (contaminação de copia-e-cola do
+  // padrão de nomenclatura do Guerreiro), preservando compatibilidade com `character.subclassId`
+  // de personagens já salvos. "Guerreiro das Artes Místicas" fica fora do escopo desta fonte e
+  // continua intocada.
   monge: [
-    { shortName: "da Misericórdia", fullName: "Guerreiro da Misericórdia" },
-    { shortName: "das Sombras", fullName: "Guerreiro das Sombras" },
-    { shortName: "dos Elementos", fullName: "Guerreiro dos Elementos" },
-    { shortName: "da Mão Aberta", fullName: "Guerreiro da Mão Aberta" },
+    { shortName: "Caminho da Misericórdia", fullName: "Guerreiro da Misericórdia" },
+    { shortName: "Caminho das Sombras", fullName: "Guerreiro das Sombras" },
+    { shortName: "Caminho dos Elementos", fullName: "Guerreiro dos Elementos" },
+    { shortName: "Caminho da Mão Aberta", fullName: "Guerreiro da Mão Aberta" },
     { shortName: "das Artes Místicas", fullName: "Guerreiro das Artes Místicas" },
   ],
   paladino: [

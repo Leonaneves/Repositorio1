@@ -25,6 +25,7 @@ import {
   isSkillGrantedByClassChoice,
   isSkillGrantedBySpeciesChoice,
   isSkillGrantedBySubclassChoice,
+  isSkillGrantedBySubclassFixed,
   isSkillGrantedExpertiseByClassChoice,
 } from "./skills.js";
 
@@ -801,12 +802,13 @@ describe("getGlamourTranscendentalBonus — Andarilho Feérico, nível 3 (fonte 
 
 /**
  * Fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §2:
- * "Perícias concedidas automaticamente" — hoje só o Antecedente concede
- * perícia sem nenhuma `FeatureChoice`; Classe/Subclasse/Espécie só têm
- * concessões por escolha (aparecem na etapa "Perícias" como blocos,
- * nunca aqui).
+ * "Perícias concedidas automaticamente" — Antecedente (lista fixa) e,
+ * desde "IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF" §10,
+ * também uma concessão fixa de SUBCLASSE (Implementos de Misericórdia).
+ * Classe/Espécie continuam só com concessões por escolha (aparecem na
+ * etapa "Perícias" como blocos, nunca aqui).
  */
-describe("getAutomaticSkillProficiencyGrants — perícias concedidas SEM escolha (hoje só Antecedente)", () => {
+describe("getAutomaticSkillProficiencyGrants — perícias concedidas SEM escolha (Antecedente e concessão fixa de Subclasse)", () => {
   it("sem Antecedente escolhido — []", () => {
     const character = createBlankCharacter("auto-grants-test");
     expect(getAutomaticSkillProficiencyGrants(character)).toEqual([]);
@@ -840,5 +842,67 @@ describe("getAutomaticSkillProficiencyGrants — perícias concedidas SEM escolh
 
     character.backgroundId = "soldado"; // Atletismo/Intimidação
     expect(getAutomaticSkillProficiencyGrants(character).map((g) => g.skill).sort()).toEqual(["atletismo", "intimidacao"]);
+  });
+
+  it("Implementos de Misericórdia (Caminho da Misericórdia do Monge) concede Intuição e Medicina, cada uma com origem ['subclass']", () => {
+    const character = createBlankCharacter("auto-grants-test-5");
+    character.classId = "monge";
+    character.subclassId = "Guerreiro da Misericórdia";
+    const grants = getAutomaticSkillProficiencyGrants(character);
+    expect(grants).toEqual(
+      expect.arrayContaining([
+        { skill: "intuicao", origins: ["subclass"] },
+        { skill: "medicina", origins: ["subclass"] },
+      ]),
+    );
+    expect(grants).toHaveLength(2);
+  });
+
+  it("antecedente E subclasse concedendo a mesma perícia: as duas origens aparecem juntas", () => {
+    const character = createBlankCharacter("auto-grants-test-6");
+    character.backgroundId = "acolito"; // Intuição/Religião
+    character.classId = "monge";
+    character.subclassId = "Guerreiro da Misericórdia"; // Intuição/Medicina
+    const grants = getAutomaticSkillProficiencyGrants(character);
+    expect(grants).toEqual(
+      expect.arrayContaining([
+        { skill: "intuicao", origins: ["background", "subclass"] },
+        { skill: "religiao", origins: ["background"] },
+        { skill: "medicina", origins: ["subclass"] },
+      ]),
+    );
+  });
+
+  it("outra subclasse de Monge, ou outra classe, nunca ganha a concessão fixa", () => {
+    const character = createBlankCharacter("auto-grants-test-7");
+    character.classId = "monge";
+    character.subclassId = "Guerreiro das Sombras";
+    expect(getAutomaticSkillProficiencyGrants(character)).toEqual([]);
+  });
+});
+
+describe("isSkillGrantedBySubclassFixed — Implementos de Misericórdia, nível 3 (fonte \"IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF\" §10)", () => {
+  it("concede Intuição e Medicina, sem escolha nenhuma do jogador", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "monge";
+    character.subclassId = "Guerreiro da Misericórdia";
+    expect(isSkillGrantedBySubclassFixed(character, "intuicao")).toBe(true);
+    expect(isSkillGrantedBySubclassFixed(character, "medicina")).toBe(true);
+    expect(isSkillGrantedBySubclassFixed(character, "arcanismo")).toBe(false);
+  });
+
+  it("nunca concede nada sem a subclasse certa", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "monge";
+    character.subclassId = "Guerreiro dos Elementos";
+    expect(isSkillGrantedBySubclassFixed(character, "intuicao")).toBe(false);
+  });
+
+  it("getSkillProficiency/getSkillProficiencyOrigin refletem a concessão", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "monge";
+    character.subclassId = "Guerreiro da Misericórdia";
+    expect(getSkillProficiency(character, "medicina")).toBe(true);
+    expect(getSkillProficiencyOrigin(character, "medicina")).toBe("subclass");
   });
 });

@@ -121,6 +121,30 @@ export function isSkillGrantedBySubclassChoice(character: Character, skill: Skil
 }
 
 /**
+ * Perícias concedidas pela SUBCLASSE atual SEM escolha alguma do
+ * jogador — hoje só "Implementos de Misericórdia" (Caminho da
+ * Misericórdia do Monge, nível 3 — fonte "IMPLEMENTAR MONGE E SUAS
+ * SUBCLASSES NO BUILDER E NO PDF" §10), que concede Intuição e Medicina
+ * de forma fixa. Registrada por `subclassFullName` (valor interno
+ * preservado), mesmo padrão de `SUBCLASS_SKILL_CHOICE_ID_BY_SUBCLASS`
+ * acima, mas sem `FeatureChoice` nenhuma por trás.
+ */
+const FIXED_SKILL_GRANTS_BY_SUBCLASS: Partial<Record<string, SkillKey[]>> = {
+  "Guerreiro da Misericórdia": ["intuicao", "medicina"],
+};
+
+/**
+ * `true` se a SUBCLASSE atual concede esta perícia de forma fixa, sem
+ * nenhuma escolha do jogador (ver mapa acima).
+ */
+export function isSkillGrantedBySubclassFixed(character: Character, skill: SkillKey): boolean {
+  if (!character.subclassId) return false;
+  const skillsGranted = FIXED_SKILL_GRANTS_BY_SUBCLASS[character.subclassId];
+  if (!skillsGranted) return false;
+  return skillsGranted.includes(skill);
+}
+
+/**
  * `true` se alguma escolha de "Especialização" (`skillExpertise`) da
  * classe ATUAL já selecionou esta perícia — nunca concede proficiência,
  * só a Especialização (ex.: "Especialista" do Bardo, níveis 2 e 9).
@@ -217,30 +241,32 @@ export function getGlamourTranscendentalBonus(character: Character, skill: Skill
 
 export interface AutomaticSkillProficiencyGrant {
   skill: SkillKey;
-  /** Origens SEM escolha alguma que concedem esta perícia — hoje só `"background"` pode aparecer aqui (ver comentário da função). */
-  origins: Array<"background">;
+  /** Origens SEM escolha alguma que concedem esta perícia — `"background"` (Antecedente) ou `"subclass"` (concessão fixa de subclasse, ver comentário da função). */
+  origins: Array<"background" | "subclass">;
 }
 
 /**
- * Perícias concedidas SEM nenhuma escolha do jogador — hoje só pelo
- * Antecedente (lista fixa `grantedSkills`). Nenhuma Classe/Subclasse/
- * Espécie atual concede perícia automaticamente sem passar por uma
- * `FeatureChoice` (toda concessão delas já aparece como um bloco de
- * escolha na etapa "Perícias" — ver `rules/features.ts#getSkillChoiceFeatures`);
- * por isso a única origem possível aqui é `"background"`. Usado pela
- * seção "Perícias concedidas automaticamente" da etapa "Perícias"
- * (fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA"
- * §2) — nunca inventa uma origem automática de Classe/Subclasse/
- * Espécie/Talento que não exista no catálogo atual; se uma vier a
- * existir, basta somar sua própria checagem aqui, sem mudar a forma
- * de uso pela UI. Se uma perícia tiver mais de uma origem automática,
- * aparece uma única vez, com todas as origens listadas.
+ * Perícias concedidas SEM nenhuma escolha do jogador — pelo Antecedente
+ * (lista fixa `grantedSkills`) ou por uma concessão fixa de Subclasse
+ * (`isSkillGrantedBySubclassFixed`, ex.: Implementos de Misericórdia do
+ * Monge). Nenhuma Classe/Espécie atual concede perícia automaticamente
+ * sem passar por uma `FeatureChoice` (toda concessão delas já aparece
+ * como um bloco de escolha na etapa "Perícias" — ver
+ * `rules/features.ts#getSkillChoiceFeatures`). Usado pela seção
+ * "Perícias concedidas automaticamente" da etapa "Perícias" (fonte
+ * "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §2) —
+ * nunca inventa uma origem automática de Classe/Espécie/Talento que não
+ * exista no catálogo atual; se uma vier a existir, basta somar sua
+ * própria checagem aqui, sem mudar a forma de uso pela UI. Se uma
+ * perícia tiver mais de uma origem automática, aparece uma única vez,
+ * com todas as origens listadas.
  */
 export function getAutomaticSkillProficiencyGrants(character: Character): AutomaticSkillProficiencyGrant[] {
   const grants: AutomaticSkillProficiencyGrant[] = [];
   for (const skill of SKILL_KEYS) {
-    const origins: Array<"background"> = [];
+    const origins: Array<"background" | "subclass"> = [];
     if (isSkillGrantedByBackground(character, skill)) origins.push("background");
+    if (isSkillGrantedBySubclassFixed(character, skill)) origins.push("subclass");
     if (origins.length > 0) grants.push({ skill, origins });
   }
   return grants;
@@ -266,6 +292,7 @@ export function getSkillProficiencyOrigin(character: Character, skill: SkillKey)
   if (isSkillGrantedByBackground(character, skill)) return "background";
   if (isSkillGrantedByClassChoice(character, skill)) return "class";
   if (isSkillGrantedBySubclassChoice(character, skill)) return "subclass";
+  if (isSkillGrantedBySubclassFixed(character, skill)) return "subclass";
   if (isSkillGrantedBySpeciesChoice(character, skill)) return "species";
   return null;
 }
@@ -289,6 +316,7 @@ export function getSkillProficiency(character: Character, skill: SkillKey): bool
     (isSkillGrantedByBackground(character, skill) ||
       isSkillGrantedByClassChoice(character, skill) ||
       isSkillGrantedBySubclassChoice(character, skill) ||
+      isSkillGrantedBySubclassFixed(character, skill) ||
       isSkillGrantedBySpeciesChoice(character, skill))
   );
 }

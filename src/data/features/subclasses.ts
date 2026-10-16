@@ -2338,4 +2338,201 @@ export const subclassFeatures: FeatureDefinition[] = [
     summary:
       "Ao conjurar uma magia de Ilusão usando um espaço, pode tornar real um objeto inanimado e não mágico presente na ilusão, por 1 minuto — o objeto nunca pode causar dano nem conferir condições. Também pode fazer isso DEPOIS, no próprio turno, como Ação Bônus, enquanto a magia ainda estiver em andamento (nunca restrito exclusivamente ao momento da conjuração). Nunca se aplica a criaturas, nem a ilusões conjuradas sem espaço. Sem contador por descanso, sem seleção permanente de objeto.",
   },
+
+  // ---------- Caminho da Mão Aberta (Monge) ----------
+  {
+    id: "monge-mao-aberta-tecnica-da-mao-aberta-3",
+    name: "Técnica da Mão Aberta",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Mão Aberta",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Sempre que acerta uma criatura com um ataque concedido por Torrente de Golpes, pode impor UM dos efeitos a seguir, sem custo de Foco adicional e sem limite de 1 aplicação por Torrente (pode repetir a cada acerto da mesma Torrente): Derrubar — Salvaguarda de Destreza ou cai Caída; Desorientar — a criatura não pode fazer Ataques de Oportunidade contra o Monge até o início do próprio turno dela (nunca remove TODAS as Reações, só os Ataques de Oportunidade); Empurrar — Salvaguarda de Força ou é empurrada até 4,5m. As Salvaguardas usam a CD de Foco (rules/classResources.ts#getMonkFocusCd).",
+  },
+  {
+    id: "monge-mao-aberta-integridade-corporal-6",
+    name: "Integridade Corporal",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Mão Aberta",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: cura a si mesmo em dado de Artes Marciais + mod Sabedoria (rules/classResources.ts#getBodyResilienceHealingText), mínimo 1 PV. Usos = máximo(1, mod Sabedoria) (rules/classResources.ts#getIntegridadeCorporalUsesCount), recupera em Descanso Longo.",
+  },
+  {
+    id: "monge-mao-aberta-passo-veloz-11",
+    name: "Passo Veloz",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Mão Aberta",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Depois de usar uma Ação Bônus que NÃO seja Passo do Vento, pode usar Passo do Vento imediatamente a seguir, sem gastar uma segunda Ação Bônus. A opção gratuita de Passo do Vento continua gratuita; a opção com custo continua custando o mesmo 1 Foco; benefícios de Foco Aprimorado (nível 10), quando aplicáveis, permanecem preservados.",
+  },
+  {
+    id: "monge-mao-aberta-palma-vibrante-17",
+    name: "Palma Vibrante",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Mão Aberta",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Ao acertar um Ataque Desarmado, pode gastar 4 Foco para implantar vibrações mágicas que duram, em dias, o nível de Monge — só 1 criatura pode estar afetada por vez. Não causa dano imediato. Para encerrar as vibrações causando dano (exige Monge e alvo no mesmo plano de existência): usa uma ação OU substitui 1 ataque da Ação de Atacar; o alvo faz Salvaguarda de Constituição contra a CD de Foco (rules/classResources.ts#getMonkFocusCd); falha: 10d12 de dano de Força; sucesso: metade. Pode encerrar as vibrações sem causar dano, sem gastar ação. Nunca recarrega o Foco gasto para encerrá-las, nunca um limite por descanso.",
+  },
+
+  // ---------- Caminho da Misericórdia (Monge) ----------
+  {
+    id: "monge-misericordia-implementos-de-misericordia-3",
+    name: "Implementos de Misericórdia",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Misericórdia",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Concede proficiência FIXA em Intuição e Medicina (rules/skills.ts#isSkillGrantedBySubclassFixed — sem escolha do jogador, aparece na etapa \"Perícias\" como concessão automática) e em Kit de Herbalismo (rules/monkSubclassProficiencies.ts, campo próprio de ferramentas). Nunca concede o item do Kit em si, só a proficiência.",
+  },
+  {
+    id: "monge-misericordia-mao-de-cura-3",
+    name: "Mão de Cura",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Misericórdia",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação de Usar Magia + toque + 1 Foco: cura dado de Artes Marciais + mod Sabedoria (rules/classResources.ts#getMercyHandDiceText), sem mínimo inventado. Ao se beneficiar de Torrente de Golpes, pode substituir UM dos Ataques Desarmados por Mão de Cura sem custo de Foco adicional para a cura (Torrente mantém o próprio custo normal). A partir do nível 6 (Toque de Médico): também encerra uma das condições Atordoado, Cego, Envenenado, Paralisado ou Surdo na criatura curada.",
+  },
+  {
+    id: "monge-misericordia-mao-de-dolo-3",
+    name: "Mão de Dolo",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Misericórdia",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Uma vez por turno, ao acertar e causar dano com Ataque Desarmado, pode gastar 1 Foco para causar dano Necrótico adicional = dado de Artes Marciais + mod Sabedoria (rules/classResources.ts#getMercyHandDiceText) — nunca limitado ao próprio turno do Monge (também funciona em Ataques de Oportunidade/Reações). A partir do nível 6 (Toque de Médico): também impõe Envenenado no alvo até o início do próximo turno do Monge.",
+  },
+  {
+    id: "monge-misericordia-toque-de-medico-6",
+    name: "Toque de Médico",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Misericórdia",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Atualiza Mão de Cura e Mão de Dolo — nunca um bloco impresso separado. Mão de Cura também encerra uma das condições Atordoado, Cego, Envenenado, Paralisado ou Surdo na criatura curada; Mão de Dolo também impõe Envenenado no alvo até o início do próximo turno do Monge. Nenhuma Salvaguarda extra exigida para esses dois efeitos adicionais.",
+  },
+  {
+    id: "monge-misericordia-torrente-de-cura-e-dolo-11",
+    name: "Torrente de Cura e Dolo",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Misericórdia",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Durante uma Torrente de Golpes beneficiada por estes usos, pode substituir CADA Ataque Desarmado por Mão de Cura sem custo de Foco adicional, E usar Mão de Dolo em um dos ataques da Torrente que acerte e cause dano, também sem custo de Foco adicional (Mão de Dolo continua limitada a 1 vez por turno; a Torrente mantém o próprio custo normal). Usos = máximo(1, mod Sabedoria) (rules/classResources.ts#getTorrenteDeCuraEDoloUsesCount), recupera em Descanso Longo, contados 1 POR Torrente de Golpes beneficiada (nunca por ataque substituído ou cura individual, nunca reservas separadas para Cura e para Dolo). Sem gastar estes usos, continuam disponíveis a substituição única de Mão de Cura e o uso de custo normal de Mão de Dolo, já concedidos no nível 3.",
+  },
+  {
+    id: "monge-misericordia-mao-da-misericordia-final-17",
+    name: "Mão da Misericórdia Final",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro da Misericórdia",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Ação de Usar Magia + toque + 5 Foco: revive uma criatura morta há no máximo 24 horas, curando-a em 4d10 + mod Sabedoria (rules/classResources.ts#getHandOfUltimateMercyHealingText) e removendo as condições Atordoado, Cego, Envenenado, Paralisado ou Surdo que ela tinha no momento da morte. Um uso por Descanso Longo, ALÉM do custo de Foco — os dois limites se somam, nenhum substitui o outro.",
+  },
+
+  // ---------- Caminho das Sombras (Monge) ----------
+  {
+    id: "monge-sombras-artes-das-sombras-3",
+    name: "Artes das Sombras",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro das Sombras",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Escuridão — pode gastar 1 Foco para conjurar Escuridão sem componentes (dispensa registrada só na descrição completa, nunca mencionada no PDF); enquanto a magia persistir, o Monge consegue ver dentro da área criada por ESTA conjuração (nunca uma visão geral em qualquer Escuridão mágica), e pode mover a área para um espaço a até 18m no início de cada um dos próprios turnos, sem Ação Bônus nem Foco adicionais, preservando duração/Concentração/demais regras da magia. Ilusão Sombria — concede o truque Ilusão Menor usando Sabedoria como atributo de conjuração (rules/monkAutoPreparedSpells.ts), sem espaços de magia. Visão no Escuro — concede Visão no Escuro de 18m, ou +18m de alcance se já a possuir por outra origem (nunca soma de novo o próprio bônus ao recalcular).",
+  },
+  {
+    id: "monge-sombras-passo-da-sombra-6",
+    name: "Passo da Sombra",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro das Sombras",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ação Bônus, enquanto estiver totalmente em Penumbra ou Escuridão: teleporta até 18m para um espaço desocupado à vista que também esteja em Penumbra ou Escuridão, e ganha Vantagem no próximo ataque corpo a corpo feito antes do fim do turno.",
+  },
+  {
+    id: "monge-sombras-passo-da-sombra-aprimorado-11",
+    name: "Passo da Sombra Aprimorado",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro das Sombras",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Atualiza Passo da Sombra — nunca um bloco impresso separado. Ao usar Passo da Sombra, pode gastar 1 Foco para ignorar a exigência de iluminação (na origem E no destino) e fazer 1 Ataque Desarmado imediatamente após teleportar, como parte da mesma Ação Bônus. A opção gratuita original continua sem essa exigência ignorada e sem o ataque extra.",
+  },
+  {
+    id: "monge-sombras-manto-da-sombra-17",
+    name: "Manto da Sombra",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro das Sombras",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Ação de Usar Magia, enquanto estiver totalmente em Penumbra ou Escuridão, + 3 Foco: dura 1 minuto, ou até ficar Incapacitado, ou até terminar o próprio turno em luz plena. Durante a duração: Invisível; pode se mover através de espaços ocupados, tratando-os como Terreno Difícil; se terminar o turno em um espaço ocupado, volta para o último espaço desocupado por onde passou; Torrente de Golpes não custa Foco (continua exigindo a própria Ação Bônus). Nunca permite atravessar paredes/obstáculos sólidos — só espaços ocupados por criaturas.",
+  },
+
+  // ---------- Caminho dos Elementos (Monge) ----------
+  {
+    id: "monge-elementos-manipular-elementos-3",
+    name: "Manipular Elementos",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro dos Elementos",
+    level: 3,
+    autoGranted: true,
+    summary: "Concede o truque Elementalismo usando Sabedoria como atributo de conjuração (rules/monkAutoPreparedSpells.ts), sem espaços de magia.",
+  },
+  {
+    id: "monge-elementos-sintonia-elemental-3",
+    name: "Sintonia Elemental",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro dos Elementos",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "No início do próprio turno, pode gastar 1 Foco (sem exigir Ação Bônus) para ativar, por 10 minutos ou até ficar Incapacitado: Extensão — alcance dos Ataques Desarmados +3m; Ataques Elementais — ao acertar um Ataque Desarmado, pode escolher causar dano Ácido, Elétrico, Frio, Fogo ou Trovão em vez do tipo normal (tipo escolhido a cada uso, nunca fixado na criação); ao causar dano de um desses 5 tipos, pode forçar o alvo a uma Salvaguarda de Força — falha: empurrado ou puxado até 3m. A opção de dano Energético da classe base (Golpes Potencializados) continua disponível, mas nunca ativa este empurrão/puxão por si só. A partir do nível 11 (Passo dos Elementos): durante Sintonia Elemental, deslocamento de Natação e de Voo iguais ao deslocamento normal. A partir do nível 17 (Ápice Elemental): mais benefícios atualizam este mesmo bloco — ver Explosão Elemental/Passo Destrutivo/Resistência a Dano a seguir.",
+  },
+  {
+    id: "monge-elementos-explosao-elemental-6",
+    name: "Explosão Elemental",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro dos Elementos",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ação de Usar Magia + 2 Foco: esfera de 6m de raio centrada em um ponto à vista a até 36m, de um dos 5 tipos elementais (Ácido/Elétrico/Frio/Fogo/Trovão); cada criatura na área faz Salvaguarda de Destreza contra a CD de Foco (rules/classResources.ts#getMonkFocusCd); falha: três rolagens do dado de Artes Marciais (rules/classResources.ts#getElementalBurstDamageText), sem somar Sabedoria; sucesso: metade. Não exige Sintonia Elemental ativa.",
+  },
+  {
+    id: "monge-elementos-passo-dos-elementos-11",
+    name: "Passo dos Elementos",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro dos Elementos",
+    level: 11,
+    autoGranted: true,
+    summary:
+      "Atualiza Sintonia Elemental — nunca um bloco impresso separado. Enquanto Sintonia Elemental estiver ativa, deslocamento de Natação e deslocamento de Voo passam a ser iguais ao deslocamento normal do Monge. Nunca registrado como deslocamento permanentemente ativo — só durante a duração da Sintonia.",
+  },
+  {
+    id: "monge-elementos-apice-elemental-17",
+    name: "Ápice Elemental",
+    sourceType: "subclass",
+    subclassFullName: "Guerreiro dos Elementos",
+    level: 17,
+    autoGranted: true,
+    summary:
+      "Os 3 benefícios a seguir só funcionam com Sintonia Elemental ativa. Golpes Potencializados (versão elemental) — atualiza Sintonia Elemental, nunca sobrescrevendo a característica de nível 6 da classe base de mesmo nome: uma vez no próprio turno, ao acertar um Ataque Desarmado, pode causar 1 dado de Artes Marciais adicional do MESMO tipo elemental escolhido. Passo Destrutivo — bloco impresso PRÓPRIO, ao lado de Passo do Vento: ao usar Passo do Vento (inclusive a opção gratuita), o deslocamento aumenta em 6m até o fim do turno; enquanto esse bônus durar, entrar a até 1,5m de uma criatura escolhida causa 1 dado de Artes Marciais de dano elemental a ela, uma vez por criatura por turno, sem Salvaguarda. Resistência a Dano — atualiza Sintonia Elemental: Resistência a um dos 5 tipos elementais, trocável no início de cada um dos próprios turnos — nunca uma escolha permanente do Builder. \"Tipo elemental\", nestes 3 benefícios, refere-se exclusivamente aos 5 tipos de Sintonia Elemental (Ácido/Elétrico/Frio/Fogo/Trovão).",
+  },
 ];

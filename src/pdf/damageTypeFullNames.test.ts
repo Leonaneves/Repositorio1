@@ -15,6 +15,7 @@ import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
 import { getWizardPrintedBlocks } from "../rules/wizardPrintedFeatures.js";
+import { getMonkPrintedBlocks } from "../rules/monkPrintedFeatures.js";
 import { getSpeciesTraitsPrintedText } from "../rules/speciesLineagePrintedFeatures.js";
 
 /**
@@ -139,6 +140,31 @@ describe("Mago — Necrótico (Sobrecarga do Evocador) nunca abreviado nos texto
   it("sem subclasse escolhida (só classe base)", () => {
     const character = baseCharacter("mago", 14, null);
     expectNoAbbreviatedDamageTypes(getWizardPrintedBlocks(character).join("\n"));
+  });
+});
+
+describe("Monge — nunca abrevia nem troca os 5 tipos elementais de Sintonia Elemental, nem usa Ígneo/Gélido/Trovejante em vez de Fogo/Frio/Trovão (fonte \"IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF\" §1)", () => {
+  const BANNED_ALTERNATE_DAMAGE_WORDS = ["Ígneo", "Gélido", "Trovejante"];
+
+  it.each(["Guerreiro da Mão Aberta", "Guerreiro da Misericórdia", "Guerreiro das Sombras", "Guerreiro dos Elementos"] as const)(
+    "subclasse %s, nível 20",
+    (subclassFullName) => {
+      const character = baseCharacter("monge", 20, subclassFullName);
+      const joined = getMonkPrintedBlocks(character).join("\n");
+      expectNoAbbreviatedDamageTypes(joined);
+      for (const banned of BANNED_ALTERNATE_DAMAGE_WORDS) expect(joined).not.toContain(banned);
+    },
+  );
+
+  it("Caminho dos Elementos cita Ácido/Elétrico/Frio/Fogo/Trovão por extenso em Sintonia Elemental/Explosão Elemental", () => {
+    const character = baseCharacter("monge", 20, "Guerreiro dos Elementos");
+    const joined = getMonkPrintedBlocks(character).join("\n");
+    expect(joined).toContain("Ácido/Elétrico/Frio/Fogo/Trovão");
+  });
+
+  it("sem subclasse escolhida (só classe base)", () => {
+    const character = baseCharacter("monge", 14, null);
+    expectNoAbbreviatedDamageTypes(getMonkPrintedBlocks(character).join("\n"));
   });
 });
 

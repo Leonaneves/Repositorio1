@@ -3,6 +3,7 @@ import { getBarbarianRitualSpells } from "./barbarianRitualSpells.js";
 import { getBardAutoPreparedSpells } from "./bardAutoPreparedSpells.js";
 import { getClericAutoPreparedSpells } from "./clericAutoPreparedSpells.js";
 import { getDruidAutoPreparedSpells } from "./druidAutoPreparedSpells.js";
+import { getMonkAutoPreparedSpells } from "./monkAutoPreparedSpells.js";
 import { getRangerAutoPreparedSpells } from "./rangerAutoPreparedSpells.js";
 import { getRogueAutoPreparedSpells } from "./rogueAutoPreparedSpells.js";
 import { getSorcererAutoPreparedSpells } from "./sorcererAutoPreparedSpells.js";
@@ -30,7 +31,9 @@ import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
  * do Abjurador/Criaturas Espectrais do Ilusionista — `getWizardAutoPreparedSpells`;
  * truque/magias de Linhagem Élfica/Gnômica/Infernal — `getSpeciesGrantedSpells`,
  * a única fonte aqui que não depende de classe, então pode aparecer
- * mesmo num personagem sem conjuração), sem a lista manual do jogador —
+ * mesmo num personagem sem conjuração; Ilusão Menor do Caminho das
+ * Sombras/Elementalismo do Caminho dos Elementos do Monge —
+ * `getMonkAutoPreparedSpells`), sem a lista manual do jogador —
  * usada tanto pelo PDF (`pdf/fieldMap.ts`) quanto pela etapa de
  * Conjuração do Builder/Ficha Web, para nunca duplicar a regra em dois
  * lugares.
@@ -41,6 +44,7 @@ export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[
     ...getBardAutoPreparedSpells(character),
     ...getClericAutoPreparedSpells(character),
     ...getDruidAutoPreparedSpells(character),
+    ...getMonkAutoPreparedSpells(character),
     ...getRangerAutoPreparedSpells(character),
     ...getRogueAutoPreparedSpells(character),
     ...getSorcererAutoPreparedSpells(character),

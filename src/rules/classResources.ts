@@ -219,6 +219,146 @@ export function getFocusPoints(character: Character): number | null {
   return MONK_FOCUS_POINTS[character.level] ?? 0;
 }
 
+/**
+ * CD das Opções de Foco e das Salvaguardas de classe do Monge (fonte
+ * "IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF" §3):
+ * `8 + mod SAB + BP`, calculada automaticamente — NUNCA confundida com
+ * a CD de Empurrar/Agarrar do Ataque Desarmado (regra própria da arma,
+ * que pode usar DEX em vez de FOR). Disponível a partir do nível 2
+ * (quando o Foco passa a existir).
+ */
+export function getMonkFocusCd(character: Character): number | null {
+  if (character.classId !== "monge" || character.level < 2) return null;
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return 8 + wisdomMod + getProficiencyBonus(character.level);
+}
+
+/**
+ * Cura de Metabolismo Incomum (nível 2+, fonte §5): dado de Artes
+ * Marciais + nível de Monge — resolvido como texto (`1d6+2`...), nunca
+ * fórmula literal.
+ */
+export function getUnusualMetabolismHealingText(character: Character): string | null {
+  if (character.classId !== "monge" || character.level < 2) return null;
+  const die = getMartialArtsDie(character);
+  if (!die) return null;
+  return formatDieWithModifier(die, character.level);
+}
+
+/**
+ * Redução de dano de Defletir Ataques (nível 3+, fonte §6): `1d10 + mod
+ * DEX + nível de Monge`. A partir do nível 13 (Defletir Energia), a
+ * mesma fórmula passa a valer para QUALQUER tipo de dano — a restrição
+ * de tipo é tratada no texto impresso, nunca nesta fórmula.
+ */
+export function getDeflectAttacksReductionText(character: Character): string | null {
+  if (character.classId !== "monge" || character.level < 3) return null;
+  const dexMod = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  return formatDieWithModifier(10, dexMod + character.level);
+}
+
+/**
+ * Dano redirecionado de Defletir Ataques quando a redução zera o
+ * ataque (nível 3+, fonte §6): duas rolagens do dado de Artes Marciais
+ * + mod DEX.
+ */
+export function getDeflectAttacksRedirectDamageText(character: Character): string | null {
+  if (character.classId !== "monge" || character.level < 3) return null;
+  const die = getMartialArtsDie(character);
+  if (!die) return null;
+  const dexMod = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  return formatDieWithModifier(die, dexMod, 2);
+}
+
+/** Redução de dano de Queda Lenta (nível 4+, fonte §6): `5 × nível de Monge`. */
+export function getSlowFallReduction(character: Character): number | null {
+  if (character.classId !== "monge" || character.level < 4) return null;
+  return 5 * character.level;
+}
+
+/**
+ * PV Temp de Defesa Paciente aprimorada por Foco Aprimorado (nível 10+,
+ * fonte §7/§8): duas rolagens do dado de Artes Marciais, sem
+ * modificador — nunca um título "Foco Aprimorado" separado, só atualiza
+ * o bloco de Defesa Paciente existente.
+ */
+export function getImprovedPatientDefenseTempHpText(character: Character): string | null {
+  if (character.classId !== "monge" || character.level < 10) return null;
+  const die = getMartialArtsDie(character);
+  if (!die) return null;
+  return formatDieWithModifier(die, 0, 2);
+}
+
+/**
+ * Dano de Explosão Elemental (Caminho dos Elementos, nível 6+, fonte
+ * §12): três rolagens do dado de Artes Marciais, sem somar SAB.
+ */
+export function getElementalBurstDamageText(character: Character): string | null {
+  if (character.classId !== "monge" || character.subclassId !== "Guerreiro dos Elementos" || character.level < 6) return null;
+  const die = getMartialArtsDie(character);
+  if (!die) return null;
+  return formatDieWithModifier(die, 0, 3);
+}
+
+/**
+ * Usos de Integridade Corporal (Caminho da Mão Aberta, nível 6+, fonte
+ * §9): máximo(1, mod SAB). Recupera em Descanso Longo.
+ */
+export function getIntegridadeCorporalUsesCount(character: Character): number | null {
+  if (character.classId !== "monge" || character.subclassId !== "Guerreiro da Mão Aberta" || character.level < 6) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "SAB")));
+}
+
+/**
+ * Cura de Integridade Corporal (Caminho da Mão Aberta, nível 6+, fonte
+ * §9): dado de Artes Marciais + mod SAB — fórmula igual à de Mão de
+ * Cura (`getMercyHandDiceText`), mas reserva/característica PRÓPRIA
+ * desta subclasse, nunca compartilhada com o Caminho da Misericórdia.
+ */
+export function getBodyResilienceHealingText(character: Character): string | null {
+  if (character.classId !== "monge" || character.subclassId !== "Guerreiro da Mão Aberta" || character.level < 6) return null;
+  const die = getMartialArtsDie(character);
+  if (!die) return null;
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return formatDieWithModifier(die, wisdomMod);
+}
+
+/**
+ * Cura/dano de Mão de Cura e Mão de Dolo (Caminho da Misericórdia,
+ * nível 3+, fonte §10): dado de Artes Marciais + mod SAB — mesma
+ * fórmula para as duas características (uma cura, outro dano
+ * Necrótico), nunca um mínimo inventado.
+ */
+export function getMercyHandDiceText(character: Character): string | null {
+  if (character.classId !== "monge" || character.subclassId !== "Guerreiro da Misericórdia" || character.level < 3) return null;
+  const die = getMartialArtsDie(character);
+  if (!die) return null;
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return formatDieWithModifier(die, wisdomMod);
+}
+
+/**
+ * Usos de Torrente de Cura e Dolo (Caminho da Misericórdia, nível 11+,
+ * fonte §10): máximo(1, mod SAB) — reserva PRÓPRIA, separada de
+ * Integridade Corporal mesmo compartilhando a fórmula (nunca o mesmo
+ * contador), contada 1 POR Torrente de Golpes beneficiada (nunca por
+ * ataque substituído/cura individual).
+ */
+export function getTorrenteDeCuraEDoloUsesCount(character: Character): number | null {
+  if (character.classId !== "monge" || character.subclassId !== "Guerreiro da Misericórdia" || character.level < 11) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "SAB")));
+}
+
+/**
+ * Cura de Mão da Misericórdia Final (Caminho da Misericórdia, nível 17,
+ * fonte §10): `4d10 + mod SAB`.
+ */
+export function getHandOfUltimateMercyHealingText(character: Character): string | null {
+  if (character.classId !== "monge" || character.subclassId !== "Guerreiro da Misericórdia" || character.level < 17) return null;
+  const wisdomMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
+  return formatDieWithModifier(10, wisdomMod, 4);
+}
+
 export function getFavoredEnemyCount(character: Character): number | null {
   if (character.classId !== "patrulheiro") return null;
   return RANGER_FAVORED_ENEMY_COUNT[character.level] ?? 0;
@@ -236,11 +376,15 @@ export function getFavoredEnemyDie(character: Character): string | null {
   return character.level >= 20 ? "1d10" : "1d6";
 }
 
-/** `1dN` + modificador formatado — `+N`/`-N` quando o modificador é diferente de zero, só `1dN` quando é zero (nunca `1dN+0`). */
-function formatDieWithModifier(die: number, modifier: number): string {
-  if (modifier > 0) return `1d${die}+${modifier}`;
-  if (modifier < 0) return `1d${die}${modifier}`;
-  return `1d${die}`;
+/**
+ * `{count}dN` + modificador formatado — `+N`/`-N` quando o modificador
+ * é diferente de zero, só `{count}dN` quando é zero (nunca `dN+0`).
+ * `count` default 1, para os chamadores que só rolam um dado.
+ */
+function formatDieWithModifier(die: number, modifier: number, count = 1): string {
+  if (modifier > 0) return `${count}d${die}+${modifier}`;
+  if (modifier < 0) return `${count}d${die}${modifier}`;
+  return `${count}d${die}`;
 }
 
 /**

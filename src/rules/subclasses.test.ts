@@ -45,6 +45,17 @@ describe("getAvailableSubclasses", () => {
     const names = getAvailableSubclasses("artifice").map((s) => s.fullName);
     expect(names).toContain("Reanimador");
   });
+
+  it("Monge tem as 5 subclasses, com os 4 shortNames corrigidos para 'Caminho de...' e fullNames preservados", () => {
+    const subclasses = getAvailableSubclasses("monge");
+    expect(subclasses).toEqual([
+      { shortName: "Caminho da Misericórdia", fullName: "Guerreiro da Misericórdia" },
+      { shortName: "Caminho das Sombras", fullName: "Guerreiro das Sombras" },
+      { shortName: "Caminho dos Elementos", fullName: "Guerreiro dos Elementos" },
+      { shortName: "Caminho da Mão Aberta", fullName: "Guerreiro da Mão Aberta" },
+      { shortName: "das Artes Místicas", fullName: "Guerreiro das Artes Místicas" },
+    ]);
+  });
 });
 
 describe("getSubclassDisplayName — resolve o shortName a partir do fullName salvo (fonte \"IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §1)", () => {
@@ -76,6 +87,17 @@ describe("getSubclassDisplayName — resolve o shortName a partir do fullName sa
     expect(getSubclassDisplayName("mago", "Abjurador")).toBe("Abjurador");
     expect(getSubclassDisplayName("mago", "Evocador")).toBe("Evocador");
     expect(getSubclassDisplayName("mago", "Ilusionista")).toBe("Ilusionista");
+  });
+
+  it("Monge/'Guerreiro da Mão Aberta'/'Guerreiro da Misericórdia'/'Guerreiro das Sombras'/'Guerreiro dos Elementos' (valores internos preservados, contaminação de copia-e-cola do Guerreiro — fonte \"IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF\" §1) exibem 'Caminho da Mão Aberta'/'Caminho da Misericórdia'/'Caminho das Sombras'/'Caminho dos Elementos'", () => {
+    expect(getSubclassDisplayName("monge", "Guerreiro da Mão Aberta")).toBe("Caminho da Mão Aberta");
+    expect(getSubclassDisplayName("monge", "Guerreiro da Misericórdia")).toBe("Caminho da Misericórdia");
+    expect(getSubclassDisplayName("monge", "Guerreiro das Sombras")).toBe("Caminho das Sombras");
+    expect(getSubclassDisplayName("monge", "Guerreiro dos Elementos")).toBe("Caminho dos Elementos");
+  });
+
+  it("5ª subclasse de Monge (fora do escopo desta fonte) continua intocada", () => {
+    expect(getSubclassDisplayName("monge", "Guerreiro das Artes Místicas")).toBe("das Artes Místicas");
   });
 });
 

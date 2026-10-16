@@ -7,17 +7,26 @@ import {
   getBardicInspirationDie,
   getBardicInspirationUses,
   getBattleMasterManeuversKnownCount,
+  getBodyResilienceHealingText,
   getCantripsKnown,
   getChannelDivinityUses,
+  getDeflectAttacksReductionText,
+  getDeflectAttacksRedirectDamageText,
   getDivinationProdigyDiceCount,
+  getElementalBurstDamageText,
   getEvocationPotentIntBonus,
   getExtraAttacksCount,
   getFavoredEnemyCount,
   getFighterIndomitableRerollUsesCount,
   getFocusPoints,
+  getHandOfUltimateMercyHealingText,
+  getImprovedPatientDefenseTempHpText,
   getInfusedItemsMax,
   getInfusionsKnown,
+  getIntegridadeCorporalUsesCount,
   getInvocationsKnown,
+  getMercyHandDiceText,
+  getMonkFocusCd,
   getPactMagicSlotCount,
   getMartialArtsDie,
   getPsiWarriorDie,
@@ -28,6 +37,7 @@ import {
   getRogueCunningStrikeCd,
   getSecondWindHealingText,
   getSecondWindUses,
+  getSlowFallReduction,
   getSneakAttackDice,
   getSoulknifePsionicDiceCount,
   getSoulknifePsionicDie,
@@ -35,6 +45,8 @@ import {
   getSpellsPreparedMax,
   getSuperiorityDie,
   getSuperiorityDiceCount,
+  getTorrenteDeCuraEDoloUsesCount,
+  getUnusualMetabolismHealingText,
   getWeaponMasteryCount,
   getWildShapeUses,
   getWizardSpellbookClassGrantCount,
@@ -63,6 +75,12 @@ function wizardSubclassOf(subclassId: string, level: number) {
 
 function rogueSubclassOf(subclassId: string, level: number) {
   const character = characterOf("ladino", level);
+  character.subclassId = subclassId;
+  return character;
+}
+
+function monkSubclassOf(subclassId: string, level: number) {
+  const character = characterOf("monge", level);
   character.subclassId = subclassId;
   return character;
 }
@@ -635,5 +653,158 @@ describe("Mago/Adivinho — getDivinationProdigyDiceCount (2 dos níveis 3-13, 3
     expect(getDivinationProdigyDiceCount(wizardSubclassOf("Adivinho", 14))).toBe(3);
     expect(getDivinationProdigyDiceCount(wizardSubclassOf("Adivinho", 20))).toBe(3);
     expect(getDivinationProdigyDiceCount(wizardSubclassOf("Evocador", 14))).toBeNull();
+  });
+});
+
+describe("Monge — getMonkFocusCd (8 + mod SAB + BP, a partir do nível 2)", () => {
+  it("nível 1 — null (Foco ainda não existe)", () => {
+    expect(getMonkFocusCd(characterOf("monge", 1))).toBeNull();
+  });
+
+  it("nível 2, mod SAB +3, BP +2: CD 13", () => {
+    const character = characterOf("monge", 2);
+    character.abilities.SAB.score = 16; // +3
+    expect(getMonkFocusCd(character)).toBe(13);
+  });
+
+  it("nível 5, mod SAB +3, BP +3: CD 14", () => {
+    const character = characterOf("monge", 5);
+    character.abilities.SAB.score = 16; // +3
+    expect(getMonkFocusCd(character)).toBe(14);
+  });
+
+  it("null para quem não é Monge", () => {
+    expect(getMonkFocusCd(characterOf("mago", 10))).toBeNull();
+  });
+});
+
+describe("Monge — getUnusualMetabolismHealingText (dado de Artes Marciais + nível, a partir do nível 2)", () => {
+  it("nível 2: 1d6+2", () => {
+    expect(getUnusualMetabolismHealingText(characterOf("monge", 2))).toBe("1d6+2");
+  });
+
+  it("nível 5 (dado sobe para d8): 1d8+5", () => {
+    expect(getUnusualMetabolismHealingText(characterOf("monge", 5))).toBe("1d8+5");
+  });
+
+  it("nível 1 — null", () => {
+    expect(getUnusualMetabolismHealingText(characterOf("monge", 1))).toBeNull();
+  });
+});
+
+describe("Monge — getDeflectAttacksReductionText/getDeflectAttacksRedirectDamageText (nível 3+)", () => {
+  it("nível 3, mod DEX +2: redução 1d10+5, redirecionamento 2d6+2", () => {
+    const character = characterOf("monge", 3);
+    character.abilities.DEX.score = 14; // +2
+    expect(getDeflectAttacksReductionText(character)).toBe("1d10+5");
+    expect(getDeflectAttacksRedirectDamageText(character)).toBe("2d6+2");
+  });
+
+  it("nível 13 (dado de Artes Marciais em d10): redução 1d10+15, redirecionamento 2d10+2", () => {
+    const character = characterOf("monge", 13);
+    character.abilities.DEX.score = 14; // +2
+    expect(getDeflectAttacksReductionText(character)).toBe("1d10+15");
+    expect(getDeflectAttacksRedirectDamageText(character)).toBe("2d10+2");
+  });
+
+  it("nível 2 — null (ainda sem Defletir Ataques)", () => {
+    expect(getDeflectAttacksReductionText(characterOf("monge", 2))).toBeNull();
+    expect(getDeflectAttacksRedirectDamageText(characterOf("monge", 2))).toBeNull();
+  });
+});
+
+describe("Monge — getSlowFallReduction (5 × nível, a partir do nível 4)", () => {
+  it("nível 4: 20; nível 10: 50", () => {
+    expect(getSlowFallReduction(characterOf("monge", 4))).toBe(20);
+    expect(getSlowFallReduction(characterOf("monge", 10))).toBe(50);
+  });
+
+  it("nível 3 — null", () => {
+    expect(getSlowFallReduction(characterOf("monge", 3))).toBeNull();
+  });
+});
+
+describe("Monge — getImprovedPatientDefenseTempHpText (2 dados de Artes Marciais, a partir do nível 10)", () => {
+  it("nível 10: 2d8; nível 17 (dado em d12): 2d12", () => {
+    expect(getImprovedPatientDefenseTempHpText(characterOf("monge", 10))).toBe("2d8");
+    expect(getImprovedPatientDefenseTempHpText(characterOf("monge", 17))).toBe("2d12");
+  });
+
+  it("nível 9 — null", () => {
+    expect(getImprovedPatientDefenseTempHpText(characterOf("monge", 9))).toBeNull();
+  });
+});
+
+describe("Monge/Caminho dos Elementos — getElementalBurstDamageText (3 dados de Artes Marciais, nível 6+, sem somar SAB)", () => {
+  it("nível 6: 3d8", () => {
+    expect(getElementalBurstDamageText(monkSubclassOf("Guerreiro dos Elementos", 6))).toBe("3d8");
+  });
+
+  it("outra subclasse ou nível <6 — null", () => {
+    expect(getElementalBurstDamageText(monkSubclassOf("Guerreiro da Mão Aberta", 6))).toBeNull();
+    expect(getElementalBurstDamageText(monkSubclassOf("Guerreiro dos Elementos", 5))).toBeNull();
+  });
+});
+
+describe("Monge/Caminho da Mão Aberta — getIntegridadeCorporalUsesCount e getBodyResilienceHealingText (nível 6+)", () => {
+  it("mod SAB +3: 3 usos, cura 1d8+3", () => {
+    const character = monkSubclassOf("Guerreiro da Mão Aberta", 6);
+    character.abilities.SAB.score = 16; // +3
+    expect(getIntegridadeCorporalUsesCount(character)).toBe(3);
+    expect(getBodyResilienceHealingText(character)).toBe("1d8+3");
+  });
+
+  it("mod SAB +0 ou negativo: mínimo 1 uso, nunca 0", () => {
+    const character = monkSubclassOf("Guerreiro da Mão Aberta", 6);
+    character.abilities.SAB.score = 8; // -1
+    expect(getIntegridadeCorporalUsesCount(character)).toBe(1);
+  });
+
+  it("outra subclasse ou nível <6 — null", () => {
+    expect(getIntegridadeCorporalUsesCount(monkSubclassOf("Guerreiro da Misericórdia", 6))).toBeNull();
+    expect(getBodyResilienceHealingText(monkSubclassOf("Guerreiro da Mão Aberta", 5))).toBeNull();
+  });
+});
+
+describe("Monge/Caminho da Misericórdia — getMercyHandDiceText (dado de Artes Marciais + mod SAB, nível 3+, mesma fórmula para Mão de Cura/Mão de Dolo)", () => {
+  it("nível 3, mod SAB +3: 1d6+3", () => {
+    const character = monkSubclassOf("Guerreiro da Misericórdia", 3);
+    character.abilities.SAB.score = 16; // +3
+    expect(getMercyHandDiceText(character)).toBe("1d6+3");
+  });
+
+  it("nível 17 (dado em d12): 1d12+3", () => {
+    const character = monkSubclassOf("Guerreiro da Misericórdia", 17);
+    character.abilities.SAB.score = 16; // +3
+    expect(getMercyHandDiceText(character)).toBe("1d12+3");
+  });
+
+  it("outra subclasse ou nível <3 — null", () => {
+    expect(getMercyHandDiceText(monkSubclassOf("Guerreiro das Sombras", 3))).toBeNull();
+  });
+});
+
+describe("Monge/Caminho da Misericórdia — getTorrenteDeCuraEDoloUsesCount (máximo(1, mod SAB), nível 11+, reserva PRÓPRIA)", () => {
+  it("mod SAB +3: 3 usos", () => {
+    const character = monkSubclassOf("Guerreiro da Misericórdia", 11);
+    character.abilities.SAB.score = 16; // +3
+    expect(getTorrenteDeCuraEDoloUsesCount(character)).toBe(3);
+  });
+
+  it("nível <11 — null", () => {
+    expect(getTorrenteDeCuraEDoloUsesCount(monkSubclassOf("Guerreiro da Misericórdia", 10))).toBeNull();
+  });
+});
+
+describe("Monge/Caminho da Misericórdia — getHandOfUltimateMercyHealingText (4d10 + mod SAB, nível 17)", () => {
+  it("mod SAB +3: 4d10+3", () => {
+    const character = monkSubclassOf("Guerreiro da Misericórdia", 17);
+    character.abilities.SAB.score = 16; // +3
+    expect(getHandOfUltimateMercyHealingText(character)).toBe("4d10+3");
+  });
+
+  it("outra subclasse ou nível <17 — null", () => {
+    expect(getHandOfUltimateMercyHealingText(monkSubclassOf("Guerreiro da Misericórdia", 16))).toBeNull();
+    expect(getHandOfUltimateMercyHealingText(monkSubclassOf("Guerreiro das Sombras", 17))).toBeNull();
   });
 });
