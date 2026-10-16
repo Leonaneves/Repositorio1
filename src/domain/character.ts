@@ -254,6 +254,53 @@ export interface Character {
    * "REORGANIZAÇÃO DO BUILDER" §5).
    */
   manualToolOverrides: string[] | null;
+
+  /**
+   * Livro de Magias do Mago (fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES
+   * NO BUILDER E NO PDF" §3) — etapa própria dentro da integração de
+   * Magias (`ui/sections/SpellcastingSection.tsx`), fora de
+   * `featureChoiceSelections` pelo mesmo motivo de `chosenInvocations`/
+   * `knownWildShapeForms`/`knownMetamagicOptions`: a quantidade concedida
+   * varia por nível (classe E subclasse) e não há catálogo de magias
+   * para validar um nome. "Estar no livro" (esta lista) e "estar
+   * preparada" (`WizardSpellbookEntry.prepared`) são conceitos
+   * DISTINTOS — nunca a mesma coisa; `rules/wizardSpellbook.ts` traduz
+   * esta lista para o formato comum de `SpellPreparedEntry` quando
+   * `prepared`/`isSpellMastery`/`isSignatureSpell` assim exigirem
+   * (`rules/effectiveSpellsPrepared.ts`). Exclusivo do Mago — sai junto
+   * com a classe, igual às demais listas citadas acima.
+   */
+  wizardSpellbook: WizardSpellbookEntry[];
+}
+
+export type WizardSpellbookOrigin = "classProgression" | "subclassVersado" | "other";
+
+/**
+ * Uma magia no Livro de Magias do Mago. Sem catálogo de magias no
+ * projeto: `name` é texto livre (mesma confiança já dada a
+ * `KnownWildShapeForm.name`), mas `circle`/`origin`/as 3 flags abaixo
+ * são campos estruturados que o sistema PODE calcular/validar sem
+ * precisar de um catálogo.
+ */
+export interface WizardSpellbookEntry {
+  name: string;
+  circle: SpellCircle;
+  origin: WizardSpellbookOrigin;
+  /**
+   * Só relevante quando `origin === "subclassVersado"`: o
+   * `Character.subclassId` vigente no momento da concessão — usado só
+   * para SINALIZAR a entrada como desatualizada se a subclasse mudar
+   * depois (`rules/wizardSpellbook.ts#getStaleVersadoSpellbookIndices`),
+   * nunca para apagá-la automaticamente (§1: "sinalizar escolhas
+   * incompatíveis sem apagar escolhas independentes").
+   */
+  grantedUnderSubclass: string | null;
+  /** Escolhida do livro para preparação (Conjuração/Memorizar Magia) — nunca o mesmo que "estar no livro". Conta contra o limite normal de Magias Preparadas. */
+  prepared: boolean;
+  /** Maestria de Magias (nível 18) — até 2 `true` ao mesmo tempo, sempre preparada, fora do limite normal. */
+  isSpellMastery: boolean;
+  /** Assinatura Mágica (nível 20) — até 2 `true` ao mesmo tempo, sempre preparada, fora do limite normal. */
+  isSignatureSpell: boolean;
 }
 
 export interface ChosenInvocation {
@@ -350,5 +397,6 @@ export function createBlankCharacter(id: string): Character {
     asiSelections: {},
     manualToolOverrides: null,
     speciesLineageId: null,
+    wizardSpellbook: [],
   };
 }

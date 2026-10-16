@@ -10,6 +10,7 @@ import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
+import { WIZARD_ACADEMIC_CHOICE_ID } from "../data/features/wizard.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -36,6 +37,9 @@ const EXPERTISE_CHOICE_IDS_BY_CLASS: Partial<Record<ClassId, string[]>> = {
   // Especialista do Ladino (nível 1: 2 perícias; nível 6: mais 2) — fonte "IMPLEMENTAR LADINO E
   // SUAS SUBCLASSES NO BUILDER E NO PDF" §4, duas escolhas independentes, mesmo padrão do Patrulheiro.
   ladino: [ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6],
+  // Acadêmico do Mago (nível 2, 1 perícia restrita a Arcanismo/História/Investigação/Medicina/
+  // Natureza/Religião) — fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF" §5.
+  mago: [WIZARD_ACADEMIC_CHOICE_ID],
 };
 
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";

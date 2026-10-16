@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import {
+  getAbjurerArcaneWardMaxHp,
   getActionSurgeUsesCount,
+  getArcaneRecoveryLimit,
   getBardicInspirationDie,
   getBardicInspirationUses,
   getBattleMasterManeuversKnownCount,
   getCantripsKnown,
   getChannelDivinityUses,
+  getDivinationProdigyDiceCount,
+  getEvocationPotentIntBonus,
   getExtraAttacksCount,
   getFavoredEnemyCount,
   getFighterIndomitableRerollUsesCount,
@@ -33,6 +37,8 @@ import {
   getSuperiorityDiceCount,
   getWeaponMasteryCount,
   getWildShapeUses,
+  getWizardSpellbookClassGrantCount,
+  getWizardVersadoGrantCount,
 } from "./classResources.js";
 import type { ClassId } from "../domain/ids.js";
 
@@ -45,6 +51,12 @@ function characterOf(classId: ClassId, level: number) {
 
 function fighterSubclassOf(subclassId: string, level: number) {
   const character = characterOf("guerreiro", level);
+  character.subclassId = subclassId;
+  return character;
+}
+
+function wizardSubclassOf(subclassId: string, level: number) {
+  const character = characterOf("mago", level);
   character.subclassId = subclassId;
   return character;
 }
@@ -544,5 +556,84 @@ describe("Guerreiro/Mestre da Batalha — Manobras Conhecidas e Dado de Superior
   it("outra classe/subclasse — null", () => {
     expect(getBattleMasterManeuversKnownCount(characterOf("ladino", 10))).toBeNull();
     expect(getSuperiorityDie(fighterSubclassOf("Cavaleiro Místico", 10))).toBeNull();
+  });
+});
+
+describe("Mago — getArcaneRecoveryLimit (fonte \"IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §5)", () => {
+  it("nível 1 = 1; nível 5 = 3; nível 20 = 10 (exemplos da própria fonte)", () => {
+    expect(getArcaneRecoveryLimit(characterOf("mago", 1))).toBe(1);
+    expect(getArcaneRecoveryLimit(characterOf("mago", 5))).toBe(3);
+    expect(getArcaneRecoveryLimit(characterOf("mago", 20))).toBe(10);
+  });
+
+  it("outra classe — null", () => {
+    expect(getArcaneRecoveryLimit(characterOf("ladino", 10))).toBeNull();
+  });
+});
+
+describe("Mago — getWizardSpellbookClassGrantCount (6 + 2*(nível-1))", () => {
+  it("nível 1 = 6; nível 2 = 8; nível 20 = 44", () => {
+    expect(getWizardSpellbookClassGrantCount(characterOf("mago", 1))).toBe(6);
+    expect(getWizardSpellbookClassGrantCount(characterOf("mago", 2))).toBe(8);
+    expect(getWizardSpellbookClassGrantCount(characterOf("mago", 20))).toBe(44);
+  });
+
+  it("outra classe — null", () => {
+    expect(getWizardSpellbookClassGrantCount(characterOf("ladino", 10))).toBeNull();
+  });
+});
+
+describe("Mago — getWizardVersadoGrantCount (2 no nível 3, +1 em 5/7/9/11/13/15/17)", () => {
+  it("sem subclasse de escola ou abaixo do nível 3 — null", () => {
+    expect(getWizardVersadoGrantCount(characterOf("mago", 2))).toBeNull();
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Trapaceiro Arcano", 10))).toBeNull(); // subclasse de outra classe, nunca confundida
+  });
+
+  it("nível 3: 2; nível 4 (ainda sem novo círculo): 2; nível 5: 3; nível 17+: 9 (teto)", () => {
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Abjurador", 3))).toBe(2);
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Abjurador", 4))).toBe(2);
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Abjurador", 5))).toBe(3);
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Abjurador", 17))).toBe(9);
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Abjurador", 20))).toBe(9);
+  });
+
+  it("funciona para as 4 subclasses de escola (Abjurador/Adivinho/Evocador/Ilusionista)", () => {
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Adivinho", 3))).toBe(2);
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Evocador", 3))).toBe(2);
+    expect(getWizardVersadoGrantCount(wizardSubclassOf("Ilusionista", 3))).toBe(2);
+  });
+});
+
+describe("Mago/Abjurador — getAbjurerArcaneWardMaxHp (2x nível + mod INT)", () => {
+  it("calcula com o mod INT efetivo; outra subclasse ou nível <3 — null", () => {
+    const character = wizardSubclassOf("Abjurador", 5);
+    character.abilities.INT.score = 16; // +3
+    expect(getAbjurerArcaneWardMaxHp(character)).toBe(13); // 2*5 + 3
+
+    expect(getAbjurerArcaneWardMaxHp(wizardSubclassOf("Evocador", 5))).toBeNull();
+    expect(getAbjurerArcaneWardMaxHp(wizardSubclassOf("Abjurador", 2))).toBeNull();
+  });
+});
+
+describe("Mago/Evocador — getEvocationPotentIntBonus (mod INT, pode ser negativo, nunca mínimo +1)", () => {
+  it("nível 10+: devolve o mod INT efetivo, mesmo negativo", () => {
+    const character = wizardSubclassOf("Evocador", 10);
+    character.abilities.INT.score = 8; // -1
+    expect(getEvocationPotentIntBonus(character)).toBe(-1);
+  });
+
+  it("outra subclasse ou nível <10 — null", () => {
+    expect(getEvocationPotentIntBonus(wizardSubclassOf("Abjurador", 10))).toBeNull();
+    expect(getEvocationPotentIntBonus(wizardSubclassOf("Evocador", 9))).toBeNull();
+  });
+});
+
+describe("Mago/Adivinho — getDivinationProdigyDiceCount (2 dos níveis 3-13, 3 do 14+)", () => {
+  it("progressão por nível, outra subclasse — null", () => {
+    expect(getDivinationProdigyDiceCount(wizardSubclassOf("Adivinho", 3))).toBe(2);
+    expect(getDivinationProdigyDiceCount(wizardSubclassOf("Adivinho", 13))).toBe(2);
+    expect(getDivinationProdigyDiceCount(wizardSubclassOf("Adivinho", 14))).toBe(3);
+    expect(getDivinationProdigyDiceCount(wizardSubclassOf("Adivinho", 20))).toBe(3);
+    expect(getDivinationProdigyDiceCount(wizardSubclassOf("Evocador", 14))).toBeNull();
   });
 });

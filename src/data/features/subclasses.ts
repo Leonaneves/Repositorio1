@@ -2130,4 +2130,212 @@ export const subclassFeatures: FeatureDefinition[] = [
     summary:
       "Imediatamente após uma criatura conjurar uma magia que tenha o personagem como alvo, ou que o inclua em sua área, pode usar uma Reação: o conjurador faz uma Salvaguarda de Inteligência contra a CD de magia do personagem (CD de conjuração normal, baseada em Inteligência — rules/spellcasting.ts#getSpellSaveDC, NUNCA a CD de Golpe Astuto baseada em Destreza); falha: nega o efeito da magia contra o personagem. Separadamente, se a magia negada for de 1º círculo, ou de um círculo que o personagem já possa conjurar, rouba o conhecimento dela por 8 horas — durante esse período, a magia fica preparada e o conjurador original NÃO pode conjurá-la; a magia não precisa ser da lista de Mago. Um novo uso só fica indisponível até o próximo Descanso Longo APÓS roubar o conhecimento de uma magia — se o conjurador passar na Salvaguarda, ou se a magia negada não for elegível para roubo, o uso NÃO é consumido. Nunca concede conjuração gratuita, espaços de magia adicionais, ou conhecimento permanente da magia roubada.",
   },
+
+  // ---------- Abjurador ----------
+  {
+    id: "mago-abjurador-versado-3",
+    name: "Versado",
+    sourceType: "subclass",
+    subclassFullName: "Abjurador",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Versado em Abjuração: no nível 3, escolhe 2 magias de Mago de Abjuração (1º ou 2º círculo) e adiciona gratuitamente ao livro de magias (character.wizardSpellbook[].origin === \"subclassVersado\") — adicionais às magias concedidas pela classe, nunca truques, nunca sempre preparadas. A cada novo círculo de espaços liberado pela progressão de Mago (níveis 5, 7, 9, 11, 13, 15 e 17 — rules/classResources.ts#getWizardVersadoGrantCount), concede mais 1 magia de Abjuração ao livro, de qualquer círculo já disponível (não precisa ser do círculo recém-liberado). Sem concessões retroativas pelos círculos de 1º/2º ao adquirir a subclasse. Nunca impressa em Características de Classe — implementada na integração de Magias.",
+  },
+  {
+    id: "mago-abjurador-protecao-arcana-3",
+    name: "Proteção Arcana",
+    sourceType: "subclass",
+    subclassFullName: "Abjurador",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao conjurar uma magia de Abjuração usando um espaço, pode criar uma Proteção Arcana com PV máximos = 2x o nível de Mago + mod INT (rules/classResources.ts#getAbjurerArcaneWardMaxHp) — dura até completar um Descanso Longo. Ao sofrer dano, a proteção absorve antes do personagem (aplicando Resistência/Vulnerabilidade relevante antes de descontar os PV da proteção); se os PV não bastarem, o personagem sofre o restante. Com 0 PV, a proteção continua existindo e pode recuperar PV normalmente. Só pode CRIAR outra depois de um Descanso Longo — recuperar PV (ao conjurar Abjuração com espaço: 2x o círculo do espaço; com Ação Bônus gastando um espaço: 2x o círculo gasto) nunca conta como uma nova criação, e nunca excede os PV máximos. Conjurações sem espaço não criam nem recuperam a proteção por estes gatilhos. PV PRÓPRIOS da proteção — nunca PV Temp, nunca aumentam o PV máximo do personagem.",
+  },
+  {
+    id: "mago-abjurador-protecao-projetada-6",
+    name: "Proteção Projetada",
+    sourceType: "subclass",
+    subclassFullName: "Abjurador",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Atualiza Proteção Arcana — nunca um bloco impresso separado. Reação quando uma criatura à vista a até 9m sofrer dano: a MESMA Proteção Arcana (mesma reserva de PV, nunca uma segunda proteção ou contador) absorve o dano dessa criatura, aplicando Resistência/Vulnerabilidade da criatura antes de descontar os PV; se os PV forem insuficientes, a criatura sofre o restante.",
+  },
+  {
+    id: "mago-abjurador-rompe-magia-10",
+    name: "Rompe-Magia",
+    sourceType: "subclass",
+    subclassFullName: "Abjurador",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Contramagia e Dissipar Magia ficam sempre preparadas, fora do limite normal de Magias Preparadas (rules/wizardAutoPreparedSpells.ts). Dissipar Magia pode ser conjurada como Ação Bônus, e pode somar o Bônus de Proficiência ao teste de atributo de Dissipar Magia (nunca aplicado a qualquer outro teste, nunca inventa um teste equivalente para Contramagia). Ao conjurar Contramagia ou Dissipar Magia usando um espaço, se a magia falhar em interromper a magia alvo, o espaço NÃO é gasto — nunca uma conjuração gratuita garantida; a preservação do espaço depende especificamente dessa falha.",
+  },
+  {
+    id: "mago-abjurador-resistencia-a-magia-14",
+    name: "Resistência à Magia",
+    sourceType: "subclass",
+    subclassFullName: "Abjurador",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Vantagem em Salvaguardas contra magias, e Resistência ao dano proveniente de magias. Nunca se estende a qualquer habilidade sobrenatural ou dano que não seja causado por uma magia.",
+  },
+
+  // ---------- Adivinho (exibido como "Adivinhador") ----------
+  {
+    id: "mago-adivinho-versado-3",
+    name: "Versado",
+    sourceType: "subclass",
+    subclassFullName: "Adivinho",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Versado em Adivinhação — mesma estrutura de concessão ao livro de magias descrita em \"Versado\" do Abjurador (2 magias de Adivinhação no nível 3, +1 a cada novo círculo liberado: níveis 5, 7, 9, 11, 13, 15, 17 — rules/classResources.ts#getWizardVersadoGrantCount), aplicada à escola Adivinhação. Nunca impressa em Características de Classe.",
+  },
+  {
+    id: "mago-adivinho-prodigio-3",
+    name: "Prodígio",
+    sourceType: "subclass",
+    subclassFullName: "Adivinho",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao completar um Descanso Longo, rola 2 d20 (3 a partir do nível 14 — Prodígio Maior, rules/classResources.ts#getDivinationProdigyDiceCount) e guarda os resultados, descartando quaisquer resultados anteriores não usados. Pode substituir um Teste de D20 do próprio personagem, ou de uma criatura à vista, por um resultado guardado — escolhido ANTES da rolagem, no máximo 1 substituição por turno; cada resultado guardado é usado só uma vez. Nunca exige Reação. Os resultados não são rolados automaticamente na criação do personagem nem na exportação do PDF — são decisões de uso durante a sessão.",
+  },
+  {
+    id: "mago-adivinho-perito-em-adivinhacao-6",
+    name: "Perito em Adivinhação",
+    sourceType: "subclass",
+    subclassFullName: "Adivinho",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ao conjurar uma magia de Adivinhação usando um espaço de 2º círculo ou superior, recupera um espaço gasto — o espaço recuperado deve ser de círculo INFERIOR ao do espaço usado, no máximo de 5º círculo. Recupera 1 espaço (nunca uma soma de círculos); sem contador por descanso.",
+  },
+  {
+    id: "mago-adivinho-o-terceiro-olho-10",
+    name: "O Terceiro Olho",
+    sourceType: "subclass",
+    subclassFullName: "Adivinho",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Ação Bônus: escolhe 1 entre 3 benefícios — ler qualquer idioma; poder conjurar Ver o Invisível sem gastar espaço (a Ação Bônus escolhe o benefício, mas a conjuração em si segue as regras normais da magia, sem substituir seu tempo de conjuração); ou Visão no Escuro de 36m (nunca somada a uma Visão no Escuro superior já concedida por outra origem — só preenche quando não houver uma maior). O benefício dura até o INÍCIO de um Descanso Curto ou Longo (que encerra o efeito); a característica recupera o próprio uso ao COMPLETAR um Descanso Curto ou Longo — início e conclusão do descanso têm efeitos distintos. As 3 opções são decisões de uso, mostradas como referência no PDF, nunca uma seleção permanente. Nenhum contador separado para conjurações de Ver o Invisível — só esta característica tem marcador de uso.",
+  },
+  {
+    id: "mago-adivinho-prodigio-maior-14",
+    name: "Prodígio Maior",
+    sourceType: "subclass",
+    subclassFullName: "Adivinho",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Atualiza Prodígio — nunca um bloco impresso separado. Passa de 2 para 3 resultados de d20 guardados por Descanso Longo (rules/classResources.ts#getDivinationProdigyDiceCount).",
+  },
+
+  // ---------- Evocador ----------
+  {
+    id: "mago-evocador-versado-3",
+    name: "Versado",
+    sourceType: "subclass",
+    subclassFullName: "Evocador",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Versado em Evocação — mesma estrutura de concessão ao livro de magias descrita em \"Versado\" do Abjurador (2 magias de Evocação no nível 3, +1 a cada novo círculo liberado: níveis 5, 7, 9, 11, 13, 15, 17 — rules/classResources.ts#getWizardVersadoGrantCount), aplicada à escola Evocação. Nunca impressa em Características de Classe.",
+  },
+  {
+    id: "mago-evocador-truque-potente-3",
+    name: "Truque Potente",
+    sourceType: "subclass",
+    subclassFullName: "Evocador",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao conjurar um truque contra uma criatura: se errar a jogada de ataque, ou se a criatura passar na Salvaguarda, ela sofre metade do dano do truque (se o truque causar dano) e nenhum efeito adicional dele. Nunca concede dano a truques que não causam dano, nunca soma essa metade a outro dano que a criatura já sofreria num sucesso normal.",
+  },
+  {
+    id: "mago-evocador-esculpir-magias-6",
+    name: "Esculpir Magias",
+    sourceType: "subclass",
+    subclassFullName: "Evocador",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Ao conjurar uma magia de Evocação que afete criaturas à vista, pode escolher uma quantidade delas igual a 1 + o círculo da magia — essas criaturas passam automaticamente na Salvaguarda e não sofrem dano se normalmente sofreriam metade num sucesso. Nunca concede imunidade indiscriminada aos demais efeitos da magia; a quantidade depende da magia usada em cada conjuração, nunca uma seleção permanente de alvos.",
+  },
+  {
+    id: "mago-evocador-evocacao-potencializada-10",
+    name: "Evocação Potencializada",
+    sourceType: "subclass",
+    subclassFullName: "Evocador",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Ao conjurar uma magia de Mago de Evocação, pode somar o mod INT (rules/classResources.ts#getEvocationPotentIntBonus — pode ser negativo, nunca um mínimo +1 artificial) a UMA jogada de dano daquela magia. Nunca soma automaticamente a todas as rolagens de dano, nunca se aplica a magias de outra escola.",
+  },
+  {
+    id: "mago-evocador-sobrecarga-14",
+    name: "Sobrecarga",
+    sourceType: "subclass",
+    subclassFullName: "Evocador",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Ao conjurar uma magia de Mago que cause dano usando um espaço de 1º a 5º círculo (nunca restrito à escola Evocação, nunca aplicável a truques ou conjuração sem espaço), pode maximizar o dano dela no turno da conjuração. O primeiro uso após um Descanso Longo não causa dano adverso. Cada uso seguinte, antes do próximo Descanso Longo, causa dano Necrótico ao próprio personagem, imediatamente após conjurar, ignorando Resistência e Imunidade: 2d12 por círculo do espaço no 2º uso, 3d12 por círculo no 3º uso, 4d12 por círculo no 4º uso, aumentando sempre 1d12 por círculo a cada novo uso. Nunca maximiza o dano em turnos posteriores ao da conjuração. Nunca tratado como só 1 uso por Descanso Longo — há 1 uso sem custo, seguido de usos com custo crescente.",
+  },
+
+  // ---------- Ilusionista ----------
+  {
+    id: "mago-ilusionista-versado-3",
+    name: "Versado",
+    sourceType: "subclass",
+    subclassFullName: "Ilusionista",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Versado em Ilusão — mesma estrutura de concessão ao livro de magias descrita em \"Versado\" do Abjurador (2 magias de Ilusão no nível 3, +1 a cada novo círculo liberado: níveis 5, 7, 9, 11, 13, 15, 17 — rules/classResources.ts#getWizardVersadoGrantCount), aplicada à escola Ilusão. Nunca impressa em Características de Classe.",
+  },
+  {
+    id: "mago-ilusionista-ilusoes-aprimoradas-3",
+    name: "Ilusões Aprimoradas",
+    sourceType: "subclass",
+    subclassFullName: "Ilusionista",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Magias de Ilusão podem ser conjuradas sem componentes Verbais (dispensa registrada só na descrição completa — nunca mencionada no PDF, que não cita componentes); se tiverem alcance de 3m ou mais, esse alcance aumenta em 18m (referente ao alcance da magia, nunca ao tamanho da área, e nunca aplicado a alcance Pessoal ou Toque). Concede Ilusão Menor como truque adicional, fora do limite normal de truques conhecidos; se já conhecer Ilusão Menor por outra origem (verificada SEM considerar esta própria concessão, para nunca criar dependência circular), concede escolha de outro truque de Mago, também fora do limite. Ilusão Menor ganha 2 melhorias (só dela, nunca do truque alternativo eventual): pode produzir som E imagem na mesma conjuração, e pode ser conjurada como Ação Bônus.",
+  },
+  {
+    id: "mago-ilusionista-criaturas-espectrais-6",
+    name: "Criaturas Espectrais",
+    sourceType: "subclass",
+    subclassFullName: "Ilusionista",
+    level: 6,
+    autoGranted: true,
+    summary:
+      "Convocar Feérico e Invocar Fera ficam sempre preparadas, fora do limite normal (rules/wizardAutoPreparedSpells.ts). Ao conjurar qualquer uma das duas, pode mudar a escola DAQUELA conjuração para Ilusão (nunca altera permanentemente a escola no catálogo) — a criatura resultante tem aparência espectral e se beneficia das regras aplicáveis a magias de Ilusão. Pode conjurar a versão Ilusão de cada magia sem gastar espaço, uma vez por Descanso Longo — usos INDEPENDENTES (1 para Convocar Feérico, 1 para Invocar Fera); a conjuração gratuita reduz os PV da criatura convocada à metade (a conjuração com espaço normal NÃO recebe essa redução só por usar a versão Ilusão). Nunca cria fichas de criaturas, escolha de bloco de estatísticas ou aparência no Builder/PDF.",
+  },
+  {
+    id: "mago-ilusionista-autoimagem-ilusoria-10",
+    name: "Autoimagem Ilusória",
+    sourceType: "subclass",
+    subclassFullName: "Ilusionista",
+    level: 10,
+    autoGranted: true,
+    summary:
+      "Reação ao ser atingido por uma jogada de ataque de uma criatura: cria uma duplicata ilusória, o ataque erra automaticamente e a duplicata se dissipa. Um uso por Descanso Curto OU Longo. Pode restaurar o uso gastando um espaço de 2º círculo ou superior, sem ação — o gasto só restaura o uso, nunca ativa a Reação por si só, nunca cria uma reserva adicional de usos.",
+  },
+  {
+    id: "mago-ilusionista-realidade-ilusoria-14",
+    name: "Realidade Ilusória",
+    sourceType: "subclass",
+    subclassFullName: "Ilusionista",
+    level: 14,
+    autoGranted: true,
+    summary:
+      "Ao conjurar uma magia de Ilusão usando um espaço, pode tornar real um objeto inanimado e não mágico presente na ilusão, por 1 minuto — o objeto nunca pode causar dano nem conferir condições. Também pode fazer isso DEPOIS, no próprio turno, como Ação Bônus, enquanto a magia ainda estiver em andamento (nunca restrito exclusivamente ao momento da conjuração). Nunca se aplica a criaturas, nem a ilusões conjuradas sem espaço. Sem contador por descanso, sem seleção permanente de objeto.",
+  },
 ];

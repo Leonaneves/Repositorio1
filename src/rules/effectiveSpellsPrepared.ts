@@ -7,6 +7,8 @@ import { getRangerAutoPreparedSpells } from "./rangerAutoPreparedSpells.js";
 import { getRogueAutoPreparedSpells } from "./rogueAutoPreparedSpells.js";
 import { getSorcererAutoPreparedSpells } from "./sorcererAutoPreparedSpells.js";
 import { getWarlockAutoPreparedSpells } from "./warlockAutoPreparedSpells.js";
+import { getWizardAutoPreparedSpells } from "./wizardAutoPreparedSpells.js";
+import { getWizardPreparedSpellEntries } from "./wizardSpellbook.js";
 import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
 
 /**
@@ -24,8 +26,9 @@ import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
  * Mágicas do Trapaceiro Arcano — `getRogueAutoPreparedSpells`; Magias das 4 subclasses
  * de Feiticeiro — `getSorcererAutoPreparedSpells`; magias
  * sempre preparadas dos 4 Patronos + Contatar Patrono + invocações que
- * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`; truque/
- * magias de Linhagem Élfica/Gnômica/Infernal — `getSpeciesGrantedSpells`,
+ * concedem magia do Bruxo — `getWarlockAutoPreparedSpells`; Rompe-Magia
+ * do Abjurador/Criaturas Espectrais do Ilusionista — `getWizardAutoPreparedSpells`;
+ * truque/magias de Linhagem Élfica/Gnômica/Infernal — `getSpeciesGrantedSpells`,
  * a única fonte aqui que não depende de classe, então pode aparecer
  * mesmo num personagem sem conjuração), sem a lista manual do jogador —
  * usada tanto pelo PDF (`pdf/fieldMap.ts`) quanto pela etapa de
@@ -42,17 +45,23 @@ export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[
     ...getRogueAutoPreparedSpells(character),
     ...getSorcererAutoPreparedSpells(character),
     ...getWarlockAutoPreparedSpells(character),
+    ...getWizardAutoPreparedSpells(character),
     ...getSpeciesGrantedSpells(character),
   ];
 }
 
 /**
  * Lista efetiva de magias preparadas: as automáticas primeiro, seguidas
- * da lista manual do jogador (`character.spellsPrepared`). Nunca grava
- * as automáticas de volta no Character — só compõe no momento do uso
- * (PDF ou tela), igual ao padrão já usado para texto automático em
- * `rules/proficiencyText.ts`.
+ * da lista manual do jogador (`character.spellsPrepared`) — ou, para o
+ * Mago, das entradas do Livro de Magias marcadas como preparadas/
+ * Maestria de Magias/Assinatura Mágica (`getWizardPreparedSpellEntries`),
+ * que SUBSTITUI a lista manual (o livro é a única fonte de preparação
+ * do Mago — nunca as duas ao mesmo tempo, para não duplicar a mesma
+ * magia com origens diferentes). Nunca grava as automáticas de volta no
+ * Character — só compõe no momento do uso (PDF ou tela), igual ao
+ * padrão já usado para texto automático em `rules/proficiencyText.ts`.
  */
 export function getEffectiveSpellsPrepared(character: Character): SpellPreparedEntry[] {
-  return [...getAutoPreparedSpells(character), ...character.spellsPrepared];
+  const manual = character.classId === "mago" ? getWizardPreparedSpellEntries(character) : character.spellsPrepared;
+  return [...getAutoPreparedSpells(character), ...manual];
 }

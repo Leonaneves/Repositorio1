@@ -9,7 +9,7 @@ import {
   type SpellPreparedEntry,
 } from "../domain/character.js";
 import type { ArmorId, BackgroundId, ClassId, SizeId, SkillKey, SpeciesId, SpellCircle } from "../domain/ids.js";
-import type { AsiSelection } from "../domain/character.js";
+import type { AsiSelection, WizardSpellbookEntry } from "../domain/character.js";
 import { classes } from "../data/classes.js";
 import { ASI_LEVELS_BY_CLASS } from "../data/features/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
@@ -170,6 +170,8 @@ function applyClassChange(character: Character, classId: ClassId | null): Charac
     knownWildShapeForms: classId === "druida" ? character.knownWildShapeForms : [],
     // Metamagia é exclusiva do Feiticeiro — mesmo raciocínio das Invocações Místicas/Formas Conhecidas acima.
     knownMetamagicOptions: classId === "feiticeiro" ? character.knownMetamagicOptions : [],
+    // Livro de Magias é exclusivo do Mago — mesmo raciocínio das Invocações Místicas/Formas Conhecidas/Metamagia acima.
+    wizardSpellbook: classId === "mago" ? character.wizardSpellbook : [],
   };
 
   next = clampEquippedArmor(next);
@@ -322,6 +324,11 @@ interface CharacterStore {
   addKnownWildShapeForm: () => void;
   updateKnownWildShapeForm: (index: number, patch: Partial<{ name: string; challengeRating: string; hasFlySpeed: boolean }>) => void;
   removeKnownWildShapeForm: (index: number) => void;
+
+  /** Adiciona 1 entrada em branco ao Livro de Magias do Mago (integração de Magias — ver rules/wizardSpellbook.ts). */
+  addWizardSpellbookEntry: () => void;
+  updateWizardSpellbookEntry: (index: number, patch: Partial<WizardSpellbookEntry>) => void;
+  removeWizardSpellbookEntry: (index: number) => void;
 
   /** Aumenta/diminui em 1 o bônus de atributo do Antecedente ATUAL (componente genérico de distribuição — ver rules/abilityAllocation.ts). Sem efeito se o Antecedente atual não tiver `abilityScoreOptions`. */
   increaseBackgroundAbilityBonus: (ability: AbilityKey) => void;
@@ -677,6 +684,34 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   removeKnownWildShapeForm: (index) =>
     set((state) => ({
       character: { ...state.character, knownWildShapeForms: state.character.knownWildShapeForms.filter((_, i) => i !== index) },
+    })),
+
+  addWizardSpellbookEntry: () =>
+    set((state) => ({
+      character: {
+        ...state.character,
+        wizardSpellbook: [
+          ...state.character.wizardSpellbook,
+          {
+            name: "",
+            circle: 1,
+            origin: "classProgression",
+            grantedUnderSubclass: null,
+            prepared: false,
+            isSpellMastery: false,
+            isSignatureSpell: false,
+          },
+        ],
+      },
+    })),
+  updateWizardSpellbookEntry: (index, patch) =>
+    set((state) => {
+      const wizardSpellbook = state.character.wizardSpellbook.map((entry, i) => (i === index ? { ...entry, ...patch } : entry));
+      return { character: { ...state.character, wizardSpellbook } };
+    }),
+  removeWizardSpellbookEntry: (index) =>
+    set((state) => ({
+      character: { ...state.character, wizardSpellbook: state.character.wizardSpellbook.filter((_, i) => i !== index) },
     })),
 
   addMetamagicOption: (optionId) =>

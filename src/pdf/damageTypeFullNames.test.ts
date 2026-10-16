@@ -14,6 +14,7 @@ import { getDruidPrintedBlocks } from "../rules/druidPrintedFeatures.js";
 import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
+import { getWizardPrintedBlocks } from "../rules/wizardPrintedFeatures.js";
 import { getSpeciesTraitsPrintedText } from "../rules/speciesLineagePrintedFeatures.js";
 
 /**
@@ -124,6 +125,20 @@ describe("Ladino — Psíquico (Adaga Espiritual) e Venenoso (Assassino) nunca a
   it("sem subclasse escolhida (só classe base)", () => {
     const character = baseCharacter("ladino", 14, null);
     expectNoAbbreviatedDamageTypes(getRoguePrintedBlocks(character).join("\n"));
+  });
+});
+
+describe("Mago — Necrótico (Sobrecarga do Evocador) nunca abreviado nos textos impressos (fonte \"IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §2)", () => {
+  it.each(["Abjurador", "Adivinho", "Evocador", "Ilusionista"] as const)("subclasse %s, nível 20", (subclassFullName) => {
+    const character = baseCharacter("mago", 20, subclassFullName);
+    const joined = getWizardPrintedBlocks(character).join("\n");
+    expectNoAbbreviatedDamageTypes(joined);
+    if (subclassFullName === "Evocador") expect(joined).toContain("Necrótico");
+  });
+
+  it("sem subclasse escolhida (só classe base)", () => {
+    const character = baseCharacter("mago", 14, null);
+    expectNoAbbreviatedDamageTypes(getWizardPrintedBlocks(character).join("\n"));
   });
 });
 

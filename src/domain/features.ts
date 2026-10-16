@@ -28,8 +28,19 @@ export interface FeatureUses {
 export type FeatureChoiceEffect =
   /** `excludeAlreadyProficient` filtra, na hora de exibir, as perícias em que o personagem já é proficiente por qualquer outra fonte (ex.: Conhecimento Primordial do Bárbaro, §6 — nunca oferece uma perícia repetida). */
   | { kind: "skillProficiency"; options: SkillKey[] | "any"; count: number; excludeAlreadyProficient?: boolean }
-  /** Especialização (Expertise) em perícias nas quais o personagem JÁ é proficiente — nunca concede a proficiência em si, só dobra o bônus (ex.: "Especialista" do Bardo, fonte "INTEGRAÇÃO COMPLETA — BARDO E SUBCLASSES" §4). A UI filtra as opções pelas perícias atualmente proficientes. */
-  | { kind: "skillExpertise"; count: number }
+  /**
+   * Especialização (Expertise) em perícias nas quais o personagem JÁ é
+   * proficiente — nunca concede a proficiência em si, só dobra o bônus
+   * (ex.: "Especialista" do Bardo, fonte "INTEGRAÇÃO COMPLETA — BARDO E
+   * SUBCLASSES" §4). A UI filtra as opções pelas perícias atualmente
+   * proficientes. `options`, quando presente, restringe ainda mais a um
+   * conjunto fechado (ex.: "Acadêmico" do Mago, fonte "IMPLEMENTAR MAGO
+   * E SUAS SUBCLASSES NO BUILDER E NO PDF" §5 — só Arcanismo/História/
+   * Investigação/Medicina/Natureza/Religião); omitido = qualquer
+   * perícia proficiente (comportamento original, nunca alterado para
+   * quem já usava este efeito sem `options`).
+   */
+  | { kind: "skillExpertise"; count: number; options?: SkillKey[] }
   /** `category` filtra as opções elegíveis pelo catálogo estruturado (`data/tools.ts#getEligibleTools`) — nunca mais texto livre (fonte "REORGANIZAÇÃO DO BUILDER" §4). */
   | { kind: "toolProficiency"; category: ToolCategory | ToolCategory[]; count: number }
   /** `rangeKind` filtra por alcance (corpo a corpo/à distância) além da categoria simples/marcial — ex.: Maestria em Arma do Bárbaro, só corpo a corpo (§3). */

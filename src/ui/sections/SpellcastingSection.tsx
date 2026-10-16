@@ -1,9 +1,122 @@
 import { useCharacterStore } from "../../state/characterStore.js";
+import type { WizardSpellbookEntry, WizardSpellbookOrigin } from "../../domain/character.js";
 import { SPELL_CIRCLES } from "../../domain/ids.js";
 import { getSpellAttackBonus, getSpellcastingAbility, getSpellSaveDC, getSpellSlots } from "../../rules/spellcasting.js";
 import { getClassProgression } from "../../rules/classProgression.js";
 import { getAutoPreparedSpells } from "../../rules/effectiveSpellsPrepared.js";
+import { getWizardSpellbookClassGrantCount, getWizardVersadoGrantCount } from "../../rules/classResources.js";
+import {
+  getStaleVersadoSpellbookIndices,
+  getWizardClassProgressionSpellbookCount,
+  getWizardMaxEligibleCircle,
+  getWizardPreparedCount,
+  getWizardVersadoSpellbookCount,
+} from "../../rules/wizardSpellbook.js";
 import { ComputedField } from "../components/ComputedField.js";
+
+const WIZARD_SPELLBOOK_ORIGIN_LABELS: Record<WizardSpellbookOrigin, string> = {
+  classProgression: "Progressão da classe",
+  subclassVersado: "Versado (subclasse)",
+  other: "Outra origem",
+};
+
+/**
+ * Livro de Magias do Mago (fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES
+ * NO BUILDER E NO PDF" §3) — SUBSTITUI a lista genérica "Magias
+ * Preparadas Manualmente" para esta classe (rules/effectiveSpellsPrepared.ts
+ * já lê daqui, nunca das duas ao mesmo tempo). Distingue "estar no
+ * livro" (toda a lista) de "estar preparada" (`entry.prepared`) —
+ * Maestria de Magias/Assinatura Mágica são flags próprias, sempre
+ * preparadas independentemente de `prepared`.
+ */
+function WizardSpellbook() {
+  const character = useCharacterStore((s) => s.character);
+  const addEntry = useCharacterStore((s) => s.addWizardSpellbookEntry);
+  const updateEntry = useCharacterStore((s) => s.updateWizardSpellbookEntry);
+  const removeEntry = useCharacterStore((s) => s.removeWizardSpellbookEntry);
+
+  const classGrant = getWizardSpellbookClassGrantCount(character);
+  const classCount = getWizardClassProgressionSpellbookCount(character);
+  const versadoGrant = getWizardVersadoGrantCount(character);
+  const versadoCount = getWizardVersadoSpellbookCount(character);
+  const preparedCount = getWizardPreparedCount(character);
+  const preparedMax = getClassProgression(character).spellsPreparedMax;
+  const maxEligibleCircle = getWizardMaxEligibleCircle(character) ?? 1;
+  const staleIndices = new Set(getStaleVersadoSpellbookIndices(character));
+
+  function patch(index: number, fields: Partial<WizardSpellbookEntry>) {
+    updateEntry(index, fields);
+  }
+
+  return (
+    <div className="spells-prepared">
+      <h3>Livro de Magias</h3>
+      <p className="builder-step__hint">
+        Concedidas pela classe: {classCount}/{classGrant ?? 0} — Concedidas por Versado: {versadoCount}/{versadoGrant ?? 0} — Preparadas:{" "}
+        {preparedCount}/{preparedMax ?? 0}
+      </p>
+      {staleIndices.size > 0 && (
+        <p className="builder-step__hint">
+          ⚠ {staleIndices.size} magia(s) de Versado concedida(s) sob outra subclasse — revise manualmente (nada é apagado automaticamente).
+        </p>
+      )}
+      {character.wizardSpellbook.length === 0 && <p className="empty-note">Nenhuma magia no livro ainda.</p>}
+      {character.wizardSpellbook.map((entry, index) => (
+        <div className={`attack-row${staleIndices.has(index) ? " review-block--pending" : ""}`} key={index}>
+          <input type="text" placeholder="Nome da magia" value={entry.name} onChange={(e) => patch(index, { name: e.target.value })} />
+          <select value={entry.circle} onChange={(e) => patch(index, { circle: Number(e.target.value) as WizardSpellbookEntry["circle"] })}>
+            {SPELL_CIRCLES.filter((circle) => circle <= Math.max(maxEligibleCircle, entry.circle)).map((circle) => (
+              <option key={circle} value={circle}>
+                {circle}º círculo
+              </option>
+            ))}
+          </select>
+          <select
+            value={entry.origin}
+            onChange={(e) =>
+              patch(index, {
+                origin: e.target.value as WizardSpellbookOrigin,
+                grantedUnderSubclass: e.target.value === "subclassVersado" ? character.subclassId : null,
+              })
+            }
+          >
+            {(Object.keys(WIZARD_SPELLBOOK_ORIGIN_LABELS) as WizardSpellbookOrigin[]).map((origin) => (
+              <option key={origin} value={origin}>
+                {WIZARD_SPELLBOOK_ORIGIN_LABELS[origin]}
+              </option>
+            ))}
+          </select>
+          <label className="checkbox-field checkbox-field--compact">
+            <input type="checkbox" checked={entry.prepared} onChange={(e) => patch(index, { prepared: e.target.checked })} />
+            <span>Preparada</span>
+          </label>
+          {character.level >= 18 && (
+            <label className="checkbox-field checkbox-field--compact">
+              <input type="checkbox" checked={entry.isSpellMastery} onChange={(e) => patch(index, { isSpellMastery: e.target.checked })} />
+              <span>Maestria de Magias</span>
+            </label>
+          )}
+          {character.level >= 20 && (
+            <label className="checkbox-field checkbox-field--compact">
+              <input
+                type="checkbox"
+                checked={entry.isSignatureSpell}
+                onChange={(e) => patch(index, { isSignatureSpell: e.target.checked })}
+              />
+              <span>Assinatura Mágica</span>
+            </label>
+          )}
+          <button type="button" onClick={() => removeEntry(index)} aria-label={`Remover magia ${index + 1} do livro`}>
+            Remover
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={addEntry}>
+        Adicionar magia ao livro
+      </button>
+    </div>
+  );
+}
 
 const ABILITY_NAMES: Record<string, string> = {
   FOR: "Força",
@@ -133,45 +246,51 @@ export function SpellcastingSection() {
           </ul>
         )}
 
-        <h3>Magias Preparadas Manualmente</h3>
-        <p className="empty-note">
-          Catálogo completo de magias ainda pendente neste protótipo — preencha o nome manualmente abaixo.
-        </p>
-        {character.spellsPrepared.map((spell, index) => (
-          <div className="attack-row" key={index}>
-            <input
-              type="text"
-              placeholder="Círculo"
-              value={spell.circle}
-              onChange={(e) => updateSpellPrepared(index, { circle: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Nome da magia"
-              value={spell.name}
-              onChange={(e) => updateSpellPrepared(index, { name: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Alcance"
-              value={spell.range}
-              onChange={(e) => updateSpellPrepared(index, { range: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Notas"
-              value={spell.notes}
-              onChange={(e) => updateSpellPrepared(index, { notes: e.target.value })}
-            />
-            <button type="button" onClick={() => removeSpellPrepared(index)} aria-label={`Remover magia ${index + 1}`}>
-              Remover
+        {character.classId !== "mago" && (
+          <>
+            <h3>Magias Preparadas Manualmente</h3>
+            <p className="empty-note">
+              Catálogo completo de magias ainda pendente neste protótipo — preencha o nome manualmente abaixo.
+            </p>
+            {character.spellsPrepared.map((spell, index) => (
+              <div className="attack-row" key={index}>
+                <input
+                  type="text"
+                  placeholder="Círculo"
+                  value={spell.circle}
+                  onChange={(e) => updateSpellPrepared(index, { circle: e.target.value })}
+                />
+                <input
+                  type="text"
+                  placeholder="Nome da magia"
+                  value={spell.name}
+                  onChange={(e) => updateSpellPrepared(index, { name: e.target.value })}
+                />
+                <input
+                  type="text"
+                  placeholder="Alcance"
+                  value={spell.range}
+                  onChange={(e) => updateSpellPrepared(index, { range: e.target.value })}
+                />
+                <input
+                  type="text"
+                  placeholder="Notas"
+                  value={spell.notes}
+                  onChange={(e) => updateSpellPrepared(index, { notes: e.target.value })}
+                />
+                <button type="button" onClick={() => removeSpellPrepared(index)} aria-label={`Remover magia ${index + 1}`}>
+                  Remover
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={addSpellPrepared}>
+              Adicionar magia preparada
             </button>
-          </div>
-        ))}
-        <button type="button" onClick={addSpellPrepared}>
-          Adicionar magia preparada
-        </button>
+          </>
+        )}
       </div>
+
+      {character.classId === "mago" && <WizardSpellbook />}
     </section>
   );
 }

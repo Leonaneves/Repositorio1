@@ -305,6 +305,51 @@ describe("useCharacterStore — Formas Conhecidas de Forma Selvagem (Druida) —
   });
 });
 
+describe("useCharacterStore — Livro de Magias (Mago, fonte \"IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §3)", () => {
+  it("addWizardSpellbookEntry adiciona uma entrada em branco (1º círculo, origem classProgression, nada marcado)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.addWizardSpellbookEntry();
+    expect(useCharacterStore.getState().character.wizardSpellbook).toEqual([
+      { name: "", circle: 1, origin: "classProgression", grantedUnderSubclass: null, prepared: false, isSpellMastery: false, isSignatureSpell: false },
+    ]);
+  });
+
+  it("updateWizardSpellbookEntry atualiza só a entrada do índice informado", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.addWizardSpellbookEntry();
+    store.addWizardSpellbookEntry();
+    store.updateWizardSpellbookEntry(1, { name: "Mísseis Mágicos", prepared: true });
+    const book = useCharacterStore.getState().character.wizardSpellbook;
+    expect(book[0].name).toBe("");
+    expect(book[1].name).toBe("Mísseis Mágicos");
+    expect(book[1].prepared).toBe(true);
+  });
+
+  it("removeWizardSpellbookEntry remove só a entrada do índice informado", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.addWizardSpellbookEntry();
+    store.updateWizardSpellbookEntry(0, { name: "Sono" });
+    store.addWizardSpellbookEntry();
+    store.updateWizardSpellbookEntry(1, { name: "Queda Suave" });
+    store.removeWizardSpellbookEntry(0);
+    expect(useCharacterStore.getState().character.wizardSpellbook).toHaveLength(1);
+    expect(useCharacterStore.getState().character.wizardSpellbook[0].name).toBe("Queda Suave");
+  });
+
+  it("trocar de classe para fora de Mago limpa o Livro de Magias, igual às Invocações Místicas/Formas Conhecidas/Metamagia", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.addWizardSpellbookEntry();
+    expect(useCharacterStore.getState().character.wizardSpellbook).toHaveLength(1);
+
+    store.setClass("guerreiro");
+    expect(useCharacterStore.getState().character.wizardSpellbook).toEqual([]);
+  });
+});
+
 describe("useCharacterStore — Metamagia (Feiticeiro)", () => {
   it("addMetamagicOption adiciona 1 opção, sem duplicar", () => {
     const store = useCharacterStore.getState();

@@ -104,7 +104,11 @@ export const subclasses: Record<ClassId, SubclassDefinition[]> = {
   ],
   mago: [
     { shortName: "Abjurador", fullName: "Abjurador" },
-    { shortName: "Adivinho", fullName: "Adivinho" },
+    // Exibição corrigida para "Adivinhador" (fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO
+    // BUILDER E NO PDF" §0/§9) — `fullName` NUNCA muda: é o valor que o motor de regras compara
+    // (`character.subclassId`, `subclassFullName` das FeatureDefinitions, `SUBCLASS_FEATURE_LEVELS`
+    // etc.), preservando compatibilidade com personagens já salvos com esta subclasse.
+    { shortName: "Adivinhador", fullName: "Adivinho" },
     { shortName: "Evocador", fullName: "Evocador" },
     { shortName: "Ilusionista", fullName: "Ilusionista" },
     { shortName: "Conjurador", fullName: "Conjurador" },

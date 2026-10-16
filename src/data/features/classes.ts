@@ -10,6 +10,7 @@ import { rangerClassFeatures } from "./ranger.js";
 import { rogueClassFeatures } from "./rogue.js";
 import { sorcererClassFeatures } from "./sorcerer.js";
 import { warlockClassFeatures } from "./warlock.js";
+import { wizardClassFeatures } from "./wizard.js";
 
 /**
  * Features de CLASSE cujo efeito mecânico já está implementado em
@@ -169,15 +170,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/fighter.ts).
   // Ladino removido daqui — fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E NO PDF" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/rogue.ts).
-  mago: [
-    { name: "Adepto de Ritual", level: 1 },
-    { name: "Conjuração", level: 1 },
-    { name: "Recuperação Arcana", level: 1 },
-    { name: "Acadêmico", level: 2 },
-    { name: "Memorizar Magia", level: 5 },
-    { name: "Maestria de Magias", level: 18 },
-    { name: "Assinatura Mágica", level: 20 },
-  ],
+  // Mago removido daqui — fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF" tem
+  // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/wizard.ts).
   monge: [
     { name: "Artes Marciais", level: 1 },
     { name: "Defesa sem Armadura", level: 1 },
@@ -243,10 +237,11 @@ export const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
  * nível 19. Artífice fica de fora: a fonte própria do Artífice dá
  * "Aumento no Valor de Atributo" no nível 19 (ver `ASI_LEVELS_BY_CLASS`)
  * e "Alma do Artífice" no nível 20 como capstone — nunca Dádiva Épica.
- * Bárbaro/Bardo/Bruxo/Clérigo/Druida/Feiticeiro/Guerreiro/Patrulheiro
- * continuam incluídos (`ASI_LEVELS_BY_CLASS` já cobre cada um com seus
- * próprios níveis) mesmo tendo saído de `NAMED_FEATURES_BY_CLASS` — por
- * isso são somados explicitamente aqui, não lidos mais dali.
+ * Bárbaro/Bardo/Bruxo/Clérigo/Druida/Feiticeiro/Guerreiro/Ladino/Mago/
+ * Patrulheiro continuam incluídos (`ASI_LEVELS_BY_CLASS` já cobre cada
+ * um com seus próprios níveis) mesmo tendo saído de
+ * `NAMED_FEATURES_BY_CLASS` — por isso são somados explicitamente
+ * aqui, não lidos mais dali.
  */
 const DADIVA_EPICA_CLASSES: ClassId[] = [
   ...(Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice"),
@@ -259,6 +254,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   "druida",
   "feiticeiro",
   "ladino",
+  "mago",
 ];
 
 function slugify(text: string): string {
@@ -417,4 +413,5 @@ export const classFeatures: FeatureDefinition[] = [
   ...rogueClassFeatures,
   ...sorcererClassFeatures,
   ...warlockClassFeatures,
+  ...wizardClassFeatures,
 ];

@@ -97,9 +97,10 @@ export function getInvalidExpertiseSelections(character: Character): InvalidExpe
 
       const selection = character.featureChoiceSelections[choice.id]?.value;
       const selected = Array.isArray(selection) ? (selection as SkillKey[]) : [];
+      const options = choice.effect.options;
 
       for (const skill of selected) {
-        if (!getSkillProficiency(character, skill)) {
+        if (!getSkillProficiency(character, skill) || (options && !options.includes(skill))) {
           entries.push({ choiceId: choice.id, featureName: feature.name, sourceType: feature.sourceType, skill });
         }
       }

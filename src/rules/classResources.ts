@@ -420,3 +420,86 @@ export function getExtraAttacksCount(character: Character): number {
   }
   return 0;
 }
+
+/**
+ * Limite de Recuperação Arcana (fonte "IMPLEMENTAR MAGO E SUAS
+ * SUBCLASSES NO BUILDER E NO PDF" §5) — soma dos círculos recuperados
+ * (nunca a QUANTIDADE de espaços), metade do nível de Mago arredondada
+ * para cima. Nível 1 = 1, nível 5 = 3, nível 20 = 10 (exemplos da
+ * própria fonte, confirmados aqui).
+ */
+export function getArcaneRecoveryLimit(character: Character): number | null {
+  if (character.classId !== "mago" || character.level < 1) return null;
+  return Math.ceil(character.level / 2);
+}
+
+/**
+ * Quantidade de magias concedidas ao Livro de Magias SÓ pela
+ * progressão da CLASSE (fonte §3): 6 no nível 1, +2 a cada nível de
+ * Mago posterior — `6 + 2*(nível-1)`. NUNCA um limite máximo do livro
+ * (magias de subclasse/outras regras são concessões separadas, ver
+ * `domain/character.ts#WizardSpellbookEntry.origin`) — só o total
+ * esperado desta origem específica, usado como guia na UI (nunca um
+ * bloqueio rígido).
+ */
+export function getWizardSpellbookClassGrantCount(character: Character): number | null {
+  if (character.classId !== "mago" || character.level < 1) return null;
+  return 6 + 2 * (character.level - 1);
+}
+
+/**
+ * Níveis em que cada subclasse de Mago concede mais 1 magia de Versado
+ * ao livro, além das 2 iniciais do nível 3 (fonte §7: "sempre que a
+ * progressão de Mago liberar um novo círculo de espaços" — 5, 7, 9, 11,
+ * 13, 15 e 17, conforme a tabela de espaços de Mago).
+ */
+const WIZARD_VERSADO_EXTRA_GRANT_LEVELS = [5, 7, 9, 11, 13, 15, 17] as const;
+
+/**
+ * Quantidade total de magias de Versado concedidas ao livro (2 no
+ * nível 3 + 1 a cada nível de `WIZARD_VERSADO_EXTRA_GRANT_LEVELS` já
+ * alcançado) — mesmo raciocínio de guia (nunca bloqueio rígido) de
+ * `getWizardSpellbookClassGrantCount`. `null` sem nenhuma das 4
+ * subclasses (Abjurador/Adivinho/Evocador/Ilusionista) ainda escolhida,
+ * ou antes do nível 3.
+ */
+export function getWizardVersadoGrantCount(character: Character): number | null {
+  if (character.classId !== "mago" || character.level < 3) return null;
+  if (!["Abjurador", "Adivinho", "Evocador", "Ilusionista"].includes(character.subclassId ?? "")) return null;
+  const extraGrants = WIZARD_VERSADO_EXTRA_GRANT_LEVELS.filter((level) => character.level >= level).length;
+  return 2 + extraGrants;
+}
+
+/**
+ * PV máximos da Proteção Arcana do Abjurador (fonte §8): duas vezes o
+ * nível de Mago + mod INT. Reserva PRÓPRIA (nunca PV Temp, nunca soma
+ * ao PV máximo do personagem) — só o VALOR MÁXIMO; os PV atuais são
+ * estado de sessão (mesmo princípio de `Character.hp.current`), fora
+ * do escopo de criação.
+ */
+export function getAbjurerArcaneWardMaxHp(character: Character): number | null {
+  if (character.classId !== "mago" || character.subclassId !== "Abjurador" || character.level < 3) return null;
+  const intModifier = getAbilityModifier(getEffectiveAbilityScore(character, "INT"));
+  return 2 * character.level + intModifier;
+}
+
+/**
+ * Bônus de mod INT somado a UMA jogada de dano por Evocação
+ * Potencializada (Evocador, nível 10 — fonte §10). Pode ser negativo
+ * (mod INT negativo) — nunca um mínimo +1 artificial, conforme a
+ * própria fonte exige.
+ */
+export function getEvocationPotentIntBonus(character: Character): number | null {
+  if (character.classId !== "mago" || character.subclassId !== "Evocador" || character.level < 10) return null;
+  return getAbilityModifier(getEffectiveAbilityScore(character, "INT"));
+}
+
+/**
+ * Quantidade de resultados de d20 do Prodígio (Adivinho, fonte §9): 2
+ * dos níveis 3-13, 3 a partir do nível 14 (Prodígio Maior — nunca um
+ * título impresso separado, só atualiza o mesmo bloco).
+ */
+export function getDivinationProdigyDiceCount(character: Character): number | null {
+  if (character.classId !== "mago" || character.subclassId !== "Adivinho" || character.level < 3) return null;
+  return character.level >= 14 ? 3 : 2;
+}

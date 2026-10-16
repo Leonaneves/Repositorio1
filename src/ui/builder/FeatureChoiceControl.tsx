@@ -69,7 +69,9 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     // ex.: Explorador Hábil e Especialista do Patrulheiro nunca podem repetir a mesma perícia) —
     // uma perícia já SELECIONADA nesta mesma escolha nunca some, mesmo que isso mude depois.
     const options = SKILL_KEYS.filter(
-      (skillId) => selected.includes(skillId) || (getSkillProficiency(character, skillId) && !getSkillExpertise(character, skillId)),
+      (skillId) =>
+        (!effect.options || effect.options.includes(skillId)) &&
+        (selected.includes(skillId) || (getSkillProficiency(character, skillId) && !getSkillExpertise(character, skillId))),
     );
     return (
       <fieldset className="feature-choice">

@@ -39,6 +39,7 @@ import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js
 import { getRangerPrintedBlocks } from "../rules/rangerPrintedFeatures.js";
 import { getFighterPrintedBlocks } from "../rules/fighterPrintedFeatures.js";
 import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
+import { getWizardPrintedBlocks } from "../rules/wizardPrintedFeatures.js";
 import { getRogueAssassinToolProficiencyEntries } from "../rules/rogueSubclassProficiencies.js";
 import { getSorcererPrintedBlocks } from "../rules/sorcererPrintedFeatures.js";
 import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
@@ -246,13 +247,14 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * Patrulheiro (classe base completa — fonte "COMPLETAR A CLASSE
  * PATRULHEIRO NO BUILDER E NO PDF" — mais as 4 subclasses), Guerreiro
  * (classe base completa — fonte "COMPLETAR A CLASSE GUERREIRO NO
- * BUILDER E NO PDF" — mais as 4 subclasses) e Ladino (classe base
+ * BUILDER E NO PDF" — mais as 4 subclasses), Ladino (classe base
  * completa — fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E
- * NO PDF" — mais as 4 subclasses) têm o texto impresso montado
- * dinamicamente desde o nível 1, sem depender de subclasse escolhida.
- * As demais 4 classes (Artífice, Mago, Monge, Paladino) continuam com
- * o campo manual de sempre (`Character.classFeatures`), sem nenhuma
- * mudança de comportamento.
+ * NO PDF" — mais as 4 subclasses) e Mago (classe base completa — fonte
+ * "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF" — mais as 4
+ * subclasses) têm o texto impresso montado dinamicamente desde o
+ * nível 1, sem depender de subclasse escolhida. As demais 3 classes
+ * (Artífice, Monge, Paladino) continuam com o campo manual de sempre
+ * (`Character.classFeatures`), sem nenhuma mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -297,6 +299,13 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   // (mesmo raciocínio já aplicado a Guerreiro/Patrulheiro acima).
   if (character.classId === "ladino") {
     const [column1, column2] = splitIntoTwoColumns(getRoguePrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
+  // Mago: classe BASE completa (fonte "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO
+  // PDF") — troca para a composição dinâmica desde o nível 1, com ou sem subclasse escolhida
+  // (mesmo raciocínio já aplicado a Guerreiro/Patrulheiro/Ladino acima).
+  if (character.classId === "mago") {
+    const [column1, column2] = splitIntoTwoColumns(getWizardPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;

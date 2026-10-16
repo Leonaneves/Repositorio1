@@ -4,6 +4,7 @@ import { getClassSkillChoiceId } from "../data/classes.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
+import { WIZARD_ACADEMIC_CHOICE_ID } from "../data/features/wizard.js";
 import { getInvalidExpertiseSelections, getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 
 /**
@@ -187,6 +188,27 @@ describe("getInvalidExpertiseSelections — revalida Especialização contra a p
   it("classe/subclasse sem nenhuma escolha de Especialização — []", () => {
     const character = createBlankCharacter("expertise-conflict-test-4");
     character.classId = "mago";
+    expect(getInvalidExpertiseSelections(character)).toEqual([]);
+  });
+
+  it("Acadêmico do Mago (effect.options restrito): uma perícia PROFICIENTE mas fora das 6 opções é inválida, mesmo nunca perdendo a proficiência (fonte \"IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §5)", () => {
+    const character = createBlankCharacter("expertise-conflict-test-mago");
+    character.classId = "mago";
+    character.level = 2;
+    character.skills.furtividade.manualOverride = true; // proficiente, mas "Furtividade" não é uma das 6 opções de Acadêmico
+    character.featureChoiceSelections[WIZARD_ACADEMIC_CHOICE_ID] = { value: ["furtividade"] };
+
+    const entries = getInvalidExpertiseSelections(character);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ skill: "furtividade", featureName: "Acadêmico", sourceType: "class" });
+  });
+
+  it("Acadêmico do Mago: uma perícia dentro das 6 opções e proficiente nunca é sinalizada", () => {
+    const character = createBlankCharacter("expertise-conflict-test-mago-2");
+    character.classId = "mago";
+    character.level = 2;
+    character.skills.arcanismo.manualOverride = true;
+    character.featureChoiceSelections[WIZARD_ACADEMIC_CHOICE_ID] = { value: ["arcanismo"] };
     expect(getInvalidExpertiseSelections(character)).toEqual([]);
   });
 });

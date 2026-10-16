@@ -10,6 +10,7 @@ import { getSavingThrow } from "./savingThrows.js";
 import { getAttackBonus } from "./attack.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
+import { WIZARD_ACADEMIC_CHOICE_ID } from "../data/features/wizard.js";
 import {
   getAutomaticSkillProficiencyGrants,
   getGlamourTranscendentalBonus,
@@ -365,6 +366,31 @@ describe("Especialista do Ladino — nível 1 (2 perícias) e nível 6 (mais 2, 
     character.classId = "guerreiro";
     character.featureChoiceSelections[ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1] = { value: ["furtividade"] };
     expect(isSkillGrantedExpertiseByClassChoice(character, "furtividade")).toBe(false);
+  });
+});
+
+describe("Acadêmico do Mago — nível 2, 1 perícia restrita a Arcanismo/História/Investigação/Medicina/Natureza/Religião (fonte \"IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §5)", () => {
+  function magoAt(level: number): ReturnType<typeof createBlankCharacter> {
+    const character = createBlankCharacter("skills-test-mago");
+    character.classId = "mago";
+    character.level = level;
+    return character;
+  }
+
+  it("perícia escolhida dentro das 6 opções ganha Especialização, mesmo sem marcar o checkbox manual, nunca concedendo a proficiência em si", () => {
+    const character = magoAt(2);
+    character.featureChoiceSelections[WIZARD_ACADEMIC_CHOICE_ID] = { value: ["arcanismo"] };
+
+    expect(isSkillGrantedExpertiseByClassChoice(character, "arcanismo")).toBe(true);
+    expect(getSkillExpertise(character, "arcanismo")).toBe(true);
+    expect(getSkillProficiency(character, "arcanismo")).toBe(false);
+  });
+
+  it("outra classe nunca tem Especialização concedida por este ID", () => {
+    const character = createBlankCharacter("t");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[WIZARD_ACADEMIC_CHOICE_ID] = { value: ["arcanismo"] };
+    expect(isSkillGrantedExpertiseByClassChoice(character, "arcanismo")).toBe(false);
   });
 });
 

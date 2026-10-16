@@ -67,6 +67,16 @@ describe("getSubclassDisplayName — resolve o shortName a partir do fullName sa
   it("não afeta outras classes (ex.: Guerreiro/Cavaleiro Místico, onde shortName === fullName)", () => {
     expect(getSubclassDisplayName("guerreiro", "Cavaleiro Místico")).toBe("Cavaleiro Místico");
   });
+
+  it("Mago/'Adivinho' (valor interno preservado, fonte \"IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §0/§9) exibe 'Adivinhador'", () => {
+    expect(getSubclassDisplayName("mago", "Adivinho")).toBe("Adivinhador");
+  });
+
+  it("demais subclasses de Mago continuam resolvendo para o próprio nome", () => {
+    expect(getSubclassDisplayName("mago", "Abjurador")).toBe("Abjurador");
+    expect(getSubclassDisplayName("mago", "Evocador")).toBe("Evocador");
+    expect(getSubclassDisplayName("mago", "Ilusionista")).toBe("Ilusionista");
+  });
 });
 
 describe("canChooseSubclass — regra fixa de nível 3 para todas as classes", () => {
