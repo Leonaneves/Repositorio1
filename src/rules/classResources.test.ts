@@ -32,11 +32,20 @@ import {
   getPsiWarriorDie,
   getPsiWarriorDiceCount,
   getCunningStrikeMaxEffects,
+  getDefesaGloriosaBonus,
+  getDestruicaoInspiradoraTempHpText,
+  getMaosConsagradasMax,
+  getPaladinAuraBonus,
+  getPaladinAuraRange,
   getRageCount,
   getRageDamageBonus,
+  getRepudiarInimigosTargetCount,
+  getResplendorSagradoDamage,
   getRogueCunningStrikeCd,
+  getSacredWeaponAttackBonus,
   getSecondWindHealingText,
   getSecondWindUses,
+  getSentinelaImortalHealing,
   getSlowFallReduction,
   getSneakAttackDice,
   getSoulknifePsionicDiceCount,
@@ -81,6 +90,12 @@ function rogueSubclassOf(subclassId: string, level: number) {
 
 function monkSubclassOf(subclassId: string, level: number) {
   const character = characterOf("monge", level);
+  character.subclassId = subclassId;
+  return character;
+}
+
+function paladinOf(level: number, subclassId: string | null = null) {
+  const character = characterOf("paladino", level);
   character.subclassId = subclassId;
   return character;
 }
@@ -806,5 +821,136 @@ describe("Monge/Caminho da Misericórdia — getHandOfUltimateMercyHealingText (
   it("outra subclasse ou nível <17 — null", () => {
     expect(getHandOfUltimateMercyHealingText(monkSubclassOf("Guerreiro da Misericórdia", 16))).toBeNull();
     expect(getHandOfUltimateMercyHealingText(monkSubclassOf("Guerreiro das Sombras", 17))).toBeNull();
+  });
+});
+
+describe("Paladino — getMaosConsagradasMax (5 × nível, nunca mod de atributo)", () => {
+  it("nível 1: 5; nível 20: 100", () => {
+    expect(getMaosConsagradasMax(paladinOf(1))).toBe(5);
+    expect(getMaosConsagradasMax(paladinOf(20))).toBe(100);
+  });
+
+  it("null para quem não é Paladino", () => {
+    expect(getMaosConsagradasMax(characterOf("clerigo", 5))).toBeNull();
+  });
+});
+
+describe("Paladino — getPaladinAuraBonus (máximo(1, mod CAR), nível 6+)", () => {
+  it("mod CAR +3: bônus 3", () => {
+    const character = paladinOf(6);
+    character.abilities.CAR.score = 16; // +3
+    expect(getPaladinAuraBonus(character)).toBe(3);
+  });
+
+  it("mod CAR negativo: mínimo 1", () => {
+    const character = paladinOf(6);
+    character.abilities.CAR.score = 8; // -1
+    expect(getPaladinAuraBonus(character)).toBe(1);
+  });
+
+  it("nível <6 — null", () => {
+    expect(getPaladinAuraBonus(paladinOf(5))).toBeNull();
+  });
+
+  it("null para quem não é Paladino", () => {
+    expect(getPaladinAuraBonus(characterOf("guerreiro", 10))).toBeNull();
+  });
+});
+
+describe("Paladino — getPaladinAuraRange (3m níveis 6-17, 9m a partir do 18 — Aura Expandida)", () => {
+  it("nível 6: 3m; nível 17: 3m; nível 18: 9m; nível 20: 9m", () => {
+    expect(getPaladinAuraRange(paladinOf(6))).toBe(3);
+    expect(getPaladinAuraRange(paladinOf(17))).toBe(3);
+    expect(getPaladinAuraRange(paladinOf(18))).toBe(9);
+    expect(getPaladinAuraRange(paladinOf(20))).toBe(9);
+  });
+
+  it("nível <6 — null", () => {
+    expect(getPaladinAuraRange(paladinOf(5))).toBeNull();
+  });
+});
+
+describe("Paladino — getRepudiarInimigosTargetCount (máximo(1, mod CAR), nível 9+)", () => {
+  it("mod CAR +3: 3 alvos", () => {
+    const character = paladinOf(9);
+    character.abilities.CAR.score = 16; // +3
+    expect(getRepudiarInimigosTargetCount(character)).toBe(3);
+  });
+
+  it("mod CAR negativo: mínimo 1 alvo", () => {
+    const character = paladinOf(9);
+    character.abilities.CAR.score = 8; // -1
+    expect(getRepudiarInimigosTargetCount(character)).toBe(1);
+  });
+
+  it("nível <9 — null", () => {
+    expect(getRepudiarInimigosTargetCount(paladinOf(8))).toBeNull();
+  });
+});
+
+describe("Paladino — getSacredWeaponAttackBonus (Juramento da Devoção, máximo(1, mod CAR), nível 3+)", () => {
+  it("mod CAR +3: bônus +3", () => {
+    const character = paladinOf(3, "Juramento da Devoção");
+    character.abilities.CAR.score = 16; // +3
+    expect(getSacredWeaponAttackBonus(character)).toBe(3);
+  });
+
+  it("mod CAR negativo: mínimo +1", () => {
+    const character = paladinOf(3, "Juramento da Devoção");
+    character.abilities.CAR.score = 8; // -1
+    expect(getSacredWeaponAttackBonus(character)).toBe(1);
+  });
+
+  it("outro Juramento ou nível <3 — null", () => {
+    expect(getSacredWeaponAttackBonus(paladinOf(3, "Juramento da Glória"))).toBeNull();
+    expect(getSacredWeaponAttackBonus(paladinOf(2, "Juramento da Devoção"))).toBeNull();
+  });
+});
+
+describe("Paladino/Juramento da Glória — getDestruicaoInspiradoraTempHpText (2d8 + nível de Paladino, nível 3+)", () => {
+  it("nível 10: 2d8+10", () => {
+    expect(getDestruicaoInspiradoraTempHpText(paladinOf(10, "Juramento da Glória"))).toBe("2d8+10");
+  });
+
+  it("outro Juramento ou nível <3 — null", () => {
+    expect(getDestruicaoInspiradoraTempHpText(paladinOf(10, "Juramento da Vingança"))).toBeNull();
+    expect(getDestruicaoInspiradoraTempHpText(paladinOf(2, "Juramento da Glória"))).toBeNull();
+  });
+});
+
+describe("Paladino/Juramento da Glória — getDefesaGloriosaBonus (máximo(1, mod CAR), nível 15+)", () => {
+  it("mod CAR +4: bônus/usos 4", () => {
+    const character = paladinOf(15, "Juramento da Glória");
+    character.abilities.CAR.score = 18; // +4
+    expect(getDefesaGloriosaBonus(character)).toBe(4);
+  });
+
+  it("outro Juramento ou nível <15 — null", () => {
+    expect(getDefesaGloriosaBonus(paladinOf(15, "Juramento dos Anciões"))).toBeNull();
+    expect(getDefesaGloriosaBonus(paladinOf(14, "Juramento da Glória"))).toBeNull();
+  });
+});
+
+describe("Paladino/Juramento da Devoção — getResplendorSagradoDamage (mod CAR + BP, nível 20)", () => {
+  it("mod CAR +3, nível 20 (BP 6): dano 9", () => {
+    const character = paladinOf(20, "Juramento da Devoção");
+    character.abilities.CAR.score = 16; // +3
+    expect(getResplendorSagradoDamage(character)).toBe(9);
+  });
+
+  it("outro Juramento ou nível <20 — null", () => {
+    expect(getResplendorSagradoDamage(paladinOf(20, "Juramento da Vingança"))).toBeNull();
+    expect(getResplendorSagradoDamage(paladinOf(19, "Juramento da Devoção"))).toBeNull();
+  });
+});
+
+describe("Paladino/Juramento dos Anciões — getSentinelaImortalHealing (3 × nível de Paladino, nível 15+)", () => {
+  it("nível 15: 45", () => {
+    expect(getSentinelaImortalHealing(paladinOf(15, "Juramento dos Anciões"))).toBe(45);
+  });
+
+  it("outro Juramento ou nível <15 — null", () => {
+    expect(getSentinelaImortalHealing(paladinOf(15, "Juramento da Devoção"))).toBeNull();
+    expect(getSentinelaImortalHealing(paladinOf(14, "Juramento dos Anciões"))).toBeNull();
   });
 });

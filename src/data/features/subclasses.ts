@@ -2535,4 +2535,182 @@ export const subclassFeatures: FeatureDefinition[] = [
     summary:
       "Os 3 benefícios a seguir só funcionam com Sintonia Elemental ativa. Golpes Potencializados (versão elemental) — atualiza Sintonia Elemental, nunca sobrescrevendo a característica de nível 6 da classe base de mesmo nome: uma vez no próprio turno, ao acertar um Ataque Desarmado, pode causar 1 dado de Artes Marciais adicional do MESMO tipo elemental escolhido. Passo Destrutivo — bloco impresso PRÓPRIO, ao lado de Passo do Vento: ao usar Passo do Vento (inclusive a opção gratuita), o deslocamento aumenta em 6m até o fim do turno; enquanto esse bônus durar, entrar a até 1,5m de uma criatura escolhida causa 1 dado de Artes Marciais de dano elemental a ela, uma vez por criatura por turno, sem Salvaguarda. Resistência a Dano — atualiza Sintonia Elemental: Resistência a um dos 5 tipos elementais, trocável no início de cada um dos próprios turnos — nunca uma escolha permanente do Builder. \"Tipo elemental\", nestes 3 benefícios, refere-se exclusivamente aos 5 tipos de Sintonia Elemental (Ácido/Elétrico/Frio/Fogo/Trovão).",
   },
+
+  // ---------- Juramento da Devoção (Paladino) ----------
+  {
+    id: "paladino-devocao-arma-sagrada-3",
+    name: "Arma Sagrada",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Devoção",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao executar a ação Atacar, pode gastar 1 uso de Canalizar Divindade para imbuir uma arma Corpo a Corpo empunhada. Por 10 minutos: soma mod CAR às jogadas de ataque com ela (mínimo +1); a cada acerto, pode causar o dano normal da arma OU dano Radiante; a arma emite Luz Plena em 6m e Penumbra por mais 6m. Encerra antes se usar a característica novamente, deixar de carregar a arma, ou decidir encerrar sem gastar ação. Nunca exige Ação Bônus nem substitui um ataque; o bônus é só nas jogadas de ATAQUE, nunca aplicado permanentemente no dano.",
+  },
+  {
+    id: "paladino-devocao-aura-de-devocao-7",
+    name: "Aura de Devoção",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Devoção",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Atualiza Aura de Proteção — nunca um bloco impresso separado. Você e aliados na aura também têm Imunidade a Enfeitiçado; se um aliado já Enfeitiçado entrar na aura, a condição fica sem efeito enquanto ele permanecer nela — nunca removida definitivamente.",
+  },
+  {
+    id: "paladino-devocao-destruicao-protetora-15",
+    name: "Destruição Protetora",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Devoção",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Atualiza Destruição do Paladino — nunca um bloco impresso separado. Ao conjurar Destruição Divina, você e aliados na Aura de Proteção recebem Cobertura Parcial até o início do próximo turno do Paladino. Nunca gasta Canalizar Divindade nem cria um contador próprio.",
+  },
+  {
+    id: "paladino-devocao-resplendor-sagrado-20",
+    name: "Resplendor Sagrado",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Devoção",
+    level: 20,
+    autoGranted: true,
+    summary:
+      "Ação Bônus para ativar por 10 minutos, podendo encerrar sem ação. Um uso por Descanso Longo; pode recuperar o uso gastando um espaço de 5º círculo, sem ação — isso NUNCA substitui a Ação Bônus de ativação. Enquanto ativo: inimigo que iniciar o turno na Aura de Proteção sofre dano Radiante igual a mod CAR + BP (rules/classResources.ts#getResplendorSagradoDamage); a aura emite Luz Plena que conta como luz solar; o Paladino tem Vantagem em Salvaguardas impostas por Ínferos ou Mortos-Vivos. Nunca aplica um mínimo de dano não fornecido pela fonte.",
+  },
+
+  // ---------- Juramento da Glória (Paladino) ----------
+  {
+    id: "paladino-gloria-atleta-inigualavel-3",
+    name: "Atleta Inigualável",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Glória",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação Bônus + 1 uso de Canalizar Divindade. Por 1 hora: Vantagem em testes de Força (Atletismo) e Destreza (Acrobacia); Saltos Longos e em Altura aumentam 3m — a distância adicional consome deslocamento normalmente; nunca aumenta o deslocamento base por esta característica.",
+  },
+  {
+    id: "paladino-gloria-destruicao-inspiradora-3",
+    name: "Destruição Inspiradora",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Glória",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Imediatamente após conjurar Destruição Divina, pode gastar 1 uso de Canalizar Divindade para distribuir um total de 2d8 + nível de Paladino de PV Temporários (rules/classResources.ts#getDestruicaoInspiradoraTempHpText) entre criaturas escolhidas a até 9m, podendo incluir a si mesmo — nunca concede o total completo a cada alvo, nunca exige outra Ação Bônus ou ação.",
+  },
+  {
+    id: "paladino-gloria-aura-de-vivacidade-7",
+    name: "Aura de Vivacidade",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Glória",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "O deslocamento do próprio Paladino aumenta 3m (campo próprio de Deslocamento, separado do benefício a seguir). Além disso, quando um aliado entra na Aura de Proteção pela primeira vez em um turno, ou inicia o turno nela, o deslocamento desse aliado aumenta 3m até o final do próximo turno dele — o benefício já concedido dura até esse momento mesmo que o aliado saia da aura antes, e nunca se acumula por entradas repetidas no mesmo turno.",
+  },
+  {
+    id: "paladino-gloria-defesa-gloriosa-15",
+    name: "Defesa Gloriosa",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Glória",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Reação quando você, ou outra criatura visível a até 3m, é atingida por um ataque: concede bônus à CA contra esse ataque = máximo(1, mod CAR) (rules/classResources.ts#getDefesaGloriosaBonus), podendo transformar o acerto em erro; se o ataque errar, pode atacar o atacante com uma arma como parte da MESMA Reação, se estiver ao alcance — nunca exige uma Reação adicional para o contra-ataque. Usos = máximo(1, mod CAR), mesma fórmula do bônus, recuperados em Descanso Longo. O alcance de 3m permanece fixo mesmo após Aura Expandida.",
+  },
+  {
+    id: "paladino-gloria-lenda-viva-20",
+    name: "Lenda Viva",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Glória",
+    level: 20,
+    autoGranted: true,
+    summary:
+      "Ação Bônus para ativar por 10 minutos, podendo encerrar sem ação. Um uso por Descanso Longo; pode recuperar o uso gastando um espaço de 5º círculo, sem ação — isso NUNCA substitui a Ação Bônus de ativação. Enquanto ativo: Vantagem em TODOS os testes de Carisma; uma vez em cada próprio turno, pode transformar um erro de ataque com arma em acerto (nunca em crítico, nunca estendido a ataques sem arma); após falhar em uma Salvaguarda, pode usar a Reação para refazê-la, DEVENDO usar o novo resultado. Nenhum dos 3 benefícios internos tem contador separado por descanso.",
+  },
+
+  // ---------- Juramento da Vingança (Paladino) ----------
+  {
+    id: "paladino-vinganca-voto-de-inimizade-3",
+    name: "Voto de Inimizade",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Vingança",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ao executar a ação Atacar, pode gastar 1 uso de Canalizar Divindade e escolher 1 criatura visível a até 9m: Vantagem em ataques contra ela por 1 minuto ou até usar esta característica novamente. Se o alvo cair a 0 PV antes do voto terminar, pode transferir o voto para outra criatura a até 9m, sem gastar ação — a transferência NUNCA gasta outro uso, nunca reinicia a duração e nunca exige uma nova ação Atacar. Nunca exige Ação Bônus nem substitui um ataque para iniciar o voto.",
+  },
+  {
+    id: "paladino-vinganca-vingador-implacavel-7",
+    name: "Vingador Implacável",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Vingança",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Ao acertar um Ataque de Oportunidade, pode reduzir o deslocamento do alvo a 0 até o final do turno atual e, na MESMA Reação, mover até metade do próprio deslocamento sem provocar Ataque de Oportunidade — nunca concede uma Reação adicional.",
+  },
+  {
+    id: "paladino-vinganca-alma-vingativa-15",
+    name: "Alma Vingativa",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Vingança",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Atualiza Voto de Inimizade — nunca um bloco impresso separado. Imediatamente após o alvo do Voto de Inimizade acertar OU errar um ataque (nunca limitado só a acerto, nunca restrito a ataques contra o próprio Paladino), pode usar a Reação para realizar um ataque corpo a corpo contra ele, se estiver ao alcance.",
+  },
+  {
+    id: "paladino-vinganca-anjo-vingador-20",
+    name: "Anjo Vingador",
+    sourceType: "subclass",
+    subclassFullName: "Juramento da Vingança",
+    level: 20,
+    autoGranted: true,
+    summary:
+      "Ação Bônus para ativar por 10 minutos, podendo encerrar sem ação. Um uso por Descanso Longo; pode recuperar o uso gastando um espaço de 5º círculo, sem ação — isso NUNCA substitui a Ação Bônus de ativação. Enquanto ativo: Deslocamento de Voo 18m, com capacidade de pairar (nunca registrado como voo permanentemente ativo); inimigo que iniciar o turno na Aura de Proteção faz Salvaguarda de Sabedoria — falha: Amedrontado por 1 minuto ou até sofrer qualquer dano, e ataques contra ele têm Vantagem enquanto estiver Amedrontado por este efeito (nunca uma repetição de Salvaguarda no fim do turno, nunca imunidade após um sucesso).",
+  },
+
+  // ---------- Juramento dos Anciões (Paladino) ----------
+  {
+    id: "paladino-anciaos-a-ira-da-natureza-3",
+    name: "A Ira da Natureza",
+    sourceType: "subclass",
+    subclassFullName: "Juramento dos Anciões",
+    level: 3,
+    autoGranted: true,
+    summary:
+      "Ação de Usar Magia + 1 uso de Canalizar Divindade. Cada criatura escolhida visível a até 4,5m faz Salvaguarda de Força; falha: fica Contida por 1 minuto, repetindo a Salvaguarda ao final de cada um dos próprios turnos (sucesso encerra o efeito) — nunca limita a quantidade de alvos ao modificador de CAR. O alcance de 4,5m permanece fixo mesmo após Aura Expandida.",
+  },
+  {
+    id: "paladino-anciaos-aura-de-resistencia-7",
+    name: "Aura de Resistência",
+    sourceType: "subclass",
+    subclassFullName: "Juramento dos Anciões",
+    level: 7,
+    autoGranted: true,
+    summary:
+      "Atualiza Aura de Proteção — nunca um bloco impresso separado. Você e aliados na aura têm Resistência a dano Necrótico, Psíquico e Radiante — nunca substituída por resistência genérica a dano de magias.",
+  },
+  {
+    id: "paladino-anciaos-sentinela-imortal-15",
+    name: "Sentinela Imortal",
+    sourceType: "subclass",
+    subclassFullName: "Juramento dos Anciões",
+    level: 15,
+    autoGranted: true,
+    summary:
+      "Ao ser reduzido a 0 PV sem morrer imediatamente, fica com 1 PV e em seguida recupera PV iguais a 3× o nível de Paladino (rules/classResources.ts#getSentinelaImortalHealing — respeita o limite normal de PV máximos). Um uso por Descanso Longo. Além disso, nunca envelhece magicamente e sua aparência nunca envelhece — nunca interpretado como imunidade a qualquer outra forma de morte ou dano.",
+  },
+  {
+    id: "paladino-anciaos-campeao-ancestral-20",
+    name: "Campeão Ancestral",
+    sourceType: "subclass",
+    subclassFullName: "Juramento dos Anciões",
+    level: 20,
+    autoGranted: true,
+    summary:
+      "Ação Bônus para ativar por 1 minuto (ÚNICO dos 4 poderes de nível 20 com esta duração — os demais duram 10 minutos), podendo encerrar sem ação. Um uso por Descanso Longo; pode recuperar o uso gastando um espaço de 5º círculo, sem ação — isso NUNCA substitui a Ação Bônus de ativação. Enquanto ativo: inimigos na Aura de Proteção têm Desvantagem nas Salvaguardas contra as magias e as opções de Canalizar Divindade do Paladino; pode conjurar como Ação Bônus qualquer magia cujo tempo de conjuração seja uma ação (nunca restrito só a magias de Paladino, preservando as demais regras de conjuração); recupera 10 PV no início de cada um dos próprios turnos — nunca exige estar Sangrando, ter ao menos 1 PV, ou qualquer outra condição não fornecida pela fonte.",
+  },
 ];

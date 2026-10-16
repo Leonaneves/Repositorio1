@@ -99,11 +99,11 @@ describe("getClassFeatures — progressão por nível", () => {
 });
 
 describe("getSubclassFeatures — catálogo ainda pendente para a maioria, exceto as subclasses com fonte confirmada", () => {
-  it("vazio para uma subclasse sem conteúdo confirmado (ex.: Juramento da Devoção do Paladino)", () => {
+  it("vazio para uma subclasse sem conteúdo confirmado (ex.: Alquimista do Artífice)", () => {
     const character = createBlankCharacter("features-test");
-    character.classId = "paladino";
+    character.classId = "artifice";
     character.level = 20;
-    character.subclassId = "Juramento da Devoção";
+    character.subclassId = "Alquimista";
     expect(getSubclassFeatures(character)).toEqual([]);
   });
 

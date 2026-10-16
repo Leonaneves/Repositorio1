@@ -16,6 +16,7 @@ import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
 import { getWizardPrintedBlocks } from "../rules/wizardPrintedFeatures.js";
 import { getMonkPrintedBlocks } from "../rules/monkPrintedFeatures.js";
+import { getPaladinPrintedBlocks } from "../rules/paladinPrintedFeatures.js";
 import { getSpeciesTraitsPrintedText } from "../rules/speciesLineagePrintedFeatures.js";
 
 /**
@@ -165,6 +166,24 @@ describe("Monge — nunca abrevia nem troca os 5 tipos elementais de Sintonia El
   it("sem subclasse escolhida (só classe base)", () => {
     const character = baseCharacter("monge", 14, null);
     expectNoAbbreviatedDamageTypes(getMonkPrintedBlocks(character).join("\n"));
+  });
+});
+
+describe("Paladino — Radiante (Golpes Radiantes/Resplendor Sagrado) e Necrótico/Psíquico (Aura de Resistência) nunca abreviados nos textos impressos (fonte \"IMPLEMENTAR PALADINO E SUAS SUBCLASSES NO BUILDER E NO PDF\" §2)", () => {
+  it.each(["Juramento da Devoção", "Juramento da Glória", "Juramento da Vingança", "Juramento dos Anciões"] as const)(
+    "subclasse %s, nível 20",
+    (subclassFullName) => {
+      const character = baseCharacter("paladino", 20, subclassFullName);
+      const joined = getPaladinPrintedBlocks(character).join("\n");
+      expectNoAbbreviatedDamageTypes(joined);
+      expect(joined).toContain("Radiante");
+      if (subclassFullName === "Juramento dos Anciões") expect(joined).toContain("Necrótico/Psíquico/Radiante");
+    },
+  );
+
+  it("sem subclasse escolhida (só classe base)", () => {
+    const character = baseCharacter("paladino", 14, null);
+    expectNoAbbreviatedDamageTypes(getPaladinPrintedBlocks(character).join("\n"));
   });
 });
 

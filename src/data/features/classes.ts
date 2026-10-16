@@ -7,6 +7,7 @@ import { clericClassFeatures } from "./cleric.js";
 import { druidClassFeatures } from "./druid.js";
 import { fighterClassFeatures } from "./fighter.js";
 import { monkClassFeatures } from "./monk.js";
+import { paladinClassFeatures } from "./paladin.js";
 import { rangerClassFeatures } from "./ranger.js";
 import { rogueClassFeatures } from "./rogue.js";
 import { sorcererClassFeatures } from "./sorcerer.js";
@@ -175,22 +176,8 @@ const NAMED_FEATURES_BY_CLASS: Partial<Record<ClassId, NamedFeature[]>> = {
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/wizard.ts).
   // Monge removido daqui — fonte "IMPLEMENTAR MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF" tem
   // conteúdo mecânico completo, não só nome+nível pendente (ver data/features/monk.ts).
-  paladino: [
-    { name: "Conjuração", level: 1 },
-    { name: "Maestria em Arma", level: 1 },
-    { name: "Mãos Consagradas", level: 1 },
-    { name: "Destruição do Paladino", level: 2 },
-    { name: "Estilo de Luta", level: 2 },
-    { name: "Canalizar Divindade", level: 3 },
-    { name: "Ataque Extra", level: 5 },
-    { name: "Montaria Fiel", level: 5 },
-    { name: "Aura de Proteção", level: 6 },
-    { name: "Repudiar Inimigos", level: 9 },
-    { name: "Aura de Coragem", level: 10 },
-    { name: "Golpes Radiantes", level: 11 },
-    { name: "Toque Restaurador", level: 14 },
-    { name: "Aura Expandida", level: 18 },
-  ],
+  // Paladino removido daqui — fonte "IMPLEMENTAR PALADINO E SUAS SUBCLASSES NO BUILDER E NO PDF"
+  // tem conteúdo mecânico completo, não só nome+nível pendente (ver data/features/paladin.ts).
 };
 
 /**
@@ -240,6 +227,7 @@ const DADIVA_EPICA_CLASSES: ClassId[] = [
   "ladino",
   "mago",
   "monge",
+  "paladino",
 ];
 
 function slugify(text: string): string {
@@ -395,6 +383,7 @@ export const classFeatures: FeatureDefinition[] = [
   ...druidClassFeatures,
   ...fighterClassFeatures,
   ...monkClassFeatures,
+  ...paladinClassFeatures,
   ...rangerClassFeatures,
   ...rogueClassFeatures,
   ...sorcererClassFeatures,

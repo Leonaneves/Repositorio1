@@ -647,3 +647,106 @@ export function getDivinationProdigyDiceCount(character: Character): number | nu
   if (character.classId !== "mago" || character.subclassId !== "Adivinho" || character.level < 3) return null;
   return character.level >= 14 ? 3 : 2;
 }
+
+/**
+ * Reserva MÁXIMA de Mãos Consagradas (Paladino, fonte "IMPLEMENTAR
+ * PALADINO E SUAS SUBCLASSES NO BUILDER E NO PDF" §5): `5 × nível de
+ * Paladino`, em PV. Recurso representado no PDF como saldo/máximo
+ * (`[____]/{max}`), nunca como marcadores individuais — este getter só
+ * expõe o MÁXIMO; o saldo atual é estado de sessão, fora do escopo de
+ * criação (mesmo princípio de `Character.hp.current`).
+ */
+export function getMaosConsagradasMax(character: Character): number | null {
+  if (character.classId !== "paladino" || character.level < 1) return null;
+  return 5 * character.level;
+}
+
+/**
+ * Bônus de Salvaguarda da Aura de Proteção (Paladino, nível 6+, fonte
+ * §6): máximo(1, mod CAR). Mesma fórmula reaproveitada por Aura de
+ * Coragem/Expandida/dos 4 juramentos (nunca um bônus próprio por
+ * benefício) — todos usam este único getter.
+ */
+export function getPaladinAuraBonus(character: Character): number | null {
+  if (character.classId !== "paladino" || character.level < 6) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "CAR")));
+}
+
+/**
+ * Alcance da Aura de Proteção em metros (Paladino, nível 6+, fonte §6):
+ * 3m dos níveis 6-17, 9m a partir do nível 18 (Aura Expandida — nunca
+ * um bloco impresso separado, só atualiza este valor). Benefícios que
+ * citam a Aura de Proteção (Coragem, Devoção, Vivacidade, Resistência)
+ * acompanham este MESMO alcance; alcances INDEPENDENTES da aura (3m de
+ * Defesa Gloriosa, 4,5m de A Ira da Natureza) nunca usam este getter.
+ */
+export function getPaladinAuraRange(character: Character): number | null {
+  if (character.classId !== "paladino" || character.level < 6) return null;
+  return character.level >= 18 ? 9 : 3;
+}
+
+/**
+ * Quantidade de alvos de Repudiar Inimigos (Paladino, nível 9+, fonte
+ * §6): máximo(1, mod CAR).
+ */
+export function getRepudiarInimigosTargetCount(character: Character): number | null {
+  if (character.classId !== "paladino" || character.level < 9) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "CAR")));
+}
+
+/**
+ * PV Temp total distribuído por Destruição Inspiradora (Juramento da
+ * Glória, nível 3+, fonte §10): `2d8 + nível de Paladino`, resolvido
+ * como texto — o total é DIVIDIDO entre os alvos escolhidos, nunca
+ * concedido por inteiro a cada um (regra de uso, não desta fórmula).
+ */
+export function getDestruicaoInspiradoraTempHpText(character: Character): string | null {
+  if (character.classId !== "paladino" || character.subclassId !== "Juramento da Glória" || character.level < 3) return null;
+  return `2d8+${character.level}`;
+}
+
+/**
+ * Bônus à CA (e também a quantidade de usos, mesma fórmula) de Defesa
+ * Gloriosa (Juramento da Glória, nível 15+, fonte §10): máximo(1, mod
+ * CAR) — um único getter para os dois usos do mesmo valor dentro da
+ * MESMA característica (nunca duas reservas/contadores separados).
+ */
+export function getDefesaGloriosaBonus(character: Character): number | null {
+  if (character.classId !== "paladino" || character.subclassId !== "Juramento da Glória" || character.level < 15) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "CAR")));
+}
+
+/**
+ * Dano Radiante de Resplendor Sagrado (Juramento da Devoção, nível 20,
+ * fonte §9): mod CAR + BP — valor FIXO por rodada (nunca dado, nunca
+ * mínimo artificial além do que a própria soma resultar).
+ */
+export function getResplendorSagradoDamage(character: Character): number | null {
+  if (character.classId !== "paladino" || character.subclassId !== "Juramento da Devoção" || character.level < 20) return null;
+  const charismaModifier = getAbilityModifier(getEffectiveAbilityScore(character, "CAR"));
+  return charismaModifier + getProficiencyBonus(character.level);
+}
+
+/**
+ * Cura de Sentinela Imortal (Juramento dos Anciões, nível 15+, fonte
+ * §12): três vezes o nível de Paladino — concedida IMEDIATAMENTE após
+ * o personagem ficar com 1 PV (nunca substituída por "3× o nível"
+ * aplicado direto ao cair a 0, preservando a sequência: 1 PV, depois
+ * esta cura).
+ */
+export function getSentinelaImortalHealing(character: Character): number | null {
+  if (character.classId !== "paladino" || character.subclassId !== "Juramento dos Anciões" || character.level < 15) return null;
+  return 3 * character.level;
+}
+
+/**
+ * Bônus de Ataque concedido por Arma Sagrada (Juramento da Devoção,
+ * nível 3+, fonte §9): máximo(1, mod CAR) — aplicado só às jogadas de
+ * ATAQUE da arma imbuída, nunca ao dano. Recurso PRÓPRIO desta
+ * característica, mesmo reaproveitando a fórmula de
+ * `getPaladinAuraBonus`/`getDefesaGloriosaBonus` (nunca o mesmo getter).
+ */
+export function getSacredWeaponAttackBonus(character: Character): number | null {
+  if (character.classId !== "paladino" || character.subclassId !== "Juramento da Devoção" || character.level < 3) return null;
+  return Math.max(1, getAbilityModifier(getEffectiveAbilityScore(character, "CAR")));
+}

@@ -39,6 +39,7 @@ import { getDruidWeaponProficiencyEntries } from "../rules/druidProficiencies.js
 import { getRangerPrintedBlocks } from "../rules/rangerPrintedFeatures.js";
 import { getFighterPrintedBlocks } from "../rules/fighterPrintedFeatures.js";
 import { getMonkPrintedBlocks } from "../rules/monkPrintedFeatures.js";
+import { getPaladinPrintedBlocks } from "../rules/paladinPrintedFeatures.js";
 import { getRoguePrintedBlocks } from "../rules/roguePrintedFeatures.js";
 import { getWizardPrintedBlocks } from "../rules/wizardPrintedFeatures.js";
 import { getMonkMercyToolProficiencyEntries } from "../rules/monkSubclassProficiencies.js";
@@ -49,6 +50,7 @@ import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeap
 import { getEffectiveSpellsPrepared } from "../rules/effectiveSpellsPrepared.js";
 import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
 import { getFighterFightingStyleTalentEntries, getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.js";
+import { getPaladinFightingStyleTalentEntries } from "../rules/paladinTalentEntries.js";
 import { getSubclassDisplayName } from "../rules/subclasses.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
@@ -253,12 +255,14 @@ function splitIntoTwoColumns(blocks: string[]): [string, string] {
  * completa — fonte "IMPLEMENTAR LADINO E SUAS SUBCLASSES NO BUILDER E
  * NO PDF" — mais as 4 subclasses), Mago (classe base completa — fonte
  * "IMPLEMENTAR MAGO E SUAS SUBCLASSES NO BUILDER E NO PDF" — mais as 4
- * subclasses) e Monge (classe base completa — fonte "IMPLEMENTAR
+ * subclasses), Monge (classe base completa — fonte "IMPLEMENTAR
  * MONGE E SUAS SUBCLASSES NO BUILDER E NO PDF" — mais as 4 subclasses)
- * têm o texto impresso montado dinamicamente desde o nível 1, sem
- * depender de subclasse escolhida. As demais 2 classes (Artífice,
- * Paladino) continuam com o campo manual de sempre
- * (`Character.classFeatures`), sem nenhuma mudança de comportamento.
+ * e Paladino (classe base completa — fonte "IMPLEMENTAR PALADINO E
+ * SUAS SUBCLASSES NO BUILDER E NO PDF" — mais os 4 Juramentos) têm o
+ * texto impresso montado dinamicamente desde o nível 1, sem depender
+ * de subclasse escolhida. A única classe restante (Artífice) continua
+ * com o campo manual de sempre (`Character.classFeatures`), sem
+ * nenhuma mudança de comportamento.
  */
 function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
   if (character.classId === "barbaro") {
@@ -319,6 +323,13 @@ function getClassFeaturesColumn(character: Character, column: 1 | 2): string {
     const [column1, column2] = splitIntoTwoColumns(getMonkPrintedBlocks(character));
     return column === 1 ? column1 : column2;
   }
+  // Paladino: classe BASE completa (fonte "IMPLEMENTAR PALADINO E SUAS SUBCLASSES NO BUILDER E
+  // NO PDF") — troca para a composição dinâmica desde o nível 1, com ou sem subclasse escolhida
+  // (mesmo raciocínio já aplicado a Guerreiro/Patrulheiro/Ladino/Mago/Monge acima).
+  if (character.classId === "paladino") {
+    const [column1, column2] = splitIntoTwoColumns(getPaladinPrintedBlocks(character));
+    return column === 1 ? column1 : column2;
+  }
   return column === 1 ? character.classFeatures.column1 : character.classFeatures.column2;
 }
 
@@ -363,6 +374,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getWarlockLessonsOfTheOldOnesTalentEntries(c),
           ...getFighterManeuverTalentEntries(c),
           ...getFighterFightingStyleTalentEntries(c),
+          ...getPaladinFightingStyleTalentEntries(c),
         ],
         c.talentsNotes,
       ),
