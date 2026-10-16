@@ -1,11 +1,12 @@
 import type { Character } from "../domain/character.js";
 import type { FeatureSourceType } from "../domain/features.js";
-import type { SkillKey } from "../domain/ids.js";
+import { SKILL_KEYS, type SkillKey } from "../domain/ids.js";
 import { getCharacterFeatures } from "./features.js";
 import {
   getSkillProficiency,
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
+  isSkillGrantedByFeatChoice,
   isSkillGrantedBySpeciesChoice,
   isSkillGrantedBySubclassChoice,
 } from "./skills.js";
@@ -43,17 +44,24 @@ export function getRedundantSkillChoiceSelections(character: Character): Redunda
 
   for (const feature of getCharacterFeatures(character)) {
     for (const choice of feature.choices ?? []) {
-      if (choice.effect.kind !== "skillProficiency" || !choice.effect.excludeAlreadyProficient) continue;
+      // `skillProficiency` só entra aqui quando marcado `excludeAlreadyProficient` (já escondia perícias
+      // redundantes NO MOMENTO da escolha); `skillOrToolProficiency` (Habilidoso) sempre esconde — ver
+      // `ui/builder/FeatureChoiceControl.tsx` — então sempre revalida, sem precisar da mesma flag.
+      const isRelevant = choice.effect.kind === "skillOrToolProficiency" || (choice.effect.kind === "skillProficiency" && choice.effect.excludeAlreadyProficient);
+      if (!isRelevant) continue;
 
       const selection = character.featureChoiceSelections[choice.id]?.value;
-      const selected = Array.isArray(selection) ? (selection as SkillKey[]) : [];
+      // `skillOrToolProficiency` mistura perícias e ferramentas no mesmo array — só perícias de verdade
+      // entram neste laço (nunca `skills[toolId]` adiante, ex. em `builderProgress.ts#getRedundantSkillBlockers`).
+      const selected = (Array.isArray(selection) ? selection : []).filter((value): value is SkillKey => (SKILL_KEYS as readonly string[]).includes(value));
 
       for (const skill of selected) {
         const grantedElsewhere =
           (feature.sourceType !== "background" && isSkillGrantedByBackground(character, skill)) ||
           (feature.sourceType !== "species" && isSkillGrantedBySpeciesChoice(character, skill)) ||
           (feature.sourceType !== "class" && isSkillGrantedByClassChoice(character, skill)) ||
-          (feature.sourceType !== "subclass" && isSkillGrantedBySubclassChoice(character, skill));
+          (feature.sourceType !== "subclass" && isSkillGrantedBySubclassChoice(character, skill)) ||
+          (feature.sourceType !== "feat" && isSkillGrantedByFeatChoice(character, skill));
 
         if (grantedElsewhere) {
           entries.push({ choiceId: choice.id, featureName: feature.name, sourceType: feature.sourceType, skill });

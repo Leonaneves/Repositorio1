@@ -38,8 +38,27 @@ describe("catálogo de features — integridade estrutural", () => {
     }
   });
 
-  it("generalFeats fica vazio enquanto não houver fonte confirmada (nunca inventar)", () => {
-    expect(generalFeats).toEqual([]);
+  it("generalFeats: os 10 Talentos de Origem do PHB 2024, todos com sourceType 'feat' (fonte \"IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF\")", () => {
+    expect(generalFeats).toHaveLength(10);
+    const names = generalFeats.map((feature) => feature.name).sort();
+    expect(names).toEqual(
+      [
+        "Alerta",
+        "Artifista",
+        "Atacante Selvagem",
+        "Curandeiro",
+        "Habilidoso",
+        "Iniciado em Magia",
+        "Músico",
+        "Sortudo",
+        "Valentão de Taverna",
+        "Vigoroso",
+      ].sort(),
+    );
+    for (const feature of generalFeats) {
+      expect(feature.sourceType).toBe("feat");
+      expect(feature.level).toBeNull();
+    }
   });
 
   it("subclassFeatures: só as 4 subclasses de Bárbaro + 4 de Bardo + 4 de Bruxo + 4 de Clérigo + 4 de Druida + 4 de Feiticeiro + 4 de Patrulheiro + 4 de Guerreiro + 4 de Ladino + 4 de Mago + 4 de Monge + 4 de Paladino por ora (fontes fornecidas), todas com sourceType 'subclass' e subclassFullName válido", () => {

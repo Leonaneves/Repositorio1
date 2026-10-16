@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
-import {
-  getBackgroundFeatEntries,
-  getClassToolProficiencyEntries,
-  getClassWeaponProficiencyEntries,
-  getSpeciesTraitEntries,
-  renderAutoTextBlock,
-} from "./proficiencyText.js";
+import { getClassToolProficiencyEntries, getClassWeaponProficiencyEntries, getSpeciesTraitEntries, renderAutoTextBlock } from "./proficiencyText.js";
 
 describe("entradas automáticas de texto", () => {
   it("proficiência de armas reflete a classe atual", () => {
@@ -34,14 +28,6 @@ describe("entradas automáticas de texto", () => {
     const second = getSpeciesTraitEntries(character);
     expect(second[0]?.text).toContain("TAUMATURGIA");
     expect(second[0]?.text).not.toContain("RESILIÊNCIA ANÃNICA");
-  });
-
-  it("talento de origem reflete o antecedente atual", () => {
-    const character = createBlankCharacter("t");
-    character.backgroundId = "soldado";
-    expect(getBackgroundFeatEntries(character)).toEqual([
-      { text: "Atacante Selvagem: Rerola 1 dado de dano p/ turno", source: "background" },
-    ]);
   });
 });
 

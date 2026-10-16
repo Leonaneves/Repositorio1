@@ -13,12 +13,21 @@ export interface AbilityScoreState {
  * classe) tem sua PRÓPRIA instância, guardada em `Character.asiSelections`
  * por nível. `abilityIncrease.allocations` usa o mesmo componente
  * genérico de distribuição de `rules/abilityAllocation.ts` (2 pontos
- * totais, máximo +2 por atributo — `ASI_ALLOCATION_CONFIG`). `feat` não
- * guarda nenhum id: o catálogo de Talentos ainda não existe (§27 —
- * nunca inventado), então escolher "Talento" já é a decisão completa
- * por ora.
+ * totais, máximo +2 por atributo — `ASI_ALLOCATION_CONFIG`). `feat.featId`
+ * referencia um id de `data/features/feats.ts#generalFeats` — `null`
+ * enquanto a decisão "Talento" já foi tomada mas o talento específico
+ * ainda não (fonte "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF"
+ * §2/§15: `isAsiLevelComplete` só considera completo com `featId`
+ * resolvido). Esta é a identidade NATURAL de cada aquisição de talento
+ * repetível (Habilidoso/Iniciado em Magia): o PRÓPRIO nível de ASI já
+ * distingue uma aquisição da outra (nunca precisa de um id gerado à
+ * parte) — `rules/feats.ts#instantiateFeatAcquisition` usa `asi-{nível}`
+ * como chave para parametrizar os ids das `FeatureChoice` internas de
+ * cada aquisição, evitando colisão entre elas.
  */
-export type AsiSelection = { kind: "abilityIncrease"; allocations: Partial<Record<AbilityKey, number>> } | { kind: "feat" };
+export type AsiSelection =
+  | { kind: "abilityIncrease"; allocations: Partial<Record<AbilityKey, number>> }
+  | { kind: "feat"; featId: string | null };
 
 export interface SkillState {
   /**
@@ -42,7 +51,7 @@ export interface SavingThrowState {
   manualAdjustment: number;
 }
 
-export type ProficiencyTextSource = "class" | "species" | "background";
+export type ProficiencyTextSource = "class" | "species" | "background" | "feat";
 
 /** Uma entrada de texto auto-gerada a partir de uma origem do personagem — NUNCA armazenada em `Character` (ver nota abaixo). */
 export interface AutoTextEntry {
@@ -169,14 +178,17 @@ export interface Character {
 
   /**
    * Respostas a escolhas de feature (`FeatureChoice.id` → seleção do
-   * jogador) e talentos gerais escolhidos pelo jogador (ids de
-   * `FeatureDefinition` com `sourceType: "feat"`). Ver `rules/features.ts`
-   * — a lista de features em si nunca é armazenada aqui, só as escolhas;
-   * `getCharacterFeatures` sempre recalcula a partir de
-   * classId/subclassId/speciesId/backgroundId/level + estes campos.
+   * jogador) — tanto de Classe/Subclasse/Espécie/Antecedente quanto as
+   * escolhas INTERNAS de cada Talento de Origem adquirido (ex.: as 3
+   * perícias/ferramentas de Habilidoso, a lista/truques/magia/atributo
+   * de Iniciado em Magia). QUAL talento foi escolhido em cada nível de
+   * ASI mora em `asiSelections[nível].featId` (ver `AsiSelection`), nunca
+   * aqui. Ver `rules/features.ts` — a lista de features em si nunca é
+   * armazenada aqui, só as escolhas; `getCharacterFeatures` sempre
+   * recalcula a partir de classId/subclassId/speciesId/backgroundId/
+   * level/asiSelections + estes campos.
    */
   featureChoiceSelections: Record<string, FeatureChoiceSelection>;
-  chosenFeatIds: string[];
 
   /**
    * Invocações Místicas do Bruxo escolhidas (etapa própria do Builder,
@@ -388,7 +400,6 @@ export function createBlankCharacter(id: string): Character {
     appearance: "",
     languages: "",
     featureChoiceSelections: {},
-    chosenFeatIds: [],
     chosenInvocations: [],
     knownWildShapeForms: [],
     knownMetamagicOptions: [],

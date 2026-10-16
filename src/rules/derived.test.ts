@@ -46,6 +46,21 @@ describe("getInitiative", () => {
     character.abilities.SAB.score = 18; // +4 — não se aplica
     expect(getInitiative(character).auto).toBe(2);
   });
+
+  it("Alerta soma o Bônus de Proficiência (fonte \"IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF\" §4), nunca duplicado sem o talento", () => {
+    const character = createBlankCharacter("init-test");
+    character.backgroundId = "guarda"; // concede Alerta
+    character.level = 5; // BP 3
+    character.abilities.DEX.score = 14; // +2
+    expect(getInitiative(character).auto).toBe(5); // 2 (DEX) + 3 (BP)
+  });
+
+  it("sem Alerta, o Bônus de Proficiência nunca é somado à Iniciativa", () => {
+    const character = createBlankCharacter("init-test");
+    character.level = 5;
+    character.abilities.DEX.score = 14; // +2
+    expect(getInitiative(character).auto).toBe(2);
+  });
 });
 
 describe("getPassivePerception", () => {

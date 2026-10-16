@@ -20,13 +20,8 @@ import {
   getMaxHitDice,
   getMaxHitPoints,
 } from "../rules/index.js";
-import {
-  getBackgroundFeatEntries,
-  getClassToolProficiencyEntries,
-  getClassWeaponProficiencyEntries,
-  getSpeciesTraitEntries,
-  renderAutoTextBlock,
-} from "../rules/proficiencyText.js";
+import { getClassToolProficiencyEntries, getClassWeaponProficiencyEntries, getSpeciesTraitEntries, renderAutoTextBlock } from "../rules/proficiencyText.js";
+import { getFeatTalentEntries, getFeatToolProficiencyEntries } from "../rules/featTalentEntries.js";
 import { getSkillProficiency } from "../rules/skills.js";
 import { getBarbarianPrintedBlocks } from "../rules/barbarianPrintedFeatures.js";
 import { getBarbarianWeaponMasteryEntries } from "../rules/barbarianWeaponMastery.js";
@@ -355,7 +350,12 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
     pdfField: "PROF.ferramentas",
     getValue: (c) =>
       renderAutoTextBlock(
-        [...getClassToolProficiencyEntries(c), ...getRogueAssassinToolProficiencyEntries(c), ...getMonkMercyToolProficiencyEntries(c)],
+        [
+          ...getClassToolProficiencyEntries(c),
+          ...getRogueAssassinToolProficiencyEntries(c),
+          ...getMonkMercyToolProficiencyEntries(c),
+          ...getFeatToolProficiencyEntries(c),
+        ],
         c.toolProficienciesNotes,
       ),
   },
@@ -370,7 +370,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
     getValue: (c) =>
       renderAutoTextBlock(
         [
-          ...getBackgroundFeatEntries(c),
+          ...getFeatTalentEntries(c),
           ...getWarlockLessonsOfTheOldOnesTalentEntries(c),
           ...getFighterManeuverTalentEntries(c),
           ...getFighterFightingStyleTalentEntries(c),

@@ -11,6 +11,7 @@ import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_C
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
 import { WIZARD_ACADEMIC_CHOICE_ID } from "../data/features/wizard.js";
+import { getCharacterFeatures } from "./features.js";
 
 /**
  * IDs de `FeatureChoice` (`skillProficiency`) além da escolha-base de
@@ -145,6 +146,30 @@ export function isSkillGrantedBySubclassFixed(character: Character, skill: Skill
 }
 
 /**
+ * `true` se o jogador escolheu esta perícia numa `FeatureChoice` de
+ * ORIGEM Talento — Habilidoso (`skillOrToolProficiency`), ou qualquer
+ * futuro talento com `skillProficiency` (fonte "IMPLEMENTAR TALENTOS DE
+ * ORIGEM NO BUILDER E NO PDF" §8). Varre TODAS as aquisições de Talento
+ * do personagem (`rules/feats.ts` já resolve Antecedente + cada nível de
+ * ASI escolhido), nunca uma lista estática de ids por classe — cada
+ * aquisição repetível (Habilidoso) tem seus próprios ids de escolha,
+ * então uma lista fixa como `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` não
+ * serviria aqui.
+ */
+export function isSkillGrantedByFeatChoice(character: Character, skill: SkillKey): boolean {
+  for (const feature of getCharacterFeatures(character)) {
+    if (feature.sourceType !== "feat") continue;
+    for (const choice of feature.choices ?? []) {
+      if (choice.effect.kind !== "skillProficiency" && choice.effect.kind !== "skillOrToolProficiency") continue;
+      const selection = character.featureChoiceSelections[choice.id]?.value;
+      const selected = Array.isArray(selection) ? selection : [];
+      if (selected.includes(skill)) return true;
+    }
+  }
+  return false;
+}
+
+/**
  * `true` se alguma escolha de "Especialização" (`skillExpertise`) da
  * classe ATUAL já selecionou esta perícia — nunca concede proficiência,
  * só a Especialização (ex.: "Especialista" do Bardo, níveis 2 e 9).
@@ -272,18 +297,18 @@ export function getAutomaticSkillProficiencyGrants(character: Character): Automa
   return grants;
 }
 
-export type SkillProficiencyOrigin = "manual" | "background" | "class" | "subclass" | "species" | null;
+export type SkillProficiencyOrigin = "manual" | "background" | "class" | "subclass" | "species" | "feat" | null;
 
 /**
  * De onde vem a proficiência final da perícia — usado pela UI (§6/§10)
  * para diferenciar "proficiência automática" (`"background"`/`"class"`/
- * `"subclass"`/`"species"`), "proficiência manual" (`"manual"`, modo
- * Homebrew) e "nenhuma" (`null`). Mesma prioridade de
+ * `"subclass"`/`"species"`/`"feat"`), "proficiência manual" (`"manual"`,
+ * modo Homebrew) e "nenhuma" (`null`). Mesma prioridade de
  * `getSkillProficiency`: manual > fonte estrutural. Quando duas fontes
  * estruturais concedem a mesma perícia (ex.: Antecedente e Classe dão
  * "História"), prioriza na ordem background > class > subclass >
- * species só para exibição — a proficiência em si já não depende de
- * qual delas "venceu" (§9: a duplicata nunca consome uma escolha
+ * species > feat só para exibição — a proficiência em si já não depende
+ * de qual delas "venceu" (§9: a duplicata nunca consome uma escolha
  * adicional de nenhuma das fontes).
  */
 export function getSkillProficiencyOrigin(character: Character, skill: SkillKey): SkillProficiencyOrigin {
@@ -294,6 +319,7 @@ export function getSkillProficiencyOrigin(character: Character, skill: SkillKey)
   if (isSkillGrantedBySubclassChoice(character, skill)) return "subclass";
   if (isSkillGrantedBySubclassFixed(character, skill)) return "subclass";
   if (isSkillGrantedBySpeciesChoice(character, skill)) return "species";
+  if (isSkillGrantedByFeatChoice(character, skill)) return "feat";
   return null;
 }
 
@@ -317,7 +343,8 @@ export function getSkillProficiency(character: Character, skill: SkillKey): bool
       isSkillGrantedByClassChoice(character, skill) ||
       isSkillGrantedBySubclassChoice(character, skill) ||
       isSkillGrantedBySubclassFixed(character, skill) ||
-      isSkillGrantedBySpeciesChoice(character, skill))
+      isSkillGrantedBySpeciesChoice(character, skill) ||
+      isSkillGrantedByFeatChoice(character, skill))
   );
 }
 

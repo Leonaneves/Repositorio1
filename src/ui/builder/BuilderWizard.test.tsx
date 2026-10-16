@@ -7,6 +7,8 @@ import { useInsightSessionStore } from "../insights/insightSessionStore.js";
 import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../../data/features/subclasses.js";
 import { RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID } from "../../data/features/ranger.js";
 import { getClassSkillChoiceId } from "../../data/classes.js";
+import { MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID } from "../../data/features/feats.js";
+import { getFeatChoiceId } from "../../rules/feats.js";
 import { getSkillProficiencyOrigin } from "../../rules/skills.js";
 
 beforeEach(() => {
@@ -213,6 +215,10 @@ describe("BuilderWizard — Revisão detecta pendências e bloqueia a exportaç�
       store.addInvocation("mente-mistica");
       store.setStartingEquipmentOption("A");
       store.setFeatureChoiceSelection(getClassSkillChoiceId("bruxo"), ["arcanismo", "enganacao"]);
+      // Acólito concede Iniciado em Magia (Clérigo) — a lista vem fixa, mas o atributo de
+      // conjuração desta aquisição (optionPick) ainda precisa ser escolhido (fonte "IMPLEMENTAR
+      // TALENTOS DE ORIGEM NO BUILDER E NO PDF" §9) para não ficar como pendência.
+      store.setFeatureChoiceSelection(getFeatChoiceId(MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID, "background"), "Sabedoria");
     });
     act(() => useBuilderStore.getState().goToStep("review"));
 

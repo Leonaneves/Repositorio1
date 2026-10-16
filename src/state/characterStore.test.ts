@@ -742,14 +742,23 @@ describe("useCharacterStore — escolhas de feature e talentos gerais escolhidos
     });
   });
 
-  it("adiciona e remove um talento geral escolhido, sem duplicar", () => {
+  it("setAsiFeat escolhe/limpa qual talento preenche um nível de ASI já em modo 'feat'", () => {
     const store = useCharacterStore.getState();
-    store.addChosenFeat("talento-x");
-    store.addChosenFeat("talento-x"); // repetido, não deve duplicar
-    expect(useCharacterStore.getState().character.chosenFeatIds).toEqual(["talento-x"]);
+    store.setClass("mago");
+    store.setAsiMode(4, "feat");
+    store.setAsiFeat(4, "alerta");
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: "alerta" });
 
-    store.removeChosenFeat("talento-x");
-    expect(useCharacterStore.getState().character.chosenFeatIds).toEqual([]);
+    store.setAsiFeat(4, null);
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: null });
+  });
+
+  it("setAsiFeat não faz nada se o nível ainda não estiver em modo 'feat'", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setAsiMode(4, "abilityIncrease");
+    store.setAsiFeat(4, "alerta");
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: {} });
   });
 });
 
@@ -881,7 +890,7 @@ describe("useCharacterStore — ASI estruturado (REORGANIZAÇÃO DO BUILDER §22
     store.increaseAsiAbility(4, "FOR");
 
     store.setAsiMode(4, "feat");
-    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat" });
+    expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: null });
   });
 
   it("voltar para 'abilityIncrease' começa do zero, nunca duplica bônus antigo", () => {
@@ -916,7 +925,7 @@ describe("useCharacterStore — ASI estruturado (REORGANIZAÇÃO DO BUILDER §22
     store.setClass("guerreiro"); // tem ASI no nível 6, único entre as classes comuns
     store.setLevel(6);
     store.setAsiMode(6, "feat");
-    expect(useCharacterStore.getState().character.asiSelections[6]).toEqual({ kind: "feat" });
+    expect(useCharacterStore.getState().character.asiSelections[6]).toEqual({ kind: "feat", featId: null });
 
     store.setClass("mago"); // não tem ASI no nível 6
     expect(useCharacterStore.getState().character.asiSelections[6]).toBeUndefined();
@@ -931,7 +940,7 @@ describe("useCharacterStore — ASI estruturado (REORGANIZAÇÃO DO BUILDER §22
 
     store.setLevel(4);
     const { asiSelections } = useCharacterStore.getState().character;
-    expect(asiSelections[4]).toEqual({ kind: "feat" });
+    expect(asiSelections[4]).toEqual({ kind: "feat", featId: null });
     expect(asiSelections[8]).toBeUndefined();
   });
 

@@ -34,15 +34,17 @@ export function getAsiAbilityBonus(character: Character, ability: AbilityKey): n
 }
 
 /**
- * Se a escolha de ASI de um nível específico está completa: "feat" já
- * é completo por definição (catálogo de Talentos ainda pendente — §27,
- * nunca inventado; nada mais a validar até ele existir); "abilityIncrease"
- * só está completo quando os 2 pontos foram todos distribuídos (§41).
- * `undefined` (nenhum modo escolhido ainda) nunca é completo.
+ * Se a escolha de ASI de um nível específico está completa: "feat" só é
+ * completo quando um talento específico já foi escolhido (`featId !==
+ * null` — fonte "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF"
+ * §15: "escolher Talento" sozinho não trava mais o avanço, precisa do
+ * talento em si); "abilityIncrease" só está completo quando os 2 pontos
+ * foram todos distribuídos (§41). `undefined` (nenhum modo escolhido
+ * ainda) nunca é completo.
  */
 export function isAsiLevelComplete(selection: AsiSelection | undefined): boolean {
   if (!selection) return false;
-  if (selection.kind === "feat") return true;
+  if (selection.kind === "feat") return selection.featId !== null;
   return isAllocationComplete(ASI_ALLOCATION_CONFIG, selection.allocations);
 }
 

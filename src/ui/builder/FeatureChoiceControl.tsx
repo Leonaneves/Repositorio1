@@ -189,6 +189,54 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     );
   }
 
+  if (effect.kind === "skillOrToolProficiency") {
+    // Habilidoso (fonte "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF" §8): qualquer combinação
+    // de perícias E ferramentas/instrumentos compartilhando UM ÚNICO limite — nunca duas contagens
+    // independentes, por isso um único controle que mistura as duas listas de opções, nunca dois
+    // `FeatureChoiceControl` (um de `skillProficiency`, outro de `toolProficiency`) lado a lado.
+    const selected = Array.isArray(selection?.value) ? selection.value : [];
+    const skillOptions = SKILL_KEYS.filter((skillId) => selected.includes(skillId) || !getSkillProficiency(character, skillId));
+    const toolOptions = getEligibleTools(effect.toolCategory);
+    const atLimit = selected.length >= effect.count;
+    return (
+      <fieldset className="feature-choice">
+        <legend>
+          {choice.prompt} ({selected.length}/{effect.count})
+        </legend>
+        <p className="builder-step__hint">Perícias</p>
+        {skillOptions.map((skillId) => (
+          <label key={skillId} className="checkbox-field checkbox-field--compact">
+            <input
+              type="checkbox"
+              checked={selected.includes(skillId)}
+              disabled={!selected.includes(skillId) && atLimit}
+              onChange={(e) => {
+                const next = e.target.checked ? [...selected, skillId] : selected.filter((v) => v !== skillId);
+                setFeatureChoiceSelection(choice.id, next);
+              }}
+            />
+            <span>{skills[skillId].name}</span>
+          </label>
+        ))}
+        <p className="builder-step__hint">Ferramentas e Instrumentos</p>
+        {toolOptions.map((tool) => (
+          <label key={tool.id} className="checkbox-field checkbox-field--compact">
+            <input
+              type="checkbox"
+              checked={selected.includes(tool.id)}
+              disabled={!selected.includes(tool.id) && atLimit}
+              onChange={(e) => {
+                const next = e.target.checked ? [...selected, tool.id] : selected.filter((v) => v !== tool.id);
+                setFeatureChoiceSelection(choice.id, next);
+              }}
+            />
+            <span>{tool.name}</span>
+          </label>
+        ))}
+      </fieldset>
+    );
+  }
+
   const value = typeof selection?.value === "string" ? selection.value : "";
   return (
     <label className="field feature-choice feature-choice--manual">

@@ -2,10 +2,10 @@ import type { Character } from "../domain/character.js";
 import type { FeatureChoice, FeatureDefinition, FeatureView } from "../domain/features.js";
 import { backgroundFeatFeatures } from "../data/features/backgrounds.js";
 import { classFeatures } from "../data/features/classes.js";
-import { generalFeats } from "../data/features/feats.js";
 import { speciesFeatures } from "../data/features/species.js";
 import { subclassFeatures, RANGER_MENTE_DE_FERRO_CHOICE_ID, RANGER_MENTE_DE_FERRO_FEATURE_ID } from "../data/features/subclasses.js";
 import { hasSpeciesLineage } from "../data/speciesLineages.js";
+import { getFeatAcquisitionFeatures, mergeBackgroundFeatWithCatalog } from "./feats.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
 /** Features de classe já adquiridas (nível de aquisição ≤ nível atual). */
@@ -64,15 +64,28 @@ export function getSpeciesFeatures(character: Character): FeatureDefinition[] {
   return features.map((feature) => ({ ...feature, summary: getSpeciesTraitsPrintedText(character) }));
 }
 
-/** Talento de origem do antecedente escolhido. */
+/**
+ * Talento de origem do antecedente escolhido — mesclado com a aquisição
+ * MECÂNICA real do talento (`rules/feats.ts#mergeBackgroundFeatWithCatalog`),
+ * nunca só o texto literal do `originFeat` (fonte "IMPLEMENTAR TALENTOS
+ * DE ORIGEM NO BUILDER E NO PDF" §2/§8).
+ */
 export function getBackgroundFeatures(character: Character): FeatureDefinition[] {
   if (!character.backgroundId) return [];
-  return backgroundFeatFeatures.filter((feature) => feature.backgroundId === character.backgroundId);
+  return backgroundFeatFeatures
+    .filter((feature) => feature.backgroundId === character.backgroundId)
+    .map((feature) => mergeBackgroundFeatWithCatalog(feature, character));
 }
 
-/** Talentos gerais escolhidos pelo jogador (`Character.chosenFeatIds`) — catálogo ainda vazio (ver data/features/feats.ts). */
+/**
+ * Talentos gerais escolhidos pelo jogador em níveis de ASI
+ * (`Character.asiSelections[nível].featId`) — cada aquisição já vem
+ * parametrizada por `rules/feats.ts#getFeatAcquisitionFeatures`, nunca
+ * inclui a aquisição do Antecedente (coberta por `getBackgroundFeatures`
+ * acima, para nunca aparecer duplicada).
+ */
 export function getChosenFeatFeatures(character: Character): FeatureDefinition[] {
-  return generalFeats.filter((feature) => character.chosenFeatIds.includes(feature.id));
+  return getFeatAcquisitionFeatures(character);
 }
 
 /** Todas as features do personagem, de todas as fontes, sem duplicar. */

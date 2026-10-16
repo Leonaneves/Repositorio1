@@ -5,6 +5,8 @@ import { ABILITY_KEYS } from "../domain/common.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
+import { MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID } from "../data/features/feats.js";
+import { getFeatChoiceId } from "./feats.js";
 import { getPendingBuilderSteps, getStepBlockers } from "./builderProgress.js";
 
 function blank(): Character {
@@ -217,6 +219,10 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
       backgroundAbilityBonuses: { INT: 2, SAB: 1 },
     };
     character = setValidAbilities(character);
+    // Acólito concede Iniciado em Magia (Clérigo) — a lista vem fixa, mas o atributo de
+    // conjuração desta aquisição (optionPick) ainda precisa ser escolhido (fonte "IMPLEMENTAR
+    // TALENTOS DE ORIGEM NO BUILDER E NO PDF" §9) para não bloquear "featuresAndTalents".
+    character.featureChoiceSelections[getFeatChoiceId(MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID, "background")] = { value: "Sabedoria" };
     const pending = getPendingBuilderSteps(character);
     expect(pending.some((p) => p.stepId === "species")).toBe(false);
     expect(pending.some((p) => p.stepId === "background")).toBe(false);

@@ -5,6 +5,8 @@ import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import { WIZARD_ACADEMIC_CHOICE_ID } from "../data/features/wizard.js";
+import { HABILIDOSO_CHOICE_BASE_ID } from "../data/features/feats.js";
+import { getFeatChoiceId } from "./feats.js";
 import { getInvalidExpertiseSelections, getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 
 /**
@@ -210,5 +212,31 @@ describe("getInvalidExpertiseSelections — revalida Especialização contra a p
     character.skills.arcanismo.manualOverride = true;
     character.featureChoiceSelections[WIZARD_ACADEMIC_CHOICE_ID] = { value: ["arcanismo"] };
     expect(getInvalidExpertiseSelections(character)).toEqual([]);
+  });
+});
+
+describe("Habilidoso — perícia redundante detectada independente da ordem (fonte \"IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF\" §2)", () => {
+  it("escolher Habilidoso antes do Antecedente que concede a mesma perícia depois: sinaliza a redundância", () => {
+    const character = createBlankCharacter("feat-skill-conflict-test");
+    character.classId = "guerreiro";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "habilidoso" } };
+    character.featureChoiceSelections[getFeatChoiceId(HABILIDOSO_CHOICE_BASE_ID, "asi-4")] = { value: ["intuicao", "alaude"] };
+    character.backgroundId = "acolito"; // concede "intuicao" automaticamente
+
+    const entries = getRedundantSkillChoiceSelections(character);
+    expect(entries).toEqual([
+      { choiceId: getFeatChoiceId(HABILIDOSO_CHOICE_BASE_ID, "asi-4"), featureName: "Habilidoso", sourceType: "feat", skill: "intuicao" },
+    ]);
+  });
+
+  it("nunca sinaliza a ferramenta escolhida junto (só perícias passam pelo detector de redundância)", () => {
+    const character = createBlankCharacter("feat-skill-conflict-test-2");
+    character.classId = "guerreiro";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "habilidoso" } };
+    character.featureChoiceSelections[getFeatChoiceId(HABILIDOSO_CHOICE_BASE_ID, "asi-4")] = { value: ["persuasao", "alaude"] };
+    character.backgroundId = "acolito";
+    expect(getRedundantSkillChoiceSelections(character)).toEqual([]);
   });
 });

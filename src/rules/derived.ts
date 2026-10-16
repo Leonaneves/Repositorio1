@@ -1,6 +1,7 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
+import { getAlertInitiativeBonus } from "./feats.js";
 import { getSkillBonus } from "./skills.js";
 
 /**
@@ -8,11 +9,14 @@ import { getSkillBonus } from "./skills.js";
  * Sombras" (Vigilante das Sombras, nível 3 — fonte "IMPLEMENTAR
  * SUBCLASSES DO PATRULHEIRO NO BUILDER E NO PDF" §5) troca a base para
  * Sabedoria, sem mínimo +1 — aplicado direto aqui, nunca repetido como
- * texto em Características de Classe.
+ * texto em Características de Classe. Alerta (fonte "IMPLEMENTAR
+ * TALENTOS DE ORIGEM NO BUILDER E NO PDF" §4) soma o Bônus de
+ * Proficiência por cima — `getAlertInitiativeBonus` já devolve `0` sem
+ * o talento, nunca duplicado por outra fonte.
  */
 export function getInitiative(character: Character): ComputedValue {
   const ability = character.subclassId === "Vigilante das Sombras" && character.level >= 3 ? "SAB" : "DEX";
-  const auto = getAbilityModifier(getEffectiveAbilityScore(character, ability));
+  const auto = getAbilityModifier(getEffectiveAbilityScore(character, ability)) + getAlertInitiativeBonus(character);
   return computedValue(auto, character.initiative.manualAdjustment);
 }
 

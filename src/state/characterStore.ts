@@ -304,15 +304,13 @@ interface CharacterStore {
 
   setFeatureChoiceSelection: (choiceId: string, value: string | string[]) => void;
   clearFeatureChoiceSelection: (choiceId: string) => void;
-  addChosenFeat: (featId: string) => void;
-  removeChosenFeat: (featId: string) => void;
 
   /** Adiciona 1 cópia de uma Invocação Mística (`subChoice` começa vazio; repetíveis podem ser adicionadas mais de uma vez). */
   addInvocation: (invocationId: string) => void;
   removeInvocation: (index: number) => void;
   setInvocationSubChoice: (index: number, value: string) => void;
 
-  /** Alterna 1 opção de Metamagia conhecida (nunca duplica — mesmo padrão de addChosenFeat/removeChosenFeat). */
+  /** Alterna 1 opção de Metamagia conhecida (nunca duplica — mesmo padrão de addInvocation/removeInvocation). */
   addMetamagicOption: (optionId: string) => void;
   removeMetamagicOption: (optionId: string) => void;
 
@@ -336,6 +334,8 @@ interface CharacterStore {
 
   /** Define o modo de um ASI (nível específico) — "feat" ou "abilityIncrease" (sempre reinicia a distribuição anterior, nunca deixa bônus ocultos de uma escolha anterior). */
   setAsiMode: (level: number, kind: AsiSelection["kind"]) => void;
+  /** Escolhe (ou limpa, com `null`) QUAL talento preenche um nível de ASI já em modo "feat" — nunca muda o modo em si (ver `setAsiMode`). */
+  setAsiFeat: (level: number, featId: string | null) => void;
   increaseAsiAbility: (level: number, ability: AbilityKey) => void;
   decreaseAsiAbility: (level: number, ability: AbilityKey) => void;
 
@@ -645,16 +645,6 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
       delete featureChoiceSelections[choiceId];
       return { character: { ...state.character, featureChoiceSelections } };
     }),
-  addChosenFeat: (featId) =>
-    set((state) => {
-      if (state.character.chosenFeatIds.includes(featId)) return state;
-      return { character: { ...state.character, chosenFeatIds: [...state.character.chosenFeatIds, featId] } };
-    }),
-  removeChosenFeat: (featId) =>
-    set((state) => ({
-      character: { ...state.character, chosenFeatIds: state.character.chosenFeatIds.filter((id) => id !== featId) },
-    })),
-
   addInvocation: (invocationId) =>
     set((state) => ({
       character: { ...state.character, chosenInvocations: [...state.character.chosenInvocations, { invocationId, subChoice: "" }] },
@@ -749,7 +739,14 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
   // Trocar de modo nunca deixa bônus ocultos de uma escolha anterior (§28) — sempre reinicia do zero.
   setAsiMode: (level, kind) =>
     set((state) => {
-      const selection: AsiSelection = kind === "feat" ? { kind: "feat" } : { kind: "abilityIncrease", allocations: {} };
+      const selection: AsiSelection = kind === "feat" ? { kind: "feat", featId: null } : { kind: "abilityIncrease", allocations: {} };
+      return { character: { ...state.character, asiSelections: { ...state.character.asiSelections, [level]: selection } } };
+    }),
+  setAsiFeat: (level, featId) =>
+    set((state) => {
+      const current = state.character.asiSelections[level];
+      if (!current || current.kind !== "feat") return state;
+      const selection: AsiSelection = { kind: "feat", featId };
       return { character: { ...state.character, asiSelections: { ...state.character.asiSelections, [level]: selection } } };
     }),
   increaseAsiAbility: (level, ability) =>

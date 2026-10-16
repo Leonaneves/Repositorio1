@@ -3,6 +3,7 @@ import { getBarbarianRitualSpells } from "./barbarianRitualSpells.js";
 import { getBardAutoPreparedSpells } from "./bardAutoPreparedSpells.js";
 import { getClericAutoPreparedSpells } from "./clericAutoPreparedSpells.js";
 import { getDruidAutoPreparedSpells } from "./druidAutoPreparedSpells.js";
+import { getFeatAutoPreparedSpells } from "./featAutoPreparedSpells.js";
 import { getMonkAutoPreparedSpells } from "./monkAutoPreparedSpells.js";
 import { getPaladinAutoPreparedSpells } from "./paladinAutoPreparedSpells.js";
 import { getRangerAutoPreparedSpells } from "./rangerAutoPreparedSpells.js";
@@ -36,7 +37,11 @@ import { getSpeciesGrantedSpells } from "./speciesLineageSpells.js";
  * Sombras/Elementalismo do Caminho dos Elementos do Monge —
  * `getMonkAutoPreparedSpells`; Destruição Divina/Convocar Montaria,
  * truques de Combatente Abençoado e magias dos 4 Juramentos do
- * Paladino — `getPaladinAutoPreparedSpells`), sem a lista manual do
+ * Paladino — `getPaladinAutoPreparedSpells`; truques + magia de 1º
+ * círculo de cada aquisição de Iniciado em Magia (Antecedente ou ASI,
+ * Talento de Origem, fonte "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E
+ * NO PDF" §9) — `getFeatAutoPreparedSpells`, independente de classe,
+ * mesmo princípio de `getSpeciesGrantedSpells`), sem a lista manual do
  * jogador —
  * usada tanto pelo PDF (`pdf/fieldMap.ts`) quanto pela etapa de
  * Conjuração do Builder/Ficha Web, para nunca duplicar a regra em dois
@@ -48,6 +53,7 @@ export function getAutoPreparedSpells(character: Character): SpellPreparedEntry[
     ...getBardAutoPreparedSpells(character),
     ...getClericAutoPreparedSpells(character),
     ...getDruidAutoPreparedSpells(character),
+    ...getFeatAutoPreparedSpells(character),
     ...getMonkAutoPreparedSpells(character),
     ...getPaladinAutoPreparedSpells(character),
     ...getRangerAutoPreparedSpells(character),

@@ -15,7 +15,14 @@ export interface SkillRowProps {
   skillId: SkillKey;
 }
 
-const ORIGIN_LABELS = { background: "Antecedente", class: "Classe", subclass: "Subclasse", species: "Espécie", manual: "Manual" } as const;
+const ORIGIN_LABELS = {
+  background: "Antecedente",
+  class: "Classe",
+  subclass: "Subclasse",
+  species: "Espécie",
+  feat: "Talento",
+  manual: "Manual",
+} as const;
 
 /**
  * Uma linha de perícia — usada dentro do card do atributo que a

@@ -1,6 +1,5 @@
 import type { Character, AutoTextEntry } from "../domain/character.js";
 import { classes } from "../data/classes.js";
-import { backgrounds } from "../data/backgrounds.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
 /**
@@ -29,11 +28,6 @@ export function getClassToolProficiencyEntries(character: Character): AutoTextEn
 export function getSpeciesTraitEntries(character: Character): AutoTextEntry[] {
   if (!character.speciesId) return [];
   return [{ text: getSpeciesTraitsPrintedText(character), source: "species" }];
-}
-
-export function getBackgroundFeatEntries(character: Character): AutoTextEntry[] {
-  if (!character.backgroundId) return [];
-  return [{ text: backgrounds[character.backgroundId].originFeat, source: "background" }];
 }
 
 /** Junta as entradas automáticas + notas manuais num único texto para exibição (ex.: impressão/exportação). */

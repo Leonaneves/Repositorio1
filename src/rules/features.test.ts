@@ -191,22 +191,36 @@ describe("getSpeciesFeatures", () => {
   });
 });
 
-describe("getBackgroundFeatures — talento de origem modelado como sourceType feat", () => {
-  it("devolve o talento de origem do antecedente escolhido", () => {
+describe("getBackgroundFeatures — talento de origem modelado como sourceType feat, mesclado com o talento mecânico real (rules/feats.ts)", () => {
+  it("devolve o talento de origem do antecedente escolhido, já com o resumo do talento mecânico", () => {
     const character = createBlankCharacter("features-test");
     character.backgroundId = "soldado";
     const features = getBackgroundFeatures(character);
     expect(features).toHaveLength(1);
     expect(features[0].sourceType).toBe("feat");
-    expect(features[0].summary).toContain("Atacante Selvagem");
+    expect(features[0].id).toBe("antecedente-soldado-talento-origem");
+    expect(features[0].summary).toContain("dados de dano da arma duas vezes");
   });
 });
 
-describe("getChosenFeatFeatures — catálogo geral vazio nesta etapa", () => {
-  it("sempre vazio, mesmo com ids em chosenFeatIds (não há talentos cadastrados ainda)", () => {
+describe("getChosenFeatFeatures — talentos escolhidos em níveis de ASI (rules/feats.ts)", () => {
+  it("vazio sem nenhuma aquisição de ASI resolvida", () => {
     const character = createBlankCharacter("features-test");
-    character.chosenFeatIds = ["talento-inexistente"];
+    character.classId = "mago";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: null } };
     expect(getChosenFeatFeatures(character)).toEqual([]);
+  });
+
+  it("devolve o talento escolhido num nível de ASI", () => {
+    const character = createBlankCharacter("features-test");
+    character.classId = "mago";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "alerta" } };
+    const features = getChosenFeatFeatures(character);
+    expect(features).toHaveLength(1);
+    expect(features[0].name).toBe("Alerta");
+    expect(features[0].sourceType).toBe("feat");
   });
 });
 

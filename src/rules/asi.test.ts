@@ -28,8 +28,9 @@ describe("isAsiLevelComplete", () => {
     expect(isAsiLevelComplete(undefined)).toBe(false);
   });
 
-  it("'feat' já é completo (catálogo pendente, nada mais a validar)", () => {
-    expect(isAsiLevelComplete({ kind: "feat" })).toBe(true);
+  it("'feat' só é completo quando um talento específico já foi escolhido", () => {
+    expect(isAsiLevelComplete({ kind: "feat", featId: null })).toBe(false);
+    expect(isAsiLevelComplete({ kind: "feat", featId: "alerta" })).toBe(true);
   });
 
   it("'abilityIncrease' só completo com os 2 pontos todos distribuídos", () => {
@@ -60,7 +61,7 @@ describe("isAsiSelectionResolved", () => {
     character.level = 8;
     character.asiSelections = {
       4: { kind: "abilityIncrease", allocations: { FOR: 2 } },
-      8: { kind: "feat" },
+      8: { kind: "feat", featId: "alerta" },
     };
     expect(isAsiSelectionResolved(character)).toBe(true);
   });
@@ -83,7 +84,7 @@ describe("getAsiAbilityBonus / getEffectiveAbilityScore — cada ASI é independ
     const character = createBlankCharacter("asi-test");
     character.classId = "mago";
     character.level = 4;
-    character.asiSelections = { 4: { kind: "feat" } };
+    character.asiSelections = { 4: { kind: "feat", featId: "alerta" } };
     expect(getAsiAbilityBonus(character, "FOR")).toBe(0);
   });
 

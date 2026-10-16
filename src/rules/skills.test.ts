@@ -23,11 +23,14 @@ import {
   getShamanSkillBonus,
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
+  isSkillGrantedByFeatChoice,
   isSkillGrantedBySpeciesChoice,
   isSkillGrantedBySubclassChoice,
   isSkillGrantedBySubclassFixed,
   isSkillGrantedExpertiseByClassChoice,
 } from "./skills.js";
+import { HABILIDOSO_CHOICE_BASE_ID } from "../data/features/feats.js";
+import { getFeatChoiceId } from "./feats.js";
 
 function characterAt(level: number) {
   const character = createBlankCharacter("skills-test");
@@ -904,5 +907,33 @@ describe("isSkillGrantedBySubclassFixed — Implementos de Misericórdia, nível
     character.subclassId = "Guerreiro da Misericórdia";
     expect(getSkillProficiency(character, "medicina")).toBe(true);
     expect(getSkillProficiencyOrigin(character, "medicina")).toBe("subclass");
+  });
+});
+
+describe("isSkillGrantedByFeatChoice — Habilidoso (fonte \"IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF\" §8)", () => {
+  function habilidosoCharacter() {
+    const character = createBlankCharacter("feat-skill-test");
+    character.classId = "guerreiro";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "habilidoso" } };
+    return character;
+  }
+
+  it("false sem nenhuma escolha de Habilidoso selecionando a perícia", () => {
+    expect(isSkillGrantedByFeatChoice(habilidosoCharacter(), "atletismo")).toBe(false);
+  });
+
+  it("true quando a perícia foi escolhida em Habilidoso (mesmo junto de ferramentas na mesma escolha)", () => {
+    const character = habilidosoCharacter();
+    character.featureChoiceSelections[getFeatChoiceId(HABILIDOSO_CHOICE_BASE_ID, "asi-4")] = { value: ["atletismo", "alaude"] };
+    expect(isSkillGrantedByFeatChoice(character, "atletismo")).toBe(true);
+    expect(isSkillGrantedByFeatChoice(character, "furtividade")).toBe(false);
+  });
+
+  it("getSkillProficiency/getSkillProficiencyOrigin refletem a concessão por Talento", () => {
+    const character = habilidosoCharacter();
+    character.featureChoiceSelections[getFeatChoiceId(HABILIDOSO_CHOICE_BASE_ID, "asi-4")] = { value: ["persuasao"] };
+    expect(getSkillProficiency(character, "persuasao")).toBe(true);
+    expect(getSkillProficiencyOrigin(character, "persuasao")).toBe("feat");
   });
 });

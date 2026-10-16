@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getDraconicResilienceHpBonus, getMaxHitDice, getMaxHitPoints, getRemainingHitDice } from "./hp.js";
+import { getToughHpBonus } from "./feats.js";
 
 describe("getMaxHitPoints — PV máximo automático (sem rolagem, criação rápida)", () => {
   it("é 0 sem classe definida (só o ajuste manual conta)", () => {
@@ -139,5 +140,39 @@ describe("getMaxHitDice / getRemainingHitDice — 1 Dado de Vida por nível", ()
     character.level = 3;
     character.hp.hitDiceSpent = 10;
     expect(getRemainingHitDice(character)).toBe(0);
+  });
+});
+
+describe("Vigoroso — +2×nível somado ao PV máximo (fonte \"IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF\" §13)", () => {
+  it("getToughHpBonus = 2×nível com o talento ativo, 0 sem ele", () => {
+    const character = createBlankCharacter("hp-test");
+    character.backgroundId = "fazendeiro"; // concede Vigoroso
+    character.level = 6;
+    expect(getToughHpBonus(character)).toBe(12);
+
+    character.backgroundId = null;
+    expect(getToughHpBonus(character)).toBe(0);
+  });
+
+  it("soma ao PV máximo mesmo sem classe escolhida (não depende de Dado de Vida)", () => {
+    const character = createBlankCharacter("hp-test");
+    character.backgroundId = "fazendeiro";
+    character.level = 4;
+    expect(getMaxHitPoints(character).auto).toBe(8);
+  });
+
+  it("soma ao PV máximo calculado normalmente com classe (Guerreiro d10, CON 12 → +1, nível 4)", () => {
+    const withoutTough = createBlankCharacter("hp-test");
+    withoutTough.classId = "guerreiro";
+    withoutTough.level = 4;
+    withoutTough.abilities.CON.score = 12;
+    const baseline = getMaxHitPoints(withoutTough).auto;
+
+    const withTough = createBlankCharacter("hp-test");
+    withTough.classId = "guerreiro";
+    withTough.level = 4;
+    withTough.abilities.CON.score = 12;
+    withTough.backgroundId = "fazendeiro";
+    expect(getMaxHitPoints(withTough).auto).toBe(baseline + 8); // +2×4
   });
 });
