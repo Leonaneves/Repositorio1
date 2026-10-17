@@ -58,3 +58,64 @@ describe("FeatureChoiceControl — skillOrToolProficiency (Habilidoso)", () => {
     expect(screen.queryByText("Atletismo")).not.toBeInTheDocument();
   });
 });
+
+const ABILITY_SCORE_INCREASE_CHOICE: FeatureChoice = {
+  id: "resistente-atributo-asi-4",
+  prompt: "Resistente — aumente em 1 (máx. 20): Constituição",
+  effect: { kind: "abilityScoreIncrease", options: ["CON"] },
+};
+
+/**
+ * Testes do controle de `abilityScoreIncrease` (26 Talentos Gerais, fonte
+ * "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §1) — um `<select>`
+ * simples entre as opções elegíveis, gravando o código do atributo
+ * (`AbilityKey`) na seleção.
+ */
+describe("FeatureChoiceControl — abilityScoreIncrease", () => {
+  it("mostra as opções elegíveis com o nome por extenso", () => {
+    render(<FeatureChoiceControl choice={ABILITY_SCORE_INCREASE_CHOICE} />);
+    expect(screen.getByRole("option", { name: "Constituição" })).toBeInTheDocument();
+    expect(screen.getAllByRole("option")).toHaveLength(2); // "- Selecione -" + Constituição
+  });
+
+  it("escolher uma opção grava o código do atributo na seleção", () => {
+    render(<FeatureChoiceControl choice={ABILITY_SCORE_INCREASE_CHOICE} />);
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "CON" } });
+    const selection = useCharacterStore.getState().character.featureChoiceSelections["resistente-atributo-asi-4"];
+    expect(selection?.value).toBe("CON");
+  });
+});
+
+const SKILL_PROFICIENCY_OR_EXPERTISE_CHOICE: FeatureChoice = {
+  id: "mente-agucada-pericia-asi-4",
+  prompt: "Mente Aguçada — Arcanismo/História/Investigação/Natureza/Religião",
+  effect: { kind: "skillProficiencyOrExpertise", options: ["arcanismo", "historia", "investigacao", "natureza", "religiao"] },
+};
+
+/**
+ * Testes do controle de `skillProficiencyOrExpertise` (Mente Aguçada,
+ * fonte §9) — um `<select>` entre as 5 perícias fixas, com um rótulo que
+ * indica se a escolha concederia Proficiência ou Especialização no
+ * estado ATUAL do personagem (nunca decide aqui — a regra em si vive em
+ * `rules/skills.ts`).
+ */
+describe("FeatureChoiceControl — skillProficiencyOrExpertise (Mente Aguçada)", () => {
+  it("mostra as 5 perícias fixas, rotuladas como 'concede Proficiência' quando ainda não proficiente", () => {
+    render(<FeatureChoiceControl choice={SKILL_PROFICIENCY_OR_EXPERTISE_CHOICE} />);
+    expect(screen.getByRole("option", { name: "Arcanismo (concede Proficiência)" })).toBeInTheDocument();
+    expect(screen.getAllByRole("option")).toHaveLength(6); // "- Selecione -" + 5 perícias
+  });
+
+  it("rotula como 'vira Especialização' quando a perícia já é proficiente por outra origem", () => {
+    useCharacterStore.getState().setBackground("sabio"); // concede História
+    render(<FeatureChoiceControl choice={SKILL_PROFICIENCY_OR_EXPERTISE_CHOICE} />);
+    expect(screen.getByRole("option", { name: "História (vira Especialização)" })).toBeInTheDocument();
+  });
+
+  it("escolher uma opção grava a chave da perícia na seleção", () => {
+    render(<FeatureChoiceControl choice={SKILL_PROFICIENCY_OR_EXPERTISE_CHOICE} />);
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "arcanismo" } });
+    const selection = useCharacterStore.getState().character.featureChoiceSelections["mente-agucada-pericia-asi-4"];
+    expect(selection?.value).toBe("arcanismo");
+  });
+});

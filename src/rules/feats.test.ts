@@ -145,12 +145,17 @@ describe("isFeatActive / getFeatAcquisitionCount", () => {
 });
 
 describe("getAvailableFeatsForAsiLevel — exclui talento não-repetível já ativo em outra aquisição", () => {
-  it("todos os 10 disponíveis sem nenhuma outra aquisição ativa", () => {
+  // Personagem em branco (todos os atributos 10, nenhuma proficiência de armadura): dos 36 do
+  // catálogo, os 10 Talentos de Origem (sem pré-requisito) + os 12 Talentos Gerais sem
+  // pré-requisito além do nível 4+ ficam disponíveis (22); os 14 restantes exigem atributo 13+ ou
+  // treinamento de armadura que este personagem não tem — ver `rules/feats.test.ts` abaixo
+  // ("meetsFeatPrerequisites") para a checagem individual de cada um.
+  it("os 22 sem pré-requisito adicional disponíveis sem nenhuma outra aquisição ativa", () => {
     const character = createBlankCharacter("x");
     character.classId = "mago";
     character.level = 4;
     character.asiSelections = { 4: { kind: "feat", featId: null } };
-    expect(getAvailableFeatsForAsiLevel(character, 4)).toHaveLength(10);
+    expect(getAvailableFeatsForAsiLevel(character, 4)).toHaveLength(22);
   });
 
   it("exclui um talento não-repetível já concedido pelo Antecedente", () => {
@@ -160,7 +165,7 @@ describe("getAvailableFeatsForAsiLevel — exclui talento não-repetível já at
     character.asiSelections = { 4: { kind: "feat", featId: null } };
     const available = getAvailableFeatsForAsiLevel(character, 4).map((f) => f.id);
     expect(available).not.toContain("atacante-selvagem");
-    expect(available).toHaveLength(9);
+    expect(available).toHaveLength(21);
   });
 
   it("nunca exclui o próprio talento já escolhido PARA ESTE nível", () => {

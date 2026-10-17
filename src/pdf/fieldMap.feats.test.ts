@@ -71,3 +71,20 @@ describe("PROF.ferramentas — Ferramentas/Instrumentos concedidos por Talento a
     expect(fieldValue("PROF.ferramentas", character)).toBe("");
   });
 });
+
+describe("PROF.armas — Treinamento com Armas Marciais (Talento Geral, fonte \"COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF\" §27)", () => {
+  it("aparece em PROF.armas junto do texto de classe, sem sobrescrever", () => {
+    const character = createBlankCharacter("fieldmap-feats-test");
+    character.classId = "mago"; // já tem PROF.armas de classe
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "treinamento-com-armas-marciais" } };
+    const text = fieldValue("PROF.armas", character);
+    expect(text).toContain("Treinamento com Armas Marciais: Armas Marciais");
+  });
+
+  it("sem o talento: PROF.armas não ganha a linha extra", () => {
+    const character = createBlankCharacter("fieldmap-feats-test");
+    character.classId = "mago";
+    expect(fieldValue("PROF.armas", character)).not.toContain("Treinamento com Armas Marciais");
+  });
+});

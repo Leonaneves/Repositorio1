@@ -56,6 +56,36 @@ export type FeatureChoiceEffect =
    * contagem.
    */
   | { kind: "skillOrToolProficiency"; toolCategory: ToolCategory | ToolCategory[]; count: number }
+  /**
+   * Aumento de 1 num atributo à escolha, limitado a 20 (fonte "COMPLETAR
+   * TALENTOS GERAIS NO BUILDER E NO PDF" §1) — todos os 26 Talentos
+   * Gerais deste lote têm exatamente UMA escolha deste tipo. `options`
+   * é a lista fixa de atributos elegíveis (1, 2, 3 ou os 6) — exceto
+   * Resiliente, cujas opções são recalculadas por personagem (só
+   * atributos ainda sem proficiência em Salvaguarda, nunca uma lista
+   * estática — ver `rules/feats.ts#buildFeatAcquisitionFeature`). O
+   * limite de 20 é aplicado na LEITURA (`rules/abilities.ts#getEffectiveAbilityScore`
+   * soma `rules/feats.ts#getFeatAbilityIncreaseBonus`, nunca reduzindo um
+   * valor já acima de 20 por outra fonte — só limita a CONTRIBUIÇÃO desta
+   * escolha), nunca na escrita. A checagem de pré-requisito de atributo
+   * (`rules/feats.ts#meetsFeatPrerequisites`) sempre exclui a
+   * CONTRIBUIÇÃO da própria aquisição sendo validada — nunca permite que
+   * o aumento concedido cumpra seu próprio pré-requisito (fonte §1).
+   */
+  | { kind: "abilityScoreIncrease"; options: AbilityKey[] }
+  /**
+   * Escolha ÚNICA entre um conjunto fixo de perícias que concede
+   * Proficiência OU Especialização, dependendo do estado ATUAL da
+   * perícia escolhida — nunca as duas como escolhas separadas (ex.:
+   * "Mente Aguçada", fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO
+   * PDF" §9: "se não possuir proficiência, concedê-la; se já possuir,
+   * conceder Especialização"). Resolvido em `rules/skills.ts` (nunca em
+   * `skillExpertise`/`skillProficiency`, que têm semântica fixa) —
+   * revalidado a cada leitura, nunca uma decisão travada no momento da
+   * escolha (se outra fonte passar a conceder a mesma perícia depois, a
+   * escolha vira Especialização automaticamente, sem exigir nova seleção).
+   */
+  | { kind: "skillProficiencyOrExpertise"; options: SkillKey[] }
   /** `rangeKind` filtra por alcance (corpo a corpo/à distância) além da categoria simples/marcial — ex.: Maestria em Arma do Bárbaro, só corpo a corpo (§3). */
   | { kind: "weaponPicker"; category: WeaponCategory | "any"; count: number; rangeKind?: WeaponRangeKind }
   /** Escolha única entre um pequeno conjunto de opções nomeadas (ex.: "Armadura de Couro Batido" OU "Cota de Escamas" do equipamento inicial do Artífice) — quando as opções não pertencem a nenhum catálogo existente (perícia/ferramenta/arma), mas ainda são uma lista fechada e conhecida, não texto livre. */

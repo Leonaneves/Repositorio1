@@ -119,6 +119,9 @@ export function isFeatureChoiceComplete(choice: FeatureChoice, character: Charac
   if (choice.effect.kind === "optionPick") {
     return typeof selection === "string" && choice.effect.options.includes(selection);
   }
+  if (choice.effect.kind === "abilityScoreIncrease" || choice.effect.kind === "skillProficiencyOrExpertise") {
+    return typeof selection === "string" && (choice.effect.options as string[]).includes(selection);
+  }
   return true; // manualText: sem catálogo para validar, nunca bloqueia.
 }
 
@@ -154,9 +157,18 @@ export function getOtherFeaturesWithChoices(character: Character): FeatureDefini
   );
 }
 
-/** `true` para `skillProficiency`/`skillExpertise` — usado para separar escolhas de perícia (centralizadas na etapa "Perícias", fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA") das demais escolhas de uma mesma feature. */
+/**
+ * `true` para `skillProficiency`/`skillExpertise`/`skillProficiencyOrExpertise`
+ * — usado para separar escolhas de perícia (centralizadas na etapa
+ * "Perícias", fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA
+ * PRÓPRIA") das demais escolhas de uma mesma feature.
+ * `skillProficiencyOrExpertise` ("Mente Aguçada", fonte "COMPLETAR
+ * TALENTOS GERAIS NO BUILDER E NO PDF" §9) entra aqui pelo mesmo motivo:
+ * é sempre uma escolha DE PERÍCIA, mesmo concedendo Proficiência OU
+ * Especialização dependendo do estado atual.
+ */
 export function isSkillKindChoice(choice: FeatureChoice): boolean {
-  return choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise";
+  return choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise" || choice.effect.kind === "skillProficiencyOrExpertise";
 }
 
 /**

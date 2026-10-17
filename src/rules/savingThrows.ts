@@ -2,6 +2,7 @@ import { computedValue, type AbilityKey, type ComputedValue } from "../domain/co
 import type { Character } from "../domain/character.js";
 import { RANGER_MENTE_DE_FERRO_CHOICE_ID } from "../data/features/subclasses.js";
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
+import { getResilientGrantedAbility } from "./feats.js";
 
 /**
  * "Mente de Ferro" (Vigilante das Sombras, nível 7 — fonte "IMPLEMENTAR
@@ -46,9 +47,11 @@ export function getSlipperyMindGrantedAbilities(character: Character): AbilityKe
  * perícias (extraída literalmente do PDF, onde `<ATR>.res` usa o
  * script idêntico ao de `<ATR>.<pericia>`), mas sem especialização —
  * o D&D não permite expertise em salvaguardas. Proficiência final = a
- * armazenada OU a concedida por Mente de Ferro (`getMenteDeFerroGrantedAbility`),
- * mesmo padrão de "fontes automáticas somadas por OR" já usado em
- * `rules/skills.ts#getSkillProficiency`.
+ * armazenada OU a concedida por Mente de Ferro (`getMenteDeFerroGrantedAbility`)
+ * OU por Resiliente (`rules/feats.ts#getResilientGrantedAbility` — a
+ * MESMA escolha que concede o +1 de atributo, fonte "COMPLETAR TALENTOS
+ * GERAIS NO BUILDER E NO PDF" §18), mesmo padrão de "fontes automáticas
+ * somadas por OR" já usado em `rules/skills.ts#getSkillProficiency`.
  */
 export function getSavingThrow(character: Character, ability: AbilityKey): ComputedValue {
   const state = character.savingThrows[ability];
@@ -56,7 +59,10 @@ export function getSavingThrow(character: Character, ability: AbilityKey): Compu
   const abilityMod = getAbilityModifier(getEffectiveAbilityScore(character, ability));
   const proficiencyBonus = character.level ? getProficiencyBonus(character.level) : 0;
   const proficient =
-    state.proficient || getMenteDeFerroGrantedAbility(character) === ability || getSlipperyMindGrantedAbilities(character).includes(ability);
+    state.proficient ||
+    getMenteDeFerroGrantedAbility(character) === ability ||
+    getSlipperyMindGrantedAbilities(character).includes(ability) ||
+    getResilientGrantedAbility(character) === ability;
 
   const auto = abilityMod + (proficient ? proficiencyBonus : 0);
 

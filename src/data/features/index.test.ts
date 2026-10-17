@@ -38,11 +38,12 @@ describe("catálogo de features — integridade estrutural", () => {
     }
   });
 
-  it("generalFeats: os 10 Talentos de Origem do PHB 2024, todos com sourceType 'feat' (fonte \"IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF\")", () => {
-    expect(generalFeats).toHaveLength(10);
+  it("generalFeats: os 10 Talentos de Origem + 26 Talentos Gerais do PHB 2024 (36 no total), todos com sourceType 'feat' e level null", () => {
+    expect(generalFeats).toHaveLength(36);
     const names = generalFeats.map((feature) => feature.name).sort();
     expect(names).toEqual(
       [
+        // Talentos de Origem (fonte "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF")
         "Alerta",
         "Artifista",
         "Atacante Selvagem",
@@ -53,6 +54,33 @@ describe("catálogo de features — integridade estrutural", () => {
         "Sortudo",
         "Valentão de Taverna",
         "Vigoroso",
+        // Talentos Gerais (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF")
+        "Especialista em Armaduras Pesadas",
+        "Especialista em Besta",
+        "Especialista em Perícia",
+        "Exterminador de Conjuradores",
+        "Imobilizador",
+        "Líder Inspirador",
+        "Mente Aguçada",
+        "Mestre das Armas",
+        "Mestre em Armaduras Médias",
+        "Mestre em Armaduras Pesadas",
+        "Mestre em Armas de Haste",
+        "Mestre em Armas Grandes",
+        "Mestre em Escudos",
+        "Mestre-Atirador",
+        "Perfurador",
+        "Resiliente",
+        "Resistente",
+        "Sentinela",
+        "Sorrateiro",
+        "Talhador",
+        "Telecinético",
+        "Telepático",
+        "Tocado Pelas Sombras",
+        "Tocado Por Fadas",
+        "Treinamento com Armas Marciais",
+        "Velocista",
       ].sort(),
     );
     for (const feature of generalFeats) {

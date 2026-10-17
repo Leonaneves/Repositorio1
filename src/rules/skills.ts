@@ -170,6 +170,47 @@ export function isSkillGrantedByFeatChoice(character: Character, skill: SkillKey
 }
 
 /**
+ * `true` se a escolha de "Mente Aguçada" (fonte "COMPLETAR TALENTOS
+ * GERAIS NO BUILDER E NO PDF" §9, `skillProficiencyOrExpertise`)
+ * resolveu para esta perícia — concede SEMPRE ao menos Proficiência
+ * (nunca condicionada a outra checagem), independente de a perícia já
+ * ser proficiente por outra origem; ver `isSkillGrantedExpertiseByMenteAgucadaChoice`
+ * abaixo para quando ela também vira Especialização.
+ */
+export function isSkillGrantedByMenteAgucadaChoice(character: Character, skill: SkillKey): boolean {
+  for (const feature of getCharacterFeatures(character)) {
+    if (feature.sourceType !== "feat") continue;
+    for (const choice of feature.choices ?? []) {
+      if (choice.effect.kind !== "skillProficiencyOrExpertise") continue;
+      if (character.featureChoiceSelections[choice.id]?.value === skill) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * `true` se Mente Aguçada upgradeia a perícia escolhida para
+ * Especialização — só quando ela JÁ é proficiente por alguma fonte
+ * QUE NÃO a própria Mente Aguçada (reusa a cadeia original de
+ * proficiência, nunca passando por `getSkillProficiency`/
+ * `isSkillGrantedByMenteAgucadaChoice`, para nunca virar circular: se
+ * incluísse a própria concessão de Mente Aguçada na checagem, o
+ * resultado seria sempre "já proficiente" assim que a perícia fosse
+ * escolhida, degenerando para Especialização sempre).
+ */
+export function isSkillGrantedExpertiseByMenteAgucadaChoice(character: Character, skill: SkillKey): boolean {
+  if (!isSkillGrantedByMenteAgucadaChoice(character, skill)) return false;
+  return (
+    isSkillGrantedByBackground(character, skill) ||
+    isSkillGrantedByClassChoice(character, skill) ||
+    isSkillGrantedBySubclassChoice(character, skill) ||
+    isSkillGrantedBySubclassFixed(character, skill) ||
+    isSkillGrantedBySpeciesChoice(character, skill) ||
+    isSkillGrantedByFeatChoice(character, skill)
+  );
+}
+
+/**
  * `true` se alguma escolha de "Especialização" (`skillExpertise`) da
  * classe ATUAL já selecionou esta perícia — nunca concede proficiência,
  * só a Especialização (ex.: "Especialista" do Bardo, níveis 2 e 9).
@@ -185,14 +226,43 @@ export function isSkillGrantedExpertiseByClassChoice(character: Character, skill
 }
 
 /**
+ * `true` se alguma escolha de "Especialização" (`skillExpertise`) de
+ * ORIGEM TALENTO (ex.: "Especialista em Perícia", fonte "COMPLETAR
+ * TALENTOS GERAIS NO BUILDER E NO PDF" §5) já selecionou esta perícia —
+ * mesmo princípio de `isSkillGrantedByFeatChoice` (varre TODAS as
+ * aquisições de Talento do personagem via `getCharacterFeatures`), mas
+ * nunca por uma lista estática por classe como
+ * `isSkillGrantedExpertiseByClassChoice`: um Talento pode ser adquirido
+ * em qualquer classe, então não cabe no mapa `EXPERTISE_CHOICE_IDS_BY_CLASS`.
+ */
+export function isSkillGrantedExpertiseByFeatChoice(character: Character, skill: SkillKey): boolean {
+  for (const feature of getCharacterFeatures(character)) {
+    if (feature.sourceType !== "feat") continue;
+    for (const choice of feature.choices ?? []) {
+      if (choice.effect.kind !== "skillExpertise") continue;
+      const selection = character.featureChoiceSelections[choice.id]?.value;
+      const selected = Array.isArray(selection) ? selection : [];
+      if (selected.includes(skill)) return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Especialização final da perícia = toggle manual do jogador OU
- * concedida por uma escolha de "Especialização" da classe atual — a
- * mesma lógica OR do antecedente/escolha de perícias (sem tri-state:
- * `expertise` nunca teve estado "segue o derivado", é só um booleano
- * manual, então aqui basta somar a fonte estrutural por cima).
+ * concedida por uma escolha de "Especialização" da classe atual, de um
+ * Talento, ou de Mente Aguçada — a mesma lógica OR do antecedente/
+ * escolha de perícias (sem tri-state: `expertise` nunca teve estado
+ * "segue o derivado", é só um booleano manual, então aqui basta somar a
+ * fonte estrutural por cima).
  */
 export function getSkillExpertise(character: Character, skill: SkillKey): boolean {
-  return character.skills[skill].expertise || isSkillGrantedExpertiseByClassChoice(character, skill);
+  return (
+    character.skills[skill].expertise ||
+    isSkillGrantedExpertiseByClassChoice(character, skill) ||
+    isSkillGrantedExpertiseByFeatChoice(character, skill) ||
+    isSkillGrantedExpertiseByMenteAgucadaChoice(character, skill)
+  );
 }
 
 /**
@@ -320,6 +390,7 @@ export function getSkillProficiencyOrigin(character: Character, skill: SkillKey)
   if (isSkillGrantedBySubclassFixed(character, skill)) return "subclass";
   if (isSkillGrantedBySpeciesChoice(character, skill)) return "species";
   if (isSkillGrantedByFeatChoice(character, skill)) return "feat";
+  if (isSkillGrantedByMenteAgucadaChoice(character, skill)) return "feat";
   return null;
 }
 
@@ -344,7 +415,8 @@ export function getSkillProficiency(character: Character, skill: SkillKey): bool
       isSkillGrantedBySubclassChoice(character, skill) ||
       isSkillGrantedBySubclassFixed(character, skill) ||
       isSkillGrantedBySpeciesChoice(character, skill) ||
-      isSkillGrantedByFeatChoice(character, skill))
+      isSkillGrantedByFeatChoice(character, skill) ||
+      isSkillGrantedByMenteAgucadaChoice(character, skill))
   );
 }
 

@@ -760,6 +760,25 @@ describe("useCharacterStore — escolhas de feature e talentos gerais escolhidos
     store.setAsiFeat(4, "alerta");
     expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: {} });
   });
+
+  it("setAsiFeat('especialista-armaduras-pesadas') soma treinamento com Armadura Pesada automaticamente (fonte \"COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF\" §3)", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago"); // sem treinamento de armadura pesada por classe
+    store.setAsiMode(4, "feat");
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+    store.setAsiFeat(4, "especialista-armaduras-pesadas");
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(true);
+    // nunca remove outras proficiências já marcadas (só soma).
+    expect(useCharacterStore.getState().character.armor.proficiencies.light).toBe(false);
+  });
+
+  it("escolher outro talento diferente de Especialista em Armaduras Pesadas nunca soma a proficiência", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setAsiMode(4, "feat");
+    store.setAsiFeat(4, "resistente");
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+  });
 });
 
 describe("useCharacterStore — Invocações Místicas do Bruxo (addInvocation/removeInvocation/setInvocationSubChoice)", () => {

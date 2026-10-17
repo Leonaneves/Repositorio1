@@ -8,7 +8,7 @@ import {
   MUSICO_TOOL_CHOICE_BASE_ID,
 } from "../data/features/feats.js";
 import { getFeatChoiceId } from "./feats.js";
-import { getFeatTalentEntries, getFeatToolProficiencyEntries } from "./featTalentEntries.js";
+import { getFeatTalentEntries, getFeatToolProficiencyEntries, getFeatWeaponProficiencyEntries } from "./featTalentEntries.js";
 
 function withBackground(backgroundId: Character["backgroundId"], level = 1): Character {
   const character = createBlankCharacter("feat-talent-entries-test");
@@ -244,5 +244,174 @@ describe("getFeatToolProficiencyEntries", () => {
     const [id1] = ARTIFISTA_TOOL_CHOICE_BASE_IDS;
     character.featureChoiceSelections[getFeatChoiceId(id1, "background")] = { value: "Ferramentas de Ferreiro" };
     expect(getFeatToolProficiencyEntries(character)).toEqual([{ text: "Artifista: Ferramentas de Ferreiro", source: "feat" }]);
+  });
+});
+
+/**
+ * Textos literais dos 26 Talentos Gerais para a caixa "Talentos" do PDF
+ * (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §3-§28), com os
+ * templates dados conferidos ao pé da letra.
+ */
+function withAsiTalent(featId: string, level = 4): Character {
+  const character = createBlankCharacter("general-feat-talent-entries-test");
+  character.classId = "guerreiro"; // ASI em 4/6/8/12/14/16
+  character.level = level;
+  character.asiSelections = { [level]: { kind: "feat", featId } };
+  return character;
+}
+
+describe("Talentos Gerais — textos literais (fonte \"COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF\")", () => {
+  it("Especialista em Armaduras Pesadas: só o nome (benefício já no checkbox PROF.pesa)", () => {
+    expect(getFeatTalentEntries(withAsiTalent("especialista-armaduras-pesadas"))[0].text).toBe("Especialista em Armaduras Pesadas");
+  });
+
+  it("Especialista em Besta: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("especialista-besta"))[0].text).toBe(
+      "Especialista em Besta: ignora Recarga/mão livre; sem Desv por inimigo a 1,5m; Atq adicional Leve soma atributo ao dano",
+    );
+  });
+
+  it("Especialista em Perícia: só o nome", () => {
+    expect(getFeatTalentEntries(withAsiTalent("especialista-pericia"))[0].text).toBe("Especialista em Perícia");
+  });
+
+  it("Exterminador de Conjuradores: texto literal, 1 marcador fixo", () => {
+    expect(getFeatTalentEntries(withAsiTalent("exterminador-de-conjuradores"))[0].text).toBe(
+      "Exterminador de Conjuradores: causar dano impõe Desv na Salv de Concent; falhou Salv INT/SAB/CAR: passa [__]/DC ou DL",
+    );
+  });
+
+  it("Imobilizador: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("imobilizador"))[0].text).toBe(
+      "Imobilizador: 1/turno, Atq Desarmado na ação Atacar: dano+Imobilizar; Vant contra seu alvo; mover alvo do seu tamanho ou menor sem custo extra",
+    );
+  });
+
+  it("Líder Inspirador: {PVTempLider} resolvido (nível + mod do atributo escolhido)", () => {
+    const character = withAsiTalent("lider-inspirador", 8);
+    character.abilities.CAR.score = 16; // +3
+    character.featureChoiceSelections["lider-inspirador-atributo-asi-8"] = { value: "CAR" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Líder Inspirador: DC/DL, atuação dá 11 PV Temp a até 6 aliados a 9m, incluindo você");
+  });
+
+  it("Mente Aguçada: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("mente-agucada"))[0].text).toBe("Mente Aguçada: AB Analisar");
+  });
+
+  it("Mestre das Armas: texto literal, nunca fixa a arma escolhida", () => {
+    const character = withAsiTalent("mestre-das-armas");
+    character.featureChoiceSelections["mestre-das-armas-nota-asi-4"] = { value: "Espada Longa" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Mestre das Armas: maestria em 1 arma proficiente Simples/Marcial, troca em DL");
+  });
+
+  it("Mestre em Armaduras Médias: só o nome (CA já calculada)", () => {
+    expect(getFeatTalentEntries(withAsiTalent("mestre-em-armaduras-medias"))[0].text).toBe("Mestre em Armaduras Médias");
+  });
+
+  it("Mestre em Armaduras Pesadas: {BP} resolvido", () => {
+    const character = withAsiTalent("mestre-em-armaduras-pesadas", 8); // nível 8 → BP 3
+    expect(getFeatTalentEntries(character)[0].text).toBe("Mestre em Armaduras Pesadas: com Pesada, reduz 3 dano Conc/Cort/Perf de Atq");
+  });
+
+  it("Mestre em Armas de Haste: texto literal, sem variável", () => {
+    expect(getFeatTalentEntries(withAsiTalent("mestre-em-armas-de-haste"))[0].text).toBe(
+      "Mestre em Armas de Haste: Cajado/Lança ou Extensão+Pesada; após Atacar, AB Atq d4 Conc; Reação: Atq em quem entra no alcance",
+    );
+  });
+
+  it("Mestre em Armas Grandes: {BP} resolvido", () => {
+    const character = withAsiTalent("mestre-em-armas-grandes"); // nível 4 → BP 2
+    expect(getFeatTalentEntries(character)[0].text).toBe(
+      "Mestre em Armas Grandes: ação Atacar no seu turno, acerto com Pesada +2 dano; crítico/0 PV com arma corpo a corpo: AB Atq com ela",
+    );
+  });
+
+  it("Mestre em Escudos: {CDEscudo} resolvido, 2 linhas", () => {
+    const character = withAsiTalent("mestre-em-escudos");
+    character.abilities.FOR.score = 16; // +3
+    expect(getFeatTalentEntries(character)[0].text).toBe(
+      "Mestre em Escudos: 1/turno, acerto corpo a corpo a 1,5m na ação Atacar: Salv FOR CD 13, falha: empurra 1,5m/Caído\nReação com Escudo: passou Salv DEX para 1/2 dano, sofre 0",
+    );
+  });
+
+  it("Mestre-Atirador: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("mestre-atirador"))[0].text).toBe(
+      "Mestre-Atirador: Atq à distância com arma ignora cobertura 1/2 e 3/4; armas à Distância sem Desv por inimigo a 1,5m ou alcance longo",
+    );
+  });
+
+  it("Perfurador: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("perfurador"))[0].text).toBe("Perfurador: 1/turno, acerto Perf repete 1 dado de dano, usa novo; crítico Perf +1 dado");
+  });
+
+  it("Resiliente: só o nome", () => {
+    expect(getFeatTalentEntries(withAsiTalent("resiliente"))[0].text).toBe("Resiliente");
+  });
+
+  it("Resistente: texto literal, nunca omitido (sem campo próprio de Vant em Salv Contra Morte)", () => {
+    expect(getFeatTalentEntries(withAsiTalent("resistente"))[0].text).toBe("Resistente: Vant Salv Contra Morte; AB gasta Dado de PV e cura resultado");
+  });
+
+  it("Sentinela: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("sentinela"))[0].text).toBe(
+      "Sentinela: Reação, Atq de Oport contra criatura a 1,5m que Desengaja/acerta outro alvo; acerto de Atq de Oport: Desl 0 até fim do turno",
+    );
+  });
+
+  it("Sorrateiro: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("sorrateiro"))[0].text).toBe("Sorrateiro: Vant Furt ao Esconder em combate; Atq escondido que erra não revela localização");
+  });
+
+  it("Talhador: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("talhador"))[0].text).toBe("Talhador: 1/turno, acerto Cort: Desl -3m; crítico Cort: Desv nos Atq, ambos até início do prxm turno");
+  });
+
+  it("Telecinético: {CDTelecinetico} resolvido com o atributo ESCOLHIDO nesta aquisição", () => {
+    const character = withAsiTalent("telecinetico");
+    character.abilities.SAB.score = 14; // +2
+    character.featureChoiceSelections["telecinetico-atributo-asi-4"] = { value: "SAB" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Telecinético: Mãos Mágicas Invisível, alcance/distância +9m; AB alvo a 9m, Salv FOR CD 12, falha: aproxima/afasta 1,5m");
+  });
+
+  it("Telecinético: [] enquanto a escolha de atributo não foi resolvida (CD ainda não existe)", () => {
+    expect(getFeatTalentEntries(withAsiTalent("telecinetico"))).toEqual([]);
+  });
+
+  it("Telepático: texto literal, com marcador", () => {
+    expect(getFeatTalentEntries(withAsiTalent("telepatico"))[0].text).toBe("Telepático: fala mental a 18m, idioma comum, sem resposta; Detectar Pensamentos [__]/DL");
+  });
+
+  it("Tocado Pelas Sombras: só Invisibilidade enquanto a magia escolhida não foi preenchida", () => {
+    expect(getFeatTalentEntries(withAsiTalent("tocado-pelas-sombras"))[0].text).toBe("Tocado Pelas Sombras: Invisibilidade [__]/DL");
+  });
+
+  it("Tocado Pelas Sombras: as duas magias, cada uma com seu marcador, um único /DL final", () => {
+    const character = withAsiTalent("tocado-pelas-sombras");
+    character.featureChoiceSelections["tocado-pelas-sombras-magia-asi-4"] = { value: "Toque Chocante" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Tocado Pelas Sombras: Invisibilidade [__] Toque Chocante [__]/DL");
+  });
+
+  it("Tocado Por Fadas: as duas magias, cada uma com seu marcador, um único /DL final", () => {
+    const character = withAsiTalent("tocado-por-fadas");
+    character.featureChoiceSelections["tocado-por-fadas-magia-asi-4"] = { value: "Enfeitiçar Pessoa" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Tocado Por Fadas: Passo Nebuloso [__] Enfeitiçar Pessoa [__]/DL");
+  });
+
+  it("Treinamento com Armas Marciais: só o nome na caixa Talentos (descrição vai para PROF.armas)", () => {
+    expect(getFeatTalentEntries(withAsiTalent("treinamento-com-armas-marciais"))[0].text).toBe("Treinamento com Armas Marciais");
+  });
+
+  it("Treinamento com Armas Marciais: entra em PROF.armas via getFeatWeaponProficiencyEntries", () => {
+    expect(getFeatWeaponProficiencyEntries(withAsiTalent("treinamento-com-armas-marciais"))).toEqual([
+      { text: "Treinamento com Armas Marciais: Armas Marciais", source: "feat" },
+    ]);
+  });
+
+  it("getFeatWeaponProficiencyEntries: [] sem nenhum talento que conceda arma", () => {
+    expect(getFeatWeaponProficiencyEntries(createBlankCharacter("x"))).toEqual([]);
+  });
+
+  it("Velocista: texto literal", () => {
+    expect(getFeatTalentEntries(withAsiTalent("velocista"))[0].text).toBe("Velocista: Correr ignora custo extra de Terreno Difícil no turno; Atq de Oport contra você têm Desv");
   });
 });

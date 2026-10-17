@@ -1,7 +1,9 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { armors, SHIELD_AC_BONUS, type ArmorDefinition } from "../data/armors.js";
+import { MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID } from "../data/features/feats.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
+import { isFeatActive } from "./feats.js";
 
 /**
  * Armaduras disponíveis para seleção, filtradas pelas proficiências
@@ -34,12 +36,17 @@ export function getAvailableArmor(character: Character): ArmorDefinition[] {
  *   Dracônica, fonte "INTEGRAÇÃO COMPLETA — FEITICEIRO, METAMAGIA E
  *   SUBCLASSES" §35): `10 + DEX + CAR` (+2 se escudo)
  * - Armadura leve: base + DEX inteiro
- * - Armadura média: base + DEX limitado a +2
+ * - Armadura média: base + DEX limitado a +2, ou +3 com Mestre em
+ *   Armaduras Médias ativo E Destreza efetiva 16+ (fonte "COMPLETAR
+ *   TALENTOS GERAIS NO BUILDER E NO PDF" §11) — nunca +3 sem o talento,
+ *   nunca soma aos +2 normais (substitui o teto, não soma por cima).
  * - Armadura pesada: valor fixo (sem DEX)
  * - Escudo com armadura: sempre +2
  */
 export function getArmorClass(character: Character): ComputedValue {
-  const dexMod = getAbilityModifier(getEffectiveAbilityScore(character, "DEX"));
+  const dexScore = getEffectiveAbilityScore(character, "DEX");
+  const dexMod = getAbilityModifier(dexScore);
+  const mediumArmorDexCap = isFeatActive(character, MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID) && dexScore >= 16 ? 3 : 2;
   const conMod = getAbilityModifier(getEffectiveAbilityScore(character, "CON"));
   const wisMod = getAbilityModifier(getEffectiveAbilityScore(character, "SAB"));
   const carMod = getAbilityModifier(getEffectiveAbilityScore(character, "CAR"));
@@ -61,7 +68,7 @@ export function getArmorClass(character: Character): ComputedValue {
     }
   } else {
     const armor = armors[character.armor.equipped];
-    const dexContribution = armor.dexBonus === "full" ? dexMod : armor.dexBonus === "max2" ? Math.min(dexMod, 2) : 0;
+    const dexContribution = armor.dexBonus === "full" ? dexMod : armor.dexBonus === "max2" ? Math.min(dexMod, mediumArmorDexCap) : 0;
     auto = armor.baseAC + dexContribution + (hasShield ? SHIELD_AC_BONUS : 0);
   }
 

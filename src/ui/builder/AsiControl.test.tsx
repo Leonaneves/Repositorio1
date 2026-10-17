@@ -23,13 +23,17 @@ describe("AsiControl — seletor de Talento", () => {
     expect(screen.queryByText("Talento")).not.toBeInTheDocument();
   });
 
-  it("em modo 'Talento', mostra as 10 opções do catálogo", () => {
+  it("em modo 'Talento', mostra as opções do catálogo sem pré-requisito pendente (10 de Origem + 12 Gerais sem pré-requisito extra)", () => {
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setAsiMode(4, "feat");
     render(<AsiControl level={4} />);
     expect(screen.getByRole("option", { name: "Alerta" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Vigoroso" })).toBeInTheDocument();
-    expect(screen.getAllByRole("option")).toHaveLength(11); // "- Selecione -" + 10 talentos
+    expect(screen.getByRole("option", { name: "Resiliente" })).toBeInTheDocument();
+    // Atributos padrão (10) e sem proficiência de armadura: os 14 Talentos Gerais com
+    // pré-requisito de atributo 13+/treinamento de armadura nunca aparecem aqui.
+    expect(screen.queryByRole("option", { name: "Sentinela" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("option")).toHaveLength(23); // "- Selecione -" + 22 talentos sem pré-requisito pendente
   });
 
   it("escolher um talento grava o featId no nível de ASI certo", () => {

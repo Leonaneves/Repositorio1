@@ -1,6 +1,7 @@
 import type { Character } from "../domain/character.js";
 import type { AbilityKey } from "../domain/common.js";
 import { getAsiAbilityBonus } from "./asi.js";
+import { getFeatAbilityIncreaseBonus } from "./feats.js";
 
 /**
  * `= floor((valor - 10) / 2)` — extraído literalmente dos scripts
@@ -34,12 +35,21 @@ export function getAbilityModifier(score: number): number {
  * do Campeão Primitivo — aplicado por último, removido automaticamente
  * se o nível cair abaixo de 20 (gate por `character.level`, nunca um
  * estado próprio).
+ *
+ * O "Aumento de 1" dos Talentos Gerais (fonte "COMPLETAR TALENTOS GERAIS
+ * NO BUILDER E NO PDF" §1, `rules/feats.ts#getFeatAbilityIncreaseBonus`)
+ * entra ANTES do teto do Bárbaro/Monge nível 20, com teto de 20 aplicado
+ * só sobre a PRÓPRIA contribuição — nunca reduz um valor que já esteja
+ * acima de 20 por outra fonte, só limita o quanto este talento
+ * especificamente soma.
  */
 export function getEffectiveAbilityScore(character: Character, ability: AbilityKey): number {
   const base = character.abilities[ability].score;
   const backgroundBonus = character.backgroundAbilityBonuses[ability] ?? 0;
   const asiBonus = getAsiAbilityBonus(character, ability);
-  const total = base + backgroundBonus + asiBonus;
+  const preFeatTotal = base + backgroundBonus + asiBonus;
+  const featBonus = Math.max(0, Math.min(getFeatAbilityIncreaseBonus(character, ability), 20 - preFeatTotal));
+  const total = preFeatTotal + featBonus;
   if (character.classId === "barbaro" && character.level >= 20 && (ability === "FOR" || ability === "CON")) {
     return Math.min(25, total + 4);
   }

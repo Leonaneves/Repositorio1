@@ -1,15 +1,25 @@
+import type { AbilityKey } from "../../domain/common.js";
 import type { FeatureChoice } from "../../domain/features.js";
 import { SKILL_KEYS } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
 import { tools } from "../../data/tools.js";
 import { getWeaponsByCategory, weapons } from "../../rules/weapons.js";
-import { getSkillExpertise, getSkillProficiency } from "../../rules/skills.js";
+import { getSkillExpertise, getSkillProficiency, isSkillGrantedExpertiseByMenteAgucadaChoice } from "../../rules/skills.js";
 import { getEligibleTools } from "../../rules/tools.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 
 export interface FeatureChoiceControlProps {
   choice: FeatureChoice;
 }
+
+const ABILITY_NAMES: Record<AbilityKey, string> = {
+  FOR: "Força",
+  DEX: "Destreza",
+  CON: "Constituição",
+  INT: "Inteligência",
+  SAB: "Sabedoria",
+  CAR: "Carisma",
+};
 
 /**
  * Controle genérico para uma escolha de feature (`FeatureChoice`),
@@ -234,6 +244,54 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
           </label>
         ))}
       </fieldset>
+    );
+  }
+
+  if (effect.kind === "abilityScoreIncrease") {
+    // Talentos Gerais (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §1): +1 num atributo à
+    // escolha, limitado a 20 (teto aplicado na leitura, rules/abilities.ts#getEffectiveAbilityScore —
+    // nunca aqui). `options` já vem restrita ao elegível (estática por talento, ou dinâmica para
+    // Resiliente — rules/feats.ts#buildFeatAcquisitionFeature).
+    const value = typeof selection?.value === "string" ? selection.value : "";
+    return (
+      <label className="field feature-choice">
+        <span>{choice.prompt}</span>
+        <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
+          <option value="">- Selecione -</option>
+          {effect.options.map((ability) => (
+            <option key={ability} value={ability}>
+              {ABILITY_NAMES[ability]}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  }
+
+  if (effect.kind === "skillProficiencyOrExpertise") {
+    // Mente Aguçada (fonte §9): escolha ÚNICA entre um conjunto fixo de perícias, que vira
+    // Proficiência OU Especialização dependendo do estado ATUAL — revalidado a cada leitura
+    // (rules/skills.ts#isSkillGrantedExpertiseByMenteAgucadaChoice), nunca decidido aqui.
+    const value = typeof selection?.value === "string" ? selection.value : "";
+    return (
+      <label className="field feature-choice">
+        <span>{choice.prompt}</span>
+        <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
+          <option value="">- Selecione -</option>
+          {effect.options.map((skillId) => {
+            // Para a opção JÁ selecionada, usa a checagem que exclui a própria contribuição desta
+            // escolha (nunca circular); para as demais, a proficiência atual já reflete corretamente
+            // "o que aconteceria se esta fosse escolhida" (Mente Aguçada ainda não contribui para elas).
+            const wouldBeExpertise = skillId === value ? isSkillGrantedExpertiseByMenteAgucadaChoice(character, skillId) : getSkillProficiency(character, skillId);
+            return (
+              <option key={skillId} value={skillId}>
+                {skills[skillId].name}
+                {wouldBeExpertise ? " (vira Especialização)" : " (concede Proficiência)"}
+              </option>
+            );
+          })}
+        </select>
+      </label>
     );
   }
 

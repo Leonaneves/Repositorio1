@@ -1,3 +1,4 @@
+import { ABILITY_KEYS, type AbilityKey } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import type { FeatureDefinition } from "../domain/features.js";
 import type { BackgroundId } from "../domain/ids.js";
@@ -6,17 +7,34 @@ import {
   ARTIFISTA_FEAT_ID,
   ATACANTE_SELVAGEM_FEAT_ID,
   CURANDEIRO_FEAT_ID,
+  ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
+  ESPECIALISTA_BESTA_FEAT_ID,
   generalFeats,
   HABILIDOSO_FEAT_ID,
+  IMOBILIZADOR_FEAT_ID,
   INICIADO_EM_MAGIA_FEAT_ID,
+  LIDER_INSPIRADOR_FEAT_ID,
   MAGIC_INITIATE_LIST_CHOICE_BASE_ID,
   MAGIC_INITIATE_LISTS,
+  MENTE_AGUCADA_FEAT_ID,
+  MESTRE_ATIRADOR_FEAT_ID,
+  MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID,
+  MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID,
+  MESTRE_EM_ARMAS_DE_HASTE_FEAT_ID,
+  MESTRE_EM_ARMAS_GRANDES_FEAT_ID,
+  MESTRE_EM_ESCUDOS_FEAT_ID,
   MUSICO_FEAT_ID,
+  RESILIENTE_FEAT_ID,
+  SENTINELA_FEAT_ID,
+  SORRATEIRO_FEAT_ID,
   SORTUDO_FEAT_ID,
+  TELECINETICO_FEAT_ID,
   VALENTAO_DE_TAVERNA_FEAT_ID,
+  VELOCISTA_FEAT_ID,
   VIGOROSO_FEAT_ID,
 } from "../data/features/feats.js";
-import { getProficiencyBonus } from "./abilities.js";
+import { getAsiAbilityBonus } from "./asi.js";
+import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 import { getMartialArtsDie } from "./classResources.js";
 
 /**
@@ -64,6 +82,85 @@ const REPEATABLE_FEAT_IDS: readonly string[] = [HABILIDOSO_FEAT_ID, INICIADO_EM_
 /** Só Habilidoso e Iniciado em Magia são repetíveis neste catálogo (fonte §1). */
 export function isFeatRepeatable(featId: string): boolean {
   return REPEATABLE_FEAT_IDS.includes(featId);
+}
+
+/**
+ * Pré-requisitos dos 26 Talentos Gerais além do nível 4+, universal a
+ * todos (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §1) —
+ * `abilityAtLeast13` é satisfeito por QUALQUER um dos atributos listados
+ * (nunca todos simultaneamente); `armorTraining` lê diretamente
+ * `character.armor.proficiencies` (reflete a proficiência ATUAL,
+ * qualquer que seja a origem — classe, subclasse ou outro talento, igual
+ * a qualquer checagem RAW de pré-requisito). Os 10 Talentos de Origem
+ * nunca aparecem aqui (sem entrada = sem pré-requisito além do nível
+ * 4+, que na prática nunca filtra nada para eles: todo nível de ASI já é
+ * ≥4 — ver `getUnlockedAsiLevels`).
+ */
+interface GeneralFeatPrerequisite {
+  armorTraining?: "medium" | "heavy" | "shield";
+  abilityAtLeast13?: AbilityKey[];
+}
+
+const GENERAL_FEAT_PREREQUISITES: Partial<Record<string, GeneralFeatPrerequisite>> = {
+  [ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID]: { armorTraining: "medium" },
+  [ESPECIALISTA_BESTA_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
+  [IMOBILIZADOR_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
+  [LIDER_INSPIRADOR_FEAT_ID]: { abilityAtLeast13: ["SAB", "CAR"] },
+  [MENTE_AGUCADA_FEAT_ID]: { abilityAtLeast13: ["INT"] },
+  [MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID]: { armorTraining: "medium" },
+  [MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID]: { armorTraining: "heavy" },
+  [MESTRE_EM_ARMAS_DE_HASTE_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
+  [MESTRE_EM_ARMAS_GRANDES_FEAT_ID]: { abilityAtLeast13: ["FOR"] },
+  [MESTRE_EM_ESCUDOS_FEAT_ID]: { armorTraining: "shield" },
+  [MESTRE_ATIRADOR_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
+  [SENTINELA_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
+  [SORRATEIRO_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
+  [VELOCISTA_FEAT_ID]: { abilityAtLeast13: ["DEX", "CON"] },
+};
+
+/** Id-BASE convencional da `FeatureChoice` de "Aumento de 1 num atributo" de QUALQUER um dos 26 Talentos Gerais — sempre `${featId}-atributo` (ver `data/features/feats.ts`, nunca uma constante nomeada por talento). */
+export function getFeatAbilityIncreaseChoiceId(featId: string): string {
+  return `${featId}-atributo`;
+}
+
+/**
+ * Valor do atributo "efetivo" usado só para checar pré-requisito de
+ * Talento — igual a `rules/abilities.ts#getEffectiveAbilityScore`, mas
+ * EXCLUINDO a contribuição da PRÓPRIA aquisição sendo validada (fonte
+ * §1: "não permitir que o aumento concedido cumpra seu próprio
+ * pré-requisito"). Nunca aplica o teto de 25 do Bárbaro/Monge nível 20
+ * — irrelevante para um limiar de 13.
+ */
+function getAbilityScoreForPrerequisite(character: Character, ability: AbilityKey, excludeAcquisitionKey: string): number {
+  const base = character.abilities[ability].score;
+  const backgroundBonus = character.backgroundAbilityBonuses[ability] ?? 0;
+  const asiBonus = getAsiAbilityBonus(character, ability);
+  const featBonus = getFeatAbilityIncreaseBonus(character, ability, excludeAcquisitionKey);
+  return base + backgroundBonus + asiBonus + featBonus;
+}
+
+/**
+ * Se uma aquisição específica (`acquisitionKey`) de `featId` satisfaz
+ * seus pré-requisitos — nível 4+ sempre (lido do PRÓPRIO `acquisitionKey`,
+ * formato `asi-{nível}`, nunca de `character.level`: todo nível de ASI já
+ * é ≥4 por definição — ver `ASI_LEVELS_BY_CLASS` — então isto nunca
+ * filtra nada na prática, só documenta/protege a regra; usar
+ * `character.level` quebraria em qualquer cenário onde ele ainda não
+ * reflita o nível desta aquisição específica), mais o que
+ * `GENERAL_FEAT_PREREQUISITES` declarar. Sem entrada no mapa = só o
+ * nível 4+ (cobre os 10 Talentos de Origem e os Talentos Gerais sem
+ * pré-requisito extra).
+ */
+export function meetsFeatPrerequisites(character: Character, featId: string, acquisitionKey: string): boolean {
+  const asiLevelMatch = /^asi-(\d+)$/.exec(acquisitionKey);
+  if (asiLevelMatch && Number(asiLevelMatch[1]) < 4) return false;
+  const prerequisite = GENERAL_FEAT_PREREQUISITES[featId];
+  if (!prerequisite) return true;
+  if (prerequisite.armorTraining && !character.armor.proficiencies[prerequisite.armorTraining]) return false;
+  if (prerequisite.abilityAtLeast13 && !prerequisite.abilityAtLeast13.some((ability) => getAbilityScoreForPrerequisite(character, ability, acquisitionKey) >= 13)) {
+    return false;
+  }
+  return true;
 }
 
 /** Id real de uma `FeatureChoice` de uma aquisição específica — ex.: `getFeatChoiceId(MAGIC_INITIATE_SPELL_CHOICE_BASE_ID, "asi-4")`, usado por `rules/featTalentEntries.ts` para ler a seleção já parametrizada. */
@@ -124,6 +221,39 @@ export function getFeatAcquisitionCount(character: Character, featId: string): n
   return getFeatAcquisitions(character).filter((acquisition) => acquisition.featId === featId).length;
 }
 
+/** Atributo escolhido na `FeatureChoice` "Aumento de 1" de UMA aquisição específica (ver `getFeatAbilityIncreaseChoiceId`) — `null` enquanto não resolvida. */
+export function getFeatAbilityIncreaseChoice(character: Character, acquisition: FeatAcquisition): AbilityKey | null {
+  const choiceId = suffixChoiceId(getFeatAbilityIncreaseChoiceId(acquisition.featId), acquisition.acquisitionKey);
+  const value = character.featureChoiceSelections[choiceId]?.value;
+  return typeof value === "string" && (ABILITY_KEYS as readonly string[]).includes(value) ? (value as AbilityKey) : null;
+}
+
+/**
+ * Soma de +1 por aquisição de Talento cuja escolha "Aumento de 1" já
+ * resolveu para este atributo — consumida por
+ * `rules/abilities.ts#getEffectiveAbilityScore` (soma ao valor efetivo,
+ * com teto de 20 aplicado lá) e por `getAbilityScoreForPrerequisite`
+ * acima (pré-requisito de OUTRO talento, nunca o dele mesmo —
+ * `excludeAcquisitionKey`). Mais de uma aquisição pode mirar o MESMO
+ * atributo (ex.: Resiliente + Resistente ambos em Constituição) — soma
+ * todas, nunca só a primeira.
+ */
+export function getFeatAbilityIncreaseBonus(character: Character, ability: AbilityKey, excludeAcquisitionKey?: string): number {
+  let total = 0;
+  for (const acquisition of getFeatAcquisitions(character)) {
+    if (acquisition.acquisitionKey === excludeAcquisitionKey) continue;
+    if (getFeatAbilityIncreaseChoice(character, acquisition) === ability) total += 1;
+  }
+  return total;
+}
+
+/** Atributo escolhido por Resiliente (nunca repetível, no máximo 1 aquisição ativa) — `null` se o talento não estiver ativo ou a escolha ainda não foi resolvida. Consumido por `rules/savingThrows.ts#getSavingThrow` para somar a proficiência concedida pela MESMA escolha que dá o +1 de atributo. */
+export function getResilientGrantedAbility(character: Character): AbilityKey | null {
+  const acquisition = getFeatAcquisitions(character).find((acquisition) => acquisition.featId === RESILIENTE_FEAT_ID);
+  if (!acquisition) return null;
+  return getFeatAbilityIncreaseChoice(character, acquisition);
+}
+
 /**
  * Talentos elegíveis para UM nível de ASI específico — exclui um
  * talento NÃO-repetível já ativo em OUTRA aquisição (Antecedente ou
@@ -142,7 +272,11 @@ export function getAvailableFeatsForAsiLevel(character: Character, level: number
       .map((acquisition) => acquisition.featId),
   );
 
-  return generalFeats.filter((feat) => isFeatRepeatable(feat.id) || feat.id === currentFeatId || !activeElsewhere.has(feat.id));
+  return generalFeats.filter(
+    (feat) =>
+      (isFeatRepeatable(feat.id) || feat.id === currentFeatId || !activeElsewhere.has(feat.id)) &&
+      (feat.id === currentFeatId || meetsFeatPrerequisites(character, feat.id, thisAcquisitionKey)),
+  );
 }
 
 /** Lista de Iniciado em Magia desta aquisição — fixa (Antecedente) ou a `optionPick` escolhida (ASI). `null` enquanto não resolvida. */
@@ -185,6 +319,21 @@ function instantiateBackgroundMagicInitiate(acquisitionKey: string): FeatureDefi
 export function buildFeatAcquisitionFeature(character: Character, acquisition: FeatAcquisition): FeatureDefinition | null {
   const base = generalFeats.find((feature) => feature.id === acquisition.featId);
   if (!base) return null;
+
+  if (acquisition.featId === RESILIENTE_FEAT_ID) {
+    const instantiated = instantiateFeatAcquisition(base, acquisition.acquisitionKey);
+    const abilityChoiceId = suffixChoiceId(getFeatAbilityIncreaseChoiceId(RESILIENTE_FEAT_ID), acquisition.acquisitionKey);
+    // Só atributos AINDA sem proficiência em Salvaguarda (flag armazenada diretamente — fonte §18:
+    // "atributo no qual ainda não tenha proficiência em Salv"). Recalculado por personagem, nunca uma
+    // lista estática (mesmo princípio da lista de Iniciado em Magia abaixo).
+    const options = ABILITY_KEYS.filter((ability) => !character.savingThrows[ability].proficient);
+    return {
+      ...instantiated,
+      choices: instantiated.choices?.map((choice) =>
+        choice.id === abilityChoiceId && choice.effect.kind === "abilityScoreIncrease" ? { ...choice, effect: { ...choice.effect, options } } : choice,
+      ),
+    };
+  }
 
   if (acquisition.featId === INICIADO_EM_MAGIA_FEAT_ID) {
     if (acquisition.acquisitionKey === "background") return instantiateBackgroundMagicInitiate(acquisition.acquisitionKey);
@@ -276,4 +425,57 @@ export function getUnarmedStrikeDamageDie(character: Character): number | null {
   if (!isFeatActive(character, VALENTAO_DE_TAVERNA_FEAT_ID)) return null;
   const monkDie = getMartialArtsDie(character);
   return monkDie && monkDie > 4 ? monkDie : 4;
+}
+
+/** Redução de dano Cont/Cort/Perf de ataques de Mestre em Armaduras Pesadas (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §12): Bônus de Proficiência — `null` quando o talento não está ativo. */
+export function getHeavyArmorMasterReduction(character: Character): number | null {
+  if (!isFeatActive(character, MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID)) return null;
+  return getProficiencyBonus(character.level);
+}
+
+/** Bônus de dano de Maestria em Armas Pesadas de Mestre em Armas Grandes (fonte §14): Bônus de Proficiência — `null` quando o talento não está ativo. */
+export function getGreatWeaponMasterDamageBonus(character: Character): number | null {
+  if (!isFeatActive(character, MESTRE_EM_ARMAS_GRANDES_FEAT_ID)) return null;
+  return getProficiencyBonus(character.level);
+}
+
+/** CD de Golpe de Escudo de Mestre em Escudos (fonte §15): `8 + mod FOR + BP` — `null` quando o talento não está ativo. */
+export function getShieldMasterCd(character: Character): number | null {
+  if (!isFeatActive(character, MESTRE_EM_ESCUDOS_FEAT_ID)) return null;
+  const strengthMod = getAbilityModifier(getEffectiveAbilityScore(character, "FOR"));
+  return 8 + strengthMod + getProficiencyBonus(character.level);
+}
+
+/**
+ * CD de Empurrão Telecinético de Telecinético (fonte §23): `8 + mod do
+ * atributo ESCOLHIDO NESTA AQUISIÇÃO + BP` — nunca o atributo de
+ * conjuração da classe (este talento nunca depende de conjuração de
+ * classe). `null` sem o talento ativo ou com a escolha de atributo ainda
+ * não resolvida.
+ */
+export function getTelekineticCd(character: Character): number | null {
+  const acquisition = getFeatAcquisitions(character).find((acquisition) => acquisition.featId === TELECINETICO_FEAT_ID);
+  if (!acquisition) return null;
+  const ability = getFeatAbilityIncreaseChoice(character, acquisition);
+  if (!ability) return null;
+  return 8 + getAbilityModifier(getEffectiveAbilityScore(character, ability)) + getProficiencyBonus(character.level);
+}
+
+/**
+ * PV Temporários da atuação de Líder Inspirador (fonte §8): nível total
+ * do personagem + mod do atributo ESCOLHIDO NESTA AQUISIÇÃO (SAB ou
+ * CAR, nunca o maior automaticamente). `null` sem o talento ativo ou com
+ * a escolha de atributo ainda não resolvida.
+ */
+export function getInspiringLeaderTempHp(character: Character): number | null {
+  const acquisition = getFeatAcquisitions(character).find((acquisition) => acquisition.featId === LIDER_INSPIRADOR_FEAT_ID);
+  if (!acquisition) return null;
+  const ability = getFeatAbilityIncreaseChoice(character, acquisition);
+  if (!ability) return null;
+  return character.level + getAbilityModifier(getEffectiveAbilityScore(character, ability));
+}
+
+/** Bônus de Deslocamento de Velocista (fonte §28): +3m fixo — `0` quando o talento não está ativo (soma direta em `rules/speed.ts#getSpeed`, mesmo padrão de `getToughHpBonus`/`getAlertInitiativeBonus`). */
+export function getFeatSpeedBonus(character: Character): number {
+  return isFeatActive(character, VELOCISTA_FEAT_ID) ? 3 : 0;
 }

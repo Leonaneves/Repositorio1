@@ -1,11 +1,20 @@
 import type { FeatureDefinition } from "../../domain/features.js";
 
 /**
- * Catálogo dos 10 Talentos de Origem do PHB 2024 (fonte "IMPLEMENTAR
- * TALENTOS DE ORIGEM NO BUILDER E NO PDF") — Alerta, Artifista, Atacante
- * Selvagem, Curandeiro, Habilidoso, Iniciado em Magia, Músico, Sortudo,
- * Valentão de Taverna, Vigoroso. Nunca aumentam atributo nem têm
- * pré-requisito (nenhum é inventado aqui, conforme a fonte).
+ * Catálogo dos Talentos do PHB 2024, em DOIS lotes:
+ *
+ * 1. Os 10 Talentos de Origem (fonte "IMPLEMENTAR TALENTOS DE ORIGEM NO
+ *    BUILDER E NO PDF") — Alerta, Artifista, Atacante Selvagem,
+ *    Curandeiro, Habilidoso, Iniciado em Magia, Músico, Sortudo, Valentão
+ *    de Taverna, Vigoroso. Nunca aumentam atributo nem têm pré-requisito.
+ * 2. Os 26 Talentos Gerais (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E
+ *    NO PDF") — só disponíveis em nível de ASI (nunca concedidos por
+ *    Antecedente — nenhum dos 16 Antecedentes do projeto concede um
+ *    destes 26), todos exigindo nível de personagem 4+ e concedendo
+ *    exatamente 1 escolha de "Aumento de 1 num atributo" (`abilityScoreIncrease`,
+ *    `domain/features.ts`), além de alguns exigirem outro pré-requisito
+ *    (treinamento com um tipo de armadura, ou um atributo mínimo 13) —
+ *    ver `rules/feats.ts#GENERAL_FEAT_PREREQUISITES`. Nenhum é repetível.
  *
  * Estas são as entradas-BASE do catálogo — cada uma representa "o
  * talento em si", nunca uma aquisição específica. Uma aquisição real
@@ -15,12 +24,12 @@ import type { FeatureDefinition } from "../../domain/features.js";
  * aquisição (`background` ou `asi-{nível}`) — nunca usa os ids
  * declarados aqui diretamente em `character.featureChoiceSelections`,
  * exceto quando só pode existir UMA aquisição ativa por vez (o próprio
- * mecanismo de `asiSelections`/antecedente já impede isso para os 8
- * talentos não-repetíveis, mas a parametrização é uniforme pelos 10,
+ * mecanismo de `asiSelections`/antecedente já impede isso para todos os
+ * talentos não-repetíveis, mas a parametrização é uniforme por todos,
  * nunca um caso especial por talento).
  *
  * Só Habilidoso e Iniciado em Magia são repetíveis (`repeatable: true`)
- * — os outros 8 só podem estar ativos em UMA aquisição por vez
+ * — todos os demais só podem estar ativos em UMA aquisição por vez
  * (`rules/feats.ts#getAvailableFeatsForAsiLevel` exclui um talento
  * não-repetível já ativo em outra aquisição, incluindo a do
  * Antecedente).
@@ -49,6 +58,50 @@ export const MUSICO_TOOL_CHOICE_BASE_ID = "musico-instrumento";
 
 export const MAGIC_INITIATE_LISTS = ["Clérigo", "Druida", "Mago"] as const;
 export const MAGIC_INITIATE_ABILITIES = ["Inteligência", "Sabedoria", "Carisma"] as const;
+
+/**
+ * Ids-BASE dos 26 Talentos Gerais (fonte "COMPLETAR TALENTOS GERAIS NO
+ * BUILDER E NO PDF") — nomes exatos da fonte, em kebab-case sem acento
+ * (convenção do projeto para ids, igual às demais listas de catálogo).
+ * "Mente Aguçada" vira `mente-agucada` (ç→c, mesma convenção de
+ * `SKILL_KEYS`/`BACKGROUND_IDS` em `domain/ids.ts`, nenhum dos quais usa
+ * acento).
+ */
+export const ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID = "especialista-armaduras-pesadas";
+export const ESPECIALISTA_BESTA_FEAT_ID = "especialista-besta";
+export const ESPECIALISTA_PERICIA_FEAT_ID = "especialista-pericia";
+export const EXTERMINADOR_DE_CONJURADORES_FEAT_ID = "exterminador-de-conjuradores";
+export const IMOBILIZADOR_FEAT_ID = "imobilizador";
+export const LIDER_INSPIRADOR_FEAT_ID = "lider-inspirador";
+export const MENTE_AGUCADA_FEAT_ID = "mente-agucada";
+export const MESTRE_DAS_ARMAS_FEAT_ID = "mestre-das-armas";
+export const MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID = "mestre-em-armaduras-medias";
+export const MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID = "mestre-em-armaduras-pesadas";
+export const MESTRE_EM_ARMAS_DE_HASTE_FEAT_ID = "mestre-em-armas-de-haste";
+export const MESTRE_EM_ARMAS_GRANDES_FEAT_ID = "mestre-em-armas-grandes";
+export const MESTRE_EM_ESCUDOS_FEAT_ID = "mestre-em-escudos";
+export const MESTRE_ATIRADOR_FEAT_ID = "mestre-atirador";
+export const PERFURADOR_FEAT_ID = "perfurador";
+export const RESILIENTE_FEAT_ID = "resiliente";
+export const RESISTENTE_FEAT_ID = "resistente";
+export const SENTINELA_FEAT_ID = "sentinela";
+export const SORRATEIRO_FEAT_ID = "sorrateiro";
+export const TALHADOR_FEAT_ID = "talhador";
+export const TELECINETICO_FEAT_ID = "telecinetico";
+export const TELEPATICO_FEAT_ID = "telepatico";
+export const TOCADO_PELAS_SOMBRAS_FEAT_ID = "tocado-pelas-sombras";
+export const TOCADO_POR_FADAS_FEAT_ID = "tocado-por-fadas";
+export const TREINAMENTO_COM_ARMAS_MARCIAIS_FEAT_ID = "treinamento-com-armas-marciais";
+export const VELOCISTA_FEAT_ID = "velocista";
+
+/** Ids-BASE das `FeatureChoice` que não seguem a convenção genérica `${featId}-atributo` (ver `rules/feats.ts#getFeatAbilityIncreaseChoiceId`) — escolhas de perícia/magia/nota própria de um talento específico. */
+export const ESPECIALISTA_PERICIA_SKILL_CHOICE_ID = "especialista-pericia-pericia";
+export const ESPECIALISTA_PERICIA_EXPERTISE_CHOICE_ID = "especialista-pericia-especializacao";
+export const MENTE_AGUCADA_SKILL_CHOICE_ID = "mente-agucada-pericia";
+export const MENTE_AGUCADA_SKILL_OPTIONS = ["arcanismo", "historia", "investigacao", "natureza", "religiao"] as const;
+export const MESTRE_DAS_ARMAS_NOTE_CHOICE_ID = "mestre-das-armas-nota";
+export const TOCADO_PELAS_SOMBRAS_SPELL_CHOICE_ID = "tocado-pelas-sombras-magia";
+export const TOCADO_POR_FADAS_SPELL_CHOICE_ID = "tocado-por-fadas-magia";
 
 export const generalFeats: FeatureDefinition[] = [
   {
@@ -187,5 +240,285 @@ export const generalFeats: FeatureDefinition[] = [
     autoGranted: true,
     summary:
       "Nunca repetível. Aumenta os PV máximos em 2 × nível total do personagem (rules/feats.ts#getToughHpBonus, somado em rules/hp.ts#getMaxHitPoints) — calculado pelo NÍVEL TOTAL, nunca por uma classe específica; ao adquirir em nível superior ao 1º, aplica o bônus completo do nível atual (nunca soma retroativamente aumento por aumento). Nunca tratado como cura, PV Temp ou aumento de Constituição. Remover o talento retira só este bônus, preservando qualquer outra fonte de PV.",
+  },
+
+  // ===================== Talentos Gerais (26, nível 4+, só via ASI) =====================
+
+  {
+    id: ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
+    name: "Especialista em Armaduras Pesadas",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: treinamento com Armadura Média. Nunca repetível. Concede treinamento com Armadura Pesada — soma a `character.armor.proficiencies.heavy` ao ser escolhido em ASI (`state/characterStore.ts#applyFeatArmorProficiencies`), nunca substitui/reseta as demais proficiências de armadura, nunca equipa uma armadura automaticamente. +1 em Constituição ou Força, limitado a 20 (`abilityScoreIncrease`) — a checagem do pré-requisito de Armadura Média nunca é satisfeita pelo próprio talento (ele não concede treinamento médio, só pesado).",
+    choices: [{ id: `${ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID}-atributo`, prompt: "Especialista em Armaduras Pesadas — aumente em 1 (máx. 20): Constituição ou Força", effect: { kind: "abilityScoreIncrease", options: ["CON", "FOR"] } }],
+  },
+  {
+    id: ESPECIALISTA_BESTA_FEAT_ID,
+    name: "Especialista em Besta",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Destreza 13. Nunca repetível. Com Besta de Mão, Besta Leve ou Besta Pesada: ignora a propriedade Recarga; pode carregar munição e recarregar sem precisar de uma mão livre; uma criatura a até 1,5m nunca impõe Desvantagem nesses ataques (preserva qualquer outra fonte de Desvantagem, só remove a de inimigo adjacente). Ao usar a ação Atacar com uma Besta Leve e fazer o ataque adicional da própria propriedade Leve, pode somar o modificador do atributo ao dano desse ataque adicional SE ele ainda não estiver incluso — nunca soma duas vezes, nunca concede um ataque extra independente da propriedade Leve em si (texto-only: não há dado de dano estruturado por arma neste projeto, decisão já aprovada em `character.attacks`). +1 em Destreza, limitado a 20.",
+    choices: [{ id: `${ESPECIALISTA_BESTA_FEAT_ID}-atributo`, prompt: "Especialista em Besta — aumente em 1 (máx. 20): Destreza", effect: { kind: "abilityScoreIncrease", options: ["DEX"] } }],
+  },
+  {
+    id: ESPECIALISTA_PERICIA_FEAT_ID,
+    name: "Especialista em Perícia",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Concede, na etapa Perícias: (1) proficiência numa perícia à escolha (excluindo as já proficientes); (2) Especialização numa perícia proficiente ainda sem Especialização — a perícia escolhida em (1) já conta como proficiente ao abrir a escolha (2), podendo ser a mesma; nunca concede Especialização em ferramenta. +1 em qualquer atributo, limitado a 20.",
+    choices: [
+      { id: ESPECIALISTA_PERICIA_SKILL_CHOICE_ID, prompt: "Especialista em Perícia — proficiência em 1 perícia", effect: { kind: "skillProficiency", options: "any", count: 1, excludeAlreadyProficient: true } },
+      { id: ESPECIALISTA_PERICIA_EXPERTISE_CHOICE_ID, prompt: "Especialista em Perícia — Especialização em 1 perícia proficiente", effect: { kind: "skillExpertise", count: 1 } },
+      {
+        id: `${ESPECIALISTA_PERICIA_FEAT_ID}-atributo`,
+        prompt: "Especialista em Perícia — aumente em 1 (máx. 20): qualquer atributo",
+        effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX", "CON", "INT", "SAB", "CAR"] },
+      },
+    ],
+  },
+  {
+    id: EXTERMINADOR_DE_CONJURADORES_FEAT_ID,
+    name: "Exterminador de Conjuradores",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Quebrador de Concentração: ao causar dano a uma criatura concentrada numa magia, ela tem Desvantagem na Salvaguarda para manter a Concentração — vale para qualquer dano causado pelo personagem, não só ataques corpo a corpo nem só no próprio turno. Resguardo Mental: ao falhar numa Salvaguarda de Inteligência, Sabedoria ou Carisma, pode gastar 1 uso (reserva compartilhada entre as 3, recupera em Descanso Curto OU Longo) para passar no teste — nunca exige Reação, nunca é uma nova rolagem, nunca depende de a Salvaguarda ter sido provocada por magia. +1 em Força ou Destreza, limitado a 20.",
+    choices: [{ id: `${EXTERMINADOR_DE_CONJURADORES_FEAT_ID}-atributo`, prompt: "Exterminador de Conjuradores — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: IMOBILIZADOR_FEAT_ID,
+    name: "Imobilizador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Força ou Destreza 13. Nunca repetível. Socar e Imobilizar: uma vez por turno, ao acertar um Ataque Desarmado como parte da ação Atacar no próprio turno, pode causar o dano normal E tentar Imobilizar o alvo com a mesma ação — a imobilização segue a resolução normal (Salvaguarda/restrições de tamanho), o acerto do Ataque Desarmado não garante sucesso automático nela. Vantagem em ataques contra uma criatura que o próprio personagem tenha Imobilizado (nunca contra alvo imobilizado por outra fonte). Transportar uma criatura Imobilizada do próprio tamanho ou menor não gasta movimento adicional. +1 em Força ou Destreza, limitado a 20.",
+    choices: [{ id: `${IMOBILIZADOR_FEAT_ID}-atributo`, prompt: "Imobilizador — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: LIDER_INSPIRADOR_FEAT_ID,
+    name: "Líder Inspirador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Sabedoria ou Carisma 13. Nunca repetível. Ao completar um Descanso Curto ou Longo, pode fazer um discurso/música/dança inspiradora e conceder PV Temporários = nível total do personagem + modificador do atributo escolhido neste talento (nunca o maior modificador automaticamente — usa SEMPRE o atributo efetivamente aumentado por esta aquisição) a até 6 criaturas à escolha, a até 9m, que tenham presenciado a atuação, podendo incluir o próprio personagem. Nunca uma reserva de usos por descanso — o limite de 6 é só a quantidade de alvos por atuação, não um contador consumível. +1 em Sabedoria ou Carisma, limitado a 20.",
+    choices: [{ id: `${LIDER_INSPIRADOR_FEAT_ID}-atributo`, prompt: "Líder Inspirador — aumente em 1 (máx. 20): Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["SAB", "CAR"] } }],
+  },
+  {
+    id: MENTE_AGUCADA_FEAT_ID,
+    name: "Mente Aguçada",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Inteligência 13. Nunca repetível. Escolhe 1 entre Arcanismo/História/Investigação/Natureza/Religião: se o personagem ainda não for proficiente nela, ganha proficiência; se já for, ganha Especialização no lugar (`skillProficiencyOrExpertise`, domain/features.ts — revalidado a cada leitura, nunca uma decisão travada no momento da escolha). Pode executar a ação Analisar como Ação Bônus. +1 em Inteligência, limitado a 20.",
+    choices: [
+      { id: MENTE_AGUCADA_SKILL_CHOICE_ID, prompt: "Mente Aguçada — Arcanismo/História/Investigação/Natureza/Religião: proficiência (ou Especialização, se já proficiente)", effect: { kind: "skillProficiencyOrExpertise", options: [...MENTE_AGUCADA_SKILL_OPTIONS] } },
+      { id: `${MENTE_AGUCADA_FEAT_ID}-atributo`, prompt: "Mente Aguçada — aumente em 1 (máx. 20): Inteligência", effect: { kind: "abilityScoreIncrease", options: ["INT"] } },
+    ],
+  },
+  {
+    id: MESTRE_DAS_ARMAS_FEAT_ID,
+    name: "Mestre das Armas",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Concede o uso da propriedade de Maestria de 1 arma Simples ou Marcial com a qual o personagem já seja proficiente — nunca concede a própria proficiência com a arma, nunca concede todas as Maestrias de uma vez. Pode trocar para outra arma elegível ao completar um Descanso Longo — decisão tomada durante o jogo, por isso a anotação é um campo de texto opcional, nunca uma escolha obrigatória para concluir a criação, e a arma escolhida nunca é fixada no PDF (`rules/featTalentEntries.ts`: texto sempre genérico).",
+    choices: [{ id: MESTRE_DAS_ARMAS_NOTE_CHOICE_ID, prompt: "Mestre das Armas — arma atual com Maestria ativa (anotação sua, troca em Descanso Longo — nunca obrigatório)", effect: { kind: "manualText", placeholder: "Nome da arma (opcional)" } }, { id: `${MESTRE_DAS_ARMAS_FEAT_ID}-atributo`, prompt: "Mestre das Armas — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID,
+    name: "Mestre em Armaduras Médias",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: treinamento com Armadura Média. Nunca repetível. Enquanto estiver usando Armadura Média, com Destreza 16 ou superior, pode somar até +3 do modificador de Destreza à CA (em vez do +2 normal de Armadura Média) — `rules/armor.ts#getArmorClass`, nunca soma +3 além do que a armadura já concede, nunca afeta Armadura Leve/Pesada/CA sem armadura. Não remove Desvantagem em testes de Furtividade de Armadura Pesada (este talento não concede esse benefício).",
+    choices: [{ id: `${MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID}-atributo`, prompt: "Mestre em Armaduras Médias — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID,
+    name: "Mestre em Armaduras Pesadas",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: treinamento com Armadura Pesada. Nunca repetível. Enquanto estiver vestindo Armadura Pesada, ao ser atingido por um ataque, reduz o dano Contundente, Cortante ou Perfurante causado por esse ataque em uma quantidade igual ao Bônus de Proficiência (`rules/feats.ts#getHeavyArmorMasterReduction`) — vale só para ataques (nunca dano sem ataque associado), nunca se torna Resistência, nunca aumenta a CA, nunca cria uma reserva de usos limitada.",
+    choices: [{ id: `${MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID}-atributo`, prompt: "Mestre em Armaduras Pesadas — aumente em 1 (máx. 20): Força ou Constituição", effect: { kind: "abilityScoreIncrease", options: ["FOR", "CON"] } }],
+  },
+  {
+    id: MESTRE_EM_ARMAS_DE_HASTE_FEAT_ID,
+    name: "Mestre em Armas de Haste",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Força ou Destreza 13. Nunca repetível. Vale para Cajado, Lança, ou qualquer arma com as propriedades Extensão e Pesada simultaneamente. Golpe de Haste: depois de atacar com uma dessas armas usando a ação Atacar, pode fazer imediatamente, como Ação Bônus, um Ataque corpo a corpo com a extremidade oposta da arma — dano 1d4 Contundente + modificador do atributo normalmente usado com a arma, nunca exige outra ação além da própria ação Atacar + a Ação Bônus, nunca impõe restrição extra ao ataque anterior. Golpe Reativo: enquanto empunhando uma dessas armas, pode usar a Reação para fazer um Ataque corpo a corpo contra uma criatura que entre no alcance da arma — é um ataque de Reação comum (interage normalmente com Sentinela e efeitos equivalentes), nunca automaticamente classificado como Ataque de Oportunidade.",
+    choices: [{ id: `${MESTRE_EM_ARMAS_DE_HASTE_FEAT_ID}-atributo`, prompt: "Mestre em Armas de Haste — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: MESTRE_EM_ARMAS_GRANDES_FEAT_ID,
+    name: "Mestre em Armas Grandes",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Força 13. Nunca repetível. Maestria em Armas Pesadas: ao acertar uma criatura com uma arma Pesada como parte da ação Atacar no próprio turno, pode somar o Bônus de Proficiência ao dano (`rules/feats.ts#getGreatWeaponMasterDamageBonus`) — não limitado a uma vez por turno, não restrito a corpo a corpo, não se aplica a um ataque feito só por usar a mesma arma fora da ação Atacar (ex.: Ataque de Oportunidade só conta se também satisfizer a condição). Cortar: imediatamente após causar um acerto crítico ou reduzir uma criatura a 0 PV com uma arma Corpo a Corpo (não precisa ser Pesada), pode fazer um Ataque com a mesma arma como Ação Bônus.",
+    choices: [{ id: `${MESTRE_EM_ARMAS_GRANDES_FEAT_ID}-atributo`, prompt: "Mestre em Armas Grandes — aumente em 1 (máx. 20): Força", effect: { kind: "abilityScoreIncrease", options: ["FOR"] } }],
+  },
+  {
+    id: MESTRE_EM_ESCUDOS_FEAT_ID,
+    name: "Mestre em Escudos",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: treinamento com Escudo. Nunca repetível. Golpe de Escudo: uma vez em cada um dos próprios turnos, ao acertar uma criatura a até 1,5m com uma arma Corpo a Corpo na ação Atacar, enquanto equipado com Escudo, pode forçar uma Salvaguarda de Força (CD 8 + modificador de Força + Bônus de Proficiência, `rules/feats.ts#getShieldMasterCd`) — na falha, empurra o alvo 1,5m para longe OU o deixa Caído (escolha do personagem); nunca cobra Ação Bônus/Reação, nunca soma dano extra de escudo. Interpor Escudo: com um Escudo em mãos, ao passar numa Salvaguarda de Destreza que normalmente reduziria o dano à metade, pode usar a Reação para não sofrer dano algum em vez da metade.",
+    choices: [{ id: `${MESTRE_EM_ESCUDOS_FEAT_ID}-atributo`, prompt: "Mestre em Escudos — aumente em 1 (máx. 20): Força", effect: { kind: "abilityScoreIncrease", options: ["FOR"] } }],
+  },
+  {
+    id: MESTRE_ATIRADOR_FEAT_ID,
+    name: "Mestre-Atirador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Destreza 13. Nunca repetível. Ataques à distância feitos com uma arma ignoram Cobertura Parcial (1/2) e de Três Quartos (3/4) do alvo — nunca Cobertura Total. Uma criatura a até 1,5m nunca impõe Desvantagem em ataques feitos com armas da categoria À Distância, e atirar no alcance longo dessas armas também nunca impõe Desvantagem (preserva o alcance máximo normal — além dele, o ataque continua impossível). Distingue sempre 'ataque à distância feito com uma arma' (primeiro benefício) de 'arma da categoria À Distância' (os outros dois) — nunca confunde as duas condições.",
+    choices: [{ id: `${MESTRE_ATIRADOR_FEAT_ID}-atributo`, prompt: "Mestre-Atirador — aumente em 1 (máx. 20): Destreza", effect: { kind: "abilityScoreIncrease", options: ["DEX"] } }],
+  },
+  {
+    id: PERFURADOR_FEAT_ID,
+    name: "Perfurador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Uma vez por turno, ao acertar um ataque que cause dano Perfurante, pode repetir UM dos dados de dano desse ataque, usando obrigatoriamente o novo resultado — nunca repete todos os dados, nunca permite escolher manter o resultado anterior, não limitado ao próprio turno do personagem (só ao próprio ataque). Ao causar um acerto crítico com dano Perfurante, pode jogar 1 dado adicional de dano Perfurante — nunca dobra todos os dados de novo.",
+    choices: [{ id: `${PERFURADOR_FEAT_ID}-atributo`, prompt: "Perfurador — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: RESILIENTE_FEAT_ID,
+    name: "Resiliente",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Escolhe 1 atributo no qual o personagem ainda não seja proficiente em Salvaguarda — a MESMA escolha concede, simultaneamente, +1 nesse atributo (limitado a 20) E proficiência na Salvaguarda correspondente (`rules/savingThrows.ts#getResilientGrantedAbility`, somada em `getSavingThrow`). As opções elegíveis são recalculadas a cada personagem (`rules/feats.ts#buildFeatAcquisitionFeature`), nunca uma lista estática — nunca inclui um atributo já proficiente em Salvaguarda por outra origem (classe, Mente de Ferro, Mente Escorregadia etc.).",
+    choices: [{ id: `${RESILIENTE_FEAT_ID}-atributo`, prompt: "Resiliente — escolha 1 atributo sem proficiência em Salvaguarda: +1 (máx. 20) e proficiência em Salvaguarda", effect: { kind: "abilityScoreIncrease", options: [] } }],
+  },
+  {
+    id: RESISTENTE_FEAT_ID,
+    name: "Resistente",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Desafie a Morte: Vantagem em Salvaguardas Contra a Morte. Recuperação Rápida: como Ação Bônus, pode gastar 1 Dado de Vida do personagem, jogá-lo, e recuperar PV igual ao resultado — nunca soma o modificador de Constituição, usa a reserva normal de Dados de Vida (nunca cria uma reserva própria), nunca exige um descanso para ficar disponível de novo (limitado só pelos próprios Dados de Vida restantes). +1 em Constituição, limitado a 20.",
+    choices: [{ id: `${RESISTENTE_FEAT_ID}-atributo`, prompt: "Resistente — aumente em 1 (máx. 20): Constituição", effect: { kind: "abilityScoreIncrease", options: ["CON"] } }],
+  },
+  {
+    id: SENTINELA_FEAT_ID,
+    name: "Sentinela",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Força ou Destreza 13. Nunca repetível. Diligente: imediatamente depois de uma criatura a até 1,5m do personagem executar a ação Desengajar OU acertar um alvo diferente do próprio personagem, pode fazer um Ataque de Oportunidade contra ela — usa a Reação normalmente (nunca um ataque gratuito adicional), nunca exige que a criatura saia do alcance depois de Desengajar, nunca restringe o segundo gatilho a 'acertar um aliado' especificamente (qualquer alvo que não o próprio personagem conta). Deter: ao acertar um Ataque de Oportunidade, o Deslocamento da criatura atingida cai para 0 pelo restante do turno ATUAL dela — nunca se estende ao próximo turno, nunca se aplica a um ataque feito como Reação por outro motivo que não um Ataque de Oportunidade.",
+    choices: [{ id: `${SENTINELA_FEAT_ID}-atributo`, prompt: "Sentinela — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: SORRATEIRO_FEAT_ID,
+    name: "Sorrateiro",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Destreza 13. Nunca repetível. Visão às Cegas 3m — se outra fonte já conceder um alcance maior de Visão às Cegas, preserva o maior dos dois (nunca soma). Durante combate, Vantagem em testes de Destreza (Furtividade) feitos como parte da ação Esconder. Ao atacar enquanto escondido e ERRAR o ataque, o personagem não revela sua localização — nunca concede Vantagem em Furtividade fora de Esconder, nunca preserva automaticamente o esconderijo quando o ataque ACERTA.",
+    choices: [{ id: `${SORRATEIRO_FEAT_ID}-atributo`, prompt: "Sorrateiro — aumente em 1 (máx. 20): Destreza", effect: { kind: "abilityScoreIncrease", options: ["DEX"] } }],
+  },
+  {
+    id: TALHADOR_FEAT_ID,
+    name: "Talhador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Uma vez por turno, ao acertar um ataque que cause dano Cortante, pode reduzir o Deslocamento do alvo em 3m até o início do PRÓXIMO turno do personagem — não limitado ao próprio turno do personagem (só ao próprio ataque). Ao causar um acerto crítico com dano Cortante, o alvo tem Desvantagem em ataques até o início do próximo turno do personagem — nunca concede Desvantagem nas Salvaguardas/testes do alvo, só nos ataques dele.",
+    choices: [{ id: `${TALHADOR_FEAT_ID}-atributo`, prompt: "Talhador — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: TELECINETICO_FEAT_ID,
+    name: "Telecinético",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Telecinese Menor: concede o truque Mãos Mágicas, usando o atributo aumentado por este talento como atributo de conjuração (`rules/featAutoPreparedSpells.ts`). Ao conjurá-lo por esta concessão, pode dispensar os componentes Verbal e Somático, tornar a mão invisível, e aumentar em 9m tanto o alcance da magia quanto a distância máxima entre a mão e o personagem — nunca concede Ação Bônus para conjurá-lo/controlá-lo (continua usando o tempo de conjuração normal do truque). Empurrão Telecinético: como Ação Bônus, força 1 criatura à vista a até 9m a uma Salvaguarda de Força (CD 8 + modificador do atributo aumentado por este talento + Bônus de Proficiência, `rules/feats.ts#getTelekineticCd`) — na falha, move a criatura 1,5m na direção do personagem OU para longe dele, à escolha. Atributo de conjuração escolhido aqui NUNCA precisa ser o mesmo da classe, nem exige conjuração de classe para existir.",
+    choices: [{ id: `${TELECINETICO_FEAT_ID}-atributo`, prompt: "Telecinético — aumente em 1 (máx. 20), também o atributo de conjuração deste talento: Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } }],
+  },
+  {
+    id: TELEPATICO_FEAT_ID,
+    name: "Telepático",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Enunciado Telepático: pode falar telepaticamente com 1 criatura à vista a até 18m, usando qualquer idioma que o personagem conheça — a criatura-alvo só compreende se também conhecer esse idioma, e nunca pode responder telepaticamente de volta (comunicação de mão única). Detectar Pensamentos: concedida como sempre preparada, usando o atributo aumentado por este talento; pode ser conjurada 1×/Descanso Longo sem gastar espaço de magia nem componentes, e normalmente usando espaços de magia disponíveis do círculo apropriado — nunca concede espaços de magia por si só, nunca consome o limite normal de Magias Preparadas da classe (`rules/featAutoPreparedSpells.ts`).",
+    choices: [{ id: `${TELEPATICO_FEAT_ID}-atributo`, prompt: "Telepático — aumente em 1 (máx. 20), também o atributo de conjuração deste talento: Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } }],
+  },
+  {
+    id: TOCADO_PELAS_SOMBRAS_FEAT_ID,
+    name: "Tocado Pelas Sombras",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Escolhe 1 magia de 1º círculo da escola de Ilusão ou Necromancia (catálogo de magias pendente — entrada manual, nunca restrita a uma lista de classe que a fonte não exige). Concede, como sempre preparadas, usando o atributo aumentado por este talento: Invisibilidade E a magia escolhida — cada uma com seu PRÓPRIO uso independente de 1×/Descanso Longo sem gastar espaço (nunca uma reserva de 2 usos livremente distribuível entre as duas), e ambas também conjuráveis normalmente usando espaços de magia disponíveis do círculo apropriado.",
+    choices: [
+      { id: TOCADO_PELAS_SOMBRAS_SPELL_CHOICE_ID, prompt: "Tocado Pelas Sombras — magia de 1º círculo de Ilusão ou Necromancia (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo (Ilusão ou Necromancia)" } },
+      { id: `${TOCADO_PELAS_SOMBRAS_FEAT_ID}-atributo`, prompt: "Tocado Pelas Sombras — aumente em 1 (máx. 20), também o atributo de conjuração deste talento: Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
+    ],
+  },
+  {
+    id: TOCADO_POR_FADAS_FEAT_ID,
+    name: "Tocado Por Fadas",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Escolhe 1 magia de 1º círculo da escola de Adivinhação ou Encantamento (catálogo de magias pendente — entrada manual, nunca restrita a uma lista de classe que a fonte não exige). Concede, como sempre preparadas, usando o atributo aumentado por este talento: Passo Nebuloso E a magia escolhida — cada uma com seu PRÓPRIO uso independente de 1×/Descanso Longo sem gastar espaço (nunca uma reserva de 2 usos livremente distribuível entre as duas), e ambas também conjuráveis normalmente usando espaços de magia disponíveis do círculo apropriado.",
+    choices: [
+      { id: TOCADO_POR_FADAS_SPELL_CHOICE_ID, prompt: "Tocado Por Fadas — magia de 1º círculo de Adivinhação ou Encantamento (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo (Adivinhação ou Encantamento)" } },
+      { id: `${TOCADO_POR_FADAS_FEAT_ID}-atributo`, prompt: "Tocado Por Fadas — aumente em 1 (máx. 20), também o atributo de conjuração deste talento: Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
+    ],
+  },
+  {
+    id: TREINAMENTO_COM_ARMAS_MARCIAIS_FEAT_ID,
+    name: "Treinamento com Armas Marciais",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Concede proficiência com armas Marciais — entra como entrada própria no campo de Proficiências/Armas (`rules/featTalentEntries.ts#getFeatWeaponProficiencyEntries`, nunca sobrescreve o texto da classe), atualizando a elegibilidade de ataque conforme a arma usada. Nunca concede Maestria de Arma nem Estilo de Luta — só a proficiência em si.",
+    choices: [{ id: `${TREINAMENTO_COM_ARMAS_MARCIAIS_FEAT_ID}-atributo`, prompt: "Treinamento com Armas Marciais — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } }],
+  },
+  {
+    id: VELOCISTA_FEAT_ID,
+    name: "Velocista",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Destreza ou Constituição 13. Nunca repetível. +3m de Deslocamento (`rules/feats.ts#getFeatSpeedBonus`, somado em `rules/speed.ts#getSpeed`). Ao executar a ação Correr no próprio turno, Terreno Difícil não exige movimento adicional pelo restante do turno — nunca concede imunidade a Ataque de Oportunidade nem ignora Terreno Difícil fora da ação Correr (texto-only: não há rastreamento estruturado de Terreno Difícil/ação Correr no projeto). Ataques de Oportunidade feitos contra o personagem têm Desvantagem.",
+    choices: [{ id: `${VELOCISTA_FEAT_ID}-atributo`, prompt: "Velocista — aumente em 1 (máx. 20): Destreza ou Constituição", effect: { kind: "abilityScoreIncrease", options: ["DEX", "CON"] } }],
   },
 ];
