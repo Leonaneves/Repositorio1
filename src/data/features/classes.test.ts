@@ -88,11 +88,13 @@ describe("classFeatures — nomes e níveis das 12 classes da base consolidada",
     }
   });
 
-  it("todas as 12 classes confirmadas têm Dádiva Épica no nível 19, com escolha manualText pendente", () => {
+  it("todas as 12 classes confirmadas têm Dádiva Épica no nível 19, com escolha optionPick das 12 Dádivas do catálogo", () => {
     for (const classId of CONFIRMED_CLASS_IDS) {
       const feature = classFeatures.find((f) => f.classId === classId && f.name === "Dádiva Épica");
       expect(feature?.level).toBe(19);
-      expect(feature?.choices?.[0].effect.kind).toBe("manualText");
+      const effect = feature?.choices?.[0].effect;
+      expect(effect?.kind).toBe("optionPick");
+      expect(effect?.kind === "optionPick" ? effect.options : []).toHaveLength(12);
     }
   });
 

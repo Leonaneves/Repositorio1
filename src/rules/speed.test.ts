@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
+import { getEpicBoonChoiceId } from "../data/features/classes.js";
 import { getClassSpeedBonus, getSpeed, getSwimSpeed } from "./speed.js";
 
 describe("getSpeed — deslocamento base por espécie", () => {
@@ -170,5 +171,25 @@ describe("getSwimSpeed — Afinidade Aquática (Círculo do Mar, nível 6) — P
 
   it("a partir do nível 6, igual ao Deslocamento normal (9m) — sem depender de Ira do Mar estar ativa", () => {
     expect(getSwimSpeed(druidAt(6, "Círculo do Mar"))).toEqual({ auto: 9, manual: 0, total: 9 });
+  });
+});
+
+describe("getSpeed — Agilidade: Dádiva da Velocidade soma +9m, uma ÚNICA vez (fonte \"IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF\" §9)", () => {
+  it("soma +9m ao deslocamento normal", () => {
+    const character = createBlankCharacter("speed-epic-boon-test");
+    character.speciesId = "humano"; // 9m
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Velocidade" };
+    expect(getSpeed(character).auto).toBe(18); // 9 + 9
+  });
+
+  it("sem a Dádiva ativa, nenhum bônus extra", () => {
+    const character = createBlankCharacter("speed-epic-boon-test");
+    character.speciesId = "humano";
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Fortitude" };
+    expect(getSpeed(character).auto).toBe(9);
   });
 });

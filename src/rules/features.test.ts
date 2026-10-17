@@ -10,9 +10,12 @@ import {
 import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
 import { PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID, PALADIN_FIGHTING_STYLE_CHOICE_ID } from "../data/features/paladin.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
+import { getEpicBoonChoiceId } from "../data/features/classes.js";
+import { DADIVA_DA_RECORDACAO_DE_MAGIA_FEAT_ID, DADIVA_DA_VELOCIDADE_FEAT_ID } from "../data/features/epicBoons.js";
 import {
   getBackgroundFeatures,
   getCharacterFeatures,
+  getChosenEpicBoonFeatures,
   getChosenFeatFeatures,
   getClassFeatures,
   getFeatureView,
@@ -82,14 +85,14 @@ describe("getClassFeatures — progressão por nível", () => {
     expect(names).not.toContain("Sábio dos Itens Mágicos"); // só a partir do nível 14
   });
 
-  it("Aumento no Valor de Atributo não tem FeatureChoice genérica (UI própria); Dádiva Épica continua manualText (catálogo pendente)", () => {
+  it("Aumento no Valor de Atributo não tem FeatureChoice genérica (UI própria); Dádiva Épica tem optionPick com as 12 Dádivas do catálogo", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "mago";
     character.level = 20;
     const asi = getClassFeatures(character).find((f) => f.id === "mago-asi-4");
     const dadiva = getClassFeatures(character).find((f) => f.id === "mago-dadiva-epica");
     expect(asi?.choices ?? []).toHaveLength(0);
-    expect(dadiva?.choices?.[0].effect.kind).toBe("manualText");
+    expect(dadiva?.choices?.[0].effect.kind).toBe("optionPick");
   });
 
   it("Guerreiro recebe 6 Aumentos no Valor de Atributo (mais que as outras classes) e Ladino recebe 5", () => {
@@ -245,6 +248,102 @@ describe("getClassFeatures/getSubclassFeatures — narrowing dinâmico de Estilo
     const estiloDeLuta = getClassFeatures(character).find((f) => f.id === "patrulheiro-estilo-de-luta-2")!;
     expect(estiloDeLuta.choices!.some((c) => c.id === RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID)).toBe(true);
     expect(estiloDeLuta.choices!.length).toBeGreaterThan(1); // ramo + 2 truques de Druida, só o nome do Estilo de Luta saiu
+  });
+});
+
+describe("getClassFeatures — narrowing dinâmico de Dádiva Épica por Conjuração (fonte \"IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF\" §1)", () => {
+  function characterAt19(classId: "guerreiro" | "mago" | "bruxo", subclassFullName: string | null = null) {
+    const character = createBlankCharacter("epic-boon-narrowing-test");
+    character.classId = classId;
+    character.level = 19;
+    character.subclassId = subclassFullName;
+    return character;
+  }
+
+  it("Guerreiro (sem Conjuração): a opção 'Dádiva da Recordação de Magia' nunca aparece entre as opções da escolha — 11 opções", () => {
+    const character = characterAt19("guerreiro");
+    const feature = getClassFeatures(character).find((f) => f.id === "guerreiro-dadiva-epica")!;
+    const options = (feature.choices![0].effect as { options: string[] }).options;
+    expect(options).not.toContain("Dádiva da Recordação de Magia");
+    expect(options).toHaveLength(11);
+  });
+
+  it("Mago (Conjuração própria da classe): as 12 opções completas aparecem, incluindo 'Dádiva da Recordação de Magia'", () => {
+    const character = characterAt19("mago");
+    const feature = getClassFeatures(character).find((f) => f.id === "mago-dadiva-epica")!;
+    const options = (feature.choices![0].effect as { options: string[] }).options;
+    expect(options).toContain("Dádiva da Recordação de Magia");
+    expect(options).toHaveLength(12);
+  });
+
+  it("Bruxo (só Magia de Pacto, nunca Conjuração): a opção nunca aparece — 11 opções, mesmo tendo magias", () => {
+    const character = characterAt19("bruxo");
+    const feature = getClassFeatures(character).find((f) => f.id === "bruxo-dadiva-epica")!;
+    const options = (feature.choices![0].effect as { options: string[] }).options;
+    expect(options).not.toContain("Dádiva da Recordação de Magia");
+    expect(options).toHaveLength(11);
+  });
+
+  it("subclasse que concede Conjuração (Cavaleiro Místico) habilita a opção mesmo numa classe-base sem Conjuração própria", () => {
+    const character = characterAt19("guerreiro", "Cavaleiro Místico");
+    const feature = getClassFeatures(character).find((f) => f.id === "guerreiro-dadiva-epica")!;
+    const options = (feature.choices![0].effect as { options: string[] }).options;
+    expect(options).toContain("Dádiva da Recordação de Magia");
+    expect(options).toHaveLength(12);
+  });
+});
+
+describe("getChosenEpicBoonFeatures / getCharacterFeatures — expõe a Dádiva Épica escolhida (fonte \"IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF\" §1)", () => {
+  it("vazio sem elegibilidade (nível < 19)", () => {
+    const character = createBlankCharacter("epic-boon-chosen-test");
+    character.classId = "guerreiro";
+    character.level = 18;
+    expect(getChosenEpicBoonFeatures(character)).toEqual([]);
+  });
+
+  it("vazio quando elegível mas a escolha ainda não foi respondida", () => {
+    const character = createBlankCharacter("epic-boon-chosen-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    expect(getChosenEpicBoonFeatures(character)).toEqual([]);
+  });
+
+  it("devolve a própria FeatureDefinition (sourceType feat) da Dádiva escolhida, com a sub-escolha de atributo", () => {
+    const character = createBlankCharacter("epic-boon-chosen-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Velocidade" };
+    const features = getChosenEpicBoonFeatures(character);
+    expect(features).toHaveLength(1);
+    expect(features[0].id).toBe(DADIVA_DA_VELOCIDADE_FEAT_ID);
+    expect(features[0].sourceType).toBe("feat");
+    expect(features[0].choices?.some((c) => c.id === `${DADIVA_DA_VELOCIDADE_FEAT_ID}-atributo`)).toBe(true);
+  });
+
+  it("trocar a escolha do picker troca a Dádiva exposta, nunca acumula as duas", () => {
+    const character = createBlankCharacter("epic-boon-chosen-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Velocidade" };
+    expect(getChosenEpicBoonFeatures(character).map((f) => f.id)).toEqual([DADIVA_DA_VELOCIDADE_FEAT_ID]);
+
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Recordação de Magia" };
+    // Guerreiro não tem Conjuração — mas a função só lê a seleção já feita, nunca revalida contra as opções elegíveis.
+    expect(getChosenEpicBoonFeatures(character).map((f) => f.id)).toEqual([DADIVA_DA_RECORDACAO_DE_MAGIA_FEAT_ID]);
+  });
+
+  it("getCharacterFeatures junta a Dádiva escolhida com as demais features, sem duplicar nenhum id", () => {
+    const character = createBlankCharacter("epic-boon-chosen-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.speciesId = "humano";
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Velocidade" };
+    const features = getCharacterFeatures(character);
+    const ids = features.map((f) => f.id);
+    expect(ids).toContain(DADIVA_DA_VELOCIDADE_FEAT_ID);
+    expect(ids).toContain("guerreiro-dadiva-epica");
+    expect(ids).toContain("especie-humano-tracos");
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
 

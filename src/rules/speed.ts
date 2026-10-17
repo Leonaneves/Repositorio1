@@ -3,6 +3,7 @@ import type { Character } from "../domain/character.js";
 import { species } from "../data/species.js";
 import { armors } from "../data/armors.js";
 import { getSpeciesLineageSpeedBonus } from "./speciesLineage.js";
+import { getEpicBoonSpeedBonus } from "./epicBoons.js";
 import { getFeatSpeedBonus } from "./feats.js";
 
 /**
@@ -56,9 +57,12 @@ export function getClassSpeedBonus(character: Character): number {
  * (ex.: Elfo da Floresta, +1,5m — `getSpeciesLineageSpeedBonus`) +
  * bônus de classe/nível (ver `getClassSpeedBonus`) + bônus de Talento
  * (Velocista, +3m fixo, sem condição de armadura — `rules/feats.ts#getFeatSpeedBonus`,
- * fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §28) + ajuste
- * manual. Decisão do projeto: ao contrário do PDF original (onde era
- * 100% manual), a versão web calcula automaticamente, mas preserva o
+ * fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF" §28) + bônus de
+ * Dádiva Épica (Agilidade — Dádiva da Velocidade, +9m fixo, sem condição
+ * de armadura, uma ÚNICA vez — `rules/epicBoons.ts#getEpicBoonSpeedBonus`,
+ * fonte "IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF" §9) +
+ * ajuste manual. Decisão do projeto: ao contrário do PDF original (onde
+ * era 100% manual), a versão web calcula automaticamente, mas preserva o
  * ajuste manual do jogador.
  */
 export function getSpeed(character: Character): ComputedValue {
@@ -66,7 +70,8 @@ export function getSpeed(character: Character): ComputedValue {
   const lineageBonus = getSpeciesLineageSpeedBonus(character);
   const classBonus = getClassSpeedBonus(character);
   const featBonus = getFeatSpeedBonus(character);
-  const auto = speciesSpeed + lineageBonus + classBonus + featBonus;
+  const epicBoonBonus = getEpicBoonSpeedBonus(character);
+  const auto = speciesSpeed + lineageBonus + classBonus + featBonus + epicBoonBonus;
   return computedValue(auto, character.speed.manualAdjustment);
 }
 

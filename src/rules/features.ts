@@ -1,7 +1,7 @@
 import type { Character } from "../domain/character.js";
 import type { FeatureChoice, FeatureDefinition, FeatureView } from "../domain/features.js";
 import { backgroundFeatFeatures } from "../data/features/backgrounds.js";
-import { classFeatures } from "../data/features/classes.js";
+import { classFeatures, getEpicBoonChoiceId } from "../data/features/classes.js";
 import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { PALADIN_FIGHTING_STYLE_CHOICE_ID, PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID } from "../data/features/paladin.js";
 import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
@@ -13,6 +13,7 @@ import {
   RANGER_MENTE_DE_FERRO_FEATURE_ID,
 } from "../data/features/subclasses.js";
 import { hasSpeciesLineage } from "../data/speciesLineages.js";
+import { getEpicBoonFeatures, getEpicBoonOptions } from "./epicBoons.js";
 import { getFeatAcquisitionFeatures, mergeBackgroundFeatWithCatalog } from "./feats.js";
 import { getFightingStyleOptions } from "./fightingStyles.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
@@ -65,19 +66,38 @@ function withFightingStyleChoiceAdjustments(choices: FeatureChoice[], character:
 }
 
 /**
+ * Narrowing dinâmico da escolha de Dádiva Épica (nível 19, fonte
+ * "IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF" §1): exclui
+ * Dádiva da Recordação de Magia das opções quando o personagem ainda não
+ * possui a característica Conjuração (`rules/epicBoons.ts#getEpicBoonOptions`)
+ * — nunca toca as demais escolhas da mesma feature (hoje só essa).
+ */
+function withEpicBoonChoiceAdjustments(choices: FeatureChoice[], character: Character): FeatureChoice[] {
+  const epicBoonChoiceId = character.classId ? getEpicBoonChoiceId(character.classId) : null;
+  if (!epicBoonChoiceId) return choices;
+  return choices.map((choice) =>
+    choice.id === epicBoonChoiceId ? { ...choice, effect: { kind: "optionPick" as const, options: getEpicBoonOptions(character) } } : choice,
+  );
+}
+
+/**
  * Features de classe já adquiridas (nível de aquisição ≤ nível atual).
  * As features com uma `FeatureChoice` de Estilo de Luta (Guerreiro
  * nível 1, Patrulheiro nível 2) passam por `withFightingStyleChoiceAdjustments`
- * (cross-exclusão + remoção condicional — ver comentário acima).
+ * (cross-exclusão + remoção condicional — ver comentário acima); a
+ * escolha de Dádiva Épica (nível 19) passa por
+ * `withEpicBoonChoiceAdjustments` (narrowing de Conjuração).
  */
 export function getClassFeatures(character: Character): FeatureDefinition[] {
   if (!character.classId) return [];
   const features = classFeatures.filter(
     (feature) => feature.classId === character.classId && (feature.level === null || feature.level <= character.level),
   );
-  return features.map((feature) =>
-    feature.choices ? { ...feature, choices: withFightingStyleChoiceAdjustments(feature.choices, character) } : feature,
-  );
+  return features.map((feature) => {
+    if (!feature.choices) return feature;
+    const choices = withEpicBoonChoiceAdjustments(withFightingStyleChoiceAdjustments(feature.choices, character), character);
+    return { ...feature, choices };
+  });
 }
 
 /**
@@ -161,6 +181,18 @@ export function getChosenFeatFeatures(character: Character): FeatureDefinition[]
   return getFeatAcquisitionFeatures(character);
 }
 
+/**
+ * A Dádiva Épica escolhida pelo personagem (fonte "IMPLEMENTAR TALENTOS
+ * DE DÁDIVA ÉPICA NO BUILDER E NO PDF"), exposta com suas PRÓPRIAS
+ * `choices` (sempre o aumento de atributo, mais Especialização de
+ * perícia só para Dádiva da Proficiência em Perícia) — nunca duplicada
+ * com `getClassFeatures` (que só expõe a escolha de QUAL dádiva, nível
+ * 19). `[]` sem nenhuma Dádiva ativa.
+ */
+export function getChosenEpicBoonFeatures(character: Character): FeatureDefinition[] {
+  return getEpicBoonFeatures(character);
+}
+
 /** Todas as features do personagem, de todas as fontes, sem duplicar. */
 export function getCharacterFeatures(character: Character): FeatureDefinition[] {
   return [
@@ -169,6 +201,7 @@ export function getCharacterFeatures(character: Character): FeatureDefinition[] 
     ...getSpeciesFeatures(character),
     ...getBackgroundFeatures(character),
     ...getChosenFeatFeatures(character),
+    ...getChosenEpicBoonFeatures(character),
   ];
 }
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
+import { SKILL_KEYS } from "../domain/ids.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
+import { getEpicBoonChoiceId } from "../data/features/classes.js";
+import { DADIVA_DA_PROFICIENCIA_EM_PERICIA_EXPERTISE_CHOICE_ID, DADIVA_DA_PROFICIENCIA_EM_PERICIA_FEAT_ID } from "../data/features/epicBoons.js";
 import { getBardSkillExpertiseChoiceId } from "../data/features/bard.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
@@ -23,6 +26,7 @@ import {
   getShamanSkillBonus,
   isSkillGrantedByBackground,
   isSkillGrantedByClassChoice,
+  isSkillGrantedByEpicBoon,
   isSkillGrantedByFeatChoice,
   isSkillGrantedBySpeciesChoice,
   isSkillGrantedBySubclassChoice,
@@ -881,6 +885,67 @@ describe("getAutomaticSkillProficiencyGrants — perícias concedidas SEM escolh
     character.classId = "monge";
     character.subclassId = "Guerreiro das Sombras";
     expect(getAutomaticSkillProficiencyGrants(character)).toEqual([]);
+  });
+
+  it("Dádiva da Proficiência em Perícia concede as 18 perícias, cada uma com origem ['feat']", () => {
+    const character = createBlankCharacter("auto-grants-epic-boon-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Proficiência em Perícia" };
+    const grants = getAutomaticSkillProficiencyGrants(character);
+    expect(grants).toHaveLength(18);
+    expect(grants.every((g) => g.origins.includes("feat"))).toBe(true);
+  });
+});
+
+describe("isSkillGrantedByEpicBoon / getSkillProficiency / getSkillProficiencyOrigin — Dádiva da Proficiência em Perícia (fonte \"IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF\" §5)", () => {
+  function fighterAt19WithSkillBoon() {
+    const character = createBlankCharacter("epic-boon-skills-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Proficiência em Perícia" };
+    return character;
+  }
+
+  it("sem a Dádiva ativa: nenhuma perícia proficiente por esta origem", () => {
+    const character = createBlankCharacter("epic-boon-skills-test-2");
+    expect(isSkillGrantedByEpicBoon(character)).toBe(false);
+    for (const skill of SKILL_KEYS) expect(getSkillProficiency(character, skill)).toBe(false);
+  });
+
+  it("com a Dádiva ativa: TODAS as 18 perícias ficam proficientes, origem 'feat'", () => {
+    const character = fighterAt19WithSkillBoon();
+    expect(isSkillGrantedByEpicBoon(character)).toBe(true);
+    for (const skill of SKILL_KEYS) {
+      expect(getSkillProficiency(character, skill)).toBe(true);
+      expect(getSkillProficiencyOrigin(character, skill)).toBe("feat");
+    }
+  });
+
+  it("nunca concede proficiência ou Especialização em ferramentas (só perícias)", () => {
+    // Não há campo de ferramentas tocado por isSkillGrantedByEpicBoon — a função só opera em SkillKey.
+    const character = fighterAt19WithSkillBoon();
+    expect(isSkillGrantedByEpicBoon(character)).toBe(true);
+  });
+
+  it("preserva Especialização e proficiências já concedidas por outras origens, sem duplicar nem exigir nova escolha", () => {
+    const character = fighterAt19WithSkillBoon();
+    character.skills.atletismo.expertise = true; // já especializado por outra origem (manual/talento)
+    expect(getSkillExpertise(character, "atletismo")).toBe(true);
+    expect(getSkillProficiency(character, "atletismo")).toBe(true);
+  });
+
+  it("a escolha de Especialização (skillExpertise, count 1) da própria Dádiva fica elegível em QUALQUER perícia, já que todas estão proficientes", () => {
+    const character = fighterAt19WithSkillBoon();
+    character.featureChoiceSelections[DADIVA_DA_PROFICIENCIA_EM_PERICIA_EXPERTISE_CHOICE_ID] = { value: ["furtividade"] };
+    expect(getSkillExpertise(character, "furtividade")).toBe(true);
+    expect(getSkillExpertise(character, "medicina")).toBe(false); // só a escolhida vira Especialização
+  });
+
+  it("o atributo próprio desta Dádiva nunca afeta perícia nenhuma (escolha separada)", () => {
+    const character = fighterAt19WithSkillBoon();
+    character.featureChoiceSelections[`${DADIVA_DA_PROFICIENCIA_EM_PERICIA_FEAT_ID}-atributo`] = { value: "CAR" };
+    expect(getSkillProficiency(character, "furtividade")).toBe(true); // continua proficiente, sem relação com o atributo
   });
 });
 

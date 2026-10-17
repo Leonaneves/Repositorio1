@@ -1,6 +1,7 @@
 import { CLASS_IDS, type ClassId } from "../../domain/ids.js";
 import type { FeatureDefinition } from "../../domain/features.js";
 import { classes, getClassSkillChoiceId, getClassToolChoiceId } from "../classes.js";
+import { EPIC_BOON_NAMES } from "./epicBoons.js";
 import { barbarianClassFeatures, barbarianWeaponMasteryFeatures } from "./barbarian.js";
 import { bardClassFeatures } from "./bard.js";
 import { clericClassFeatures } from "./cleric.js";
@@ -214,7 +215,7 @@ export const ASI_LEVELS_BY_CLASS: Partial<Record<ClassId, number[]>> = {
  * `NAMED_FEATURES_BY_CLASS` — por isso são somados explicitamente
  * aqui, não lidos mais dali.
  */
-const DADIVA_EPICA_CLASSES: ClassId[] = [
+export const DADIVA_EPICA_CLASSES: ClassId[] = [
   ...(Object.keys(NAMED_FEATURES_BY_CLASS) as ClassId[]).filter((classId) => classId !== "artifice"),
   "barbaro",
   "bardo",
@@ -281,9 +282,24 @@ const abilityScoreImprovementFeatures: FeatureDefinition[] = (Object.entries(ASI
     ),
 );
 
+/** Id real da `FeatureChoice` que escolhe QUAL das 12 Dádivas Épicas o personagem adquire, por classe — nunca parametrizado por `acquisitionKey` (só existe uma aquisição possível por personagem, ver `data/features/epicBoons.ts`). */
+export function getEpicBoonChoiceId(classId: ClassId): string {
+  return `${classId}-dadiva-epica-escolha`;
+}
+
 /**
- * "Dádiva Épica" (decisão §10): mesmo tratamento — feature estruturada,
- * `pending` até o catálogo de Dádivas Épicas existir.
+ * "Dádiva Épica" (fonte "IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO
+ * BUILDER E NO PDF"): escolha estruturada entre as 12 Dádivas do
+ * catálogo (`optionPick`, `EPIC_BOON_NAMES`) — as opções estáticas aqui
+ * são a lista completa; `rules/features.ts#getClassFeatures` recalcula
+ * dinamicamente por personagem, excluindo Dádiva da Recordação de
+ * Magia para quem não possui a característica Conjuração
+ * (`rules/epicBoons.ts#getEpicBoonOptions`). Uma vez escolhida, a
+ * `FeatureDefinition` completa da dádiva (com suas próprias escolhas —
+ * sempre um aumento de atributo, mais Especialização de perícia só para
+ * Proficiência em Perícia) é exposta separadamente, com `sourceType`
+ * "feat", por `rules/epicBoons.ts#getEpicBoonFeatures` — nunca duas
+ * vezes aqui.
  */
 const epicBoonFeatures: FeatureDefinition[] = DADIVA_EPICA_CLASSES.map(
   (classId): FeatureDefinition => ({
@@ -293,12 +309,13 @@ const epicBoonFeatures: FeatureDefinition[] = DADIVA_EPICA_CLASSES.map(
     classId,
     level: 19,
     autoGranted: false,
-    summary: "Talento de Dádiva Épica — catálogo ainda pendente.",
+    summary:
+      "Nível 19 — escolhe 1 das 12 Dádivas Épicas do catálogo (`data/features/epicBoons.ts`), nunca mais de uma, nunca repetível. Dádiva da Recordação de Magia só aparece como opção elegível para quem já possui a característica Conjuração (nunca satisfeito só por Magia de Pacto do Bruxo). Preserva as demais oportunidades de nível 19 já existentes (ex.: o Artífice recebe Aumento no Valor de Atributo nesse nível, pelo sistema de ASI genérico — nunca Dádiva Épica).",
     choices: [
       {
-        id: `${classId}-dadiva-epica-escolha`,
-        prompt: "Dádiva Épica",
-        effect: { kind: "manualText", placeholder: "Dádiva Épica (catálogo pendente)" },
+        id: getEpicBoonChoiceId(classId),
+        prompt: "Dádiva Épica — nível 19",
+        effect: { kind: "optionPick", options: EPIC_BOON_NAMES },
       },
     ],
   }),

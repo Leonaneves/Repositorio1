@@ -1,6 +1,7 @@
 import type { Character } from "../domain/character.js";
 import type { AbilityKey } from "../domain/common.js";
 import { getAsiAbilityBonus } from "./asi.js";
+import { getEpicBoonAbilityIncreaseBonus } from "./epicBoons.js";
 import { getFeatAbilityIncreaseBonus } from "./feats.js";
 
 /**
@@ -42,6 +43,14 @@ export function getAbilityModifier(score: number): number {
  * só sobre a PRÓPRIA contribuição — nunca reduz um valor que já esteja
  * acima de 20 por outra fonte, só limita o quanto este talento
  * especificamente soma.
+ *
+ * O "+1" de uma Dádiva Épica (fonte "IMPLEMENTAR TALENTOS DE DÁDIVA
+ * ÉPICA NO BUILDER E NO PDF" §1, `rules/epicBoons.ts#getEpicBoonAbilityIncreaseBonus`)
+ * entra DEPOIS do teto 20 dos Talentos Gerais, com teto PRÓPRIO de 30
+ * sobre a PRÓPRIA contribuição — nunca o teto 20 (fonte: "Não aplicar o
+ * limite 20 dos talentos anteriores"), e nunca reduz um valor já acima
+ * de 30 por outra fonte. Ainda entra ANTES do teto do Bárbaro/Monge
+ * nível 20, que continua aplicado por cima de tudo, sem mudança.
  */
 export function getEffectiveAbilityScore(character: Character, ability: AbilityKey): number {
   const base = character.abilities[ability].score;
@@ -49,7 +58,9 @@ export function getEffectiveAbilityScore(character: Character, ability: AbilityK
   const asiBonus = getAsiAbilityBonus(character, ability);
   const preFeatTotal = base + backgroundBonus + asiBonus;
   const featBonus = Math.max(0, Math.min(getFeatAbilityIncreaseBonus(character, ability), 20 - preFeatTotal));
-  const total = preFeatTotal + featBonus;
+  const preEpicBoonTotal = preFeatTotal + featBonus;
+  const epicBoonBonus = Math.max(0, Math.min(getEpicBoonAbilityIncreaseBonus(character, ability), 30 - preEpicBoonTotal));
+  const total = preEpicBoonTotal + epicBoonBonus;
   if (character.classId === "barbaro" && character.level >= 20 && (ability === "FOR" || ability === "CON")) {
     return Math.min(25, total + 4);
   }

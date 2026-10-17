@@ -46,6 +46,7 @@ import { getEffectiveSpellsPrepared } from "../rules/effectiveSpellsPrepared.js"
 import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
 import { getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.js";
 import { getFightingStyleTalentEntries } from "../rules/fightingStyles.js";
+import { getEpicBoonTalentEntries } from "../rules/epicBoonTalentEntries.js";
 import { getSubclassDisplayName } from "../rules/subclasses.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
@@ -375,6 +376,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getWarlockLessonsOfTheOldOnesTalentEntries(c),
           ...getFighterManeuverTalentEntries(c),
           ...getFightingStyleTalentEntries(c),
+          ...getEpicBoonTalentEntries(c),
         ],
         c.talentsNotes,
       ),

@@ -2,6 +2,7 @@ import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import { classes, type HitDie } from "../data/classes.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
+import { getEpicBoonFortitudeHpBonus } from "./epicBoons.js";
 import { getToughHpBonus } from "./feats.js";
 
 /**
@@ -30,19 +31,28 @@ export function getDraconicResilienceHpBonus(character: Character): number {
  * rápida, sem rolagem): nível 1 = máximo do Dado de Vida + mod. de CON;
  * cada nível seguinte soma o valor fixo médio do Dado de Vida + mod. de
  * CON. Sem classe escolhida, o automático é 0 (só o ajuste manual conta).
- * Soma também o bônus de Resiliência Dracônica e de Vigoroso (fonte
- * "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF" §13), quando
- * aplicáveis — `getToughHpBonus` já devolve `0` sem o talento.
+ * Soma também o bônus de Resiliência Dracônica, de Vigoroso (fonte
+ * "IMPLEMENTAR TALENTOS DE ORIGEM NO BUILDER E NO PDF" §13) e de Saúde
+ * Fortalecida — Dádiva da Fortitude (fonte "IMPLEMENTAR TALENTOS DE
+ * DÁDIVA ÉPICA NO BUILDER E NO PDF" §3: +40 fixo, uma ÚNICA vez), quando
+ * aplicáveis — `getToughHpBonus`/`getEpicBoonFortitudeHpBonus` já
+ * devolvem `0` sem o respectivo talento.
  */
 export function getMaxHitPoints(character: Character): ComputedValue {
   const conMod = getAbilityModifier(getEffectiveAbilityScore(character, "CON"));
   const auto = character.classId === null
-    ? getToughHpBonus(character)
+    ? getToughHpBonus(character) + getEpicBoonFortitudeHpBonus(character)
     : (() => {
         const hitDie = classes[character.classId as keyof typeof classes].hitDie;
         const perLevel = getAverageHitDieRoll(hitDie) + conMod;
         const firstLevel = hitDie + conMod;
-        return firstLevel + Math.max(0, character.level - 1) * perLevel + getDraconicResilienceHpBonus(character) + getToughHpBonus(character);
+        return (
+          firstLevel +
+          Math.max(0, character.level - 1) * perLevel +
+          getDraconicResilienceHpBonus(character) +
+          getToughHpBonus(character) +
+          getEpicBoonFortitudeHpBonus(character)
+        );
       })();
 
   return computedValue(auto, character.hp.maxManualAdjustment);

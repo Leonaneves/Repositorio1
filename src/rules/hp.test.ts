@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
+import { getEpicBoonChoiceId } from "../data/features/classes.js";
+import { DADIVA_DA_FORTITUDE_FEAT_ID } from "../data/features/epicBoons.js";
 import { getDraconicResilienceHpBonus, getMaxHitDice, getMaxHitPoints, getRemainingHitDice } from "./hp.js";
+import { getEpicBoonFortitudeHpBonus } from "./epicBoons.js";
 import { getToughHpBonus } from "./feats.js";
 
 describe("getMaxHitPoints — PV máximo automático (sem rolagem, criação rápida)", () => {
@@ -174,5 +177,55 @@ describe("Vigoroso — +2×nível somado ao PV máximo (fonte \"IMPLEMENTAR TALE
     withTough.abilities.CON.score = 12;
     withTough.backgroundId = "fazendeiro";
     expect(getMaxHitPoints(withTough).auto).toBe(baseline + 8); // +2×4
+  });
+});
+
+describe("Dádiva da Fortitude — Saúde Fortalecida: +40 PV máximo, uma ÚNICA vez (fonte \"IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF\" §3)", () => {
+  function fighterAt19WithFortitude() {
+    const character = createBlankCharacter("hp-epic-boon-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.abilities.CON.score = 12; // mod +1
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Fortitude" };
+    return character;
+  }
+
+  it("getEpicBoonFortitudeHpBonus = 40 com a Dádiva ativa, 0 sem ela", () => {
+    const character = fighterAt19WithFortitude();
+    expect(getEpicBoonFortitudeHpBonus(character)).toBe(40);
+
+    character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: "Dádiva da Velocidade" };
+    expect(getEpicBoonFortitudeHpBonus(character)).toBe(0);
+  });
+
+  it("soma +40 ao PV máximo calculado normalmente, uma ÚNICA vez (nunca por nível)", () => {
+    const withoutBoon = createBlankCharacter("hp-epic-boon-test");
+    withoutBoon.classId = "guerreiro";
+    withoutBoon.level = 19;
+    withoutBoon.abilities.CON.score = 12;
+    const baseline = getMaxHitPoints(withoutBoon).auto;
+
+    const withBoon = fighterAt19WithFortitude();
+    expect(getMaxHitPoints(withBoon).auto).toBe(baseline + 40);
+  });
+
+  it("se o atributo aumentado por esta própria Dádiva for Constituição, o bônus normal de CON soma SEPARADO do +40 fixo", () => {
+    const withoutIncrease = fighterAt19WithFortitude();
+    withoutIncrease.abilities.CON.score = 13; // mod +1
+    // nível 1: 10+1=11; níveis 2-19: 18×(6+1)=126; +40 (Fortitude) = 177.
+    expect(getMaxHitPoints(withoutIncrease).auto).toBe(177);
+
+    const withConIncrease = fighterAt19WithFortitude();
+    withConIncrease.abilities.CON.score = 13; // mod +1, efetivo 14 (mod +2) com a Dádiva
+    withConIncrease.featureChoiceSelections[`${DADIVA_DA_FORTITUDE_FEAT_ID}-atributo`] = { value: "CON" };
+    // nível 1: 10+2=12; níveis 2-19: 18×(6+2)=144; +40 (Fortitude) = 196 — +19 em relação ao anterior (mod +1 em cada um dos 19 níveis).
+    expect(getMaxHitPoints(withConIncrease).auto).toBe(196);
+  });
+
+  it("sem classe escolhida: o +40 ainda soma (fonte: 'uma ÚNICA vez', nunca depende de Dado de Vida)", () => {
+    const character = createBlankCharacter("hp-epic-boon-test");
+    character.level = 19;
+    character.featureChoiceSelections[getEpicBoonChoiceId("mago")] = { value: "Dádiva da Fortitude" }; // sem classId, isEpicBoonEligible já é false
+    expect(getMaxHitPoints(character).auto).toBe(0);
   });
 });

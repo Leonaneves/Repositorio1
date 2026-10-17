@@ -11,6 +11,7 @@ import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_C
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
 import { WIZARD_ACADEMIC_CHOICE_ID } from "../data/features/wizard.js";
+import { hasEpicBoonSkillProficiencyGrant } from "./epicBoons.js";
 import { getCharacterFeatures } from "./features.js";
 
 /**
@@ -167,6 +168,17 @@ export function isSkillGrantedByFeatChoice(character: Character, skill: SkillKey
     }
   }
   return false;
+}
+
+/**
+ * `true` se Dádiva da Proficiência em Perícia está ativa (fonte
+ * "IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF" §5) — ao
+ * contrário de `isSkillGrantedByFeatChoice`, concede TODAS as perícias
+ * incondicionalmente, nunca uma escolha individual, então `skill` nunca
+ * entra na checagem (é a mesma resposta para qualquer uma das 18).
+ */
+export function isSkillGrantedByEpicBoon(character: Character): boolean {
+  return hasEpicBoonSkillProficiencyGrant(character);
 }
 
 /**
@@ -336,21 +348,23 @@ export function getGlamourTranscendentalBonus(character: Character, skill: Skill
 
 export interface AutomaticSkillProficiencyGrant {
   skill: SkillKey;
-  /** Origens SEM escolha alguma que concedem esta perícia — `"background"` (Antecedente) ou `"subclass"` (concessão fixa de subclasse, ver comentário da função). */
-  origins: Array<"background" | "subclass">;
+  /** Origens SEM escolha alguma que concedem esta perícia — `"background"` (Antecedente), `"subclass"` (concessão fixa de subclasse) ou `"feat"` (Dádiva da Proficiência em Perícia, concede as 18 incondicionalmente — ver comentário da função). */
+  origins: Array<"background" | "subclass" | "feat">;
 }
 
 /**
  * Perícias concedidas SEM nenhuma escolha do jogador — pelo Antecedente
- * (lista fixa `grantedSkills`) ou por uma concessão fixa de Subclasse
+ * (lista fixa `grantedSkills`), por uma concessão fixa de Subclasse
  * (`isSkillGrantedBySubclassFixed`, ex.: Implementos de Misericórdia do
- * Monge). Nenhuma Classe/Espécie atual concede perícia automaticamente
- * sem passar por uma `FeatureChoice` (toda concessão delas já aparece
- * como um bloco de escolha na etapa "Perícias" — ver
- * `rules/features.ts#getSkillChoiceFeatures`). Usado pela seção
- * "Perícias concedidas automaticamente" da etapa "Perícias" (fonte
- * "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §2) —
- * nunca inventa uma origem automática de Classe/Espécie/Talento que não
+ * Monge), ou por Dádiva da Proficiência em Perícia (fonte "IMPLEMENTAR
+ * TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF" §5 — concede as 18
+ * incondicionalmente, nunca uma escolha). Nenhuma Classe/Espécie atual
+ * concede perícia automaticamente sem passar por uma `FeatureChoice`
+ * (toda concessão delas já aparece como um bloco de escolha na etapa
+ * "Perícias" — ver `rules/features.ts#getSkillChoiceFeatures`). Usado
+ * pela seção "Perícias concedidas automaticamente" da etapa "Perícias"
+ * (fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA" §2)
+ * — nunca inventa uma origem automática de Classe/Espécie que não
  * exista no catálogo atual; se uma vier a existir, basta somar sua
  * própria checagem aqui, sem mudar a forma de uso pela UI. Se uma
  * perícia tiver mais de uma origem automática, aparece uma única vez,
@@ -358,10 +372,12 @@ export interface AutomaticSkillProficiencyGrant {
  */
 export function getAutomaticSkillProficiencyGrants(character: Character): AutomaticSkillProficiencyGrant[] {
   const grants: AutomaticSkillProficiencyGrant[] = [];
+  const epicBoonGrant = isSkillGrantedByEpicBoon(character);
   for (const skill of SKILL_KEYS) {
-    const origins: Array<"background" | "subclass"> = [];
+    const origins: Array<"background" | "subclass" | "feat"> = [];
     if (isSkillGrantedByBackground(character, skill)) origins.push("background");
     if (isSkillGrantedBySubclassFixed(character, skill)) origins.push("subclass");
+    if (epicBoonGrant) origins.push("feat");
     if (origins.length > 0) grants.push({ skill, origins });
   }
   return grants;
@@ -391,6 +407,7 @@ export function getSkillProficiencyOrigin(character: Character, skill: SkillKey)
   if (isSkillGrantedBySpeciesChoice(character, skill)) return "species";
   if (isSkillGrantedByFeatChoice(character, skill)) return "feat";
   if (isSkillGrantedByMenteAgucadaChoice(character, skill)) return "feat";
+  if (isSkillGrantedByEpicBoon(character)) return "feat";
   return null;
 }
 
@@ -416,7 +433,8 @@ export function getSkillProficiency(character: Character, skill: SkillKey): bool
       isSkillGrantedBySubclassFixed(character, skill) ||
       isSkillGrantedBySpeciesChoice(character, skill) ||
       isSkillGrantedByFeatChoice(character, skill) ||
-      isSkillGrantedByMenteAgucadaChoice(character, skill))
+      isSkillGrantedByMenteAgucadaChoice(character, skill) ||
+      isSkillGrantedByEpicBoon(character))
   );
 }
 

@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
+import { getEpicBoonChoiceId } from "../data/features/classes.js";
+import { DADIVA_DA_FORTITUDE_FEAT_ID, DADIVA_DO_ATAQUE_IRRESISTIVEL_FEAT_ID } from "../data/features/epicBoons.js";
+import { ESPECIALISTA_PERICIA_FEAT_ID } from "../data/features/feats.js";
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
+
+function epicBoonFighterAt19(boonName: string) {
+  const character = createBlankCharacter("eff-score-epic-boon-test");
+  character.classId = "guerreiro";
+  character.level = 19;
+  character.featureChoiceSelections[getEpicBoonChoiceId("guerreiro")] = { value: boonName };
+  return character;
+}
 
 describe("getAbilityModifier", () => {
   it.each([
@@ -89,5 +100,44 @@ describe("getEffectiveAbilityScore — Campeão Primitivo (Bárbaro nível 20: F
     character.abilities.FOR.score = 18;
     getEffectiveAbilityScore(character, "FOR");
     expect(character.abilities.FOR.score).toBe(18);
+  });
+});
+
+describe("getEffectiveAbilityScore — \"+1\" de Dádiva Épica (fonte \"IMPLEMENTAR TALENTOS DE DÁDIVA ÉPICA NO BUILDER E NO PDF\" §1: teto PRÓPRIO de 30, independente do teto 20 dos Talentos Gerais)", () => {
+  it("sem Dádiva Épica ativa: nenhum bônus extra", () => {
+    const character = epicBoonFighterAt19("Dádiva da Fortitude");
+    character.abilities.CON.score = 18;
+    expect(getEffectiveAbilityScore(character, "CON")).toBe(18);
+  });
+
+  it("com a escolha de atributo resolvida: soma +1 normalmente", () => {
+    const character = epicBoonFighterAt19("Dádiva da Fortitude");
+    character.abilities.CON.score = 18;
+    character.featureChoiceSelections[`${DADIVA_DA_FORTITUDE_FEAT_ID}-atributo`] = { value: "CON" };
+    expect(getEffectiveAbilityScore(character, "CON")).toBe(19);
+  });
+
+  it("teto de 30: nunca ultrapassa, mesmo partindo de um valor já alto", () => {
+    const character = epicBoonFighterAt19("Dádiva da Fortitude");
+    character.abilities.CON.score = 30;
+    character.featureChoiceSelections[`${DADIVA_DA_FORTITUDE_FEAT_ID}-atributo`] = { value: "CON" };
+    expect(getEffectiveAbilityScore(character, "CON")).toBe(30);
+  });
+
+  it("teto PRÓPRIO de 30 é independente do teto 20 dos Talentos Gerais — os dois bônus se somam normalmente até 30, nunca travados em 20", () => {
+    const character = epicBoonFighterAt19("Dádiva do Ataque Irresistível");
+    character.abilities.FOR.score = 19; // já perto do teto 20 dos Talentos Gerais
+    character.asiSelections[4] = { kind: "feat", featId: ESPECIALISTA_PERICIA_FEAT_ID };
+    character.featureChoiceSelections[`${ESPECIALISTA_PERICIA_FEAT_ID}-atributo-asi-4`] = { value: "FOR" };
+    character.featureChoiceSelections[`${DADIVA_DO_ATAQUE_IRRESISTIVEL_FEAT_ID}-atributo`] = { value: "FOR" };
+    // 19 + 1 (Talento Geral, capped em 20) = 20; + 1 (Dádiva Épica, teto próprio 30) = 21 — nunca travado em 20.
+    expect(getEffectiveAbilityScore(character, "FOR")).toBe(21);
+  });
+
+  it("escolher um atributo diferente do que está sendo lido nunca soma nada", () => {
+    const character = epicBoonFighterAt19("Dádiva da Fortitude");
+    character.abilities.CON.score = 18;
+    character.featureChoiceSelections[`${DADIVA_DA_FORTITUDE_FEAT_ID}-atributo`] = { value: "CON" };
+    expect(getEffectiveAbilityScore(character, "FOR")).toBe(10);
   });
 });
