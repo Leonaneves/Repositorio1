@@ -2,17 +2,81 @@ import type { Character } from "../domain/character.js";
 import type { FeatureChoice, FeatureDefinition, FeatureView } from "../domain/features.js";
 import { backgroundFeatFeatures } from "../data/features/backgrounds.js";
 import { classFeatures } from "../data/features/classes.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
+import { PALADIN_FIGHTING_STYLE_CHOICE_ID, PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID } from "../data/features/paladin.js";
+import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
 import { speciesFeatures } from "../data/features/species.js";
-import { subclassFeatures, RANGER_MENTE_DE_FERRO_CHOICE_ID, RANGER_MENTE_DE_FERRO_FEATURE_ID } from "../data/features/subclasses.js";
+import {
+  subclassFeatures,
+  FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID,
+  RANGER_MENTE_DE_FERRO_CHOICE_ID,
+  RANGER_MENTE_DE_FERRO_FEATURE_ID,
+} from "../data/features/subclasses.js";
 import { hasSpeciesLineage } from "../data/speciesLineages.js";
 import { getFeatAcquisitionFeatures, mergeBackgroundFeatWithCatalog } from "./feats.js";
+import { getFightingStyleOptions } from "./fightingStyles.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
-/** Features de classe já adquiridas (nível de aquisição ≤ nível atual). */
+/**
+ * Os 4 pontos de concessão de Estilo de Luta (fonte "IMPLEMENTAR
+ * TALENTOS DE ESTILO DE LUTA NO BUILDER E NO PDF" §1) — usados por
+ * `withFightingStyleChoiceAdjustments` abaixo para (a) recalcular as
+ * opções elegíveis de CADA UM deles por personagem, excluindo o Estilo
+ * já escolhido pelos outros 3 (cross-exclusão: nunca o mesmo Estilo de
+ * Luta duas vezes via origens diferentes), e (b) remover inteiramente a
+ * sub-escolha de Estilo de Luta do Patrulheiro/Paladino quando o
+ * jogador escolheu a alternativa (Combatente Druídico/Abençoado) —
+ * nunca deixá-la como exigência impossível de resolver depois que
+ * `optionPick` passou a bloquear o Avançar quando vazia (diferente do
+ * antigo `manualText`, que nunca bloqueava).
+ */
+const FIGHTING_STYLE_SLOT_CHOICE_IDS: ReadonlySet<string> = new Set([
+  FIGHTER_FIGHTING_STYLE_CHOICE_ID,
+  FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID,
+  RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID,
+  PALADIN_FIGHTING_STYLE_CHOICE_ID,
+]);
+
+/** Remove `talentChoiceId` de `choices` quando `branchChoiceId` não estiver respondido como "Estilo de Luta" — nunca toca as demais escolhas. */
+function removeUnselectedFightingStyleChoice(
+  choices: FeatureChoice[],
+  character: Character,
+  branchChoiceId: string,
+  talentChoiceId: string,
+): FeatureChoice[] {
+  if (character.featureChoiceSelections[branchChoiceId]?.value === "Estilo de Luta") return choices;
+  return choices.filter((choice) => choice.id !== talentChoiceId);
+}
+
+/**
+ * Aplica, nesta ordem, a remoção condicional (Patrulheiro, depois
+ * Paladino — cada uma só afeta sua própria sub-escolha) e por fim a
+ * cross-exclusão de opções dos 4 pontos de concessão de Estilo de Luta
+ * — nenhuma outra `FeatureChoice` é tocada.
+ */
+function withFightingStyleChoiceAdjustments(choices: FeatureChoice[], character: Character): FeatureChoice[] {
+  let next = removeUnselectedFightingStyleChoice(choices, character, RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID);
+  next = removeUnselectedFightingStyleChoice(next, character, PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID, PALADIN_FIGHTING_STYLE_CHOICE_ID);
+  return next.map((choice) =>
+    FIGHTING_STYLE_SLOT_CHOICE_IDS.has(choice.id)
+      ? { ...choice, effect: { kind: "optionPick" as const, options: getFightingStyleOptions(character, choice.id) } }
+      : choice,
+  );
+}
+
+/**
+ * Features de classe já adquiridas (nível de aquisição ≤ nível atual).
+ * As features com uma `FeatureChoice` de Estilo de Luta (Guerreiro
+ * nível 1, Patrulheiro nível 2) passam por `withFightingStyleChoiceAdjustments`
+ * (cross-exclusão + remoção condicional — ver comentário acima).
+ */
 export function getClassFeatures(character: Character): FeatureDefinition[] {
   if (!character.classId) return [];
-  return classFeatures.filter(
+  const features = classFeatures.filter(
     (feature) => feature.classId === character.classId && (feature.level === null || feature.level <= character.level),
+  );
+  return features.map((feature) =>
+    feature.choices ? { ...feature, choices: withFightingStyleChoiceAdjustments(feature.choices, character) } : feature,
   );
 }
 
@@ -25,27 +89,36 @@ export function getClassFeatures(character: Character): FeatureDefinition[] {
  * `true` por outra origem (ver `rules/savingThrows.ts#getMenteDeFerroGrantedAbility`)
  * — mesmo padrão de `getSpeciesFeatures` abaixo, que sobrescreve
  * dinamicamente o `summary` das 5 espécies com Linhagem.
+ *
+ * A característica "Estilo de Luta Adicional" do Campeão (nível 7)
+ * também passa por `withFightingStyleChoiceAdjustments`, pela mesma
+ * cross-exclusão aplicada em `getClassFeatures` — garante que o Campeão
+ * nunca possa escolher o mesmo Estilo de Luta já escolhido na
+ * concessão base do Guerreiro nível 1 (ou vice-versa).
  */
 export function getSubclassFeatures(character: Character): FeatureDefinition[] {
   if (!character.subclassId) return [];
   const features = subclassFeatures.filter(
     (feature) => feature.subclassFullName === character.subclassId && (feature.level === null || feature.level <= character.level),
   );
-  if (!character.savingThrows.SAB.proficient) return features;
-  return features.map((feature) =>
-    feature.id === RANGER_MENTE_DE_FERRO_FEATURE_ID
-      ? {
-          ...feature,
-          choices: [
-            {
-              id: RANGER_MENTE_DE_FERRO_CHOICE_ID,
-              prompt: "Mente de Ferro: já proficiente em Salvaguarda de Sabedoria — escolha Carisma ou Inteligência no lugar",
-              effect: { kind: "optionPick" as const, options: ["Carisma", "Inteligência"] },
-            },
-          ],
-        }
-      : feature,
-  );
+  return features.map((feature) => {
+    const withMenteDeFerro =
+      feature.id === RANGER_MENTE_DE_FERRO_FEATURE_ID && character.savingThrows.SAB.proficient
+        ? {
+            ...feature,
+            choices: [
+              {
+                id: RANGER_MENTE_DE_FERRO_CHOICE_ID,
+                prompt: "Mente de Ferro: já proficiente em Salvaguarda de Sabedoria — escolha Carisma ou Inteligência no lugar",
+                effect: { kind: "optionPick" as const, options: ["Carisma", "Inteligência"] },
+              },
+            ],
+          }
+        : feature;
+    return withMenteDeFerro.choices
+      ? { ...withMenteDeFerro, choices: withFightingStyleChoiceAdjustments(withMenteDeFerro.choices, character) }
+      : withMenteDeFerro;
+  });
 }
 
 /**

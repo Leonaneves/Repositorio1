@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { useBuilderStore } from "./builderStore.js";
 import { useCharacterStore } from "./characterStore.js";
 import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 
 beforeEach(() => {
@@ -174,6 +175,9 @@ describe("useBuilderStore — canAdvance/goNext travam em 'skills' com Perícias
   it("canAdvance() é true em 'class' mesmo com Perícias de Classe do Guerreiro pendente — a escolha não bloqueia mais esta etapa", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro");
+    // Estilo de Luta nível 1 é uma escolha PRÓPRIA de "class" (optionPick obrigatório) — resolvida
+    // aqui para isolar o que este teste cobre (Perícias de Classe não bloqueia mais esta etapa).
+    useCharacterStore.getState().setFeatureChoiceSelection(FIGHTER_FIGHTING_STYLE_CHOICE_ID, "Defensivo");
     store.goToStep("class");
     expect(store.canAdvance()).toBe(true);
   });

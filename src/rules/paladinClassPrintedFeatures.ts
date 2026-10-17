@@ -26,8 +26,8 @@ import {
  *
  * Nunca aparecem aqui (ficam em Perícias/Proficiências/Magias/Talentos
  * ou no sistema de Talentos/ASI genérico): Conjuração, Estilo de Luta
- * (rules/paladinTalentEntries.ts), Subclasse de Paladino, Aumento no
- * Valor de Atributo, Dádiva Épica.
+ * (rules/fightingStyles.ts#getFightingStyleTalentEntries), Subclasse de
+ * Paladino, Aumento no Valor de Atributo, Dádiva Épica.
  */
 
 function checkboxes(count: number): string {

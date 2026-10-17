@@ -55,8 +55,7 @@ function getChampionBlocks(character: Character): string[] {
   }
 
   // "Estilo de Luta Adicional" (nível 7) nunca aparece aqui — vai para a caixa de Talentos
-  // (rules/fighterTalentEntries.ts#getFighterFightingStyleTalentEntries), nunca em Características
-  // de Classe, e só quando o jogador já preencheu o nome (catálogo de Estilos de Luta pendente).
+  // (rules/fightingStyles.ts#getFightingStyleTalentEntries), nunca em Características de Classe.
 
   return blocks;
 }

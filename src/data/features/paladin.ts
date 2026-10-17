@@ -1,4 +1,5 @@
 import type { FeatureDefinition } from "../../domain/features.js";
+import { FIGHTING_STYLE_NAMES } from "../fightingStyles.js";
 
 /**
  * Características da classe BASE do Paladino, estruturadas a partir da
@@ -21,8 +22,8 @@ import type { FeatureDefinition } from "../../domain/features.js";
  * `FeatureDefinition`, só não aparece em "Características de Classe"):
  * "Conjuração" — atributo/CD/espaços/preparadas já têm campos próprios
  * na área de Magias; "Estilo de Luta" — vai para a caixa de Talentos
- * (`rules/paladinTalentEntries.ts`), nunca como lembrete genérico de
- * "escolher Estilo de Luta"; "Subclasse de Paladino" (estrutural,
+ * (`rules/fightingStyles.ts#getFightingStyleTalentEntries`), nunca como
+ * lembrete genérico de "escolher Estilo de Luta"; "Subclasse de Paladino" (estrutural,
  * etapa Classe), "Aumento no Valor de Atributo" e "Dádiva Épica"
  * (sistema de Talentos/ASI genérico, já cobre o Paladino via
  * `ASI_LEVELS_BY_CLASS`/`DADIVA_EPICA_CLASSES`).
@@ -82,7 +83,7 @@ export const paladinClassFeatures: FeatureDefinition[] = [
     level: 2,
     autoGranted: false,
     summary:
-      "Escolha permanente ÚNICA entre um talento de Estilo de Luta (categoria condicional — domain/features.ts#FeatureChoiceEffect, variante manualText; catálogo de Estilos de Luta ainda pendente) e Combatente Abençoado — nunca as duas opções. Diferente do Guerreiro, o Paladino NUNCA pode substituir o Estilo de Luta escolhido ao ganhar nível. Se escolher Combatente Abençoado: seleciona 2 truques de Clérigo, que contam como magias de Paladino e usam Carisma; ao ganhar um nível de Paladino, pode substituir um desses truques por outro. Chama Sagrada e Orientação são só recomendações, nunca concessões automáticas. Os truques de Combatente Abençoado aparecem na área de Magias (rules/paladinAutoPreparedSpells.ts); o nome do Estilo de Luta escolhido aparece só na caixa Talentos (rules/paladinTalentEntries.ts#getPaladinFightingStyleTalentEntries), nunca em Características de Classe nem como lembrete genérico de \"escolher Estilo de Luta\".",
+      "Escolha permanente ÚNICA entre um Estilo de Luta (`data/fightingStyles.ts`) e Combatente Abençoado — nunca as duas opções. Diferente do Guerreiro, o Paladino NUNCA pode substituir o Estilo de Luta escolhido ao ganhar nível. Se escolher Combatente Abençoado: seleciona 2 truques de Clérigo, que contam como magias de Paladino e usam Carisma; ao ganhar um nível de Paladino, pode substituir um desses truques por outro — e a sub-escolha de Estilo de Luta deixa de aparecer entre as escolhas pendentes desta característica (`rules/features.ts#getClassFeatures`), nunca permanecendo como exigência impossível de resolver. Chama Sagrada e Orientação são só recomendações, nunca concessões automáticas. Os truques de Combatente Abençoado aparecem na área de Magias (rules/paladinAutoPreparedSpells.ts); o nome do Estilo de Luta escolhido aparece só na caixa Talentos, com o texto automático do estilo quando houver (`rules/fightingStyles.ts#getFightingStyleTalentEntries`), nunca em Características de Classe nem como lembrete genérico de \"escolher Estilo de Luta\".",
     choices: [
       {
         id: PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID,
@@ -91,8 +92,8 @@ export const paladinClassFeatures: FeatureDefinition[] = [
       },
       {
         id: PALADIN_FIGHTING_STYLE_CHOICE_ID,
-        prompt: "Estilo de Luta (catálogo ainda pendente — só se escolheu Estilo de Luta acima)",
-        effect: { kind: "manualText", placeholder: "Estilo de Luta (catálogo pendente)" },
+        prompt: "Estilo de Luta",
+        effect: { kind: "optionPick", options: FIGHTING_STYLE_NAMES },
       },
       {
         id: PALADIN_BLESSED_WARRIOR_CANTRIP_1_CHOICE_ID,

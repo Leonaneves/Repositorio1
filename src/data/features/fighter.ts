@@ -1,4 +1,5 @@
 import type { FeatureDefinition } from "../../domain/features.js";
+import { FIGHTING_STYLE_NAMES } from "../fightingStyles.js";
 
 /**
  * Características da classe BASE do Guerreiro, estruturadas a partir
@@ -39,12 +40,12 @@ export const fighterClassFeatures: FeatureDefinition[] = [
     level: 1,
     autoGranted: false,
     summary:
-      "Concede um talento de Estilo de Luta à escolha — categoria de talento condicional (`domain/features.ts#FeatureChoiceEffect`, variante `manualText`; catálogo de Estilos de Luta ainda pendente). Ao ganhar um nível de Guerreiro, pode substituir o talento escolhido por outro Estilo de Luta, removendo os efeitos do anterior — proficiências/concessões de outras origens nunca são afetadas. A concessão adicional do Campeão nível 7 (Estilo de Luta Adicional) é SEPARADA, com origem e quantidade próprias; nenhuma regra cadastrada estende a esta concessão de nível 1 a mesma troca ou vice-versa. Sem catálogo: registra a oportunidade com aviso de conteúdo pendente, nunca aceitando o texto livre como escolha validada nem criando bloqueio impossível de resolver (`rules/features.ts#isFeatureChoiceComplete` trata `manualText` como sempre incompleto o bastante para nunca travar o Avançar). No PDF, o nome escolhido (quando preenchido) aparece só na caixa Talentos (`rules/fighterTalentEntries.ts#getFighterFightingStyleTalentEntries`) — nunca em Características de Classe, nunca como lembrete genérico de \"escolher Estilo de Luta\".",
+      "Concede um dos 10 Talentos de Estilo de Luta à escolha (`data/fightingStyles.ts`) — nenhum pré-requisito próprio além desta característica, e nenhum deles repetível. Ao ganhar um nível de Guerreiro, pode substituir o estilo escolhido por outro, removendo os efeitos do anterior (recalculados automaticamente, já que nada é armazenado além do nome escolhido) — proficiências/concessões de outras origens nunca são afetadas. A concessão adicional do Campeão nível 7 (Estilo de Luta Adicional) é SEPARADA, com origem e quantidade próprias; nenhuma regra cadastrada estende a esta concessão de nível 1 a mesma troca ou vice-versa — as duas, porém, nunca podem repetir o mesmo estilo entre si (`rules/features.ts#getClassFeatures` recalcula as opções elegíveis de cada uma excluindo a escolha atual da outra). No PDF, o nome escolhido aparece só na caixa Talentos, com o texto automático do estilo quando houver (`rules/fightingStyles.ts#getFightingStyleTalentEntries`) — nunca em Características de Classe, nunca como lembrete genérico de \"escolher Estilo de Luta\".",
     choices: [
       {
         id: FIGHTER_FIGHTING_STYLE_CHOICE_ID,
-        prompt: "Nível 1 — Estilo de Luta (catálogo de Estilos de Luta ainda pendente)",
-        effect: { kind: "manualText", placeholder: "Estilo de Luta (catálogo pendente)" },
+        prompt: "Nível 1 — Estilo de Luta",
+        effect: { kind: "optionPick", options: FIGHTING_STYLE_NAMES },
       },
     ],
   },

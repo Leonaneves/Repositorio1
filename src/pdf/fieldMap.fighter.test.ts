@@ -164,12 +164,12 @@ describe("exportação de ponta a ponta — exemplos pedidos explicitamente na f
   it("Campeão nível 7 com Estilo de Luta Adicional preenchido: vai para a caixa de Talentos, nunca para Características de Classe", async () => {
     const character = fullFighter(7, "Campeão");
     character.name = "Exemplo Campeão — Estilo de Luta Adicional";
-    character.featureChoiceSelections[FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID] = { value: "Duelista" };
+    character.featureChoiceSelections[FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID] = { value: "Duelismo" };
     const joined = await expectValidExport(character);
-    expect(joined).not.toContain("Duelista");
+    expect(joined).not.toContain("Duelismo");
 
     const talentos = fieldValue("Talentos", character);
-    expect(talentos).toContain("Estilo de Luta Adicional: Duelista");
+    expect(talentos).toContain("Duelismo: +2 dano com arma corpo a corpo em 1 mão, sem outra arma");
   });
 
   it("Campeão nível 7 sem Estilo de Luta Adicional preenchido: nunca inventa nem imprime nada em Talentos", () => {
@@ -180,13 +180,13 @@ describe("exportação de ponta a ponta — exemplos pedidos explicitamente na f
   it("Estilo de Luta BASE (nível 1, qualquer subclasse) preenchido: vai para a caixa de Talentos, nunca para Características de Classe, nunca como lembrete genérico (fonte \"COMPLETAR A CLASSE GUERREIRO NO BUILDER E NO PDF\" §1/§3)", async () => {
     const character = fullFighter(3, "Mestre da Batalha");
     character.name = "Exemplo Mestre de Batalha — Estilo de Luta";
-    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Combate com Arma Grande" };
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Combate com Armas Grandes" };
     const joined = await expectValidExport(character);
-    expect(joined).not.toContain("Combate com Arma Grande");
+    expect(joined).not.toContain("Combate com Armas Grandes");
     expect(joined).not.toContain("ESTILO DE LUTA");
 
     const talentos = fieldValue("Talentos", character);
-    expect(talentos).toContain("Estilo de Luta: Combate com Arma Grande");
+    expect(talentos).toContain("Combate com Armas Grandes: arma corpo a corpo Duas Mãos/Versátil em 2 mãos, dano 1/2 vira 3");
     expect(talentos).not.toContain("escolher Estilo de Luta");
   });
 });

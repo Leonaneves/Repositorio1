@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { useBuilderStore } from "../state/builderStore.js";
 import { useCharacterStore } from "../state/characterStore.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { buildExportedPdf, fillPdfForm } from "./exporter.js";
 
 /**
@@ -33,8 +34,12 @@ describe("integração completa: Builder → resolver escolhas → exportar → 
 
     characterStore.setName("Elminster Aumar");
     characterStore.setClass("guerreiro");
+    // Escolha NÃO relacionada ao que este teste cobre (Estilo de Luta nível 1, optionPick
+    // obrigatório desde que o catálogo passou a existir) — sem ela, "class" ficaria bloqueada
+    // por um motivo alheio à Perícias de Classe/equipamento sob teste.
+    characterStore.setFeatureChoiceSelection(FIGHTER_FIGHTING_STYLE_CHOICE_ID, "Defensivo");
 
-    // 'class' já não bloqueia mais por essa escolha — a Perícias de Classe mora na etapa própria "Perícias"
+    // 'class' já não bloqueia mais por Perícias de Classe — essa escolha mora na etapa própria "Perícias"
     // (fonte "CENTRALIZAR AS ESCOLHAS DE PERÍCIAS EM UMA ETAPA PRÓPRIA").
     builderStore.goToStep("class");
     expect(useBuilderStore.getState().canAdvance()).toBe(true);

@@ -73,11 +73,11 @@ describe("SUBCLASSE — exibe o nome curto, preservando o valor interno (fullNam
 });
 
 describe("Talentos — Estilo de Luta só aparece quando escolhido em vez de Combatente Abençoado", () => {
-  it("escolheu Estilo de Luta com nome preenchido: aparece na caixa Talentos", () => {
+  it("escolheu Estilo de Luta com um estilo do catálogo: aparece na caixa Talentos", () => {
     const character = paladin(2);
     character.featureChoiceSelections[PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID] = { value: "Estilo de Luta" };
-    character.featureChoiceSelections[PALADIN_FIGHTING_STYLE_CHOICE_ID] = { value: "Defesa" };
-    expect(fieldValue("Talentos", character)).toContain("Estilo de Luta: Defesa");
+    character.featureChoiceSelections[PALADIN_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
+    expect(fieldValue("Talentos", character)).toContain("Defensivo");
   });
 
   it("escolheu Combatente Abençoado: nunca aparece o texto de Estilo de Luta", () => {

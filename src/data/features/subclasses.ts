@@ -1,5 +1,6 @@
 import type { FeatureDefinition } from "../../domain/features.js";
 import { classes } from "../classes.js";
+import { FIGHTING_STYLE_NAMES } from "../fightingStyles.js";
 import { CONHECIMENTO_PROFICIENCIAS_BONUS_CHOICE_ID } from "./bard.js";
 
 /**
@@ -84,11 +85,11 @@ export const FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID = "guerreiro-mestre
 
 /**
  * "Estilo de Luta Adicional" (Campeão, nível 7) — id usado por
- * `rules/fighterTalentEntries.ts#getFighterFightingStyleTalentEntries`
- * para imprimir o nome digitado (quando preenchido) na caixa de
- * TALENTOS do PDF, nunca em "Características de Classe" (fonte
- * "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF" §8 — mesmo
- * tratamento já dado a "Lições dos Grandes Antigos" do Bruxo).
+ * `rules/fightingStyles.ts#getFightingStyleTalentEntries` para imprimir
+ * o Estilo escolhido na caixa de TALENTOS do PDF, nunca em
+ * "Características de Classe" (fonte "COMPLETAR A CLASSE PATRULHEIRO NO
+ * BUILDER E NO PDF" §8 — mesmo tratamento já dado a "Lições dos Grandes
+ * Antigos" do Bruxo).
  */
 export const FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID = "guerreiro-campeao-estilo-de-luta-adicional-escolha";
 
@@ -1633,12 +1634,12 @@ export const subclassFeatures: FeatureDefinition[] = [
     level: 7,
     autoGranted: false,
     summary:
-      "Concede mais uma escolha de talento de Estilo de Luta — categoria condicional (`domain/features.ts#FeatureChoiceEffect`, variante `manualText`), SEPARADA da concessão original de Estilo de Luta do Guerreiro nível 1 (origem e quantidade próprias; possuir uma não concede a outra nem todos os Estilos de Luta de uma vez). Catálogo de Estilos de Luta ainda pendente: a escolha abaixo fica como aviso de conteúdo pendente, nunca texto livre validado como talento adquirido.",
+      "Concede mais uma escolha de Estilo de Luta (`data/fightingStyles.ts`), SEPARADA da concessão original do Guerreiro nível 1 (origem e quantidade próprias; possuir uma não concede a outra nem todos os Estilos de Luta de uma vez) — as duas, porém, nunca podem repetir o mesmo estilo entre si (`rules/features.ts#getSubclassFeatures` recalcula as opções elegíveis excluindo a escolha atual da concessão de nível 1).",
     choices: [
       {
         id: FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID,
-        prompt: "Campeão nível 7 — Estilo de Luta Adicional (catálogo de Estilos de Luta ainda pendente)",
-        effect: { kind: "manualText", placeholder: "Estilo de Luta Adicional (catálogo pendente)" },
+        prompt: "Campeão nível 7 — Estilo de Luta Adicional",
+        effect: { kind: "optionPick", options: FIGHTING_STYLE_NAMES },
       },
     ],
   },

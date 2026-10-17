@@ -4,8 +4,13 @@ import { App } from "../App.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 import { useBuilderStore } from "../../state/builderStore.js";
 import { useInsightSessionStore } from "../insights/insightSessionStore.js";
-import { ELEMENTAL_AFFINITY_CHOICE_ID } from "../../data/features/subclasses.js";
-import { RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID } from "../../data/features/ranger.js";
+import { ELEMENTAL_AFFINITY_CHOICE_ID, FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID } from "../../data/features/subclasses.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../../data/features/fighter.js";
+import {
+  RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID,
+  RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID,
+  RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID,
+} from "../../data/features/ranger.js";
 import { getClassSkillChoiceId } from "../../data/classes.js";
 import { MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID } from "../../data/features/feats.js";
 import { getFeatChoiceId } from "../../rules/feats.js";
@@ -40,6 +45,9 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
 
     fireEvent.change(screen.getByRole("combobox", { name: "Classe" }), { target: { value: "guerreiro" } });
     expect(screen.queryByText("Escolha uma classe para continuar.")).not.toBeInTheDocument();
+    // Estilo de Luta nível 1 é uma escolha PRÓPRIA de "Classe" (optionPick obrigatório) — resolvida
+    // aqui para isolar o que este teste cobre (Perícias de Classe não bloqueia mais esta etapa).
+    act(() => useCharacterStore.getState().setFeatureChoiceSelection(FIGHTER_FIGHTING_STYLE_CHOICE_ID, "Defensivo"));
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
 
     act(() => useBuilderStore.getState().goToStep("skills"));
@@ -477,12 +485,13 @@ describe("BuilderWizard — Patrulheiro, escolhas permanentes das subclasses (fo
       store.setClass("patrulheiro");
       store.setLevel(level);
       // Resolve escolhas NÃO relacionadas (Perícias de Classe + Estilo de Luta/Combatente
-      // Druídico do nível 2 + Especialização de Explorador Hábil do nível 2 + ASI de nível 4) —
-      // sem isso, Avançar já ficaria bloqueado por um motivo que nada tem a ver com a subclasse
-      // sob teste (fonte "COMPLETAR A CLASSE PATRULHEIRO NO BUILDER E NO PDF" §4: a escolha de
-      // Estilo de Luta é um optionPick obrigatório, e Explorador Hábil é um skillExpertise).
+      // Druídico do nível 2 + nome do Estilo de Luta + Especialização de Explorador Hábil do
+      // nível 2 + ASI de nível 4) — sem isso, Avançar já ficaria bloqueado por um motivo que
+      // nada tem a ver com a subclasse sob teste (ambas as escolhas de Estilo de Luta são
+      // optionPick obrigatório, e Explorador Hábil é um skillExpertise).
       store.setFeatureChoiceSelection(getClassSkillChoiceId("patrulheiro"), ["furtividade", "percepcao", "sobrevivencia"]);
       store.setFeatureChoiceSelection(RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, "Estilo de Luta");
+      store.setFeatureChoiceSelection(RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID, "Arquearia");
       store.setFeatureChoiceSelection(RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID, ["furtividade"]);
       if (level >= 4) store.setAsiMode(4, "feat");
     });
@@ -552,10 +561,12 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
       const store = useCharacterStore.getState();
       store.setClass("guerreiro");
       store.setLevel(level);
-      // Resolve escolhas NÃO relacionadas (Perícias de Classe + ASI de cada nível já
-      // alcançado) — sem isso, Avançar já ficaria bloqueado por um motivo que nada tem a
-      // ver com a subclasse sob teste.
+      // Resolve escolhas NÃO relacionadas (Perícias de Classe + Estilo de Luta nível 1 +
+      // ASI de cada nível já alcançado) — sem isso, Avançar já ficaria bloqueado por um
+      // motivo que nada tem a ver com a subclasse sob teste (Estilo de Luta é optionPick
+      // obrigatório desde que o catálogo passou a existir).
       store.setFeatureChoiceSelection(getClassSkillChoiceId("guerreiro"), ["atletismo", "percepcao"]);
+      store.setFeatureChoiceSelection(FIGHTER_FIGHTING_STYLE_CHOICE_ID, "Defensivo");
       for (const asiLevel of [4, 6, 8, 12, 14, 16]) {
         if (level >= asiLevel) store.setAsiMode(asiLevel, "feat");
       }
@@ -563,12 +574,17 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     act(() => useBuilderStore.getState().goToStep("class"));
   }
 
-  it("Campeão: nenhuma escolha própria trava Avançar (Estilo de Luta Adicional nunca aparece como lembrete de escolha estruturada)", () => {
+  it("Campeão: 'Estilo de Luta Adicional' bloqueia Avançar até escolher um Estilo de Luta do catálogo, diferente do já escolhido na concessão base", () => {
     render(<App />);
     setupFighter(7);
     fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Campeão" } });
 
     expect(screen.getByRole("heading", { name: "Estilo de Luta Adicional" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // falta o Estilo de Luta Adicional
+
+    act(() => {
+      useCharacterStore.getState().setFeatureChoiceSelection(FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID, "Duelismo");
+    });
     expect(screen.getByRole("button", { name: "Avançar" })).toBeEnabled();
   });
 

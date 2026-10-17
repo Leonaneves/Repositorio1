@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { getArmorClass, getAvailableArmor } from "./armor.js";
 
 describe("getArmorClass — sem armadura", () => {
@@ -116,6 +117,35 @@ describe("getArmorClass — com armadura", () => {
     character.armor.manualAdjustment = 1; // ex.: item mágico +1
     const result = getArmorClass(character);
     expect(result).toEqual({ auto: 18, manual: 1, total: 19 });
+  });
+
+  it("Estilo de Luta Defensivo soma +1, independente do escudo (fonte \"IMPLEMENTAR TALENTOS DE ESTILO DE LUTA NO BUILDER E NO PDF\" §6)", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "guerreiro";
+    character.armor.equipped = "placas";
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
+    expect(getArmorClass(character).auto).toBe(19); // 18 + 1
+
+    character.armor.shield = true;
+    expect(getArmorClass(character).auto).toBe(21); // 18 + 2 (escudo) + 1 (Defensivo)
+  });
+
+  it("sem Estilo de Luta Defensivo ativo, nenhum bônus extra é somado", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "guerreiro";
+    character.armor.equipped = "placas";
+    expect(getArmorClass(character).auto).toBe(18);
+  });
+});
+
+describe("getArmorClass — Estilo de Luta Defensivo nunca se aplica desarmado/sem armadura", () => {
+  it("Guerreiro com Defensivo ativo mas desarmado (sem armadura equipada): nunca soma o +1", () => {
+    const character = createBlankCharacter("ca-test");
+    character.classId = "guerreiro";
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
+    character.armor.equipped = "unarmed";
+    character.abilities.DEX.score = 14; // +2
+    expect(getArmorClass(character).auto).toBe(12); // 10 + 2, sem +1 extra do Defensivo
   });
 });
 

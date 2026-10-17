@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
 import { ABILITY_KEYS } from "../domain/common.js";
-import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
+import {
+  EARTH_CIRCLE_TERRAIN_CHOICE_ID,
+  ELEMENTAL_AFFINITY_CHOICE_ID,
+  FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID,
+} from "../data/features/subclasses.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import { MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID } from "../data/features/feats.js";
@@ -160,9 +165,26 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("class", withLegacySelection).some((b) => b.includes("Superioridade em Combate"))).toBe(false);
   });
 
-  it("'class' nunca bloqueia em 'Estilo de Luta Adicional' do Campeão (manualText, catálogo pendente — nunca suficiente para contar como talento adquirido, mas também nunca trava o Avançar)", () => {
+  it("'class' bloqueia em 'Estilo de Luta Adicional' do Campeão sem escolha, libera com um Estilo de Luta válido do catálogo", () => {
     const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Campeão", level: 7 };
-    expect(getStepBlockers("class", character).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(false);
+    expect(getStepBlockers("class", character).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(true);
+
+    const withChoice = {
+      ...character,
+      featureChoiceSelections: { [FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID]: { value: "Duelismo" } },
+    };
+    expect(getStepBlockers("class", withChoice).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(false);
+  });
+
+  it("'class' bloqueia em 'Estilo de Luta' do Guerreiro nível 1 sem escolha, libera com um Estilo de Luta válido do catálogo", () => {
+    const character = { ...blank(), classId: "guerreiro" as const, level: 1 };
+    expect(getStepBlockers("class", character).some((b) => b.includes('"Estilo de Luta"'))).toBe(true);
+
+    const withChoice = {
+      ...character,
+      featureChoiceSelections: { [FIGHTER_FIGHTING_STYLE_CHOICE_ID]: { value: "Defensivo" } },
+    };
+    expect(getStepBlockers("class", withChoice).some((b) => b.includes('"Estilo de Luta"'))).toBe(false);
   });
 
   it("'class' bloqueia a seção de Terreno do Círculo da Terra sem escolha, libera com uma opção válida (seção dentro de Classe, não etapa própria — §2)", () => {
@@ -223,6 +245,10 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
     // conjuração desta aquisição (optionPick) ainda precisa ser escolhido (fonte "IMPLEMENTAR
     // TALENTOS DE ORIGEM NO BUILDER E NO PDF" §9) para não bloquear "featuresAndTalents".
     character.featureChoiceSelections[getFeatChoiceId(MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID, "background")] = { value: "Sabedoria" };
+    // Estilo de Luta nível 1 do Guerreiro também precisa estar resolvido — optionPick
+    // obrigatório desde que o catálogo passou a existir (fonte "IMPLEMENTAR TALENTOS DE
+    // ESTILO DE LUTA NO BUILDER E NO PDF").
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
     const pending = getPendingBuilderSteps(character);
     expect(pending.some((p) => p.stepId === "species")).toBe(false);
     expect(pending.some((p) => p.stepId === "background")).toBe(false);

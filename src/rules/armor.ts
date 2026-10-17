@@ -4,6 +4,7 @@ import { armors, SHIELD_AC_BONUS, type ArmorDefinition } from "../data/armors.js
 import { MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID } from "../data/features/feats.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 import { isFeatActive } from "./feats.js";
+import { getDefensiveFightingStyleBonus } from "./fightingStyles.js";
 
 /**
  * Armaduras disponíveis para seleção, filtradas pelas proficiências
@@ -42,6 +43,10 @@ export function getAvailableArmor(character: Character): ArmorDefinition[] {
  *   nunca soma aos +2 normais (substitui o teto, não soma por cima).
  * - Armadura pesada: valor fixo (sem DEX)
  * - Escudo com armadura: sempre +2
+ * - Estilo de Luta Defensivo (fonte "IMPLEMENTAR TALENTOS DE ESTILO DE
+ *   LUTA NO BUILDER E NO PDF" §6): +1 ao vestir armadura Leve/Média/
+ *   Pesada — nunca desarmado/sem armadura, mesmo nas fórmulas especiais
+ *   de Bárbaro/Monge/Feiticeiro acima.
  */
 export function getArmorClass(character: Character): ComputedValue {
   const dexScore = getEffectiveAbilityScore(character, "DEX");
@@ -69,7 +74,7 @@ export function getArmorClass(character: Character): ComputedValue {
   } else {
     const armor = armors[character.armor.equipped];
     const dexContribution = armor.dexBonus === "full" ? dexMod : armor.dexBonus === "max2" ? Math.min(dexMod, mediumArmorDexCap) : 0;
-    auto = armor.baseAC + dexContribution + (hasShield ? SHIELD_AC_BONUS : 0);
+    auto = armor.baseAC + dexContribution + (hasShield ? SHIELD_AC_BONUS : 0) + getDefensiveFightingStyleBonus(character);
   }
 
   return computedValue(auto, character.armor.manualAdjustment);

@@ -1,4 +1,5 @@
 import type { FeatureDefinition } from "../../domain/features.js";
+import { FIGHTING_STYLE_NAMES } from "../fightingStyles.js";
 
 /**
  * Características da classe BASE do Patrulheiro, estruturadas a partir
@@ -74,7 +75,7 @@ export const rangerClassFeatures: FeatureDefinition[] = [
     level: 2,
     autoGranted: false,
     summary:
-      "Escolha permanente entre um talento de Estilo de Luta (categoria de talento condicional — `domain/features.ts#FeatureChoiceEffect`, variante `manualText`; catálogo de Estilos de Luta ainda pendente, concessão/origem própria e independente de outras classes) e Combatente Druídico: escolhe 2 truques da lista de Druida (Sabedoria é o atributo de conjuração deles; contam como magias de Patrulheiro, aparecem na área de Magias — rules/rangerAutoPreparedSpells.ts; ao ganhar nível de Patrulheiro, pode substituir um dos dois). As duas opções são ALTERNATIVAS, nunca concessões cumulativas desta característica. Fagulha Estelar e Orientação são recomendações para Combatente Druídico, nunca escolhas automáticas. Sem catálogo de truques de Druida: usa o mesmo fallback de texto livre já aprovado para casos assim (ex.: Xamã do Druida), nunca inventando truques ou seus efeitos. Ao trocar entre as duas opções, remove só os benefícios da opção abandonada — proficiências/conjurações de outras origens nunca são afetadas.",
+      "Escolha permanente entre um Estilo de Luta (`data/fightingStyles.ts`, concessão/origem própria e independente de outras classes) e Combatente Druídico: escolhe 2 truques da lista de Druida (Sabedoria é o atributo de conjuração deles; contam como magias de Patrulheiro, aparecem na área de Magias — rules/rangerAutoPreparedSpells.ts; ao ganhar nível de Patrulheiro, pode substituir um dos dois). As duas opções são ALTERNATIVAS, nunca concessões cumulativas desta característica — ao escolher Combatente Druídico, a sub-escolha de Estilo de Luta deixa de aparecer entre as escolhas pendentes desta característica (`rules/features.ts#getClassFeatures`), nunca permanecendo como exigência impossível de resolver. Fagulha Estelar e Orientação são recomendações para Combatente Druídico, nunca escolhas automáticas. Sem catálogo de truques de Druida: usa o mesmo fallback de texto livre já aprovado para casos assim (ex.: Xamã do Druida), nunca inventando truques ou seus efeitos. Ao trocar entre as duas opções, remove só os benefícios da opção abandonada — proficiências/conjurações de outras origens nunca são afetadas.",
     choices: [
       {
         id: RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID,
@@ -83,8 +84,8 @@ export const rangerClassFeatures: FeatureDefinition[] = [
       },
       {
         id: RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID,
-        prompt: "Estilo de Luta — nome do talento (só se escolher Estilo de Luta; catálogo pendente)",
-        effect: { kind: "manualText", placeholder: "Estilo de Luta (catálogo pendente)" },
+        prompt: "Estilo de Luta",
+        effect: { kind: "optionPick", options: FIGHTING_STYLE_NAMES },
       },
       {
         id: getRangerDruidicWarriorCantripChoiceId(1),

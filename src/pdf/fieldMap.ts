@@ -44,8 +44,8 @@ import { getWarlockPrintedBlocks } from "../rules/warlockPrintedFeatures.js";
 import { getWarlockPactWeaponProficiencyEntries } from "../rules/warlockPactWeapon.js";
 import { getEffectiveSpellsPrepared } from "../rules/effectiveSpellsPrepared.js";
 import { getWarlockLessonsOfTheOldOnesTalentEntries } from "../rules/warlockTalentEntries.js";
-import { getFighterFightingStyleTalentEntries, getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.js";
-import { getPaladinFightingStyleTalentEntries } from "../rules/paladinTalentEntries.js";
+import { getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.js";
+import { getFightingStyleTalentEntries } from "../rules/fightingStyles.js";
 import { getSubclassDisplayName } from "../rules/subclasses.js";
 import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
 
@@ -374,8 +374,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getFeatTalentEntries(c),
           ...getWarlockLessonsOfTheOldOnesTalentEntries(c),
           ...getFighterManeuverTalentEntries(c),
-          ...getFighterFightingStyleTalentEntries(c),
-          ...getPaladinFightingStyleTalentEntries(c),
+          ...getFightingStyleTalentEntries(c),
         ],
         c.talentsNotes,
       ),

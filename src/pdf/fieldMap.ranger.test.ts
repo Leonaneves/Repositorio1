@@ -5,6 +5,7 @@ import { PDFDocument } from "@cantoo/pdf-lib";
 import { createBlankCharacter } from "../domain/character.js";
 import type { Character } from "../domain/character.js";
 import { RANGER_GLAMOUR_SKILL_CHOICE_ID, RANGER_MENTE_DE_FERRO_CHOICE_ID } from "../data/features/subclasses.js";
+import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
 import { pdfTextFields } from "./fieldMap.js";
 import { buildExportedPdf, fillPdfForm } from "./exporter.js";
 
@@ -88,6 +89,25 @@ describe("Carac.Classe.1/.2 — Patrulheiro usa a composição dinâmica (classe
     expect(joined).toContain("MARCA DO PREDADOR"); // classe base, nunca exclusivo de uma subclasse
     expect(joined).not.toContain("GLAMOUR TRANSCENDENTAL");
     expect(joined).not.toContain("EMBOSCADOR DAS SOMBRAS");
+  });
+});
+
+describe("Talentos — Estilo de Luta do Patrulheiro nível 2 (fonte \"IMPLEMENTAR TALENTOS DE ESTILO DE LUTA NO BUILDER E NO PDF\" — gap fechado: antes nenhuma função imprimia essa escolha)", () => {
+  it("escolheu Estilo de Luta com um estilo do catálogo: aparece na caixa Talentos", () => {
+    const character = fullRanger(2, null);
+    character.featureChoiceSelections[RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID] = { value: "Estilo de Luta" };
+    character.featureChoiceSelections[RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID] = { value: "Arquearia" };
+    expect(fieldValue("Talentos", character)).toContain("Arquearia: +2 Atq com armas à Distância");
+  });
+
+  it("escolheu Combatente Druídico: nunca aparece texto de Estilo de Luta", () => {
+    const character = fullRanger(2, null);
+    character.featureChoiceSelections[RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID] = { value: "Combatente Druídico" };
+    expect(fieldValue("Talentos", character)).toBe("");
+  });
+
+  it("nenhuma escolha feita ainda: campo Talentos vazio", () => {
+    expect(fieldValue("Talentos", fullRanger(2, null))).toBe("");
   });
 });
 

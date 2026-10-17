@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createBlankCharacter } from "../domain/character.js";
 import { getClassSkillChoiceId, getClassToolChoiceId } from "../data/classes.js";
-import { RANGER_MENTE_DE_FERRO_CHOICE_ID, RANGER_MENTE_DE_FERRO_FEATURE_ID } from "../data/features/subclasses.js";
+import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
+import {
+  FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID,
+  RANGER_MENTE_DE_FERRO_CHOICE_ID,
+  RANGER_MENTE_DE_FERRO_FEATURE_ID,
+} from "../data/features/subclasses.js";
+import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
+import { PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID, PALADIN_FIGHTING_STYLE_CHOICE_ID } from "../data/features/paladin.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
 import {
   getBackgroundFeatures,
@@ -164,6 +171,83 @@ describe("getSubclassFeatures — 'Mente de Ferro' (Vigilante das Sombras, níve
   });
 });
 
+describe("getClassFeatures/getSubclassFeatures — narrowing dinâmico de Estilo de Luta (fonte \"IMPLEMENTAR TALENTOS DE ESTILO DE LUTA NO BUILDER E NO PDF\" §1)", () => {
+  function fighterAt(level: number, subclassFullName: string | null = null) {
+    const character = createBlankCharacter("fighting-style-narrowing-test");
+    character.classId = "guerreiro";
+    character.level = level;
+    character.subclassId = subclassFullName;
+    return character;
+  }
+
+  it("sem nenhuma escolha feita: a concessão BASE (nível 1) oferece as 10 opções completas", () => {
+    const character = fighterAt(1);
+    const base = getClassFeatures(character).find((f) => f.id === "guerreiro-estilo-de-luta-1")!;
+    expect(base.choices![0].effect).toEqual({ kind: "optionPick", options: expect.arrayContaining(["Defensivo", "Duelismo"]) });
+    expect((base.choices![0].effect as { options: string[] }).options).toHaveLength(10);
+  });
+
+  it("Campeão: o estilo já escolhido na concessão ADICIONAL some das opções da concessão BASE", () => {
+    const character = fighterAt(7, "Campeão");
+    character.featureChoiceSelections[FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID] = { value: "Duelismo" };
+    const base = getClassFeatures(character).find((f) => f.id === "guerreiro-estilo-de-luta-1")!;
+    const baseOptions = (base.choices![0].effect as { options: string[] }).options;
+    expect(baseOptions).not.toContain("Duelismo");
+    expect(baseOptions).toHaveLength(9);
+  });
+
+  it("Campeão: o estilo já escolhido na concessão BASE some das opções da concessão ADICIONAL (getSubclassFeatures)", () => {
+    const character = fighterAt(7, "Campeão");
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
+    const extra = getSubclassFeatures(character).find((f) => f.id === "guerreiro-campeao-estilo-de-luta-adicional-7")!;
+    const extraOptions = (extra.choices![0].effect as { options: string[] }).options;
+    expect(extraOptions).not.toContain("Defensivo");
+    expect(extraOptions).toHaveLength(9);
+  });
+
+  it("Patrulheiro: a sub-escolha do nome do Estilo de Luta só existe quando o ramo escolhido é exatamente 'Estilo de Luta' — ausente tanto sem escolha quanto com 'Combatente Druídico'", () => {
+    const character = createBlankCharacter("fighting-style-narrowing-test");
+    character.classId = "patrulheiro";
+    character.level = 2;
+    const estiloDeLuta = () => getClassFeatures(character).find((f) => f.id === "patrulheiro-estilo-de-luta-2")!;
+
+    // Sem nenhum ramo escolhido ainda: nunca pede o nome do Estilo de Luta prematuramente.
+    expect(estiloDeLuta().choices!.some((c) => c.id === RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID)).toBe(false);
+
+    character.featureChoiceSelections[RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID] = { value: "Estilo de Luta" };
+    expect(estiloDeLuta().choices!.some((c) => c.id === RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID)).toBe(true);
+
+    character.featureChoiceSelections[RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID] = { value: "Combatente Druídico" };
+    expect(estiloDeLuta().choices!.some((c) => c.id === RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID)).toBe(false);
+  });
+
+  it("Paladino: a sub-escolha do nome do Estilo de Luta só existe quando o ramo escolhido é exatamente 'Estilo de Luta' — ausente tanto sem escolha quanto com 'Combatente Abençoado'", () => {
+    const character = createBlankCharacter("fighting-style-narrowing-test");
+    character.classId = "paladino";
+    character.level = 2;
+    const estiloDeLuta = () => getClassFeatures(character).find((f) => f.id === "paladino-estilo-de-luta-2")!;
+
+    // Sem nenhum ramo escolhido ainda: nunca pede o nome do Estilo de Luta prematuramente.
+    expect(estiloDeLuta().choices!.some((c) => c.id === PALADIN_FIGHTING_STYLE_CHOICE_ID)).toBe(false);
+
+    character.featureChoiceSelections[PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID] = { value: "Estilo de Luta" };
+    expect(estiloDeLuta().choices!.some((c) => c.id === PALADIN_FIGHTING_STYLE_CHOICE_ID)).toBe(true);
+
+    character.featureChoiceSelections[PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID] = { value: "Combatente Abençoado" };
+    expect(estiloDeLuta().choices!.some((c) => c.id === PALADIN_FIGHTING_STYLE_CHOICE_ID)).toBe(false);
+  });
+
+  it("remoção condicional nunca afeta as demais escolhas da mesma característica (ex.: truques de Combatente Druídico continuam presentes)", () => {
+    const character = createBlankCharacter("fighting-style-narrowing-test");
+    character.classId = "patrulheiro";
+    character.level = 2;
+    character.featureChoiceSelections[RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID] = { value: "Combatente Druídico" };
+    const estiloDeLuta = getClassFeatures(character).find((f) => f.id === "patrulheiro-estilo-de-luta-2")!;
+    expect(estiloDeLuta.choices!.some((c) => c.id === RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID)).toBe(true);
+    expect(estiloDeLuta.choices!.length).toBeGreaterThan(1); // ramo + 2 truques de Druida, só o nome do Estilo de Luta saiu
+  });
+});
+
 describe("getSpeciesFeatures", () => {
   it("devolve os traços da espécie escolhida, reaproveitando o traitsText já confirmado", () => {
     const character = createBlankCharacter("features-test");
@@ -312,6 +396,7 @@ describe("isFeatureChoiceComplete / isFeatureComplete / getIncompleteRequiredCho
     const character = createBlankCharacter("features-test");
     character.classId = "guerreiro";
     character.featureChoiceSelections[getClassSkillChoiceId("guerreiro")] = { value: ["atletismo", "intimidacao"] };
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
     expect(getIncompleteRequiredChoices(character)).toEqual([]);
   });
 
@@ -342,7 +427,7 @@ describe("isSkillKindChoice / getSkillChoiceFeatures", () => {
     expect(isSkillKindChoice({ id: "x", prompt: "x", effect: { kind: "manualText", placeholder: "x" } })).toBe(false);
   });
 
-  it("getSkillChoiceFeatures: Guerreiro recém-criado só traz 'Perícias de Classe' (Estilo de Luta é manualText, nunca entra aqui)", () => {
+  it("getSkillChoiceFeatures: Guerreiro recém-criado só traz 'Perícias de Classe' (Estilo de Luta é optionPick, nunca é escolha de perícia)", () => {
     const character = createBlankCharacter("features-test");
     character.classId = "guerreiro";
     const features = getSkillChoiceFeatures(character);
