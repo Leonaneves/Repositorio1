@@ -2,8 +2,17 @@ import type { AutoTextEntry, Character } from "../domain/character.js";
 import { fightingStylesByName, FIGHTING_STYLE_NAMES, type FightingStyleDefinition } from "../data/fightingStyles.js";
 import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID } from "../data/features/subclasses.js";
-import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
-import { PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID, PALADIN_FIGHTING_STYLE_CHOICE_ID } from "../data/features/paladin.js";
+import {
+  getRangerDruidicWarriorCantripChoiceId,
+  RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID,
+  RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID,
+} from "../data/features/ranger.js";
+import {
+  PALADIN_BLESSED_WARRIOR_CANTRIP_1_CHOICE_ID,
+  PALADIN_BLESSED_WARRIOR_CANTRIP_2_CHOICE_ID,
+  PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID,
+  PALADIN_FIGHTING_STYLE_CHOICE_ID,
+} from "../data/features/paladin.js";
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 
 /**
@@ -21,6 +30,34 @@ const FIGHTING_STYLE_SLOT_CHOICE_IDS: string[] = [
   RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID,
   PALADIN_FIGHTING_STYLE_CHOICE_ID,
 ];
+
+/**
+ * Todos os ids de `FeatureChoice` que pertencem a uma OPORTUNIDADE de
+ * Estilo de Luta — os 4 pontos de concessão acima, MAIS as 2 escolhas de
+ * ramo (Patrulheiro "Estilo de Luta ou Combatente Druídico", Paladino
+ * "Estilo de Luta ou Combatente Abençoado") e os 4 truques de
+ * Combatente Druídico/Abençoado que só existem dentro dessas MESMAS
+ * `FeatureDefinition` (fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA
+ * OCORRER APÓS OS ATRIBUTOS" §2/§5: a oportunidade inteira — ramo +
+ * escolha do estilo + truques alternativos — muda de etapa (Classe ou
+ * Subclasse) para a nova etapa Talentos, nunca só a escolha do nome do
+ * estilo). Usado por `rules/features.ts` para identificar a
+ * `FeatureDefinition` inteira que deve sair de "Classe"/"Subclasse" e
+ * passar a ser oferecida em "Talentos" — cada uma dessas 4
+ * `FeatureDefinition` (`guerreiro-estilo-de-luta-1`,
+ * `guerreiro-campeao-estilo-de-luta-adicional-7`,
+ * `patrulheiro-estilo-de-luta-2`, `paladino-estilo-de-luta-2`) só tem
+ * escolhas deste conjunto, nunca misturadas com outra coisa.
+ */
+export const FIGHTING_STYLE_OPPORTUNITY_CHOICE_IDS: ReadonlySet<string> = new Set([
+  ...FIGHTING_STYLE_SLOT_CHOICE_IDS,
+  RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID,
+  getRangerDruidicWarriorCantripChoiceId(1),
+  getRangerDruidicWarriorCantripChoiceId(2),
+  PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID,
+  PALADIN_BLESSED_WARRIOR_CANTRIP_1_CHOICE_ID,
+  PALADIN_BLESSED_WARRIOR_CANTRIP_2_CHOICE_ID,
+]);
 
 /**
  * Nomes dos Estilos de Luta ATIVOS no personagem, na ordem Guerreiro

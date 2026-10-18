@@ -18,11 +18,15 @@ import {
   getChosenEpicBoonFeatures,
   getChosenFeatFeatures,
   getClassFeatures,
+  getClassFeaturesWithChoices,
+  getFeaturesAndTalentsStepFeatures,
   getFeatureView,
   getIncompleteRequiredChoices,
   getSkillChoiceFeatures,
   getSpeciesFeatures,
   getSubclassFeatures,
+  getSubclassFeaturesWithChoices,
+  getTalentOpportunityFeatures,
   isFeatureChoiceComplete,
   isFeatureComplete,
   isSkillKindChoice,
@@ -569,5 +573,129 @@ describe("isSkillKindChoice / getSkillChoiceFeatures", () => {
     const feature = getSkillChoiceFeatures(character).find((f) => f.name === "Traços de Elfo");
     expect(feature).toBeDefined();
     expect(character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID]).toBeUndefined();
+  });
+});
+
+/**
+ * Fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS
+ * ATRIBUTOS" §2/§5: as oportunidades de Estilo de Luta e Dádiva Épica
+ * saem de "Classe"/"Subclasse" (`getClassFeaturesWithChoices`/
+ * `getSubclassFeaturesWithChoices`) e passam a ser oferecidas pela
+ * etapa Talentos (`getTalentOpportunityFeatures`, somada em
+ * `getFeaturesAndTalentsStepFeatures`) — preservando origem/nível/
+ * identidade de cada concessão, nunca duplicada nos dois lugares.
+ */
+describe("getClassFeaturesWithChoices/getSubclassFeaturesWithChoices — excluem as oportunidades de Estilo de Luta/Dádiva Épica, movidas para Talentos", () => {
+  it("Guerreiro nível 1: 'Estilo de Luta' nunca aparece em getClassFeaturesWithChoices", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.level = 1;
+    expect(getClassFeaturesWithChoices(character).some((f) => f.name === "Estilo de Luta")).toBe(false);
+  });
+
+  it("Campeão nível 7: 'Estilo de Luta Adicional' nunca aparece em getSubclassFeaturesWithChoices", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.subclassId = "Campeão";
+    character.level = 7;
+    expect(getSubclassFeaturesWithChoices(character).some((f) => f.name === "Estilo de Luta Adicional")).toBe(false);
+  });
+
+  it("Patrulheiro nível 2: a feature 'Estilo de Luta' (ramo + truques de Combatente Druídico) nunca aparece em getClassFeaturesWithChoices", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "patrulheiro";
+    character.level = 2;
+    expect(getClassFeaturesWithChoices(character).some((f) => f.name === "Estilo de Luta")).toBe(false);
+  });
+
+  it("Paladino nível 2: a feature 'Estilo de Luta' (ramo + truques de Combatente Abençoado) nunca aparece em getClassFeaturesWithChoices", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "paladino";
+    character.level = 2;
+    expect(getClassFeaturesWithChoices(character).some((f) => f.name === "Estilo de Luta")).toBe(false);
+  });
+
+  it("Mago nível 19: 'Dádiva Épica' (escolha de QUAL dádiva) nunca aparece em getClassFeaturesWithChoices", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "mago";
+    character.level = 19;
+    expect(getClassFeaturesWithChoices(character).some((f) => f.name === "Dádiva Épica")).toBe(false);
+  });
+
+  it("Mestre de Batalha (Guerreiro) mantém 'Estudioso da Guerra'/demais escolhas de subclasse normalmente em getSubclassFeaturesWithChoices — a exclusão é só das oportunidades de Estilo de Luta/Dádiva Épica, nunca de outra escolha de subclasse", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.subclassId = "Mestre da Batalha";
+    character.level = 3;
+    expect(getSubclassFeaturesWithChoices(character).some((f) => f.name === "Estudioso da Guerra")).toBe(true);
+  });
+});
+
+describe("getTalentOpportunityFeatures — as oportunidades MOVIDAS, com origem/nível preservados", () => {
+  it("[] sem classe nenhuma", () => {
+    expect(getTalentOpportunityFeatures(createBlankCharacter("opportunity-test"))).toEqual([]);
+  });
+
+  it("Guerreiro nível 1: inclui 'Estilo de Luta' (sourceType class)", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.level = 1;
+    const feature = getTalentOpportunityFeatures(character).find((f) => f.name === "Estilo de Luta");
+    expect(feature).toBeDefined();
+    expect(feature!.sourceType).toBe("class");
+  });
+
+  it("Campeão nível 7: inclui a concessão BASE (Guerreiro nível 1) E a ADICIONAL (Campeão nível 7), nunca fundidas numa só, cada uma com cross-exclusão independente (fonte \"IMPLEMENTAR TALENTOS DE ESTILO DE LUTA...\" §1)", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.subclassId = "Campeão";
+    character.level = 7;
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
+    const opportunities = getTalentOpportunityFeatures(character);
+    const base = opportunities.find((f) => f.id === "guerreiro-estilo-de-luta-1")!;
+    const extra = opportunities.find((f) => f.id === "guerreiro-campeao-estilo-de-luta-adicional-7")!;
+    expect(base).toBeDefined();
+    expect(extra).toBeDefined();
+    expect(base.sourceType).toBe("class");
+    expect(extra.sourceType).toBe("subclass");
+    // Cross-exclusão: "Defensivo" já escolhido na concessão base nunca aparece nas opções da adicional.
+    const extraChoice = extra.choices!.find((c) => c.id === FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID)!;
+    expect(extraChoice.effect.kind === "optionPick" && extraChoice.effect.options).not.toContain("Defensivo");
+  });
+
+  it("Mago nível 19: inclui 'Dádiva Épica' (sourceType class, nível 19)", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "mago";
+    character.level = 19;
+    const feature = getTalentOpportunityFeatures(character).find((f) => f.name === "Dádiva Épica");
+    expect(feature).toBeDefined();
+    expect(feature!.sourceType).toBe("class");
+    expect(feature!.level).toBe(19);
+  });
+
+  it("Artífice nível 19: NUNCA inclui 'Dádiva Épica' (recebe ASI genérico no lugar, fonte DADIVA_EPICA_CLASSES)", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "artifice";
+    character.level = 19;
+    expect(getTalentOpportunityFeatures(character).some((f) => f.name === "Dádiva Épica")).toBe(false);
+  });
+});
+
+describe("getFeaturesAndTalentsStepFeatures — soma as oportunidades (getTalentOpportunityFeatures) às concessões já resolvidas, nunca duplicadas em Classe/Subclasse", () => {
+  it("Guerreiro nível 1 (sem nenhum Antecedente/Espécie): a etapa Talentos já reúne a oportunidade de Estilo de Luta, mesmo sem nenhuma concessão automática resolvida", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.level = 1;
+    const names = getFeaturesAndTalentsStepFeatures(character).map((f) => f.name);
+    expect(names).toContain("Estilo de Luta");
+  });
+
+  it("nunca duplica a oportunidade entre getClassFeaturesWithChoices e getFeaturesAndTalentsStepFeatures", () => {
+    const character = createBlankCharacter("opportunity-test");
+    character.classId = "guerreiro";
+    character.level = 1;
+    const inClass = getClassFeaturesWithChoices(character).map((f) => f.id);
+    const inTalents = getFeaturesAndTalentsStepFeatures(character).map((f) => f.id);
+    for (const id of inTalents) expect(inClass).not.toContain(id);
   });
 });

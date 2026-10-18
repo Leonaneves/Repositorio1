@@ -8,17 +8,25 @@ import {
   MAGIC_INITIATE_LIST_CHOICE_BASE_ID,
   ORIGIN_FEAT_IDS,
 } from "../data/features/feats.js";
+import {
+  ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
+  MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID,
+  SORRATEIRO_FEAT_ID,
+} from "../data/features/feats.js";
 import { getBackgroundFeatures, getChosenFeatFeatures, getFeaturesAndTalentsStepFeatures } from "./features.js";
 import {
   BACKGROUND_ORIGIN_FEAT_ID,
   buildFeatAcquisitionFeature,
+  formatFeatIneligibilityReason,
   getActiveFeatIds,
   getAlertInitiativeBonus,
   getAvailableFeatsForAsiLevel,
   getAvailableOriginFeatsForHumanSpecies,
+  getChosenAsiFeatIneligibilityReasons,
   getFeatAcquisitionCount,
   getFeatAcquisitionFeatures,
   getFeatAcquisitions,
+  getFeatCatalogForAsiLevel,
   getFeatChoiceId,
   getHealerKitHealingBonus,
   getLuckyPointsMax,
@@ -29,6 +37,7 @@ import {
   hasHumanOriginFeatConflictWithBackground,
   isFeatActive,
   isFeatRepeatable,
+  meetsFeatPrerequisites,
 } from "./feats.js";
 
 function withHumanOriginFeat(featId: string | null): Character {
@@ -597,5 +606,131 @@ describe("getFeaturesAndTalentsStepFeatures — sempre inclui o Talento de Orige
     const character = withHumanOriginFeat("alerta");
     character.speciesId = "elfo";
     expect(getFeaturesAndTalentsStepFeatures(character)).toEqual([]);
+  });
+});
+
+/**
+ * Validação histórica por ordem de aquisição — fonte "REESTRUTURAR A
+ * ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §6: cada
+ * pré-requisito é checado com o estado do personagem NO MOMENTO da
+ * aquisição (nunca com um aumento de nível POSTERIOR, mesmo que já
+ * esteja distribuído por o personagem ter sido criado direto num nível
+ * alto), reproduzindo os exemplos explícitos da fonte.
+ */
+describe("meetsFeatPrerequisites/getFeatCatalogForAsiLevel — validação histórica por ordem de aquisição (atributo)", () => {
+  function guerreiroWithDex(dex: number): Character {
+    const character = createBlankCharacter("historical-order-test");
+    character.classId = "guerreiro";
+    character.level = 16;
+    character.abilities = { ...character.abilities, DEX: { score: dex } };
+    return character;
+  }
+
+  it("DEX 12 na criação: Sorrateiro (exige DEX 13) indisponível em QUALQUER nível de ASI sem nenhum aumento distribuído", () => {
+    const character = guerreiroWithDex(12);
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-4")).toBe(false);
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-16")).toBe(false);
+  });
+
+  it("+1 DEX distribuído no nível 4 (Aumentar Atributos): Sorrateiro continua indisponível NO PRÓPRIO nível 4 (nunca usa o aumento do próprio nível para validar a aquisição deste MESMO nível), mas libera a partir do nível 6 em diante", () => {
+    const character = guerreiroWithDex(12);
+    character.asiSelections = { 4: { kind: "abilityIncrease", allocations: { DEX: 1, FOR: 1 } } };
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-4")).toBe(false);
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-6")).toBe(true);
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-8")).toBe(true);
+  });
+
+  it("um aumento escolhido no nível 8 NUNCA valida retroativamente a oportunidade do nível 4, mesmo com DEX 13 já no estado FINAL do personagem", () => {
+    const character = guerreiroWithDex(12);
+    character.asiSelections = { 8: { kind: "abilityIncrease", allocations: { DEX: 1, FOR: 1 } } };
+    // Estado final (rules/abilities.ts) já reflete DEX 13 — mas a checagem histórica do nível 4
+    // nunca pode usar essa contribuição, por vir de um nível POSTERIOR.
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-4")).toBe(false);
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-8")).toBe(false); // exclui a própria contribuição também
+    expect(meetsFeatPrerequisites(character, SORRATEIRO_FEAT_ID, "asi-12")).toBe(true); // nível 8 já é passado para o 12
+  });
+
+  it("getFeatCatalogForAsiLevel reporta o motivo específico com o valor disponível NESTA aquisição, nunca o valor final", () => {
+    const character = guerreiroWithDex(12);
+    character.asiSelections = { 8: { kind: "abilityIncrease", allocations: { DEX: 1, FOR: 1 } } };
+    const entry = getFeatCatalogForAsiLevel(character, 4).find((e) => e.feat.id === SORRATEIRO_FEAT_ID)!;
+    expect(entry.eligible).toBe(false);
+    expect(entry.reasons).toEqual([{ kind: "abilityBelowThreshold", required: 13, abilities: [{ ability: "DEX", available: 12 }] }]);
+    expect(formatFeatIneligibilityReason(entry.reasons[0])).toBe("Requer Destreza 13; disponível nesta aquisição: 12.");
+
+    const availableAt4 = getAvailableFeatsForAsiLevel(character, 4).map((f) => f.id);
+    expect(availableAt4).not.toContain(SORRATEIRO_FEAT_ID);
+    const availableAt12 = getAvailableFeatsForAsiLevel(character, 12).map((f) => f.id);
+    expect(availableAt12).toContain(SORRATEIRO_FEAT_ID);
+  });
+});
+
+describe("meetsFeatPrerequisites/getFeatCatalogForAsiLevel — validação histórica por ordem de aquisição (treinamento com armadura)", () => {
+  function artificeAt(level: number): Character {
+    const character = createBlankCharacter("historical-order-armor-test");
+    character.classId = "artifice"; // base: leve + média + escudo, NUNCA pesada (único treinamento concedido por Talento no catálogo)
+    character.level = level;
+    return character;
+  }
+
+  it("sem Especialista em Armaduras Pesadas escolhido: Mestre em Armaduras Pesadas (exige Armadura Pesada) indisponível em qualquer nível", () => {
+    const character = artificeAt(19);
+    expect(meetsFeatPrerequisites(character, MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID, "asi-4")).toBe(false);
+    const reasons = getFeatCatalogForAsiLevel(character, 4).find((e) => e.feat.id === MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID)!.reasons;
+    expect(reasons).toEqual([{ kind: "missingArmorTraining", category: "heavy" }]);
+    expect(formatFeatIneligibilityReason(reasons[0])).toBe("Requer treinamento com Armadura Pesada.");
+  });
+
+  it("Especialista em Armaduras Pesadas escolhido no nível 8 (concede Armadura Pesada): nunca valida retroativamente o nível 4, mas libera o nível 12 em diante", () => {
+    const character = artificeAt(19);
+    character.asiSelections = { 8: { kind: "feat", featId: ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID } };
+    // O flat `armor.proficiencies.heavy` reflete a concessão (mesmo efeito de
+    // `characterStore.ts#applyFeatArmorProficiencies`, chamado pelo setter real `setAsiFeat` — aqui
+    // o personagem é construído direto, então o mesmo efeito é simulado manualmente).
+    character.armor = { ...character.armor, proficiencies: { ...character.armor.proficiencies, heavy: true } };
+    expect(meetsFeatPrerequisites(character, MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID, "asi-4")).toBe(false);
+    expect(meetsFeatPrerequisites(character, MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID, "asi-12")).toBe(true);
+    expect(meetsFeatPrerequisites(character, MESTRE_EM_ARMADURAS_PESADAS_FEAT_ID, "asi-16")).toBe(true);
+  });
+});
+
+/**
+ * Recalculação/edição (fonte §9): reduzir um aumento de atributo
+ * distribuído num nível anterior pode tornar um Talento JÁ ESCOLHIDO num
+ * nível posterior incompatível — sinalizado (nunca apagado/substituído
+ * sozinho).
+ */
+describe("getChosenAsiFeatIneligibilityReasons — recalculação/edição sem apagar a escolha (fonte §9)", () => {
+  it("Sorrateiro escolhido no nível 8, validado pelo +1 DEX do nível 4: reduzir esse aumento invalida a escolha sem apagá-la", () => {
+    const character = createBlankCharacter("recalc-test");
+    character.classId = "guerreiro";
+    character.level = 16;
+    character.abilities = { ...character.abilities, DEX: { score: 12 } };
+    character.asiSelections = {
+      4: { kind: "abilityIncrease", allocations: { DEX: 1, FOR: 1 } },
+      8: { kind: "feat", featId: SORRATEIRO_FEAT_ID },
+    };
+    expect(getChosenAsiFeatIneligibilityReasons(character, 8)).toEqual([]);
+
+    // O jogador volta e reduz o aumento de DEX do nível 4 (ainda no mesmo nível, antes do 8) —
+    // a escolha do nível 8 (Sorrateiro) permanece intocada, nunca apagada/substituída sozinha.
+    const edited: Character = {
+      ...character,
+      asiSelections: { 4: { kind: "abilityIncrease", allocations: { FOR: 1 } }, 8: { kind: "feat", featId: SORRATEIRO_FEAT_ID } },
+    };
+    expect(edited.asiSelections[8]).toEqual({ kind: "feat", featId: SORRATEIRO_FEAT_ID });
+    expect(getChosenAsiFeatIneligibilityReasons(edited, 8)).toEqual([{ kind: "abilityBelowThreshold", required: 13, abilities: [{ ability: "DEX", available: 12 }] }]);
+  });
+
+  it("[] quando o Talento escolhido continua elegível", () => {
+    const character = createBlankCharacter("recalc-test");
+    character.asiSelections = { 4: { kind: "feat", featId: "alerta" } };
+    expect(getChosenAsiFeatIneligibilityReasons(character, 4)).toEqual([]);
+  });
+
+  it("[] quando o nível está no modo 'Aumentar Atributos' (nunca aplica a checagem de Talento)", () => {
+    const character = createBlankCharacter("recalc-test");
+    character.asiSelections = { 4: { kind: "abilityIncrease", allocations: {} } };
+    expect(getChosenAsiFeatIneligibilityReasons(character, 4)).toEqual([]);
   });
 });

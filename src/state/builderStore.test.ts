@@ -209,10 +209,18 @@ describe("useBuilderStore — canAdvance/goNext travam em 'skills' com Perícias
     expect(useBuilderStore.getState().currentStepId).not.toBe("skills");
   });
 
-  it("'featuresAndTalents' nunca mais trava — a etapa fica sempre invisível sem escolha de Espécie/Antecedente/Talento (hoje nenhuma confirmada)", () => {
+  it("'featuresAndTalents' (rótulo \"Talentos\") agora é SEMPRE visível (fonte \"REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS\" §1) e trava Avançar com a oportunidade de Estilo de Luta do Guerreiro nível 1 pendente", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("guerreiro");
-    expect(store.visibleSteps()).not.toContain("featuresAndTalents");
+    expect(store.visibleSteps()).toContain("featuresAndTalents");
+
+    store.goToStep("featuresAndTalents");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).toBe("featuresAndTalents"); // não avançou
+
+    useCharacterStore.getState().setFeatureChoiceSelection("guerreiro-estilo-de-luta-escolha", "Defensivo");
+    store.goNext();
+    expect(useBuilderStore.getState().currentStepId).not.toBe("featuresAndTalents");
   });
 });
 

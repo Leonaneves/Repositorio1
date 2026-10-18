@@ -15,7 +15,7 @@ import {
 import { hasSpeciesLineage } from "../data/speciesLineages.js";
 import { getEpicBoonFeatures, getEpicBoonOptions } from "./epicBoons.js";
 import { getFeatAcquisitionFeatures, mergeBackgroundFeatWithCatalog } from "./feats.js";
-import { getFightingStyleOptions } from "./fightingStyles.js";
+import { FIGHTING_STYLE_OPPORTUNITY_CHOICE_IDS, getFightingStyleOptions } from "./fightingStyles.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
 
 /**
@@ -78,6 +78,27 @@ function withEpicBoonChoiceAdjustments(choices: FeatureChoice[], character: Char
   return choices.map((choice) =>
     choice.id === epicBoonChoiceId ? { ...choice, effect: { kind: "optionPick" as const, options: getEpicBoonOptions(character) } } : choice,
   );
+}
+
+/**
+ * Se TODAS as escolhas de `feature` pertencem a uma oportunidade de
+ * Estilo de Luta ou à escolha de QUAL Dádiva Épica adquirir — fonte
+ * "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS"
+ * §2: essas duas decisões saem das etapas Classe/Subclasse e passam a
+ * ser oferecidas na etapa Talentos, preservando a oportunidade por
+ * completo (ramo + escolha do estilo + truques alternativos; ou a
+ * escolha da Dádiva em si) — nunca só uma `FeatureChoice` isolada dentro
+ * de uma feature que ainda tivesse outra coisa misturada. Nenhuma
+ * `FeatureDefinition` cadastrada hoje mistura essas escolhas com outra
+ * coisa (cada uma das 4 features de Estilo de Luta e da Dádiva Épica só
+ * tem escolhas deste conjunto) — por isso basta checar a feature
+ * inteira, nunca dividir `choices` em dois grupos.
+ */
+function isTalentOpportunityFeature(feature: FeatureDefinition, character: Character): boolean {
+  const choices = feature.choices;
+  if (!choices || choices.length === 0) return false;
+  const epicBoonChoiceId = character.classId ? getEpicBoonChoiceId(character.classId) : null;
+  return choices.every((choice) => FIGHTING_STYLE_OPPORTUNITY_CHOICE_IDS.has(choice.id) || choice.id === epicBoonChoiceId);
 }
 
 /**
@@ -246,14 +267,42 @@ export function getIncompleteRequiredChoices(character: Character): FeatureDefin
   return getCharacterFeatures(character).filter((feature) => !isFeatureComplete(feature, character));
 }
 
-/** Features com `choices` da CLASSE atual — fonte "REORGANIZAÇÃO DO BUILDER" §1/§2: todas resolvidas dentro da própria etapa Classe, nunca em "Características e Talentos". */
+/**
+ * Features com `choices` da CLASSE atual — fonte "REORGANIZAÇÃO DO
+ * BUILDER" §1/§2: todas resolvidas dentro da própria etapa Classe, nunca
+ * em "Características e Talentos". Exclui as oportunidades de Estilo de
+ * Luta/Dádiva Épica (`isTalentOpportunityFeature`) — fonte "REESTRUTURAR
+ * A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §2: essas duas
+ * decisões saem de Classe e passam a ser oferecidas na etapa Talentos
+ * (ver `getTalentOpportunityFeatures` abaixo), nunca duplicadas aqui.
+ */
 export function getClassFeaturesWithChoices(character: Character): FeatureDefinition[] {
-  return getCharacterFeatures(character).filter((feature) => feature.sourceType === "class" && (feature.choices?.length ?? 0) > 0);
+  return getCharacterFeatures(character).filter(
+    (feature) => feature.sourceType === "class" && (feature.choices?.length ?? 0) > 0 && !isTalentOpportunityFeature(feature, character),
+  );
 }
 
-/** Features com `choices` da SUBCLASSE atual — mesma lógica, resolvidas dentro da etapa Subclasse. */
+/** Features com `choices` da SUBCLASSE atual — mesma lógica (inclusive a exclusão de oportunidades de Talentos — ver `getClassFeaturesWithChoices`), resolvidas dentro da etapa Subclasse. */
 export function getSubclassFeaturesWithChoices(character: Character): FeatureDefinition[] {
-  return getCharacterFeatures(character).filter((feature) => feature.sourceType === "subclass" && (feature.choices?.length ?? 0) > 0);
+  return getCharacterFeatures(character).filter(
+    (feature) => feature.sourceType === "subclass" && (feature.choices?.length ?? 0) > 0 && !isTalentOpportunityFeature(feature, character),
+  );
+}
+
+/**
+ * As oportunidades de Estilo de Luta/Dádiva Épica (`isTalentOpportunityFeature`)
+ * excluídas de `getClassFeaturesWithChoices`/`getSubclassFeaturesWithChoices`
+ * acima — fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS
+ * ATRIBUTOS" §2/§5: oferecidas na etapa Talentos, com o MESMO
+ * `FeatureChoiceControl` genérico já usado em Classe/Subclasse (nunca um
+ * controle novo só para reapresentar a mesma `optionPick`). Preserva
+ * origem (`sourceType: "class"` ou `"subclass"`) e nível de cada uma —
+ * só muda ONDE a escolha é feita, nunca a identidade da concessão.
+ */
+export function getTalentOpportunityFeatures(character: Character): FeatureDefinition[] {
+  return getCharacterFeatures(character).filter(
+    (feature) => (feature.sourceType === "class" || feature.sourceType === "subclass") && isTalentOpportunityFeature(feature, character),
+  );
 }
 
 /** Features com `choices` que NÃO vêm de Classe/Subclasse (Espécie/Antecedente/Talento) — o que resta em "Características e Talentos" depois da redistribuição. */
@@ -311,13 +360,27 @@ export function getOtherFeaturesWithNonSkillChoices(character: Character): Featu
  * quanto por `rules/builderSteps.ts#isStepVisible` — a mesma lista
  * decide o que renderiza E se a etapa aparece, nunca duas fontes
  * divergentes.
+ *
+ * Fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS
+ * ATRIBUTOS" §1/§5: esta etapa (rótulo "Talentos") passa a reunir TAMBÉM
+ * as oportunidades de Estilo de Luta/Dádiva Épica (`getTalentOpportunityFeatures`,
+ * movidas de Classe/Subclasse) — sempre ANTES das concessões de
+ * Espécie/Antecedente/Talento já resolvidas, para o jogador ver primeiro
+ * as decisões pendentes. A DECISÃO de cada nível de ASI (Aumentar
+ * Atributos vs Talento) e sua distribuição/escolha de talento são
+ * renderizadas pela UI à parte (`AsiControl`/`AbilityPointAllocator`,
+ * nunca por esta lista de `FeatureDefinition`) — só as escolhas INTERNAS
+ * de um talento já escolhido num nível de ASI continuam chegando aqui
+ * por `getOtherFeaturesWithNonSkillChoices` (sourceType "feat", mesmo
+ * caminho de sempre).
  */
 export function getFeaturesAndTalentsStepFeatures(character: Character): FeatureDefinition[] {
+  const opportunities = getTalentOpportunityFeatures(character);
   const base = getOtherFeaturesWithNonSkillChoices(character);
   const isHumanOriginFeat = (feature: FeatureDefinition) => feature.sourceType === "feat" && feature.speciesId === "humano";
-  if (base.some(isHumanOriginFeat)) return base;
+  if (base.some(isHumanOriginFeat)) return [...opportunities, ...base];
   const humanFeature = getCharacterFeatures(character).find(isHumanOriginFeat);
-  return humanFeature ? [...base, humanFeature] : base;
+  return humanFeature ? [...opportunities, ...base, humanFeature] : [...opportunities, ...base];
 }
 
 /**

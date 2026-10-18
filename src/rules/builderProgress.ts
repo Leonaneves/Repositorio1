@@ -8,7 +8,7 @@ import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
 import { getSpeciesLineageLabel, hasSpeciesLineage } from "../data/speciesLineages.js";
 import { generalFeats } from "../data/features/feats.js";
 import { isSpeciesLineageResolved } from "./speciesLineage.js";
-import { hasHumanOriginFeatConflictWithBackground } from "./feats.js";
+import { formatFeatIneligibilityReason, getChosenAsiFeatIneligibilityReasons, hasHumanOriginFeatConflictWithBackground } from "./feats.js";
 import {
   EARTH_CIRCLE_TERRAIN_CHOICE_ID,
   EARTH_CIRCLE_TERRAIN_OPTIONS,
@@ -24,6 +24,7 @@ import {
   getOtherFeaturesWithNonSkillChoices,
   getSkillChoiceFeatures,
   getSubclassFeaturesWithChoices,
+  getTalentOpportunityFeatures,
   isFeatureChoiceComplete,
   isSkillKindChoice,
 } from "./features.js";
@@ -108,11 +109,9 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
     for (const feature of getClassFeaturesWithChoices(character)) {
       if (!isNonSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
     }
-    for (const level of getUnlockedAsiLevels(character)) {
-      // Só a DECISÃO (Aumentar Atributos vs Talento) bloqueia aqui — a distribuição em si
-      // é validada na etapa Atributos (§3), nunca duplicada aqui.
-      if (!character.asiSelections[level]) blockers.push(`Nível ${level}: escolha "Aumentar Atributos" ou "Talento".`);
-    }
+    // A decisão de cada ASI (Aumentar Atributos vs Talento) e as oportunidades de Estilo de Luta/
+    // Dádiva Épica saíram para a etapa Talentos (fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA
+    // OCORRER APÓS OS ATRIBUTOS" §2) — nunca bloqueiam mais aqui, ver `stepId === "featuresAndTalents"`.
 
     if (character.classId && canChooseSubclass(character.level)) {
       if (!character.subclassId) blockers.push("Escolha uma subclasse para continuar.");
@@ -171,19 +170,44 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
         blockers.push("Distribua todos os pontos de Aumento de Atributo do Antecedente.");
       }
     }
-
-    for (const level of getUnlockedAsiLevels(character)) {
-      const selection = character.asiSelections[level];
-      if (selection?.kind === "abilityIncrease" && !isAsiLevelComplete(selection)) {
-        const allocated = getAsiLevelAllocatedPoints(selection);
-        blockers.push(`Nível ${level}: distribua os ${ASI_ALLOCATION_CONFIG.totalPoints} pontos de atributo (${allocated}/${ASI_ALLOCATION_CONFIG.totalPoints}).`);
-      }
-    }
+    // A distribuição de cada ASI no modo "Aumentar Atributos" saiu para a etapa Talentos (fonte
+    // "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §2/§4) — nunca bloqueia
+    // mais aqui, ver `stepId === "featuresAndTalents"`.
   }
 
   if (stepId === "featuresAndTalents") {
     for (const feature of getOtherFeaturesWithNonSkillChoices(character)) {
       if (!isNonSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+    }
+    // Oportunidades de Estilo de Luta/Dádiva Épica, movidas de Classe/Subclasse (fonte §2/§5).
+    for (const feature of getTalentOpportunityFeatures(character)) {
+      if (!isNonSkillChoicesComplete(feature, character)) blockers.push(`Escolha pendente em "${feature.name}".`);
+    }
+    // Decisão e distribuição de cada ASI, movidas de Classe/Atributos (fonte §2/§4/§5), mais a
+    // revalidação histórica de um Talento já escolhido (fonte §6/§9: "flag incompatible ones, never
+    // silently replace/erase talents" — um aumento reduzido num nível anterior pode invalidar a
+    // escolha de um nível posterior sem apagá-la).
+    for (const level of getUnlockedAsiLevels(character)) {
+      const selection = character.asiSelections[level];
+      if (!selection) {
+        blockers.push(`Nível ${level}: escolha "Aumentar Atributos" ou "Talento".`);
+        continue;
+      }
+      if (selection.kind === "abilityIncrease") {
+        if (!isAsiLevelComplete(selection)) {
+          const allocated = getAsiLevelAllocatedPoints(selection);
+          blockers.push(`Nível ${level}: distribua os ${ASI_ALLOCATION_CONFIG.totalPoints} pontos de atributo (${allocated}/${ASI_ALLOCATION_CONFIG.totalPoints}).`);
+        }
+        continue;
+      }
+      if (!selection.featId) {
+        blockers.push(`Nível ${level}: escolha um Talento.`);
+        continue;
+      }
+      const featName = generalFeats.find((feat) => feat.id === selection.featId)?.name ?? selection.featId;
+      for (const reason of getChosenAsiFeatIneligibilityReasons(character, level)) {
+        blockers.push(`Nível ${level}: o talento "${featName}" não atende mais aos pré-requisitos (${formatFeatIneligibilityReason(reason)}) — escolha outro talento.`);
+      }
     }
   }
 

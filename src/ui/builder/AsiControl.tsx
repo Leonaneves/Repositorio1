@@ -1,18 +1,21 @@
 import { useCharacterStore } from "../../state/characterStore.js";
-import { getAvailableFeatsForAsiLevel } from "../../rules/feats.js";
+import { formatFeatIneligibilityReason, getChosenAsiFeatIneligibilityReasons, getFeatCatalogForAsiLevel } from "../../rules/feats.js";
 
 export interface AsiControlProps {
   level: number;
+  /** "Mostrar talentos indisponíveis" (fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §7) — estado da etapa Talentos, nunca próprio deste controle. */
+  showUnavailableFeats: boolean;
 }
 
 /**
  * Controle de "Aumento no Valor de Atributo" de UM nível — a DECISÃO
- * entre Aumentar Atributos ou Talento (fonte "REORGANIZAR O BUILDER E
- * CORRIGIR VALIDAÇÕES EXISTENTES" §3: "a escolha de quais atributos
- * aumentar deve acontecer somente na etapa Atributos" — por isso este
- * controle NUNCA mostra o `AbilityPointAllocator`; quando o jogador
- * escolhe "Aumentar Atributos", a distribuição aparece só na etapa
- * Atributos, identificada por este mesmo nível). Trocar de modo sempre
+ * entre Aumentar Atributos ou Talento (fonte "REESTRUTURAR A ESCOLHA DE
+ * TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §2/§5: esta decisão e a
+ * distribuição/escolha em si moram agora na etapa Talentos — por isso
+ * este controle NUNCA mostra o `AbilityPointAllocator` diretamente; a
+ * etapa Talentos (`Step8FeaturesAndTalents.tsx`) é que renderiza a
+ * distribuição logo abaixo deste controle quando o modo é "Aumentar
+ * Atributos", identificada por este mesmo nível). Trocar de modo sempre
  * reinicia a distribuição anterior (`characterStore.ts#setAsiMode`) —
  * nunca deixa bônus ocultos.
  *
@@ -20,19 +23,27 @@ export interface AsiControlProps {
  * BUILDER E NO PDF"), este controle também escolhe QUAL talento do
  * catálogo preenche este nível — as escolhas INTERNAS de cada talento
  * (perícias de Habilidoso, lista/truques de Iniciado em Magia etc.)
- * aparecem à parte, na etapa "Características e Talentos"/"Perícias"
- * (pipeline genérico de `rules/features.ts`, nunca duplicadas aqui).
- * `getAvailableFeatsForAsiLevel` já exclui um talento NÃO-repetível
- * ativo em outra aquisição, mas nunca o próprio talento já escolhido
- * para ESTE nível.
+ * aparecem à parte, na etapa Talentos/"Perícias" (pipeline genérico de
+ * `rules/features.ts`, nunca duplicadas aqui). Com `showUnavailableFeats`
+ * desligado (padrão), só os talentos ELEGÍVEIS nesta aquisição aparecem
+ * no `<select>` (`getFeatCatalogForAsiLevel` já valida em ordem
+ * histórica — fonte §6); ligado, os indisponíveis também aparecem,
+ * desabilitados, com o motivo específico anexado ao nome (fonte §7).
+ * Se o talento JÁ ESCOLHIDO deixou de ser elegível por uma mudança
+ * posterior (ex.: um atributo reduzido num nível anterior), um aviso
+ * aparece abaixo do seletor — a escolha NUNCA é apagada/substituída
+ * sozinha (fonte §9), só sinalizada (e também bloqueia "Avançar" — ver
+ * `rules/builderProgress.ts`).
  */
-export function AsiControl({ level }: AsiControlProps) {
+export function AsiControl({ level, showUnavailableFeats }: AsiControlProps) {
   const character = useCharacterStore((s) => s.character);
   const setAsiMode = useCharacterStore((s) => s.setAsiMode);
   const setAsiFeat = useCharacterStore((s) => s.setAsiFeat);
 
   const selection = character.asiSelections[level];
-  const availableFeats = selection?.kind === "feat" ? getAvailableFeatsForAsiLevel(character, level) : [];
+  const catalog = selection?.kind === "feat" ? getFeatCatalogForAsiLevel(character, level) : [];
+  const visibleCatalog = showUnavailableFeats ? catalog : catalog.filter((entry) => entry.eligible);
+  const ineligibilityReasons = selection?.kind === "feat" ? getChosenAsiFeatIneligibilityReasons(character, level) : [];
 
   return (
     <article className="feature-card" aria-label={`Aumento no Valor de Atributo — nível ${level}`}>
@@ -54,20 +65,28 @@ export function AsiControl({ level }: AsiControlProps) {
         </label>
       </fieldset>
 
-      {selection?.kind === "abilityIncrease" && <p className="builder-step__hint">Distribua os pontos na etapa Atributos.</p>}
+      {selection?.kind === "abilityIncrease" && <p className="builder-step__hint">Distribua os pontos abaixo.</p>}
 
       {selection?.kind === "feat" && (
-        <label className="field feature-choice">
-          <span>Talento</span>
-          <select value={selection.featId ?? ""} onChange={(e) => setAsiFeat(level, e.target.value || null)}>
-            <option value="">- Selecione -</option>
-            {availableFeats.map((feat) => (
-              <option key={feat.id} value={feat.id}>
-                {feat.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <label className="field feature-choice">
+            <span>Talento</span>
+            <select value={selection.featId ?? ""} onChange={(e) => setAsiFeat(level, e.target.value || null)}>
+              <option value="">- Selecione -</option>
+              {visibleCatalog.map((entry) => (
+                <option key={entry.feat.id} value={entry.feat.id} disabled={!entry.eligible}>
+                  {entry.feat.name}
+                  {entry.eligible ? "" : ` — ${entry.reasons.map(formatFeatIneligibilityReason).join(" ")}`}
+                </option>
+              ))}
+            </select>
+          </label>
+          {ineligibilityReasons.length > 0 && (
+            <p className="builder-step__hint builder-step__hint--warning">
+              Este talento não atende mais aos pré-requisitos: {ineligibilityReasons.map(formatFeatIneligibilityReason).join(" ")}
+            </p>
+          )}
+        </>
       )}
     </article>
   );

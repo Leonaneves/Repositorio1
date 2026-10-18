@@ -19,14 +19,14 @@ describe("AsiControl — seletor de Talento", () => {
   it("em modo 'Aumentar Atributos', nunca mostra o seletor de Talento", () => {
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setAsiMode(4, "abilityIncrease");
-    render(<AsiControl level={4} />);
+    render(<AsiControl level={4} showUnavailableFeats={false} />);
     expect(screen.queryByText("Talento")).not.toBeInTheDocument();
   });
 
   it("em modo 'Talento', mostra as opções do catálogo sem pré-requisito pendente (10 de Origem + 12 Gerais sem pré-requisito extra)", () => {
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setAsiMode(4, "feat");
-    render(<AsiControl level={4} />);
+    render(<AsiControl level={4} showUnavailableFeats={false} />);
     expect(screen.getByRole("option", { name: "Alerta" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Vigoroso" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Resiliente" })).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe("AsiControl — seletor de Talento", () => {
   it("escolher um talento grava o featId no nível de ASI certo", () => {
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setAsiMode(4, "feat");
-    render(<AsiControl level={4} />);
+    render(<AsiControl level={4} showUnavailableFeats={false} />);
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "alerta" } });
     expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: "alerta" });
   });
@@ -50,7 +50,7 @@ describe("AsiControl — seletor de Talento", () => {
     useCharacterStore.getState().setAsiMode(4, "feat");
     useCharacterStore.getState().setAsiFeat(4, "vigoroso");
     useCharacterStore.getState().setAsiMode(6, "feat");
-    render(<AsiControl level={6} />);
+    render(<AsiControl level={6} showUnavailableFeats={false} />);
     expect(screen.queryByRole("option", { name: "Vigoroso" })).not.toBeInTheDocument();
   });
 
@@ -60,7 +60,7 @@ describe("AsiControl — seletor de Talento", () => {
     useCharacterStore.getState().setAsiMode(4, "feat");
     useCharacterStore.getState().setAsiFeat(4, "habilidoso");
     useCharacterStore.getState().setAsiMode(6, "feat");
-    render(<AsiControl level={6} />);
+    render(<AsiControl level={6} showUnavailableFeats={false} />);
     expect(screen.getByRole("option", { name: "Habilidoso" })).toBeInTheDocument();
   });
 });

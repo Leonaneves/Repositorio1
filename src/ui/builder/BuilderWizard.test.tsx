@@ -664,10 +664,23 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     act(() => useBuilderStore.getState().goToStep("class"));
   }
 
-  it("Campeão: 'Estilo de Luta Adicional' bloqueia Avançar até escolher um Estilo de Luta do catálogo, diferente do já escolhido na concessão base", () => {
+  it("Campeão: 'Estilo de Luta Adicional' bloqueia Avançar na etapa Talentos até escolher um Estilo de Luta do catálogo, diferente do já escolhido na concessão base — a oportunidade mora em Talentos, não mais em Classe (fonte \"REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS\" §2)", () => {
     render(<App />);
     setupFighter(7);
     fireEvent.change(screen.getByRole("combobox", { name: "Subclasse" }), { target: { value: "Campeão" } });
+    expect(screen.queryByRole("heading", { name: "Estilo de Luta Adicional" })).not.toBeInTheDocument(); // não mais em Classe
+
+    act(() => {
+      // Resolve os 2 ASIs já desbloqueados (nível 7: 4 e 6), movidos para Talentos, para isolar a
+      // pendência do Estilo de Luta Adicional sob teste.
+      useCharacterStore.getState().setAsiMode(4, "abilityIncrease");
+      useCharacterStore.getState().increaseAsiAbility(4, "FOR");
+      useCharacterStore.getState().increaseAsiAbility(4, "FOR");
+      useCharacterStore.getState().setAsiMode(6, "abilityIncrease");
+      useCharacterStore.getState().increaseAsiAbility(6, "FOR");
+      useCharacterStore.getState().increaseAsiAbility(6, "FOR");
+      useBuilderStore.getState().goToStep("featuresAndTalents");
+    });
 
     expect(screen.getByRole("heading", { name: "Estilo de Luta Adicional" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled(); // falta o Estilo de Luta Adicional
@@ -733,5 +746,79 @@ describe("BuilderWizard — Guerreiro, escolhas permanentes das subclasses (font
     fireEvent.click(screen.getAllByRole("button", { name: "Remover" })[0]);
     expect(screen.getByText("Manobras escolhidas: 2/3")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+  });
+});
+
+describe("Talentos (rótulo; id interno 'featuresAndTalents') — oportunidades MOVIDAS de Classe/Atributos (fonte \"REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS\")", () => {
+  it("Dádiva Épica (Mago nível 19): a escolha de QUAL dádiva aparece na etapa Talentos, nunca mais em Classe", () => {
+    render(<App />);
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("mago");
+      store.setLevel(19);
+    });
+
+    act(() => useBuilderStore.getState().goToStep("class"));
+    expect(screen.queryByRole("heading", { name: "Dádiva Épica" })).not.toBeInTheDocument();
+
+    act(() => useBuilderStore.getState().goToStep("featuresAndTalents"));
+    expect(screen.getByRole("heading", { name: "Dádiva Épica" })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("combobox", { name: "Dádiva Épica — nível 19" }), { target: { value: "Dádiva da Velocidade" } });
+    expect(useCharacterStore.getState().character.featureChoiceSelections["mago-dadiva-epica-escolha"]).toEqual({ value: "Dádiva da Velocidade" });
+  });
+
+  it("ASI (decisão + distribuição): some de 'Classe'/'Atributos', aparece só em Talentos", () => {
+    render(<App />);
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("mago");
+      store.setLevel(4);
+    });
+
+    act(() => useBuilderStore.getState().goToStep("class"));
+    expect(screen.queryByRole("heading", { name: /Aumento no Valor de Atributo/ })).not.toBeInTheDocument();
+
+    act(() => useBuilderStore.getState().goToStep("abilities"));
+    fillStandardArrayAbilities();
+    expect(screen.queryByRole("heading", { name: /Aumento no Valor de Atributo/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Aumento de Atributo/ })).not.toBeInTheDocument();
+
+    act(() => useBuilderStore.getState().goToStep("featuresAndTalents"));
+    expect(screen.getByRole("heading", { name: "Aumento no Valor de Atributo (nível 4)" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: "Aumentar Atributos" }));
+    expect(screen.getByRole("heading", { name: "Aumento de Atributo (nível 4)" })).toBeInTheDocument();
+  });
+
+  it("toggle 'Mostrar talentos indisponíveis': por padrão oculta Talentos com pré-requisito pendente; ligado, mostra desabilitado com o motivo específico (fonte §7)", () => {
+    render(<App />);
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("mago"); // sem treinamento de armadura/atributos 13+ por padrão
+      store.setLevel(4);
+    });
+    act(() => useBuilderStore.getState().goToStep("featuresAndTalents"));
+    fireEvent.click(screen.getByRole("radio", { name: "Escolher Talento" }));
+
+    expect(screen.queryByRole("option", { name: /Sentinela/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: "Mostrar talentos indisponíveis" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Mostrar talentos indisponíveis" }));
+    const option = screen.getByRole("option", { name: /Sentinela/ }) as HTMLOptionElement;
+    expect(option.disabled).toBe(true);
+    expect(option.textContent).toContain("Requer Força ou Destreza 13; disponível nesta aquisição: Força 10, Destreza 10.");
+  });
+
+  it("'Atributos' nunca mais distribui ASI — mostra os valores finais já calculados, com atalho para Talentos", () => {
+    render(<App />);
+    act(() => {
+      const store = useCharacterStore.getState();
+      store.setClass("mago");
+      store.setLevel(4);
+    });
+    act(() => useBuilderStore.getState().goToStep("abilities"));
+    fillStandardArrayAbilities();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ver/editar em Talentos" }));
+    expect(useBuilderStore.getState().currentStepId).toBe("featuresAndTalents");
   });
 });

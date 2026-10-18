@@ -2,6 +2,8 @@ import { ABILITY_KEYS, type AbilityKey } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import type { FeatureDefinition } from "../domain/features.js";
 import type { BackgroundId } from "../domain/ids.js";
+import { classes } from "../data/classes.js";
+import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import {
   ALERTA_FEAT_ID,
   ARTIFISTA_FEAT_ID,
@@ -128,20 +130,155 @@ export function getFeatAbilityIncreaseChoiceId(featId: string): string {
   return `${featId}-atributo`;
 }
 
+/** Extrai o nível de uma `acquisitionKey` no formato `asi-{nível}` — `null` para `"background"`/`"species"` (sem nível numérico, sempre tratadas como anteriores a qualquer ASI). */
+function getAcquisitionAsiLevel(acquisitionKey: string): number | null {
+  const match = /^asi-(\d+)$/.exec(acquisitionKey);
+  return match ? Number(match[1]) : null;
+}
+
 /**
  * Valor do atributo "efetivo" usado só para checar pré-requisito de
  * Talento — igual a `rules/abilities.ts#getEffectiveAbilityScore`, mas
- * EXCLUINDO a contribuição da PRÓPRIA aquisição sendo validada (fonte
- * §1: "não permitir que o aumento concedido cumpra seu próprio
- * pré-requisito"). Nunca aplica o teto de 25 do Bárbaro/Monge nível 20
- * — irrelevante para um limiar de 13.
+ * (a) EXCLUINDO a contribuição da PRÓPRIA aquisição sendo validada
+ * (fonte "COMPLETAR TALENTOS GERAIS..." §1: "não permitir que o aumento
+ * concedido cumpra seu próprio pré-requisito") e (b) EXCLUINDO qualquer
+ * contribuição de ASI/Talento de nível POSTERIOR ao desta aquisição
+ * (fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS
+ * ATRIBUTOS" §6: validar usando o estado do personagem NO MOMENTO da
+ * aquisição — "um aumento escolhido no nível 8 não pode validar
+ * retroativamente a escolha do nível 4"). Aumento do Antecedente conta
+ * sempre (concedido na criação, antes de qualquer ASI). Nunca aplica o
+ * teto de 25 do Bárbaro/Monge nível 20 — irrelevante para um limiar de
+ * 13.
  */
 function getAbilityScoreForPrerequisite(character: Character, ability: AbilityKey, excludeAcquisitionKey: string): number {
+  const beforeLevel = getAcquisitionAsiLevel(excludeAcquisitionKey) ?? undefined;
   const base = character.abilities[ability].score;
   const backgroundBonus = character.backgroundAbilityBonuses[ability] ?? 0;
-  const asiBonus = getAsiAbilityBonus(character, ability);
-  const featBonus = getFeatAbilityIncreaseBonus(character, ability, excludeAcquisitionKey);
+  const asiBonus = getAsiAbilityBonus(character, ability, beforeLevel);
+  const featBonus = getFeatAbilityIncreaseBonus(character, ability, excludeAcquisitionKey, beforeLevel);
   return base + backgroundBonus + asiBonus + featBonus;
+}
+
+/**
+ * Treinamento com `category` de armadura, para fins de pré-requisito,
+ * NO MOMENTO de `acquisitionLevel` (mesma ordem histórica de
+ * `getAbilityScoreForPrerequisite` acima) — só "heavy" tem alguma
+ * ambiguidade de ordem: é a ÚNICA categoria concedida por um Talento
+ * (Especialista em Armaduras Pesadas), e esse Talento é, ele mesmo, uma
+ * aquisição de ASI com nível próprio; "medium"/"shield" nunca vêm de
+ * Talento (só classe, sempre desde o nível 1, ou subclasse, sempre
+ * disponível a partir do nível 3 — e todo nível de ASI já é ≥4, então
+ * nunca ficam ambíguas aqui). Quando o treinamento ATUAL de "heavy" é
+ * explicado SÓ por uma aquisição de Especialista em Armaduras Pesadas
+ * de nível POSTERIOR a `acquisitionLevel`, essa concessão ainda não
+ * "existia" neste ponto da linha do tempo — devolve o que classe/subclasse
+ * já explicam independentemente, nunca o Talento futuro. Um ajuste
+ * manual do jogador (`setArmorProficiency`, sem origem/nível registrado)
+ * nunca é invalidado por esta checagem quando não houver nenhuma
+ * aquisição de Especialista em Armaduras Pesadas mais recente para
+ * "disputar" a origem do `true` atual.
+ */
+function getArmorTrainingForPrerequisite(
+  character: Character,
+  category: "medium" | "heavy" | "shield",
+  acquisitionLevel: number | null,
+  excludeAcquisitionKey: string,
+): boolean {
+  const current = character.armor.proficiencies[category];
+  if (!current || category !== "heavy" || acquisitionLevel === null) return current;
+
+  const heavyFeatAcquisition = getFeatAcquisitions(character).find(
+    (acquisition) => acquisition.featId === ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID && acquisition.acquisitionKey !== excludeAcquisitionKey,
+  );
+  if (!heavyFeatAcquisition) return current;
+  const grantedLevel = getAcquisitionAsiLevel(heavyFeatAcquisition.acquisitionKey);
+  if (grantedLevel === null || grantedLevel <= acquisitionLevel) return current;
+
+  const baseHeavy = character.classId ? classes[character.classId].armorProficiencies.heavy : false;
+  const clericProtectorHeavy = character.classId === "clerigo" && character.featureChoiceSelections[ORDEM_DIVINA_CHOICE_ID]?.value === "Protetor";
+  return baseHeavy || clericProtectorHeavy;
+}
+
+/** Nomes dos 6 atributos, só para compor `formatFeatIneligibilityReason` abaixo. */
+const PREREQUISITE_ABILITY_NAMES: Record<AbilityKey, string> = {
+  FOR: "Força",
+  DEX: "Destreza",
+  CON: "Constituição",
+  INT: "Inteligência",
+  SAB: "Sabedoria",
+  CAR: "Carisma",
+};
+
+const ARMOR_TRAINING_NAMES: Record<"medium" | "heavy" | "shield", string> = {
+  medium: "Armadura Média",
+  heavy: "Armadura Pesada",
+  shield: "Escudo",
+};
+
+/**
+ * Motivo ESPECÍFICO pelo qual uma aquisição não está disponível para um
+ * Talento — fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS
+ * OS ATRIBUTOS" §7: "Mostrar talentos indisponíveis" precisa do motivo
+ * exato, nunca um "indisponível" genérico. Só os 3 casos abaixo têm
+ * alguma entrada real no catálogo atual (`GENERAL_FEAT_PREREQUISITES`/
+ * `isFeatRepeatable`) — nunca inventa um 4º caso (ex.: "requer Estilo de
+ * Luta" ou "requer nível 19") sem um Talento cadastrado que realmente
+ * dependa disso.
+ */
+export type FeatIneligibilityReason =
+  | { kind: "abilityBelowThreshold"; required: number; abilities: { ability: AbilityKey; available: number }[] }
+  | { kind: "missingArmorTraining"; category: "medium" | "heavy" | "shield" }
+  | { kind: "nonRepeatableAlreadyAcquired" };
+
+/**
+ * Texto pronto para exibir um `FeatIneligibilityReason` na UI (toggle
+ * "Mostrar talentos indisponíveis") — `abilityBelowThreshold` cobre tanto
+ * um único atributo exigido ("Requer Destreza 13; disponível nesta
+ * aquisição: 12.") quanto um requisito "A OU B" (`GENERAL_FEAT_PREREQUISITES`
+ * com 2 atributos — fonte §7: "'FOR ou DEX 13' deve ser avaliado como
+ * 'ao menos um destes', nunca os dois"), reportando o valor disponível
+ * de CADA atributo avaliado, nunca só o primeiro.
+ */
+export function formatFeatIneligibilityReason(reason: FeatIneligibilityReason): string {
+  if (reason.kind === "abilityBelowThreshold") {
+    const names = reason.abilities.map((entry) => PREREQUISITE_ABILITY_NAMES[entry.ability]).join(" ou ");
+    const available =
+      reason.abilities.length === 1
+        ? String(reason.abilities[0].available)
+        : reason.abilities.map((entry) => `${PREREQUISITE_ABILITY_NAMES[entry.ability]} ${entry.available}`).join(", ");
+    return `Requer ${names} ${reason.required}; disponível nesta aquisição: ${available}.`;
+  }
+  if (reason.kind === "missingArmorTraining") {
+    return `Requer treinamento com ${ARMOR_TRAINING_NAMES[reason.category]}.`;
+  }
+  return "Talento já adquirido e não repetível.";
+}
+
+/**
+ * Os pré-requisitos de `GENERAL_FEAT_PREREQUISITES` ainda não satisfeitos
+ * por esta aquisição específica, JÁ na ordem histórica correta (ver
+ * `getAbilityScoreForPrerequisite`/`getArmorTrainingForPrerequisite`
+ * acima) — `[]` quando elegível. Nunca inclui a checagem de nível 4+
+ * nem de repetibilidade (ambas fora do mapa de pré-requisitos, tratadas
+ * à parte por `meetsFeatPrerequisites`/`getFeatCatalogForAsiLevel`).
+ */
+function getFeatPrerequisiteReasons(character: Character, featId: string, acquisitionKey: string): FeatIneligibilityReason[] {
+  const prerequisite = GENERAL_FEAT_PREREQUISITES[featId];
+  if (!prerequisite) return [];
+  const reasons: FeatIneligibilityReason[] = [];
+  const acquisitionLevel = getAcquisitionAsiLevel(acquisitionKey);
+
+  if (prerequisite.armorTraining && !getArmorTrainingForPrerequisite(character, prerequisite.armorTraining, acquisitionLevel, acquisitionKey)) {
+    reasons.push({ kind: "missingArmorTraining", category: prerequisite.armorTraining });
+  }
+  if (prerequisite.abilityAtLeast13) {
+    const evaluated = prerequisite.abilityAtLeast13.map((ability) => ({ ability, available: getAbilityScoreForPrerequisite(character, ability, acquisitionKey) }));
+    if (!evaluated.some((entry) => entry.available >= 13)) {
+      reasons.push({ kind: "abilityBelowThreshold", required: 13, abilities: evaluated });
+    }
+  }
+  return reasons;
 }
 
 /**
@@ -152,20 +289,29 @@ function getAbilityScoreForPrerequisite(character: Character, ability: AbilityKe
  * filtra nada na prática, só documenta/protege a regra; usar
  * `character.level` quebraria em qualquer cenário onde ele ainda não
  * reflita o nível desta aquisição específica), mais o que
- * `GENERAL_FEAT_PREREQUISITES` declarar. Sem entrada no mapa = só o
- * nível 4+ (cobre os 10 Talentos de Origem e os Talentos Gerais sem
- * pré-requisito extra).
+ * `getFeatPrerequisiteReasons` acima encontrar (já na ordem histórica
+ * correta). Sem entrada no mapa = só o nível 4+ (cobre os 10 Talentos
+ * de Origem e os Talentos Gerais sem pré-requisito extra).
  */
 export function meetsFeatPrerequisites(character: Character, featId: string, acquisitionKey: string): boolean {
   const asiLevelMatch = /^asi-(\d+)$/.exec(acquisitionKey);
   if (asiLevelMatch && Number(asiLevelMatch[1]) < 4) return false;
-  const prerequisite = GENERAL_FEAT_PREREQUISITES[featId];
-  if (!prerequisite) return true;
-  if (prerequisite.armorTraining && !character.armor.proficiencies[prerequisite.armorTraining]) return false;
-  if (prerequisite.abilityAtLeast13 && !prerequisite.abilityAtLeast13.some((ability) => getAbilityScoreForPrerequisite(character, ability, acquisitionKey) >= 13)) {
-    return false;
-  }
-  return true;
+  return getFeatPrerequisiteReasons(character, featId, acquisitionKey).length === 0;
+}
+
+/**
+ * Motivos de inelegibilidade de um Talento JÁ ESCOLHIDO num nível de ASI
+ * — `[]` quando nada está escolhido ou quando continua elegível. Fonte
+ * "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §9:
+ * uma mudança posterior (ex.: reduzir um atributo distribuído num nível
+ * anterior) pode tornar uma escolha já feita incompatível — "nunca
+ * substituir/apagar silenciosamente", só sinalizar (ver
+ * `rules/builderProgress.ts`/`ui/builder/AsiControl.tsx`).
+ */
+export function getChosenAsiFeatIneligibilityReasons(character: Character, level: number): FeatIneligibilityReason[] {
+  const selection = character.asiSelections[level];
+  if (selection?.kind !== "feat" || !selection.featId) return [];
+  return getFeatPrerequisiteReasons(character, selection.featId, `asi-${level}`);
 }
 
 /** Id real de uma `FeatureChoice` de uma aquisição específica — ex.: `getFeatChoiceId(MAGIC_INITIATE_SPELL_CHOICE_BASE_ID, "asi-4")`, usado por `rules/featTalentEntries.ts` para ler a seleção já parametrizada. */
@@ -245,12 +391,19 @@ export function getFeatAbilityIncreaseChoice(character: Character, acquisition: 
  * acima (pré-requisito de OUTRO talento, nunca o dele mesmo —
  * `excludeAcquisitionKey`). Mais de uma aquisição pode mirar o MESMO
  * atributo (ex.: Resiliente + Resistente ambos em Constituição) — soma
- * todas, nunca só a primeira.
+ * todas, nunca só a primeira. Com `beforeLevel`, ignora também qualquer
+ * aquisição de ASI de nível ≥ `beforeLevel` (mesma ordem histórica de
+ * `getAbilityScoreForPrerequisite` — aquisições de Antecedente/Humano,
+ * sem nível numérico, nunca são ignoradas por este filtro).
  */
-export function getFeatAbilityIncreaseBonus(character: Character, ability: AbilityKey, excludeAcquisitionKey?: string): number {
+export function getFeatAbilityIncreaseBonus(character: Character, ability: AbilityKey, excludeAcquisitionKey?: string, beforeLevel?: number): number {
   let total = 0;
   for (const acquisition of getFeatAcquisitions(character)) {
     if (acquisition.acquisitionKey === excludeAcquisitionKey) continue;
+    if (beforeLevel !== undefined) {
+      const acquisitionLevel = getAcquisitionAsiLevel(acquisition.acquisitionKey);
+      if (acquisitionLevel !== null && acquisitionLevel >= beforeLevel) continue;
+    }
     if (getFeatAbilityIncreaseChoice(character, acquisition) === ability) total += 1;
   }
   return total;
@@ -307,14 +460,27 @@ export function hasHumanOriginFeatConflictWithBackground(character: Character): 
   return !isFeatRepeatable(character.humanOriginFeatId);
 }
 
+export interface FeatCatalogEntry {
+  feat: FeatureDefinition;
+  eligible: boolean;
+  /** `[]` quando `eligible` — motivos específicos (fonte §7), nunca um "indisponível" genérico. */
+  reasons: FeatIneligibilityReason[];
+}
+
 /**
- * Talentos elegíveis para UM nível de ASI específico — exclui um
+ * Catálogo COMPLETO dos 26 Talentos Gerais para UM nível de ASI
+ * específico, cada um com sua elegibilidade e o(s) motivo(s) exatos
+ * quando não elegível — fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA
+ * OCORRER APÓS OS ATRIBUTOS" §7: por padrão a UI mostra só os elegíveis
+ * (`getAvailableFeatsForAsiLevel` abaixo, que filtra este catálogo);
+ * com o toggle "Mostrar talentos indisponíveis" ativo, mostra todos,
+ * desabilitados com o motivo. O próprio talento já escolhido para ESTE
+ * nível é SEMPRE elegível aqui (nunca reavaliado contra si mesmo — senão
+ * o seletor perderia a opção atualmente selecionada ao reabrir); um
  * talento NÃO-repetível já ativo em OUTRA aquisição (Antecedente, Humano
- * ou outro nível de ASI), mas NUNCA exclui o próprio talento já
- * escolhido para ESTE nível (senão o seletor perderia a opção atualmente
- * selecionada ao reabrir).
+ * ou outro nível de ASI) entra com `nonRepeatableAlreadyAcquired`.
  */
-export function getAvailableFeatsForAsiLevel(character: Character, level: number): FeatureDefinition[] {
+export function getFeatCatalogForAsiLevel(character: Character, level: number): FeatCatalogEntry[] {
   const currentSelection = character.asiSelections[level];
   const currentFeatId = currentSelection?.kind === "feat" ? currentSelection.featId : null;
   const thisAcquisitionKey = `asi-${level}`;
@@ -325,11 +491,24 @@ export function getAvailableFeatsForAsiLevel(character: Character, level: number
       .map((acquisition) => acquisition.featId),
   );
 
-  return generalFeats.filter(
-    (feat) =>
-      (isFeatRepeatable(feat.id) || feat.id === currentFeatId || !activeElsewhere.has(feat.id)) &&
-      (feat.id === currentFeatId || meetsFeatPrerequisites(character, feat.id, thisAcquisitionKey)),
-  );
+  return generalFeats.map((feat) => {
+    if (feat.id === currentFeatId) return { feat, eligible: true, reasons: [] };
+    const reasons: FeatIneligibilityReason[] = [];
+    if (!isFeatRepeatable(feat.id) && activeElsewhere.has(feat.id)) reasons.push({ kind: "nonRepeatableAlreadyAcquired" });
+    reasons.push(...getFeatPrerequisiteReasons(character, feat.id, thisAcquisitionKey));
+    return { feat, eligible: reasons.length === 0, reasons };
+  });
+}
+
+/**
+ * Talentos elegíveis para UM nível de ASI específico — a parte
+ * `eligible` de `getFeatCatalogForAsiLevel` acima (comportamento padrão
+ * da UI, toggle "Mostrar talentos indisponíveis" desligado).
+ */
+export function getAvailableFeatsForAsiLevel(character: Character, level: number): FeatureDefinition[] {
+  return getFeatCatalogForAsiLevel(character, level)
+    .filter((entry) => entry.eligible)
+    .map((entry) => entry.feat);
 }
 
 /** Lista de Iniciado em Magia desta aquisição — fixa (Antecedente) ou a `optionPick` escolhida (ASI). `null` enquanto não resolvida. */

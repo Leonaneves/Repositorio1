@@ -3,10 +3,8 @@ import { useBuilderStore } from "../../../state/builderStore.js";
 import { CLASS_IDS } from "../../../domain/ids.js";
 import { classes } from "../../../data/classes.js";
 import { getClassFeaturesWithChoices, getFeatureView, isSkillKindChoice } from "../../../rules/features.js";
-import { getUnlockedAsiLevels } from "../../../rules/asi.js";
 import { canChooseSubclass, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
-import { AsiControl } from "../AsiControl.js";
 import { Step3Subclass } from "./Step3Subclass.js";
 import { StepEarthCircleTerrain } from "./StepEarthCircleTerrain.js";
 import { StepElementalAffinity } from "./StepElementalAffinity.js";
@@ -33,6 +31,14 @@ import { StepElementalAffinity } from "./StepElementalAffinity.js";
  * mostrando aqui a parte não-perícia). Quando uma feature tem ao menos
  * uma escolha de perícia, aparece um link para a etapa "Perícias" no
  * lugar do controle, nunca duplicando-o aqui.
+ *
+ * A decisão de ASI (Aumentar Atributos vs Talento) e as oportunidades de
+ * Estilo de Luta/Dádiva Épica saíram para a etapa Talentos (fonte
+ * "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS"
+ * §2) — `getClassFeaturesWithChoices` já as exclui (ver
+ * `rules/features.ts#isTalentOpportunityFeature`), nunca duplicadas
+ * aqui; a classe continua gerando a OPORTUNIDADE no nível certo, só a
+ * escolha em si que mudou de etapa.
  */
 export function Step2Class() {
   const character = useCharacterStore((s) => s.character);
@@ -41,7 +47,6 @@ export function Step2Class() {
   const goToStep = useBuilderStore((s) => s.goToStep);
 
   const choiceFeatures = getClassFeaturesWithChoices(character);
-  const unlockedAsiLevels = getUnlockedAsiLevels(character);
 
   return (
     <div className="builder-step" aria-label="Classe">
@@ -84,10 +89,6 @@ export function Step2Class() {
           </article>
         );
       })}
-
-      {unlockedAsiLevels.map((level) => (
-        <AsiControl key={level} level={level} />
-      ))}
 
       {classId && !canChooseSubclass(character.level) && (
         <p className="builder-step__hint">Subclasse disponível a partir do nível 3.</p>

@@ -121,14 +121,21 @@ describe("getStepBlockers — etapas genéricas exigem o campo correspondente", 
     expect(getStepBlockers("abilities", withAllocation)).toEqual([]);
   });
 
-  it("'abilities' exige distribuir os pontos de cada ASI já no modo 'Aumentar Atributos' — a DECISÃO (ASI vs Talento) continua bloqueando em 'class', só a distribuição mora aqui", () => {
-    const character = setValidAbilities({ ...blank(), classId: "guerreiro" as const, level: 4 });
+  it("'abilities' NUNCA mais valida ASI — a decisão E a distribuição de cada ASI moraram para 'featuresAndTalents' (fonte \"REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS\" §2/§4)", () => {
+    const character = setValidAbilities({
+      ...blank(),
+      classId: "guerreiro" as const,
+      level: 4,
+      // Resolve a oportunidade de Estilo de Luta do nível 1 para isolar a checagem de ASI abaixo.
+      featureChoiceSelections: { [FIGHTER_FIGHTING_STYLE_CHOICE_ID]: { value: "Defensivo" } },
+    });
     const withMode = { ...character, asiSelections: { 4: { kind: "abilityIncrease" as const, allocations: {} } } };
-    expect(getStepBlockers("abilities", withMode)).toEqual(["Nível 4: distribua os 2 pontos de atributo (0/2)."]);
+    expect(getStepBlockers("abilities", withMode)).toEqual([]);
     expect(getStepBlockers("class", withMode).some((b) => b.includes("Aumentar Atributos"))).toBe(false);
+    expect(getStepBlockers("featuresAndTalents", withMode)).toEqual(["Nível 4: distribua os 2 pontos de atributo (0/2)."]);
 
     const withAllocation = { ...character, asiSelections: { 4: { kind: "abilityIncrease" as const, allocations: { FOR: 2 } } } };
-    expect(getStepBlockers("abilities", withAllocation)).toEqual([]);
+    expect(getStepBlockers("featuresAndTalents", withAllocation)).toEqual([]);
   });
 
   it("'basicInfo' nunca bloqueia (nenhuma regra definida para ela)", () => {
@@ -195,26 +202,28 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(getStepBlockers("class", withLegacySelection).some((b) => b.includes("Superioridade em Combate"))).toBe(false);
   });
 
-  it("'class' bloqueia em 'Estilo de Luta Adicional' do Campeão sem escolha, libera com um Estilo de Luta válido do catálogo", () => {
+  it("'featuresAndTalents' (não mais 'class') bloqueia em 'Estilo de Luta Adicional' do Campeão sem escolha, libera com um Estilo de Luta válido do catálogo — fonte \"REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS OS ATRIBUTOS\" §2", () => {
     const character = { ...blank(), classId: "guerreiro" as const, subclassId: "Campeão", level: 7 };
-    expect(getStepBlockers("class", character).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(true);
+    expect(getStepBlockers("class", character).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(false);
+    expect(getStepBlockers("featuresAndTalents", character).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(true);
 
     const withChoice = {
       ...character,
       featureChoiceSelections: { [FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID]: { value: "Duelismo" } },
     };
-    expect(getStepBlockers("class", withChoice).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(false);
+    expect(getStepBlockers("featuresAndTalents", withChoice).some((b) => b.includes("Estilo de Luta Adicional"))).toBe(false);
   });
 
-  it("'class' bloqueia em 'Estilo de Luta' do Guerreiro nível 1 sem escolha, libera com um Estilo de Luta válido do catálogo", () => {
+  it("'featuresAndTalents' (não mais 'class') bloqueia em 'Estilo de Luta' do Guerreiro nível 1 sem escolha, libera com um Estilo de Luta válido do catálogo — fonte §2", () => {
     const character = { ...blank(), classId: "guerreiro" as const, level: 1 };
-    expect(getStepBlockers("class", character).some((b) => b.includes('"Estilo de Luta"'))).toBe(true);
+    expect(getStepBlockers("class", character).some((b) => b.includes('"Estilo de Luta"'))).toBe(false);
+    expect(getStepBlockers("featuresAndTalents", character).some((b) => b.includes('"Estilo de Luta"'))).toBe(true);
 
     const withChoice = {
       ...character,
       featureChoiceSelections: { [FIGHTER_FIGHTING_STYLE_CHOICE_ID]: { value: "Defensivo" } },
     };
-    expect(getStepBlockers("class", withChoice).some((b) => b.includes('"Estilo de Luta"'))).toBe(false);
+    expect(getStepBlockers("featuresAndTalents", withChoice).some((b) => b.includes('"Estilo de Luta"'))).toBe(false);
   });
 
   it("'class' bloqueia a seção de Terreno do Círculo da Terra sem escolha, libera com uma opção válida (seção dentro de Classe, não etapa própria — §2)", () => {
@@ -248,9 +257,14 @@ describe("getStepBlockers — etapas específicas de classe reaproveitam as regr
     expect(blockers.some((b) => b.includes('Escolha pendente em "Perícias de Classe"'))).toBe(true);
   });
 
-  it("'featuresAndTalents' nunca lista escolhas de Classe/Subclasse — hoje sempre vazio, sem catálogo de Espécie/Antecedente/Talento com escolha", () => {
+  it("'featuresAndTalents' sem nenhum ASI desbloqueado e sem catálogo de Espécie/Antecedente/Talento com escolha pendente fica vazia (Guerreiro nível 1 não tem ASI antes do nível 4, mas TEM a oportunidade de Estilo de Luta — por isso bloqueia)", () => {
     const character = { ...blank(), classId: "guerreiro" as const };
-    expect(getStepBlockers("featuresAndTalents", character)).toEqual([]);
+    expect(getStepBlockers("featuresAndTalents", character)).not.toEqual([]);
+    const withFightingStyle = {
+      ...character,
+      featureChoiceSelections: { [FIGHTER_FIGHTING_STYLE_CHOICE_ID]: { value: "Defensivo" } },
+    };
+    expect(getStepBlockers("featuresAndTalents", withFightingStyle)).toEqual([]);
   });
 });
 

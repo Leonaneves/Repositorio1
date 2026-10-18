@@ -24,10 +24,22 @@ export function getUnlockedAsiLevels(character: Character): number[] {
   return levels.filter((level) => level <= character.level);
 }
 
-/** Soma de todo bônus de ASI (todos os níveis) nesta habilidade — usado por `rules/abilities.ts#getEffectiveAbilityScore`. */
-export function getAsiAbilityBonus(character: Character, ability: AbilityKey): number {
+/**
+ * Soma de todo bônus de ASI nesta habilidade — usado por
+ * `rules/abilities.ts#getEffectiveAbilityScore` (sem `beforeLevel`, soma
+ * TODOS os níveis já distribuídos). Com `beforeLevel`, soma só os níveis
+ * ESTRITAMENTE ANTERIORES a ele (fonte "REESTRUTURAR A ESCOLHA DE
+ * TALENTOS PARA OCORRER APÓS OS ATRIBUTOS" §6: validar um pré-requisito
+ * de Talento usando o estado do personagem NO MOMENTO daquela aquisição
+ * — nunca um aumento do PRÓPRIO nível, nem de um nível posterior,
+ * mesmo que ele já esteja distribuído por o jogador ter criado o
+ * personagem direto num nível alto) — usado por
+ * `rules/feats.ts#getAbilityScoreForPrerequisite`.
+ */
+export function getAsiAbilityBonus(character: Character, ability: AbilityKey, beforeLevel?: number): number {
   let total = 0;
-  for (const selection of Object.values(character.asiSelections)) {
+  for (const [levelKey, selection] of Object.entries(character.asiSelections)) {
+    if (beforeLevel !== undefined && Number(levelKey) >= beforeLevel) continue;
     if (selection.kind === "abilityIncrease") total += selection.allocations[ability] ?? 0;
   }
   return total;

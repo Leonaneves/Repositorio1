@@ -11,7 +11,7 @@ import {
   isPointBuyScoreValid,
 } from "../../../rules/abilityGeneration.js";
 import { getBackgroundAbilityAllocationConfig } from "../../../data/backgrounds.js";
-import { ASI_ALLOCATION_CONFIG, getUnlockedAsiLevels } from "../../../rules/asi.js";
+import { getUnlockedAsiLevels } from "../../../rules/asi.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "../../../rules/abilities.js";
 import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
 
@@ -31,22 +31,17 @@ const MODE_LABELS: Record<AbilityGenerationMode, string> = {
 };
 
 /**
- * Etapa 6 — Atributos (fonte "REORGANIZAR O BUILDER E CORRIGIR
- * VALIDAÇÕES EXISTENTES" §3): único lugar do Builder onde se distribui
- * QUALQUER aumento de atributo, nesta ordem fixa: (1) valores base e
- * método de geração (conteúdo original desta etapa, inalterado); (2)
- * distribuição do bônus de Antecedente (`AbilityPointAllocator` movido
- * de `Step5Background`); (3) distribuição de cada ASI já no modo
- * "Aumentar Atributos", identificada pelo nível de origem (movido de
- * `AsiControl`); (4) outros aumentos com escolha já implementados — hoje
- * nenhum: `data/features/feats.ts#generalFeats` está vazio e não existe
- * nenhum `FeatureChoiceEffect` de aumento de atributo no domínio, então
- * não há nada para renderizar aqui ainda (quando um talento cadastrado
- * conceder essa escolha, basta somar sua própria seção aqui, no mesmo
- * padrão do Antecedente/ASI); (5) valores finais e modificadores. Cada
- * alocador soma seu próprio `baseScores` subtraindo SÓ o bônus da sua
- * própria origem — nunca mistura os pools de Antecedente e ASI (cada um
- * é validado e pode ser diminuído de forma independente).
+ * Etapa 6 — Atributos (fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA
+ * OCORRER APÓS OS ATRIBUTOS" §4): define só os valores DE PARTIDA, nesta
+ * ordem fixa: (1) valores base e método de geração (conteúdo original
+ * desta etapa, inalterado); (2) distribuição do bônus de Antecedente
+ * (`AbilityPointAllocator`, concedido já na criação — nunca uma
+ * oportunidade de progressão); (3) valores finais e modificadores —
+ * display apenas, com um atalho para a etapa Talentos quando houver
+ * algum aumento de ASI/Talento somado (nunca um segundo lugar para
+ * editar o MESMO bônus). A distribuição de cada ASI no modo "Aumentar
+ * Atributos" (e a escolha de talentos que aumentam atributo) saiu para
+ * a etapa Talentos (§2/§5) — por isso não aparece mais aqui.
  */
 export function Step6Abilities() {
   const mode = useBuilderStore((s) => s.abilityGenerationMode);
@@ -55,16 +50,15 @@ export function Step6Abilities() {
   const setDraftScore = useBuilderStore((s) => s.setDraftScore);
   const isDraftValid = useBuilderStore((s) => s.isDraftValid);
   const commitDraftScores = useBuilderStore((s) => s.commitDraftScores);
+  const goToStep = useBuilderStore((s) => s.goToStep);
 
   const character = useCharacterStore((s) => s.character);
   const increaseBackgroundAbilityBonus = useCharacterStore((s) => s.increaseBackgroundAbilityBonus);
   const decreaseBackgroundAbilityBonus = useCharacterStore((s) => s.decreaseBackgroundAbilityBonus);
-  const increaseAsiAbility = useCharacterStore((s) => s.increaseAsiAbility);
-  const decreaseAsiAbility = useCharacterStore((s) => s.decreaseAsiAbility);
 
   const valid = isDraftValid();
   const backgroundConfig = character.backgroundId ? getBackgroundAbilityAllocationConfig(character.backgroundId) : null;
-  const unlockedAsiLevels = getUnlockedAsiLevels(character);
+  const hasAsiOpportunities = getUnlockedAsiLevels(character).length > 0;
 
   return (
     <div className="builder-step" aria-label="Atributos">
@@ -146,31 +140,16 @@ export function Step6Abilities() {
         </section>
       )}
 
-      {unlockedAsiLevels.map((level) => {
-        const selection = character.asiSelections[level];
-        if (selection?.kind !== "abilityIncrease") return null;
-        const allocations = selection.allocations;
-        return (
-          <section className="feature-card" aria-label={`Aumento de Atributo — nível ${level}`} key={level}>
-            <h3>Aumento de Atributo (nível {level})</h3>
-            <AbilityPointAllocator
-              config={ASI_ALLOCATION_CONFIG}
-              allocations={allocations}
-              baseScores={Object.fromEntries(
-                ASI_ALLOCATION_CONFIG.eligibleAbilities.map((ability) => [
-                  ability,
-                  getEffectiveAbilityScore(character, ability) - (allocations[ability] ?? 0),
-                ]),
-              ) as Record<AbilityKey, number>}
-              onIncrease={(ability) => increaseAsiAbility(level, ability)}
-              onDecrease={(ability) => decreaseAsiAbility(level, ability)}
-            />
-          </section>
-        );
-      })}
-
       <section className="feature-card" aria-label="Valores finais">
         <h3>Valores finais</h3>
+        {hasAsiOpportunities && (
+          <p className="builder-step__hint">
+            Já inclui aumentos de Aumento no Valor de Atributo/Talento calculados na etapa Talentos —{" "}
+            <button type="button" className="review-edit-button" onClick={() => goToStep("featuresAndTalents")}>
+              Ver/editar em Talentos
+            </button>
+          </p>
+        )}
         <div className="ability-draft-grid">
           {ABILITY_KEYS.map((ability) => {
             const score = getEffectiveAbilityScore(character, ability);
