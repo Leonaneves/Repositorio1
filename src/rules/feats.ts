@@ -24,6 +24,7 @@ import {
   MESTRE_EM_ARMAS_GRANDES_FEAT_ID,
   MESTRE_EM_ESCUDOS_FEAT_ID,
   MUSICO_FEAT_ID,
+  originFeats,
   RESILIENTE_FEAT_ID,
   SENTINELA_FEAT_ID,
   SORRATEIRO_FEAT_ID,
@@ -39,15 +40,19 @@ import { getMartialArtsDie } from "./classResources.js";
 
 /**
  * Motor de aquisição dos 10 Talentos de Origem (fonte "IMPLEMENTAR
- * TALENTOS DE ORIGEM NO BUILDER E NO PDF") — concedidos por DUAS fontes,
- * nunca uma terceira: o Antecedente atual (`BACKGROUND_ORIGIN_FEAT_ID`,
- * no máximo 1 aquisição ativa por vez) e cada nível de ASI já resolvido
- * para `{ kind: "feat", featId }` (`Character.asiSelections`, 0+
- * aquisições). A identidade de CADA aquisição (`acquisitionKey`) é
- * `"background"` ou `"asi-{nível}"` — nunca um id gerado à parte: o
- * nível de ASI já distingue naturalmente duas aquisições do MESMO
- * talento repetível (Habilidoso/Iniciado em Magia), sem precisar de um
- * array próprio no `Character` nem de UUID.
+ * TALENTOS DE ORIGEM NO BUILDER E NO PDF") — concedidos por TRÊS fontes,
+ * nunca uma quarta: o Antecedente atual (`BACKGROUND_ORIGIN_FEAT_ID`, no
+ * máximo 1 aquisição ativa por vez), o traço "Versátil" do Humano (fonte
+ * "ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE" —
+ * `Character.humanOriginFeatId`, também no máximo 1 aquisição ativa por
+ * vez, SEGUNDA e independente da do Antecedente) e cada nível de ASI já
+ * resolvido para `{ kind: "feat", featId }` (`Character.asiSelections`,
+ * 0+ aquisições — inclui tanto os 10 Talentos de Origem quanto os 26
+ * Talentos Gerais). A identidade de CADA aquisição (`acquisitionKey`) é
+ * `"background"`, `"species"` ou `"asi-{nível}"` — nunca um id gerado à
+ * parte: o nível de ASI já distingue naturalmente duas aquisições do
+ * MESMO talento repetível (Habilidoso/Iniciado em Magia), sem precisar
+ * de um array próprio no `Character` nem de UUID.
  */
 
 /** Antecedente -> id do Talento de Origem que ele concede automaticamente (enumeração 1:1 confirmada a partir do texto de cada `originFeat` em `data/backgrounds.ts`). */
@@ -189,13 +194,17 @@ export interface FeatAcquisition {
   featId: string;
 }
 
-/** Todas as aquisições de Talento ATIVAS do personagem — a do Antecedente atual (se mapear para um dos 10) + uma por nível de ASI já resolvido para "feat". */
+/** Todas as aquisições de Talento ATIVAS do personagem — a do Antecedente atual (se mapear para um dos 10), a do Humano (Versátil, se escolhida) + uma por nível de ASI já resolvido para "feat". */
 export function getFeatAcquisitions(character: Character): FeatAcquisition[] {
   const acquisitions: FeatAcquisition[] = [];
 
   if (character.backgroundId) {
     const featId = BACKGROUND_ORIGIN_FEAT_ID[character.backgroundId];
     if (featId) acquisitions.push({ acquisitionKey: "background", featId });
+  }
+
+  if (character.speciesId === "humano" && character.humanOriginFeatId) {
+    acquisitions.push({ acquisitionKey: "species", featId: character.humanOriginFeatId });
   }
 
   for (const [levelKey, selection] of Object.entries(character.asiSelections)) {
@@ -255,10 +264,54 @@ export function getResilientGrantedAbility(character: Character): AbilityKey | n
 }
 
 /**
- * Talentos elegíveis para UM nível de ASI específico — exclui um
+ * Talentos de Origem elegíveis para a escolha do Humano (traço
+ * "Versátil", fonte "ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA
+ * ETAPA ESPÉCIE" §1/§3) — catálogo restrito aos 10 Talentos de Origem
+ * (nunca os 26 Talentos Gerais, que exigem nível de ASI), sem nenhum
+ * pré-requisito (os Talentos de Origem não têm pré-requisito de
+ * atributo — `meetsFeatPrerequisites` nunca é chamado aqui). Mesmo
+ * padrão de cross-exclusão de `getAvailableFeatsForAsiLevel`: exclui um
  * talento NÃO-repetível já ativo em OUTRA aquisição (Antecedente ou
- * outro nível de ASI), mas NUNCA exclui o próprio talento já escolhido
- * para ESTE nível (senão o seletor perderia a opção atualmente
+ * ASI), mas NUNCA exclui o próprio talento já escolhido pelo Humano
+ * (senão o seletor perderia a opção atualmente selecionada ao reabrir).
+ * Nunca filtra pelo Antecedente retroativamente se ele mudar DEPOIS —
+ * esse caso vira conflito explícito, ver `hasHumanOriginFeatConflictWithBackground`.
+ */
+export function getAvailableOriginFeatsForHumanSpecies(character: Character): FeatureDefinition[] {
+  const currentFeatId = character.speciesId === "humano" ? character.humanOriginFeatId : null;
+
+  const activeElsewhere = new Set(
+    getFeatAcquisitions(character)
+      .filter((acquisition) => acquisition.acquisitionKey !== "species")
+      .map((acquisition) => acquisition.featId),
+  );
+
+  return originFeats.filter((feat) => isFeatRepeatable(feat.id) || feat.id === currentFeatId || !activeElsewhere.has(feat.id));
+}
+
+/**
+ * Se o Talento de Origem escolhido pelo Humano é o MESMO concedido pelo
+ * Antecedente atual, e esse talento não é repetível (fonte §3: "Se o
+ * antecedente conceder o mesmo talento e a repetição não for permitida
+ * ... impedir a conclusão enquanto houver conflito") — `false` sem as
+ * duas origens resolvidas, ou para talentos repetíveis (Habilidoso/
+ * Iniciado em Magia: duas aquisições independentes são válidas). Nunca
+ * decide SOZINHO qual lado deve mudar — a fonte pede explicitamente que
+ * o talento do HUMANO seja trocado, nunca o Antecedente.
+ */
+export function hasHumanOriginFeatConflictWithBackground(character: Character): boolean {
+  if (character.speciesId !== "humano" || !character.humanOriginFeatId) return false;
+  if (!character.backgroundId) return false;
+  const backgroundFeatId = BACKGROUND_ORIGIN_FEAT_ID[character.backgroundId];
+  if (!backgroundFeatId || backgroundFeatId !== character.humanOriginFeatId) return false;
+  return !isFeatRepeatable(character.humanOriginFeatId);
+}
+
+/**
+ * Talentos elegíveis para UM nível de ASI específico — exclui um
+ * talento NÃO-repetível já ativo em OUTRA aquisição (Antecedente, Humano
+ * ou outro nível de ASI), mas NUNCA exclui o próprio talento já
+ * escolhido para ESTE nível (senão o seletor perderia a opção atualmente
  * selecionada ao reabrir).
  */
 export function getAvailableFeatsForAsiLevel(character: Character, level: number): FeatureDefinition[] {
@@ -310,11 +363,28 @@ function instantiateBackgroundMagicInitiate(acquisitionKey: string): FeatureDefi
 }
 
 /**
- * Constrói a `FeatureDefinition` de UMA aquisição (Antecedente ou ASI),
- * já com os ids de `FeatureChoice` parametrizados — e, só para Iniciado
- * em Magia, com a lista fixa (Antecedente) ou as opções de lista já
- * restritas às ainda não usadas por outra aquisição (ASI). `null` se
- * `featId` não existir no catálogo (nunca inventa um talento).
+ * Marca a `FeatureDefinition` de uma aquisição "species" com
+ * `speciesId: "humano"` — reaproveita o campo já existente em
+ * `FeatureDefinition` (opcional, usado hoje só por `sourceType: "species"`)
+ * para identificar, sem ambiguidade, QUAL feature "feat" veio do Humano
+ * (nunca do Antecedente/ASI) — usado por `rules/features.ts#getFeaturesAndTalentsStepFeatures`
+ * e pela UI (`ui/builder/steps/Step8FeaturesAndTalents.tsx`) para exibir
+ * "Origem: Humano" + atalho para a etapa Espécie, em vez do rótulo
+ * genérico "Talento". Nunca colide com a própria feature de traços da
+ * espécie (`especie-humano-tracos`, `sourceType: "species"`) — quem lê
+ * este marcador sempre filtra por `sourceType === "feat"` também.
+ */
+function withHumanSpeciesMarker(feature: FeatureDefinition, acquisitionKey: string): FeatureDefinition {
+  return acquisitionKey === "species" ? { ...feature, speciesId: "humano" } : feature;
+}
+
+/**
+ * Constrói a `FeatureDefinition` de UMA aquisição (Antecedente, Humano ou
+ * ASI), já com os ids de `FeatureChoice` parametrizados — e, só para
+ * Iniciado em Magia, com a lista fixa (Antecedente) ou as opções de
+ * lista já restritas às ainda não usadas por outra aquisição (Humano ou
+ * ASI). `null` se `featId` não existir no catálogo (nunca inventa um
+ * talento).
  */
 export function buildFeatAcquisitionFeature(character: Character, acquisition: FeatAcquisition): FeatureDefinition | null {
   const base = generalFeats.find((feature) => feature.id === acquisition.featId);
@@ -327,12 +397,15 @@ export function buildFeatAcquisitionFeature(character: Character, acquisition: F
     // "atributo no qual ainda não tenha proficiência em Salv"). Recalculado por personagem, nunca uma
     // lista estática (mesmo princípio da lista de Iniciado em Magia abaixo).
     const options = ABILITY_KEYS.filter((ability) => !character.savingThrows[ability].proficient);
-    return {
-      ...instantiated,
-      choices: instantiated.choices?.map((choice) =>
-        choice.id === abilityChoiceId && choice.effect.kind === "abilityScoreIncrease" ? { ...choice, effect: { ...choice.effect, options } } : choice,
-      ),
-    };
+    return withHumanSpeciesMarker(
+      {
+        ...instantiated,
+        choices: instantiated.choices?.map((choice) =>
+          choice.id === abilityChoiceId && choice.effect.kind === "abilityScoreIncrease" ? { ...choice, effect: { ...choice.effect, options } } : choice,
+        ),
+      },
+      acquisition.acquisitionKey,
+    );
   }
 
   if (acquisition.featId === INICIADO_EM_MAGIA_FEAT_ID) {
@@ -341,20 +414,23 @@ export function buildFeatAcquisitionFeature(character: Character, acquisition: F
     const instantiated = instantiateFeatAcquisition(base, acquisition.acquisitionKey);
     const usedLists = getUsedMagicInitiateLists(character, acquisition.acquisitionKey);
     const listChoiceId = suffixChoiceId(MAGIC_INITIATE_LIST_CHOICE_BASE_ID, acquisition.acquisitionKey);
-    return {
-      ...instantiated,
-      choices: instantiated.choices?.map((choice) =>
-        choice.id === listChoiceId && choice.effect.kind === "optionPick"
-          ? { ...choice, effect: { ...choice.effect, options: choice.effect.options.filter((option) => !usedLists.includes(option)) } }
-          : choice,
-      ),
-    };
+    return withHumanSpeciesMarker(
+      {
+        ...instantiated,
+        choices: instantiated.choices?.map((choice) =>
+          choice.id === listChoiceId && choice.effect.kind === "optionPick"
+            ? { ...choice, effect: { ...choice.effect, options: choice.effect.options.filter((option) => !usedLists.includes(option)) } }
+            : choice,
+        ),
+      },
+      acquisition.acquisitionKey,
+    );
   }
 
-  return instantiateFeatAcquisition(base, acquisition.acquisitionKey);
+  return withHumanSpeciesMarker(instantiateFeatAcquisition(base, acquisition.acquisitionKey), acquisition.acquisitionKey);
 }
 
-/** Aquisições de Talento vindas de ASI (nunca a do Antecedente — essa é mesclada separadamente por `rules/features.ts#getBackgroundFeatures`, para nunca aparecer duplicada). */
+/** Aquisições de Talento vindas de ASI ou do Humano (nunca a do Antecedente — essa é mesclada separadamente por `rules/features.ts#getBackgroundFeatures`, para nunca aparecer duplicada). */
 export function getFeatAcquisitionFeatures(character: Character): FeatureDefinition[] {
   return getFeatAcquisitions(character)
     .filter((acquisition) => acquisition.acquisitionKey !== "background")

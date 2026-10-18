@@ -6,15 +6,18 @@ import {
   HABILIDOSO_CHOICE_BASE_ID,
   MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID,
   MAGIC_INITIATE_LIST_CHOICE_BASE_ID,
+  ORIGIN_FEAT_IDS,
 } from "../data/features/feats.js";
-import { getBackgroundFeatures, getChosenFeatFeatures } from "./features.js";
+import { getBackgroundFeatures, getChosenFeatFeatures, getFeaturesAndTalentsStepFeatures } from "./features.js";
 import {
   BACKGROUND_ORIGIN_FEAT_ID,
   buildFeatAcquisitionFeature,
   getActiveFeatIds,
   getAlertInitiativeBonus,
   getAvailableFeatsForAsiLevel,
+  getAvailableOriginFeatsForHumanSpecies,
   getFeatAcquisitionCount,
+  getFeatAcquisitionFeatures,
   getFeatAcquisitions,
   getFeatChoiceId,
   getHealerKitHealingBonus,
@@ -23,9 +26,17 @@ import {
   getMusicianAllyCount,
   getToughHpBonus,
   getUnarmedStrikeDamageDie,
+  hasHumanOriginFeatConflictWithBackground,
   isFeatActive,
   isFeatRepeatable,
 } from "./feats.js";
+
+function withHumanOriginFeat(featId: string | null): Character {
+  const character = createBlankCharacter("feats-test");
+  character.speciesId = "humano";
+  character.humanOriginFeatId = featId;
+  return character;
+}
 
 function withBackground(backgroundId: Character["backgroundId"]): Character {
   const character = createBlankCharacter("feats-test");
@@ -121,6 +132,125 @@ describe("getFeatAcquisitions — Antecedente + cada nível de ASI resolvido", (
     character.asiSelections[8] = { kind: "abilityIncrease", allocations: { FOR: 2 } };
     character.level = 8;
     expect(getFeatAcquisitions(character)).toEqual([{ acquisitionKey: "asi-4", featId: "alerta" }]);
+  });
+
+  it("Humano com Talento de Origem escolhido (traço Versátil): 1 aquisição com acquisitionKey 'species' — fonte \"ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE\" §1", () => {
+    const character = withHumanOriginFeat("alerta");
+    expect(getFeatAcquisitions(character)).toEqual([{ acquisitionKey: "species", featId: "alerta" }]);
+  });
+
+  it("Humano sem escolha ainda (humanOriginFeatId null): nenhuma aquisição", () => {
+    const character = withHumanOriginFeat(null);
+    expect(getFeatAcquisitions(character)).toEqual([]);
+  });
+
+  it("humanOriginFeatId preenchido mas espécie NÃO é Humano: nunca conta como aquisição (ex.: troca de espécie já devia ter limpado, mas a função nunca confia só no campo)", () => {
+    const character = withHumanOriginFeat("alerta");
+    character.speciesId = "elfo";
+    expect(getFeatAcquisitions(character)).toEqual([]);
+  });
+
+  it("Humano + Antecedente + ASI: as 3 origens somam aquisições independentes, na ordem (background, species, asi-N)", () => {
+    const character = withHumanOriginFeat("vigoroso");
+    character.backgroundId = "soldado"; // Atacante Selvagem
+    character.classId = "mago";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "sortudo" } };
+    expect(getFeatAcquisitions(character)).toEqual([
+      { acquisitionKey: "background", featId: "atacante-selvagem" },
+      { acquisitionKey: "species", featId: "vigoroso" },
+      { acquisitionKey: "asi-4", featId: "sortudo" },
+    ]);
+  });
+});
+
+describe("getAvailableOriginFeatsForHumanSpecies — só os 10 Talentos de Origem, sem pré-requisito, cross-exclusão com Antecedente/ASI", () => {
+  it("as 10 opções completas sem nenhuma outra aquisição ativa", () => {
+    const character = withHumanOriginFeat(null);
+    const available = getAvailableOriginFeatsForHumanSpecies(character).map((f) => f.id);
+    expect(available).toHaveLength(10);
+    expect(available.sort()).toEqual([...ORIGIN_FEAT_IDS].sort());
+  });
+
+  it("nunca inclui nenhum dos 26 Talentos Gerais", () => {
+    const character = withHumanOriginFeat(null);
+    const available = getAvailableOriginFeatsForHumanSpecies(character).map((f) => f.id);
+    expect(available).not.toContain("resiliente");
+    expect(available).not.toContain("velocista");
+  });
+
+  it("nunca exige pré-requisito de atributo/armadura — disponível mesmo com os 6 atributos no padrão (10) e sem nenhuma proficiência de armadura", () => {
+    const character = withHumanOriginFeat(null); // createBlankCharacter já deixa tudo em 10, sem proficiências
+    expect(getAvailableOriginFeatsForHumanSpecies(character)).toHaveLength(10);
+  });
+
+  it("exclui um Talento de Origem NÃO-repetível já concedido pelo Antecedente", () => {
+    const character = withHumanOriginFeat(null);
+    character.backgroundId = "soldado"; // Atacante Selvagem
+    const available = getAvailableOriginFeatsForHumanSpecies(character).map((f) => f.id);
+    expect(available).not.toContain("atacante-selvagem");
+    expect(available).toHaveLength(9);
+  });
+
+  it("exclui um Talento de Origem NÃO-repetível já escolhido em ASI", () => {
+    const character = withHumanOriginFeat(null);
+    character.classId = "guerreiro";
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: "sortudo" } };
+    const available = getAvailableOriginFeatsForHumanSpecies(character).map((f) => f.id);
+    expect(available).not.toContain("sortudo");
+  });
+
+  it("nunca exclui o próprio talento já escolhido pelo Humano (permite reabrir/editar)", () => {
+    const character = withHumanOriginFeat("alerta");
+    character.backgroundId = "guarda"; // guarda também concede Alerta — mesmo assim, a seleção ATUAL nunca some da lista
+    const available = getAvailableOriginFeatsForHumanSpecies(character).map((f) => f.id);
+    expect(available).toContain("alerta");
+  });
+
+  it("nunca exclui Habilidoso/Iniciado em Magia (repetíveis) mesmo já ativos em outra aquisição", () => {
+    const character = withHumanOriginFeat(null);
+    character.backgroundId = "charlatao"; // Habilidoso
+    const available = getAvailableOriginFeatsForHumanSpecies(character).map((f) => f.id);
+    expect(available).toContain("habilidoso");
+  });
+});
+
+describe("hasHumanOriginFeatConflictWithBackground — mesmo Talento de Origem não-repetível concedido pelas duas origens (fonte §3)", () => {
+  it("false sem Humano, sem escolha, ou sem Antecedente", () => {
+    expect(hasHumanOriginFeatConflictWithBackground(createBlankCharacter("x"))).toBe(false);
+    expect(hasHumanOriginFeatConflictWithBackground(withHumanOriginFeat(null))).toBe(false);
+    const semAntecedente = withHumanOriginFeat("alerta");
+    expect(hasHumanOriginFeatConflictWithBackground(semAntecedente)).toBe(false);
+  });
+
+  it("false quando as duas origens concedem talentos DIFERENTES", () => {
+    const character = withHumanOriginFeat("vigoroso");
+    character.backgroundId = "soldado"; // Atacante Selvagem
+    expect(hasHumanOriginFeatConflictWithBackground(character)).toBe(false);
+  });
+
+  it("true quando as duas origens concedem o MESMO talento não-repetível", () => {
+    const character = withHumanOriginFeat("atacante-selvagem");
+    character.backgroundId = "soldado"; // também Atacante Selvagem
+    expect(hasHumanOriginFeatConflictWithBackground(character)).toBe(true);
+  });
+
+  it("false para talentos REPETÍVEIS mesmo quando as duas origens concedem o mesmo (Habilidoso/Iniciado em Magia são aquisições independentes)", () => {
+    const habilidoso = withHumanOriginFeat("habilidoso");
+    habilidoso.backgroundId = "charlatao"; // também Habilidoso
+    expect(hasHumanOriginFeatConflictWithBackground(habilidoso)).toBe(false);
+
+    const iniciado = withHumanOriginFeat("iniciado-em-magia");
+    iniciado.backgroundId = "acolito"; // também Iniciado em Magia
+    expect(hasHumanOriginFeatConflictWithBackground(iniciado)).toBe(false);
+  });
+
+  it("false se a espécie deixou de ser Humano (mesmo com humanOriginFeatId ainda preenchido)", () => {
+    const character = withHumanOriginFeat("atacante-selvagem");
+    character.backgroundId = "soldado";
+    character.speciesId = "elfo";
+    expect(hasHumanOriginFeatConflictWithBackground(character)).toBe(false);
   });
 });
 
@@ -392,5 +522,80 @@ describe("getActiveFeatIds", () => {
     character.level = 4;
     character.asiSelections = { 4: { kind: "feat", featId: "sortudo" } };
     expect(getActiveFeatIds(character)).toEqual(["iniciado-em-magia", "sortudo"]);
+  });
+});
+
+describe("buildFeatAcquisitionFeature — aquisição 'species' marcada com speciesId: \"humano\" (nunca as outras origens)", () => {
+  it("marca speciesId: 'humano' só na aquisição 'species'", () => {
+    const feature = buildFeatAcquisitionFeature(withHumanOriginFeat("alerta"), { acquisitionKey: "species", featId: "alerta" });
+    expect(feature?.speciesId).toBe("humano");
+    expect(feature?.sourceType).toBe("feat");
+  });
+
+  it("nunca marca speciesId na aquisição 'background' ou 'asi-N'", () => {
+    const background = buildFeatAcquisitionFeature(withBackground("soldado"), { acquisitionKey: "background", featId: "atacante-selvagem" });
+    expect(background?.speciesId).toBeUndefined();
+
+    const asi = buildFeatAcquisitionFeature(withAsiFeat("mago", 4, "alerta"), { acquisitionKey: "asi-4", featId: "alerta" });
+    expect(asi?.speciesId).toBeUndefined();
+  });
+
+  it("o marcador sobrevive aos 2 ramos especiais (Resiliente e Iniciado em Magia), não só ao caminho genérico", () => {
+    const resiliente = buildFeatAcquisitionFeature(withHumanOriginFeat("resiliente"), { acquisitionKey: "species", featId: "resiliente" });
+    expect(resiliente?.speciesId).toBe("humano");
+
+    const iniciado = buildFeatAcquisitionFeature(withHumanOriginFeat("iniciado-em-magia"), { acquisitionKey: "species", featId: "iniciado-em-magia" });
+    expect(iniciado?.speciesId).toBe("humano");
+  });
+});
+
+describe("getFeatAcquisitionFeatures — inclui ASI e Humano, nunca o Antecedente (mesclado à parte por getBackgroundFeatures)", () => {
+  it("inclui a aquisição 'species' do Humano", () => {
+    const character = withHumanOriginFeat("vigoroso");
+    const features = getFeatAcquisitionFeatures(character);
+    expect(features).toHaveLength(1);
+    expect(features[0].id).toBe("vigoroso-species");
+    expect(features[0].speciesId).toBe("humano");
+  });
+
+  it("nunca inclui a aquisição do Antecedente, mesmo junto com a do Humano", () => {
+    const character = withHumanOriginFeat("vigoroso");
+    character.backgroundId = "soldado";
+    const ids = getFeatAcquisitionFeatures(character).map((f) => f.id);
+    expect(ids).toEqual(["vigoroso-species"]);
+    expect(ids).not.toContain("atacante-selvagem-background");
+  });
+});
+
+describe("getFeaturesAndTalentsStepFeatures — sempre inclui o Talento de Origem do Humano já escolhido, mesmo sem nenhuma escolha interna", () => {
+  it("inclui um talento do Humano SEM choices (ex.: Alerta), que getOtherFeaturesWithNonSkillChoices sozinha excluiria", () => {
+    const character = withHumanOriginFeat("alerta");
+    const features = getFeaturesAndTalentsStepFeatures(character);
+    expect(features.some((f) => f.sourceType === "feat" && f.speciesId === "humano")).toBe(true);
+  });
+
+  it("nunca duplica quando o talento do Humano JÁ tem choices não-perícia (ex.: Habilidoso) — só 1 entrada, nunca 2", () => {
+    const character = withHumanOriginFeat("habilidoso");
+    const features = getFeaturesAndTalentsStepFeatures(character);
+    const humanEntries = features.filter((f) => f.sourceType === "feat" && f.speciesId === "humano");
+    expect(humanEntries).toHaveLength(1);
+  });
+
+  it("nunca confunde com a feature de TRAÇOS do Humano (sourceType 'species', mesmo speciesId) — só sourceType 'feat' conta", () => {
+    const character = withHumanOriginFeat("alerta");
+    const features = getFeaturesAndTalentsStepFeatures(character);
+    const tracos = features.find((f) => f.id === "especie-humano-tracos");
+    expect(tracos).toBeUndefined(); // Traços de Humano não tem choices — nunca aparece aqui por si só
+  });
+
+  it("igual à base (getOtherFeaturesWithNonSkillChoices) quando não há Talento de Origem do Humano escolhido", () => {
+    const character = createBlankCharacter("x");
+    expect(getFeaturesAndTalentsStepFeatures(character)).toEqual([]);
+  });
+
+  it("igual à base para espécie diferente de Humano, mesmo com humanOriginFeatId preenchido por engano", () => {
+    const character = withHumanOriginFeat("alerta");
+    character.speciesId = "elfo";
+    expect(getFeaturesAndTalentsStepFeatures(character)).toEqual([]);
   });
 });

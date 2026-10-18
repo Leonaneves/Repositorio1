@@ -1,6 +1,6 @@
 import type { Character } from "../domain/character.js";
 import { canChooseSubclass } from "./subclasses.js";
-import { getOtherFeaturesWithNonSkillChoices } from "./features.js";
+import { getFeaturesAndTalentsStepFeatures } from "./features.js";
 import { getSpellcastingAbility } from "./spellcasting.js";
 import { getAutoPreparedSpells } from "./effectiveSpellsPrepared.js";
 
@@ -112,7 +112,7 @@ export function isStepVisible(stepId: BuilderStepId, character: Character): bool
   if (stepId === "metamagic") return character.classId === "feiticeiro" && character.level >= 2;
   if (stepId === "maneuvers") return character.classId === "guerreiro" && character.subclassId === "Mestre da Batalha" && character.level >= 3;
   if (stepId === "featuresAndTalents") {
-    return getOtherFeaturesWithNonSkillChoices(character).length > 0;
+    return getFeaturesAndTalentsStepFeatures(character).length > 0;
   }
   if (stepId === "invocations") return character.classId === "bruxo";
   if (stepId === "spellcasting") return getSpellcastingAbility(character) !== null || getAutoPreparedSpells(character).length > 0;

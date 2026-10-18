@@ -81,6 +81,19 @@ describe("isStepVisible — Características e Talentos (condicional — só Esp
     character.level = 5;
     expect(isStepVisible("featuresAndTalents", character)).toBe(false);
   });
+
+  it("aparece quando o Humano já escolheu o Talento de Origem, MESMO sem nenhuma escolha interna (ex.: Alerta) — fonte \"ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE\" §2", () => {
+    const character = createBlankCharacter("step-test");
+    character.speciesId = "humano";
+    character.humanOriginFeatId = "alerta";
+    expect(isStepVisible("featuresAndTalents", character)).toBe(true);
+  });
+
+  it("some enquanto o Humano ainda não escolheu o Talento de Origem", () => {
+    const character = createBlankCharacter("step-test");
+    character.speciesId = "humano";
+    expect(isStepVisible("featuresAndTalents", character)).toBe(false);
+  });
 });
 
 describe("isStepVisible — Invocações Místicas (condicional, só para Bruxo)", () => {

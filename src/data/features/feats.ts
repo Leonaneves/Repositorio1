@@ -46,6 +46,27 @@ export const SORTUDO_FEAT_ID = "sortudo";
 export const VALENTAO_DE_TAVERNA_FEAT_ID = "valentao-de-taverna";
 export const VIGOROSO_FEAT_ID = "vigoroso";
 
+/**
+ * Ids dos 10 Talentos de Origem, nesta ordem fixa — usado para filtrar
+ * `generalFeats` pela categoria "Origem" (fonte "ADICIONAR ESCOLHA DE
+ * TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE" §1: "Permitir escolher
+ * exatamente um talento do catálogo existente, filtrado pela categoria
+ * Origem"). Nunca inclui nenhum dos 26 Talentos Gerais abaixo — aqueles
+ * só ficam disponíveis via ASI (`rules/feats.ts#getAvailableFeatsForAsiLevel`).
+ */
+export const ORIGIN_FEAT_IDS = [
+  ALERTA_FEAT_ID,
+  ARTIFISTA_FEAT_ID,
+  ATACANTE_SELVAGEM_FEAT_ID,
+  CURANDEIRO_FEAT_ID,
+  HABILIDOSO_FEAT_ID,
+  INICIADO_EM_MAGIA_FEAT_ID,
+  MUSICO_FEAT_ID,
+  SORTUDO_FEAT_ID,
+  VALENTAO_DE_TAVERNA_FEAT_ID,
+  VIGOROSO_FEAT_ID,
+] as const;
+
 /** Ids-BASE das `FeatureChoice` de cada talento — sempre parametrizados por `rules/feats.ts#instantiateFeatAcquisition`, nunca usados diretamente. */
 export const ARTIFISTA_TOOL_CHOICE_BASE_IDS = ["artifista-ferramenta-1", "artifista-ferramenta-2", "artifista-ferramenta-3"] as const;
 export const HABILIDOSO_CHOICE_BASE_ID = "habilidoso-escolha";
@@ -522,3 +543,6 @@ export const generalFeats: FeatureDefinition[] = [
     choices: [{ id: `${VELOCISTA_FEAT_ID}-atributo`, prompt: "Velocista — aumente em 1 (máx. 20): Destreza ou Constituição", effect: { kind: "abilityScoreIncrease", options: ["DEX", "CON"] } }],
   },
 ];
+
+/** Os 10 Talentos de Origem do catálogo — subconjunto de `generalFeats` filtrado por `ORIGIN_FEAT_IDS`, usado pela escolha de "Talento de Origem" do Humano (`rules/feats.ts#getAvailableOriginFeatsForHumanSpecies`). */
+export const originFeats: FeatureDefinition[] = generalFeats.filter((feat) => (ORIGIN_FEAT_IDS as readonly string[]).includes(feat.id));

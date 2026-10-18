@@ -133,7 +133,7 @@ describe("useBuilderStore — navegação por etapas (sempre recalculada a parti
   it("pula etapas condicionais que desapareceram (ex.: Formas Conhecidas/Metamagia ao avançar de 'species' para 'background' num Bárbaro)", () => {
     const store = useBuilderStore.getState();
     useCharacterStore.getState().setClass("barbaro");
-    useCharacterStore.getState().setSpecies("humano");
+    useCharacterStore.getState().setSpecies("anao"); // sem Linhagem nem Talento de Origem do Humano — foco deste teste é o pulo de etapas, não a espécie
     store.goToStep("species");
     store.goNext();
     expect(useBuilderStore.getState().currentStepId).toBe("background"); // Bárbaro não tem Formas Conhecidas/Metamagia

@@ -294,6 +294,33 @@ export function getOtherFeaturesWithNonSkillChoices(character: Character): Featu
 }
 
 /**
+ * Mesma lista de `getOtherFeaturesWithNonSkillChoices`, mas SEMPRE
+ * inclui o Talento de Origem do Humano quando já escolhido — mesmo sem
+ * NENHUMA escolha interna (ex.: Alerta, Atacante Selvagem, Curandeiro,
+ * Sortudo, Valentão de Taverna, Vigoroso: nenhum tem `choices`) — fonte
+ * "ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE"
+ * §2: "Na etapa Talentos, mostrar esse talento como já escolhido, com
+ * indicação 'Origem: Humano'", que precisa valer MESMO quando o talento
+ * não teria, de outra forma, nenhum motivo para aparecer na etapa
+ * "Características e Talentos" (`getOtherFeaturesWithNonSkillChoices`
+ * exige `choices.length > 0`). Identificado por `sourceType === "feat"
+ * && speciesId === "humano"` (marcador de `rules/feats.ts#buildFeatAcquisitionFeature`)
+ * — nunca confundido com a feature de TRAÇOS do Humano (`especie-humano-tracos`,
+ * `sourceType: "species"`, que também carrega `speciesId: "humano"` mas
+ * nunca "feat"). Usado tanto pela UI (`Step8FeaturesAndTalents.tsx`)
+ * quanto por `rules/builderSteps.ts#isStepVisible` — a mesma lista
+ * decide o que renderiza E se a etapa aparece, nunca duas fontes
+ * divergentes.
+ */
+export function getFeaturesAndTalentsStepFeatures(character: Character): FeatureDefinition[] {
+  const base = getOtherFeaturesWithNonSkillChoices(character);
+  const isHumanOriginFeat = (feature: FeatureDefinition) => feature.sourceType === "feat" && feature.speciesId === "humano";
+  if (base.some(isHumanOriginFeat)) return base;
+  const humanFeature = getCharacterFeatures(character).find(isHumanOriginFeat);
+  return humanFeature ? [...base, humanFeature] : base;
+}
+
+/**
  * Todas as features do personagem, de QUALQUER origem, com ao menos
  * uma escolha de perícia (proficiência ou Especialização) — usado pela
  * etapa "Perícias", que reúne essas escolhas independentemente de

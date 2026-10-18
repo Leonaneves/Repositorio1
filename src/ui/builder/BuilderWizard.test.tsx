@@ -93,6 +93,12 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
     fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "humano" } });
     expect(screen.queryByText("Escolha uma espécie para continuar.")).not.toBeInTheDocument();
 
+    // Humano também exige o Talento de Origem (traço Versátil) — fonte "ADICIONAR ESCOLHA DE
+    // TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE" §1.
+    expect(screen.getByText("Escolha o Talento de Origem do Humano para continuar.")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("combobox", { name: "Talento de Origem (traço Versátil)" }), { target: { value: "alerta" } });
+    expect(screen.queryByText("Escolha o Talento de Origem do Humano para continuar.")).not.toBeInTheDocument();
+
     clickAvancar(); // species -> background
     expect(screen.getByText("Escolha um antecedente para continuar.")).toBeInTheDocument();
     fireEvent.change(screen.getByRole("combobox", { name: "Antecedente" }), { target: { value: "acolito" } });
@@ -174,6 +180,89 @@ describe("BuilderWizard — canAdvance explica exatamente o que falta (CONSOLIDA
   });
 });
 
+describe("BuilderWizard — Talento de Origem do Humano (traço Versátil, fonte \"ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE\")", () => {
+  it("a subetapa só aparece para Humano, nunca para outra espécie", () => {
+    render(<App />);
+    act(() => useCharacterStore.getState().setClass("guerreiro"));
+    act(() => useBuilderStore.getState().goToStep("species"));
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "elfo" } });
+    expect(screen.queryByRole("combobox", { name: "Talento de Origem (traço Versátil)" })).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "humano" } });
+    expect(screen.getByRole("combobox", { name: "Talento de Origem (traço Versátil)" })).toBeInTheDocument();
+  });
+
+  it("disponível para escolha ANTES da distribuição de atributos — os 6 continuam no padrão (10) e a escolha funciona normalmente", () => {
+    render(<App />);
+    act(() => useCharacterStore.getState().setClass("guerreiro"));
+    act(() => useBuilderStore.getState().goToStep("species"));
+    fireEvent.change(screen.getByRole("combobox", { name: "Espécie" }), { target: { value: "humano" } });
+
+    const ABILITY_KEYS = ["FOR", "DEX", "CON", "INT", "SAB", "CAR"] as const;
+    expect(ABILITY_KEYS.every((key) => useCharacterStore.getState().character.abilities[key].score === 10)).toBe(true);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Talento de Origem (traço Versátil)" }), { target: { value: "sortudo" } });
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBe("sortudo");
+  });
+
+  it("conflito com o Antecedente: aviso aparece nas DUAS etapas (Espécie e Antecedente), com atalho de volta para Espécie — nunca apaga a seleção do Humano silenciosamente", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("guerreiro");
+      useCharacterStore.getState().setSpecies("humano");
+      useCharacterStore.getState().setHumanOriginFeat("atacante-selvagem");
+    });
+    act(() => useBuilderStore.getState().goToStep("background"));
+    fireEvent.change(screen.getByRole("combobox", { name: "Antecedente" }), { target: { value: "soldado" } }); // também concede Atacante Selvagem
+
+    expect(screen.getByText(/mesmo concedido pelo Antecedente atual e não é repetível/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editar em Espécie" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Avançar" })).toBeDisabled();
+    // Nunca apaga/substitui silenciosamente — a seleção do Humano continua exatamente a mesma.
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBe("atacante-selvagem");
+
+    fireEvent.click(screen.getByRole("button", { name: "Editar em Espécie" }));
+    expect(screen.getByRole("heading", { name: "Espécie", level: 2 })).toBeInTheDocument();
+    expect(screen.getByText(/mesmo concedido pelo Antecedente atual e não é repetível/)).toBeInTheDocument();
+
+    // Trocar o talento do Humano resolve o conflito, sem tocar no Antecedente.
+    fireEvent.change(screen.getByRole("combobox", { name: "Talento de Origem (traço Versátil)" }), { target: { value: "vigoroso" } });
+    expect(screen.queryByText(/mesmo concedido pelo Antecedente atual e não é repetível/)).not.toBeInTheDocument();
+    expect(useCharacterStore.getState().character.backgroundId).toBe("soldado");
+  });
+
+  it("'Características e Talentos': o Talento de Origem do Humano aparece com 'Origem: Humano' e atalho de volta para Espécie — mesmo sem nenhuma escolha interna (Alerta)", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("guerreiro");
+      useCharacterStore.getState().setSpecies("humano");
+      useCharacterStore.getState().setHumanOriginFeat("alerta");
+    });
+    act(() => useBuilderStore.getState().goToStep("featuresAndTalents"));
+
+    expect(screen.getByText(/Origem: Humano/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Alerta", level: 3 })).toBeInTheDocument();
+    const editButtons = screen.getAllByRole("button", { name: "Editar em Espécie" });
+    fireEvent.click(editButtons[0]);
+    expect(screen.getByRole("heading", { name: "Espécie", level: 2 })).toBeInTheDocument();
+  });
+
+  it("'Características e Talentos': escolhas internas do talento (ex.: Habilidoso) aparecem normalmente, sem pedir de novo QUAL talento foi escolhido", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("guerreiro");
+      useCharacterStore.getState().setSpecies("humano");
+      useCharacterStore.getState().setHumanOriginFeat("habilidoso");
+    });
+    act(() => useBuilderStore.getState().goToStep("featuresAndTalents"));
+
+    expect(screen.getByText(/Origem: Humano/)).toBeInTheDocument();
+    expect(screen.getByText(/Habilidoso — escolha 3/)).toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Talento de Origem (traço Versátil)" })).not.toBeInTheDocument();
+  });
+});
+
 describe("BuilderWizard — Revisão detecta pendências e bloqueia a exportação (§15/§16)", () => {
   it("Bruxo nível 1 sem Invocação escolhida: banner de pendência aparece e Exportar PDF fica desabilitado", () => {
     render(<App />);
@@ -210,6 +299,7 @@ describe("BuilderWizard — Revisão detecta pendências e bloqueia a exportaç�
       store.setClass("bruxo");
       store.setLevel(1);
       store.setSpecies("humano");
+      store.setHumanOriginFeat("vigoroso"); // Talento de Origem do Humano (traço Versátil) — sem escolhas internas
       store.setBackground("acolito"); // INT, SAB, CAR
       store.increaseBackgroundAbilityBonus("INT");
       store.increaseBackgroundAbilityBonus("INT");

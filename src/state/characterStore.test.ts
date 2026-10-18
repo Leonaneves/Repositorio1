@@ -587,6 +587,57 @@ describe("useCharacterStore — Linhagem/Ancestralidade de espécie (fonte \"IMP
   });
 });
 
+describe("useCharacterStore — Talento de Origem do Humano (traço Versátil, fonte \"ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE\" §4)", () => {
+  it("setHumanOriginFeat grava o talento escolhido e aceita null", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("humano");
+    store.setHumanOriginFeat("alerta");
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBe("alerta");
+
+    store.setHumanOriginFeat(null);
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBeNull();
+  });
+
+  it("setSpecies limpa a aquisição do Humano ao trocar PARA LONGE de Humano — nunca preserva a escolha de uma espécie que deixou de ser a atual", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("humano");
+    store.setHumanOriginFeat("vigoroso");
+
+    store.setSpecies("elfo");
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBeNull();
+  });
+
+  it("setSpecies com o MESMO valor (Humano -> Humano) não apaga a escolha já feita (nenhuma mudança real de espécie)", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("humano");
+    store.setHumanOriginFeat("vigoroso");
+
+    store.setSpecies("humano");
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBe("vigoroso");
+  });
+
+  it("voltar para Humano depois de ter saído começa sem escolha (nunca reaproveita um valor de uma passagem anterior)", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("humano");
+    store.setHumanOriginFeat("vigoroso");
+    store.setSpecies("elfo");
+
+    store.setSpecies("humano");
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBeNull();
+  });
+
+  it("trocar de espécie nunca mexe na escolha de Linhagem de outra fonte (campos independentes)", () => {
+    const store = useCharacterStore.getState();
+    store.setSpecies("elfo");
+    store.setSpeciesLineage("elfo-drow");
+    store.setSpecies("humano");
+    store.setHumanOriginFeat("alerta");
+
+    expect(useCharacterStore.getState().character.speciesLineageId).toBeNull(); // limpa ao sair do Elfo
+    expect(useCharacterStore.getState().character.humanOriginFeatId).toBe("alerta");
+  });
+});
+
 describe("useCharacterStore — ajustes manuais nunca substituem o input automático", () => {
   it("guarda o ajuste manual de iniciativa separado do atributo", () => {
     const store = useCharacterStore.getState();

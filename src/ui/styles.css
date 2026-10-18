@@ -777,6 +777,10 @@ select:focus-visible {
   white-space: pre-line;
 }
 
+.builder-step__hint--warning {
+  color: var(--danger);
+}
+
 .builder-step__traits {
   font-family: var(--font-body);
   font-size: var(--text-sm);

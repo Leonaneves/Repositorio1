@@ -263,6 +263,9 @@ interface CharacterStore {
   /** Linhagem/Ancestralidade da espécie ATUAL (Draconato/Elfo/Gnomo/Golias/Tiefling) — ver `data/speciesLineages.ts`. */
   setSpeciesLineage: (lineageId: string | null) => void;
 
+  /** Talento de Origem concedido pelo traço "Versátil" do Humano — ver `Character.humanOriginFeatId`. Sem efeito fora da espécie Humano. */
+  setHumanOriginFeat: (featId: string | null) => void;
+
   setSkillManualOverride: (skill: SkillKey, value: boolean | null) => void;
   setSkillExpertise: (skill: SkillKey, expertise: boolean) => void;
   setSkillManualAdjustment: (skill: SkillKey, value: number) => void;
@@ -403,14 +406,20 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
 
   // Trocar de espécie limpa a Linhagem/Ancestralidade escolhida — nunca acumula a linhagem antiga com a
   // nova (fonte "IMPLEMENTAR LINHAGENS..." §2). Sem mudança real de espécie, não apaga a escolha já feita
-  // (ex.: o próprio <select> disparando o mesmo valor de novo).
+  // (ex.: o próprio <select> disparando o mesmo valor de novo). Trocar PARA LONGE de Humano também limpa
+  // o Talento de Origem concedido por "Versátil" (fonte "ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO
+  // NA ETAPA ESPÉCIE" §4: "remover da ficha ativa somente a aquisição concedida pelo Humano") — nunca
+  // preserva a escolha de uma espécie que deixou de ser a atual.
   setSpecies: (speciesId) =>
     set((state) => {
       if (speciesId === state.character.speciesId) return state;
-      return { character: { ...state.character, speciesId, speciesLineageId: null } };
+      const humanOriginFeatId = speciesId === "humano" ? state.character.humanOriginFeatId : null;
+      return { character: { ...state.character, speciesId, speciesLineageId: null, humanOriginFeatId } };
     }),
 
   setSpeciesLineage: (lineageId) => set((state) => ({ character: { ...state.character, speciesLineageId: lineageId } })),
+
+  setHumanOriginFeat: (featId) => set((state) => ({ character: { ...state.character, humanOriginFeatId: featId } })),
 
   /**
    * Trocar de antecedente é agora uma escrita trivial: nenhuma perícia

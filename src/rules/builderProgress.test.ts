@@ -10,7 +10,7 @@ import {
 import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
-import { MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID } from "../data/features/feats.js";
+import { ATACANTE_SELVAGEM_FEAT_ID, HABILIDOSO_FEAT_ID, MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID, VIGOROSO_FEAT_ID } from "../data/features/feats.js";
 import { getFeatChoiceId } from "./feats.js";
 import { getPendingBuilderSteps, getStepBlockers } from "./builderProgress.js";
 
@@ -35,10 +35,40 @@ describe("getStepBlockers — etapas genéricas exigem o campo correspondente", 
     expect(skillBlockers[0]).toContain("Perícias de Classe");
   });
 
-  it("'species' bloqueia sem speciesId, libera com speciesId", () => {
+  it("'species' bloqueia sem speciesId, libera com speciesId (Anão: sem Linhagem nem Talento de Origem do Humano)", () => {
     const character = blank();
     expect(getStepBlockers("species", character)).toEqual(["Escolha uma espécie para continuar."]);
-    expect(getStepBlockers("species", { ...character, speciesId: "humano" })).toEqual([]);
+    expect(getStepBlockers("species", { ...character, speciesId: "anao" })).toEqual([]);
+  });
+
+  it("'species' (Humano): exige também o Talento de Origem (traço Versátil) — fonte \"ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE\" §1/§2", () => {
+    const character: Character = { ...blank(), speciesId: "humano" };
+    expect(getStepBlockers("species", character)).toEqual(["Escolha o Talento de Origem do Humano para continuar."]);
+    expect(getStepBlockers("species", { ...character, humanOriginFeatId: ATACANTE_SELVAGEM_FEAT_ID })).toEqual([]);
+  });
+
+  it("'species'/'background': conflito quando o Antecedente concede o MESMO Talento de Origem (não repetível) já escolhido pelo Humano — bloqueia nas DUAS etapas, nunca sugere trocar o Antecedente (fonte §3)", () => {
+    const conflicting: Character = {
+      ...blank(),
+      speciesId: "humano",
+      humanOriginFeatId: ATACANTE_SELVAGEM_FEAT_ID,
+      backgroundId: "soldado", // também concede Atacante Selvagem
+    };
+    expect(getStepBlockers("species", conflicting)).toEqual([
+      'O Talento de Origem do Humano ("Atacante Selvagem") é o mesmo concedido pelo Antecedente atual e não é repetível — troque o Talento de Origem do Humano na etapa Espécie.',
+    ]);
+    expect(getStepBlockers("background", conflicting)).toEqual([
+      'O Talento de Origem do Humano ("Atacante Selvagem") é o mesmo concedido pelo Antecedente atual e não é repetível — troque o Talento de Origem do Humano na etapa Espécie.',
+    ]);
+
+    // Talento repetível (Habilidoso): mesmo concedido pelas duas origens, nunca é conflito.
+    const repeatable: Character = {
+      ...conflicting,
+      humanOriginFeatId: HABILIDOSO_FEAT_ID,
+      backgroundId: "charlatao", // também concede Habilidoso
+    };
+    expect(getStepBlockers("species", repeatable)).toEqual([]);
+    expect(getStepBlockers("background", repeatable)).toEqual([]);
   });
 
   it("'species' (Draconato/Gnomo/Golias/Tiefling) exige a Linhagem/Ancestralidade, com mensagem nomeando a escolha certa", () => {
@@ -237,6 +267,7 @@ describe("getPendingBuilderSteps — agrega pendências de todas as etapas visí
       ...character,
       classId: "guerreiro",
       speciesId: "humano",
+      humanOriginFeatId: VIGOROSO_FEAT_ID,
       backgroundId: "acolito",
       backgroundAbilityBonuses: { INT: 2, SAB: 1 },
     };

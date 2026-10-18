@@ -257,6 +257,22 @@ export interface Character {
   speciesLineageId: string | null;
 
   /**
+   * Talento de Origem concedido pelo traço "Versátil" do Humano (fonte
+   * "ADICIONAR ESCOLHA DE TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE")
+   * — uma SEGUNDA aquisição de Talento de Origem, totalmente independente
+   * da concedida pelo Antecedente (`rules/feats.ts#BACKGROUND_ORIGIN_FEAT_ID`).
+   * `null` enquanto não escolhido, ou para qualquer espécie que não seja
+   * Humano. Referencia um id de `data/features/feats.ts#originFeats`
+   * (nunca os 26 Talentos Gerais — só disponíveis via ASI). Trocar de
+   * espécie para longe de Humano limpa este campo
+   * (`state/characterStore.ts#setSpecies`) — nunca preserva a aquisição
+   * de uma espécie que não é mais a atual. `rules/feats.ts#getFeatAcquisitions`
+   * é quem lê este campo para compor a aquisição real (`acquisitionKey`
+   * `"species"`).
+   */
+  humanOriginFeatId: string | null;
+
+  /**
    * Override manual (Homebrew) das Ferramentas/Instrumentos conhecidos
    * — `null` = segue o resultado automático da escolha estruturada de
    * "Ferramentas de Classe" (`rules/tools.ts#getAutomaticClassTools`);
@@ -408,6 +424,7 @@ export function createBlankCharacter(id: string): Character {
     asiSelections: {},
     manualToolOverrides: null,
     speciesLineageId: null,
+    humanOriginFeatId: null,
     wizardSpellbook: [],
   };
 }

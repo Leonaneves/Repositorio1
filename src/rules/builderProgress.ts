@@ -6,7 +6,9 @@ import { metamagicOptionsById } from "../data/metamagic.js";
 import { skills } from "../data/skills.js";
 import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
 import { getSpeciesLineageLabel, hasSpeciesLineage } from "../data/speciesLineages.js";
+import { generalFeats } from "../data/features/feats.js";
 import { isSpeciesLineageResolved } from "./speciesLineage.js";
+import { hasHumanOriginFeatConflictWithBackground } from "./feats.js";
 import {
   EARTH_CIRCLE_TERRAIN_CHOICE_ID,
   EARTH_CIRCLE_TERRAIN_OPTIONS,
@@ -67,6 +69,20 @@ function getInvalidExpertiseBlockers(character: Character): string[] {
 }
 
 /**
+ * Bloqueio do conflito Humano x Antecedente (fonte "ADICIONAR ESCOLHA DE
+ * TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE" §3: "impedir a
+ * conclusão enquanto houver conflito") — mostrado tanto na etapa Espécie
+ * quanto na etapa Antecedente (as "duas origens" continuam visíveis,
+ * cada uma na própria etapa), sempre indicando que o lado a trocar é o
+ * do Humano, nunca o Antecedente. `null` sem conflito.
+ */
+function getHumanOriginFeatConflictBlocker(character: Character): string | null {
+  if (!hasHumanOriginFeatConflictWithBackground(character)) return null;
+  const featName = generalFeats.find((feat) => feat.id === character.humanOriginFeatId)?.name ?? character.humanOriginFeatId;
+  return `O Talento de Origem do Humano ("${featName}") é o mesmo concedido pelo Antecedente atual e não é repetível — troque o Talento de Origem do Humano na etapa Espécie.`;
+}
+
+/**
  * Motivos pelos quais a etapa ATUAL não pode avançar — usado por
  * `builderStore.ts#canAdvance` (só olha `length === 0`) e pela Revisão
  * (`getPendingBuilderSteps`, que roda isto para TODAS as etapas
@@ -123,10 +139,21 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
     else if (hasSpeciesLineage(character.speciesId) && !isSpeciesLineageResolved(character)) {
       blockers.push(`Escolha a ${getSpeciesLineageLabel(character.speciesId)} para continuar.`);
     }
+    // Só a DECISÃO (qual Talento de Origem) bloqueia aqui — as escolhas INTERNAS dele (perícias,
+    // ferramentas etc.) são validadas nas etapas correspondentes (fonte "ADICIONAR ESCOLHA DE TALENTO
+    // DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE" §2: "pode ficar concluída enquanto suas escolhas internas
+    // aguardam as etapas correspondentes").
+    if (character.speciesId === "humano" && !character.humanOriginFeatId) {
+      blockers.push("Escolha o Talento de Origem do Humano para continuar.");
+    }
+    const speciesConflictBlocker = getHumanOriginFeatConflictBlocker(character);
+    if (speciesConflictBlocker) blockers.push(speciesConflictBlocker);
   }
 
   if (stepId === "background") {
     if (!character.backgroundId) blockers.push("Escolha um antecedente para continuar.");
+    const backgroundConflictBlocker = getHumanOriginFeatConflictBlocker(character);
+    if (backgroundConflictBlocker) blockers.push(backgroundConflictBlocker);
   }
 
   if (stepId === "abilities") {
