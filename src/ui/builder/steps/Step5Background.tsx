@@ -4,6 +4,8 @@ import { BACKGROUND_IDS } from "../../../domain/ids.js";
 import { backgrounds, getBackgroundAbilityAllocationConfig } from "../../../data/backgrounds.js";
 import { skills } from "../../../data/skills.js";
 import { hasHumanOriginFeatConflictWithBackground } from "../../../rules/feats.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
 
 /**
  * Etapa 5 — escolha de antecedente, informações e benefícios já
@@ -30,6 +32,7 @@ export function Step5Background() {
 
   const config = backgroundId ? getBackgroundAbilityAllocationConfig(backgroundId) : null;
   const hasConflict = hasHumanOriginFeatConflictWithBackground(character);
+  const recommendedBackgrounds = useBuildChoiceRecommendations({ kind: "background" }, BACKGROUND_IDS);
 
   return (
     <div className="builder-step" aria-label="Antecedente">
@@ -42,7 +45,7 @@ export function Step5Background() {
           <option value="">- Selecione -</option>
           {BACKGROUND_IDS.map((id) => (
             <option key={id} value={id}>
-              {backgrounds[id].name}
+              {withRecommendedLabel(backgrounds[id].name, recommendedBackgrounds.has(id))}
             </option>
           ))}
         </select>

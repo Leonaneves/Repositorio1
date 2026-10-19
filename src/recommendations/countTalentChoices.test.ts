@@ -101,24 +101,24 @@ describe("countTalentChoices — referências", () => {
 describe("countTalentChoices — dados reais", () => {
   const asi4 = (talentId: string) => ({ kind: "generalFeat" as const, opportunityId: "asi-4", level: 4, talentId, subclassId: "Campeão", abilityScores: FOR_HIGH });
 
-  function twentyConfirmed(talentId = "sentinela") {
-    return Array.from({ length: 20 }, (_, index) => testUserBuild(index + 1, "guerreiro", [asi4(talentId)]));
+  function tenConfirmed(talentId = "sentinela") {
+    return Array.from({ length: 10 }, (_, index) => testUserBuild(index + 1, "guerreiro", [asi4(talentId)]));
   }
 
   it("com includeUserRecords desligado, nenhum dado real é contado", () => {
-    const facts = twentyConfirmed().flatMap(buildToTalentChoiceFacts);
+    const facts = tenConfirmed().flatMap(buildToTalentChoiceFacts);
     expect(countTalentChoices(facts, query())).toEqual([]);
   });
 
-  it("faixas reais abaixo de 20 personagens nunca saem do repositório; com 20 saem", () => {
-    const nineteen = twentyConfirmed().slice(0, 19).flatMap(buildToTalentChoiceFacts);
-    expect(countTalentChoices(nineteen, query({ includeUserRecords: true }))).toEqual([]);
-    const twenty = twentyConfirmed().flatMap(buildToTalentChoiceFacts);
-    expect(find(countTalentChoices(twenty, query({ includeUserRecords: true })), "user", "level", "sentinela")!.characters).toBe(20);
+  it("faixas reais abaixo de 10 personagens nunca saem do repositório; com 10 saem", () => {
+    const nine = tenConfirmed().slice(0, 9).flatMap(buildToTalentChoiceFacts);
+    expect(countTalentChoices(nine, query({ includeUserRecords: true }))).toEqual([]);
+    const ten = tenConfirmed().flatMap(buildToTalentChoiceFacts);
+    expect(find(countTalentChoices(ten, query({ includeUserRecords: true })), "user", "level", "sentinela")!.characters).toBe(10);
   });
 
   it("o próprio personagem é excluído da sua amostra", () => {
-    const facts = twentyConfirmed().flatMap(buildToTalentChoiceFacts);
+    const facts = tenConfirmed().flatMap(buildToTalentChoiceFacts);
     expect(countTalentChoices(facts, query({ includeUserRecords: true, excludeCharacterId: testBuildId(1) }))).toEqual([]);
   });
 

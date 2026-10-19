@@ -1,5 +1,6 @@
 import type { AbilityKey } from "../../domain/common.js";
 import type { FeatureChoice } from "../../domain/features.js";
+import type { Character } from "../../domain/character.js";
 import { SKILL_KEYS } from "../../domain/ids.js";
 import { skills } from "../../data/skills.js";
 import { tools } from "../../data/tools.js";
@@ -10,6 +11,8 @@ import { useCharacterStore } from "../../state/characterStore.js";
 import { getTalentChoiceOpportunity } from "../../recommendations/currentOpportunityContext.js";
 import { getOptionPickTalentId } from "../../recommendations/opportunityKind.js";
 import { useTalentRecommendations, withRecommendedLabel } from "../../services/useTalentRecommendations.js";
+import { useBuildChoiceRecommendations } from "../../services/useBuildChoiceRecommendations.js";
+import type { SkillKey } from "../../domain/ids.js";
 
 export interface FeatureChoiceControlProps {
   choice: FeatureChoice;
@@ -43,15 +46,25 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   const removeManualTool = useCharacterStore((s) => s.removeManualTool);
   const { effect } = choice;
 
+  // Recomendações de Perícias/Especialização (só dados reais confirmados — ver
+  // `recommendations/buildChoiceRecommendations.ts`): hook chamado sempre, antes de qualquer
+  // retorno; só consulta para escolhas de perícia. Uma perícia que o personagem já tem por
+  // OUTRA origem nunca é recomendada (seria redundante).
+  const selectedSkills: string[] = Array.isArray(selection?.value) ? selection.value : [];
+  const skillOptions: SkillKey[] =
+    effect.kind === "skillProficiency"
+      ? getSkillProficiencyChoiceOptions(effect, character, selectedSkills)
+      : effect.kind === "skillExpertise"
+        ? getSkillExpertiseChoiceOptions(effect, character, selectedSkills)
+        : [];
+  const eligibleSkills =
+    effect.kind === "skillProficiency" ? skillOptions.filter((skillId) => selectedSkills.includes(skillId) || !getSkillProficiency(character, skillId)) : skillOptions;
+  const recommendedSkills = useBuildChoiceRecommendations(skillOptions.length > 0 ? { kind: "skillChoice", choiceId: choice.id } : null, eligibleSkills);
+  const skillLabel = (skillId: SkillKey) => withRecommendedLabel(skills[skillId].name, recommendedSkills.has(skillId));
+
   if (effect.kind === "skillProficiency") {
-    const allOptions = effect.options === "any" ? SKILL_KEYS : effect.options;
-    const selected = Array.isArray(selection?.value) ? selection.value : [];
-    // Uma perícia já SELECIONADA nesta mesma escolha nunca some da lista, mesmo que
-    // `excludeAlreadyProficient` esteja ligado — senão a própria seleção (que concede a
-    // proficiência) faria a opção desaparecer assim que marcada (Conhecimento Primordial).
-    const options = effect.excludeAlreadyProficient
-      ? allOptions.filter((skillId) => selected.includes(skillId) || !getSkillProficiency(character, skillId))
-      : allOptions;
+    const selected = selectedSkills;
+    const options = skillOptions;
     return (
       <fieldset className="feature-choice">
         <legend>
@@ -68,7 +81,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
                 setFeatureChoiceSelection(choice.id, next);
               }}
             />
-            <span>{skills[skillId].name}</span>
+            <span>{skillLabel(skillId)}</span>
           </label>
         ))}
       </fieldset>
@@ -76,16 +89,8 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   }
 
   if (effect.kind === "skillExpertise") {
-    const selected = Array.isArray(selection?.value) ? selection.value : [];
-    // Só perícias já proficientes E AINDA sem Especialização entram na lista (nunca concede a
-    // proficiência, nunca reaplica Especialização numa perícia que já a tenha por outra escolha —
-    // ex.: Explorador Hábil e Especialista do Patrulheiro nunca podem repetir a mesma perícia) —
-    // uma perícia já SELECIONADA nesta mesma escolha nunca some, mesmo que isso mude depois.
-    const options = SKILL_KEYS.filter(
-      (skillId) =>
-        (!effect.options || effect.options.includes(skillId)) &&
-        (selected.includes(skillId) || (getSkillProficiency(character, skillId) && !getSkillExpertise(character, skillId))),
-    );
+    const selected = selectedSkills;
+    const options = skillOptions;
     return (
       <fieldset className="feature-choice">
         <legend>
@@ -102,7 +107,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
                 setFeatureChoiceSelection(choice.id, next);
               }}
             />
-            <span>{skills[skillId].name}</span>
+            <span>{skillLabel(skillId)}</span>
           </label>
         ))}
         {options.length === 0 && <p className="builder-step__hint">Escolha proficiência em ao menos uma perícia antes de especializar-se.</p>}
@@ -330,5 +335,36 @@ function OptionPickChoiceControl({ choice, options }: { choice: FeatureChoice; o
         })}
       </select>
     </label>
+  );
+}
+
+type SkillProficiencyEffect = Extract<FeatureChoice["effect"], { kind: "skillProficiency" }>;
+type SkillExpertiseEffect = Extract<FeatureChoice["effect"], { kind: "skillExpertise" }>;
+
+/**
+ * Opções exibidas numa escolha de proficiência em perícia. Uma perícia já
+ * SELECIONADA nesta mesma escolha nunca some da lista, mesmo que
+ * `excludeAlreadyProficient` esteja ligado — senão a própria seleção (que
+ * concede a proficiência) faria a opção desaparecer assim que marcada
+ * (Conhecimento Primordial).
+ */
+function getSkillProficiencyChoiceOptions(effect: SkillProficiencyEffect, character: Character, selected: string[]): SkillKey[] {
+  const allOptions = effect.options === "any" ? [...SKILL_KEYS] : effect.options;
+  return effect.excludeAlreadyProficient ? allOptions.filter((skillId) => selected.includes(skillId) || !getSkillProficiency(character, skillId)) : allOptions;
+}
+
+/**
+ * Opções exibidas numa escolha de Especialização: só perícias já
+ * proficientes E AINDA sem Especialização (nunca concede a proficiência,
+ * nunca reaplica Especialização numa perícia que já a tenha por outra
+ * escolha — ex.: Explorador Hábil e Especialista do Patrulheiro nunca
+ * podem repetir a mesma perícia); uma perícia já SELECIONADA nesta mesma
+ * escolha nunca some, mesmo que isso mude depois.
+ */
+function getSkillExpertiseChoiceOptions(effect: SkillExpertiseEffect, character: Character, selected: string[]): SkillKey[] {
+  return SKILL_KEYS.filter(
+    (skillId) =>
+      (!effect.options || effect.options.includes(skillId)) &&
+      (selected.includes(skillId) || (getSkillProficiency(character, skillId) && !getSkillExpertise(character, skillId))),
   );
 }

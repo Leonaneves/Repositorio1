@@ -4,6 +4,7 @@ import {
   levelBand,
   MAX_RECOMMENDATIONS_PER_SELECTOR,
   meetsMinimumSample,
+  MIN_REAL_CHARACTERS,
   REAL_RECORDS_ENABLED,
   selectTalentRecommendations,
 } from "./policy.js";
@@ -17,7 +18,7 @@ const REFS_OK = { characters: 6, groups: 3 };
 const ELIGIBLE = ["alerta", "sentinela", "resistente", "mestre-atirador", "velocista"];
 
 describe("policy — constantes aprovadas", () => {
-  it("dados reais liberados no recomendador após a verificação em produção (sempre sujeitos à amostra mínima de 20)", () => {
+  it("dados reais liberados no recomendador após a verificação em produção (sempre sujeitos à amostra mínima de 10)", () => {
     expect(REAL_RECORDS_ENABLED).toBe(true);
   });
 
@@ -35,9 +36,10 @@ describe("policy — constantes aprovadas", () => {
 });
 
 describe("policy — amostra mínima", () => {
-  it("reais: 20 personagens distintos", () => {
-    expect(meetsMinimumSample("user", 19, 19)).toBe(false);
-    expect(meetsMinimumSample("user", 20, 20)).toBe(true);
+  it("reais: 10 personagens distintos", () => {
+    expect(MIN_REAL_CHARACTERS).toBe(10);
+    expect(meetsMinimumSample("user", 9, 9)).toBe(false);
+    expect(meetsMinimumSample("user", 10, 10)).toBe(true);
   });
 
   it("referências: 3 personagens de pelo menos 2 fontes independentes", () => {
@@ -94,14 +96,14 @@ describe("selectTalentRecommendations", () => {
     expect(result?.talentIds).toEqual(["resistente"]);
   });
 
-  it("reais desligados: linhas de usuários são ignoradas mesmo com 20+", () => {
+  it("reais desligados: linhas de usuários são ignoradas mesmo com 10+", () => {
     const rows = [row("user", "level", "alerta", 20, { characters: 25, groups: 25 }), row("reference_extracted", "level", "sentinela", 3, REFS_OK)];
     expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false })).toMatchObject({ pool: "reference_extracted", talentIds: ["sentinela"] });
   });
 
-  it("reais ligados e com 20+: usa SÓ o ranking real (nunca mistura com referências)", () => {
+  it("reais ligados e com 10+: usa SÓ o ranking real (nunca mistura com referências)", () => {
     const rows = [
-      row("user", "level_band", "alerta", 12, { characters: 20, groups: 20 }),
+      row("user", "level_band", "alerta", 6, { characters: 10, groups: 10 }),
       row("reference_extracted", "level_subclass_ability", "sentinela", 3, REFS_OK),
       row("reference_extracted", "level_subclass_ability", "resistente", 3, REFS_OK),
     ];
@@ -109,8 +111,8 @@ describe("selectTalentRecommendations", () => {
     expect(result).toMatchObject({ pool: "user", tier: "level_band", talentIds: ["alerta"] });
   });
 
-  it("reais abaixo de 20: usa referências extraídas", () => {
-    const rows = [row("user", "level", "alerta", 10, { characters: 19, groups: 19 }), row("reference_extracted", "level", "sentinela", 3, REFS_OK)];
+  it("reais abaixo de 10: usa referências extraídas", () => {
+    const rows = [row("user", "level", "alerta", 5, { characters: 9, groups: 9 }), row("reference_extracted", "level", "sentinela", 3, REFS_OK)];
     expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: true })?.pool).toBe("reference_extracted");
   });
 

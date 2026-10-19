@@ -19,6 +19,7 @@ function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
     abilityScores: { FOR: 10, DEX: 10, CON: 10, INT: 18, SAB: 10, CAR: 10 },
     skillProficiencies: [],
     skillExpertise: [],
+    skillChoices: {},
     savingThrowProficiencies: [],
     armorId: null,
     shield: false,

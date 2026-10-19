@@ -149,6 +149,15 @@ export interface CharacterBuild {
 
   skillProficiencies: SkillKey[];
   skillExpertise: SkillKey[];
+  /**
+   * Perícias escolhidas em CADA escolha de perícia (proficiência ou
+   * Especialização), pelo id da `FeatureChoice` (ex.: as "Perícias de
+   * Classe" do Bárbaro) — diferente de `skillProficiencies`, que mistura
+   * tudo que o personagem tem (Antecedente, espécie etc.). Base das
+   * recomendações de Perícias/Especialização. `{}` em registros gravados
+   * antes deste campo existir.
+   */
+  skillChoices: Record<string, SkillKey[]>;
   savingThrowProficiencies: AbilityKey[];
 
   armorId: ArmorId | null; // null = sem armadura

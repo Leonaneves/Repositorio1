@@ -5,6 +5,8 @@ import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { CharacterBuild } from "../domain/characterBuild.js";
 import { buildToTalentChoiceFacts, countTalentChoices } from "../recommendations/countTalentChoices.js";
+import { countBuildChoices, type BuildChoiceCountQuery, type BuildChoiceCountRow } from "../recommendations/buildChoiceRecommendations.js";
+import { latestConfirmedUserBuilds } from "../repositories/inMemory/InMemoryBuildStore.js";
 import type { TalentChoiceCountQuery, TalentChoiceCountRow } from "../recommendations/types.js";
 import { referenceDatasetsToFacts } from "./referenceFacts.js";
 import type { NormalizedReferenceDataset, ReferenceFile } from "./referenceFormat.js";
@@ -14,12 +16,12 @@ import { validateReferenceFile } from "./validateReferenceFile.js";
 
 /**
  * Integração com um Postgres REAL (PGlite, em memória) — aplica as
- * migrations 0001→0004 exatamente como estão no repositório, com só o
+ * migrations 0001→0006 exatamente como estão no repositório, com só o
  * mínimo do Supabase simulado (papéis `anon`/`authenticated` e
  * `auth.uid()`). Cobre: importação/reimportação sem duplicar, transação
  * desfeita em erro, bloqueio de leitura direta das referências e
- * paridade da função `get_talent_choice_counts` com a contagem em
- * memória do app.
+ * paridade das funções `get_talent_choice_counts` e
+ * `get_build_choice_counts` com a contagem em memória do app.
  */
 
 const MIGRATIONS_DIR = fileURLToPath(new URL("../../supabase/migrations/", import.meta.url));
@@ -56,9 +58,28 @@ async function count(db: PGlite, table: string): Promise<number> {
 async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
   const s = build.abilityScores;
   await db.query(
-    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, updated_at, confirmed_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15, $15)`,
-    [build.buildId, build.characterId, build.level, build.classId, build.subclassId, s.FOR, s.DEX, s.CON, s.INT, s.SAB, s.CAR, build.origin, build.status, JSON.stringify(build.talentAcquisitions), build.updatedAt],
+    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, updated_at, confirmed_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $18)`,
+    [
+      build.buildId,
+      build.characterId,
+      build.level,
+      build.classId,
+      build.subclassId,
+      build.speciesId,
+      build.backgroundId,
+      s.FOR,
+      s.DEX,
+      s.CON,
+      s.INT,
+      s.SAB,
+      s.CAR,
+      build.origin,
+      build.status,
+      JSON.stringify(build.talentAcquisitions),
+      JSON.stringify(build.skillChoices),
+      build.updatedAt,
+    ],
   );
 }
 
@@ -108,13 +129,13 @@ beforeEach(async () => {
   await db.exec("reset role; delete from reference_sources; delete from character_builds;");
 });
 
-describe("migrations 0001→0005", () => {
-  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0005 pode ser reaplicada", { timeout: 60_000 }, async () => {
+describe("migrations 0001→0006", () => {
+  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006 pode ser reaplicada", { timeout: 60_000 }, async () => {
     const fresh = await createDatabase();
     for (const table of ["reference_sources", "reference_characters", "reference_acquisitions", "reference_character_citations", "reference_mentions"]) {
       expect(await count(fresh, table)).toBe(0);
     }
-    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0005_confirmed_versions.sql`, "utf8"));
+    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0006_build_choice_recommendations.sql`, "utf8"));
     expect(await count(fresh, "reference_sources")).toBe(0);
     await fresh.close();
   });
@@ -353,13 +374,100 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
     expect(sorted(await rpcCounts(db, query))).toEqual(sorted(countTalentChoices(facts, query)));
   });
 
-  it("dados reais: só com p_include_user e só faixas com 20+ personagens", async () => {
+  it("dados reais: só com p_include_user e só faixas com 10+ personagens", async () => {
     for (const build of userBuilds) await insertBuild(db, build);
     expect(await rpcCounts(db, { ...base, includeUserRecords: false })).toEqual([]);
     const rows = await rpcCounts(db, base);
-    expect(rows.every((row) => row.pool === "user" && row.sampleCharacters >= 20)).toBe(true);
+    expect(rows.every((row) => row.pool === "user" && row.sampleCharacters >= 10)).toBe(true);
     expect(rows.find((row) => row.tier === "level" && row.talentId === "sentinela")!.characters).toBe(14);
-    // Excluir o próprio personagem derruba a amostra para 21 — ainda >= 20.
+    // Excluir o próprio personagem derruba a amostra para 21 — ainda >= 10.
     expect((await rpcCounts(db, { ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "level")!.sampleCharacters).toBe(21);
+  });
+
+  it("dados reais: 10 personagens bastam, 9 não", async () => {
+    for (const build of userBuilds.slice(0, 9)) await insertBuild(db, build);
+    expect(await rpcCounts(db, base)).toEqual([]);
+    await insertBuild(db, userBuilds[9]);
+    expect((await rpcCounts(db, base)).find((row) => row.tier === "level")!.sampleCharacters).toBe(10);
+  });
+});
+
+describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () => {
+  const SPECIES = ["humano", "anao", "elfo"] as const;
+  const BACKGROUNDS = ["soldado", "guarda"] as const;
+  const SKILL_CHOICE = "classe-guerreiro-pericias";
+  const SKILLS = [["atletismo", "percepcao"], ["intimidacao", "atletismo"], ["sobrevivencia", "percepcao"]] as const;
+  const ABILITIES = [testAbilities({ FOR: 15, CAR: 8 }), testAbilities({ DEX: 15, INT: 8 }), testAbilities({ FOR: 15, DEX: 15 })];
+
+  const userBuilds: CharacterBuild[] = [
+    ...Array.from({ length: 14 }, (_, i) =>
+      testUserBuild(i + 1, "guerreiro", [], {
+        subclassId: i < 11 ? "Campeão" : "Mestre de Batalha",
+        speciesId: SPECIES[i % 3],
+        backgroundId: i % 4 === 0 ? null : BACKGROUNDS[i % 2],
+        abilityScores: ABILITIES[i % 3],
+        skillChoices: i % 5 === 0 ? {} : { [SKILL_CHOICE]: [...SKILLS[i % 3]] },
+      }),
+    ),
+    // Versão antiga do personagem 1 (deve ser ignorada) + rascunho + outra classe.
+    testUserBuild(40, "guerreiro", [], { characterId: testBuildId(1), speciesId: "orc", updatedAt: "2025-01-01T00:00:00.000Z" }),
+    testUserBuild(41, "guerreiro", [], { speciesId: "orc", status: "draft" }),
+    testUserBuild(42, "mago", [], { speciesId: "orc" }),
+  ];
+
+  const base: BuildChoiceCountQuery = { kind: "species", classId: "guerreiro", subclassId: "Campeão", choiceId: null, excludeCharacterId: null };
+  const queries: BuildChoiceCountQuery[] = [
+    base,
+    { ...base, subclassId: null },
+    { ...base, subclassId: "Mestre de Batalha" },
+    { ...base, excludeCharacterId: testBuildId(1) },
+    { ...base, kind: "background" },
+    { ...base, kind: "highestAbility" },
+    { ...base, kind: "dumpAbility" },
+    { ...base, kind: "skillChoice", choiceId: SKILL_CHOICE },
+    { ...base, kind: "skillChoice", choiceId: "outra-escolha" },
+    { ...base, classId: "mago" },
+  ];
+
+  async function rpcBuildChoiceCounts(query: BuildChoiceCountQuery): Promise<BuildChoiceCountRow[]> {
+    const result = await db.query<{ tier: BuildChoiceCountRow["tier"]; value: string; characters: number; sample_characters: number }>(
+      "select * from get_build_choice_counts($1, $2, $3, $4, $5)",
+      [query.kind, query.classId, query.subclassId, query.choiceId, query.excludeCharacterId],
+    );
+    return result.rows.map((row) => ({ tier: row.tier, value: row.value, characters: Number(row.characters), sampleCharacters: Number(row.sample_characters) }));
+  }
+  const byKey = (rows: BuildChoiceCountRow[]) => [...rows].sort((a, b) => `${a.tier}|${a.value}`.localeCompare(`${b.tier}|${b.value}`));
+
+  it.each(queries.map((query, index) => [index, query] as const))("consulta %i: mesmas linhas no banco e no app", async (_index, query) => {
+    for (const build of userBuilds) await insertBuild(db, build);
+    expect(byKey(await rpcBuildChoiceCounts(query))).toEqual(byKey(countBuildChoices(latestConfirmedUserBuilds(userBuilds), query)));
+  });
+
+  it("conta só a versão mais recente; faixa com menos de 10 personagens não sai do banco", async () => {
+    for (const build of userBuilds) await insertBuild(db, build);
+    const rows = await rpcBuildChoiceCounts(base);
+    expect(rows.some((row) => row.value === "orc")).toBe(false);
+    expect(rows.filter((row) => row.tier === "class").reduce((total, row) => total + row.characters, 0)).toBe(14);
+    expect(rows.find((row) => row.tier === "class_subclass")!.sampleCharacters).toBe(11);
+    // Sem o personagem 1, a subclasse fica com 10 — ainda vale; o Mestre de Batalha (3) nunca vale.
+    expect((await rpcBuildChoiceCounts({ ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "class_subclass")!.sampleCharacters).toBe(10);
+    expect((await rpcBuildChoiceCounts({ ...base, subclassId: "Mestre de Batalha" })).every((row) => row.tier === "class")).toBe(true);
+  });
+
+  it("menor atributo: empate fica com o primeiro na ordem FOR > DEX > CON > INT > SAB > CAR", async () => {
+    for (const build of userBuilds) await insertBuild(db, build);
+    const dump = (await rpcBuildChoiceCounts({ ...base, kind: "dumpAbility" })).filter((row) => row.tier === "class");
+    // ABILITIES[2] não tem nenhum atributo abaixo de 10: o "menor" é CON (primeiro dos 10).
+    expect(Object.fromEntries(dump.map((row) => [row.value, row.characters]))).toEqual({ CAR: 5, INT: 5, CON: 4 });
+  });
+
+  it("anon/authenticated executam a função, mas não leem a coluna de perícias diretamente", async () => {
+    for (const build of userBuilds) await insertBuild(db, build);
+    for (const role of ["anon", "authenticated"]) {
+      await db.exec(`set role ${role}`);
+      expect((await rpcBuildChoiceCounts(base)).length).toBeGreaterThan(0);
+      await expect(db.query("select skill_choices from latest_confirmed_character_builds")).rejects.toThrow(/permission denied/);
+      await db.exec("reset role");
+    }
   });
 });

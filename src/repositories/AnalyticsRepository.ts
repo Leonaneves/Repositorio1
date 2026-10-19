@@ -49,6 +49,11 @@ export function highestAbility(scores: Record<AbilityKey, number>): AbilityKey {
   return ABILITY_PRIORITY_ORDER.reduce((best, current) => (scores[current] > scores[best] ? current : best));
 }
 
+/** Menor atributo ("dump stat") — mesmo desempate: em empate, o primeiro de `ABILITY_PRIORITY_ORDER` (igual a `character_build_lowest_ability` no SQL, migration 0006). */
+export function lowestAbility(scores: Record<AbilityKey, number>): AbilityKey {
+  return ABILITY_PRIORITY_ORDER.reduce((best, current) => (scores[current] < scores[best] ? current : best));
+}
+
 export function armorIdToFilterValue(armorId: ArmorId | null): string {
   return armorId ?? "unarmed";
 }

@@ -2,6 +2,8 @@ import type { AbilityKey } from "../../domain/common.js";
 import type { CharacterBuild } from "../../domain/characterBuild.js";
 import type { CharacterBuildRepository } from "../CharacterBuildRepository.js";
 import type { TalentChoiceStatsRepository } from "../TalentChoiceStatsRepository.js";
+import type { BuildChoiceStatsRepository } from "../BuildChoiceStatsRepository.js";
+import { countBuildChoices, type BuildChoiceCountQuery, type BuildChoiceCountRow } from "../../recommendations/buildChoiceRecommendations.js";
 import { buildToTalentChoiceFacts, countTalentChoices } from "../../recommendations/countTalentChoices.js";
 import type { TalentChoiceCountQuery, TalentChoiceCountRow, TalentChoiceFact } from "../../recommendations/types.js";
 import {
@@ -61,7 +63,7 @@ export function latestConfirmedUserBuilds(builds: Iterable<CharacterBuild>): Cha
  * recusado, como a chave primária do banco), e as estatísticas contam
  * só a versão mais recente de cada personagem.
  */
-export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRepository, TalentChoiceStatsRepository {
+export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRepository, TalentChoiceStatsRepository, BuildChoiceStatsRepository {
   private builds = new Map<string, CharacterBuild>();
   /** Referências externas/sintéticas já normalizadas (`references/referenceFacts.ts`) — vazio por padrão: o app nunca embute referências no bundle. */
   private referenceFacts: TalentChoiceFact[] = [];
@@ -91,6 +93,11 @@ export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRe
   async getTalentChoiceCounts(query: TalentChoiceCountQuery): Promise<TalentChoiceCountRow[]> {
     const userFacts = latestConfirmedUserBuilds(this.builds.values()).flatMap(buildToTalentChoiceFacts);
     return countTalentChoices([...userFacts, ...this.referenceFacts], query);
+  }
+
+  /** Mesmas regras da função SQL `get_build_choice_counts` (ver `recommendations/buildChoiceRecommendations.ts`). */
+  async getBuildChoiceCounts(query: BuildChoiceCountQuery): Promise<BuildChoiceCountRow[]> {
+    return countBuildChoices(latestConfirmedUserBuilds(this.builds.values()), query);
   }
 
   /** Estatísticas de escolhas reais: só a versão confirmada mais recente de cada personagem (ver `latestConfirmedUserBuilds`). */

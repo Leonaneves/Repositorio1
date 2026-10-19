@@ -125,6 +125,7 @@ export function testUserBuild(
     abilityScores: testAbilities(),
     skillProficiencies: [],
     skillExpertise: [],
+    skillChoices: {},
     savingThrowProficiencies: [],
     armorId: null,
     shield: false,

@@ -264,16 +264,16 @@ describe("Dados reais liberados no recomendador", () => {
     }
   }
 
-  it("com 20 personagens reais confirmados no mesmo contexto, recomenda pelo que eles escolheram (sem nenhuma referência)", async () => {
-    await confirmFighters(20, "resistente");
+  it("com 10 personagens reais confirmados no mesmo contexto, recomenda pelo que eles escolheram (sem nenhuma referência)", async () => {
+    await confirmFighters(10, "resistente");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();
     expect(recommendedOptions()).toEqual(["Resistente (Recomendado)"]);
   });
 
-  it("com 19, a amostra real é insuficiente e nada é recomendado", async () => {
-    await confirmFighters(19, "resistente");
+  it("com 9, a amostra real é insuficiente e nada é recomendado", async () => {
+    await confirmFighters(9, "resistente");
     const spy = vi.spyOn(repository, "getTalentChoiceCounts");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
@@ -284,7 +284,7 @@ describe("Dados reais liberados no recomendador", () => {
 
   it("dados reais suficientes têm prioridade sobre referências (sem misturar os rankings)", async () => {
     loadReferences(asiReferences());
-    await confirmFighters(20, "resistente");
+    await confirmFighters(10, "resistente");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();

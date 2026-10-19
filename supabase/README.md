@@ -40,8 +40,9 @@ apliquei nada a um banco real. Para ativar:
    `migrations/0001_character_builds.sql`,
    `migrations/0002_build_ownership_and_talents.sql`,
    `migrations/0003_select_own_builds_for_upsert.sql`,
-   `migrations/0004_talent_recommendations.sql` e
-   `migrations/0005_confirmed_versions.sql` (ou use
+   `migrations/0004_talent_recommendations.sql`,
+   `migrations/0005_confirmed_versions.sql` e
+   `migrations/0006_build_choice_recommendations.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -114,6 +115,27 @@ atualização de um registro existente:
 - Linhas antigas: rascunhos continuam guardados e são ignorados; uma
   linha antiga já confirmada vira a versão única do seu personagem.
 
+## Recomendações de Espécie, Antecedente, Perícias, Especialização e atributos (migration 0006)
+
+- Nova coluna `skill_choices` (jsonb): as perícias escolhidas em CADA
+  escolha de perícia/Especialização, pelo id da escolha (ex.:
+  `classe-guerreiro-pericias`). Linhas antigas ficam com `{}` e não
+  contam para Perícias/Especialização.
+- `get_build_choice_counts(p_kind, p_class_id, p_subclass_id,
+  p_choice_id, p_exclude_character_id)`: só contagens, só dados reais
+  (versão confirmada mais recente de cada personagem), mesma classe —
+  primeiro mesma subclasse, depois só a classe. Nunca devolve uma
+  faixa com menos de 10 personagens distintos. `p_kind`: `species`,
+  `background`, `highestAbility`, `dumpAbility` (menor atributo base;
+  empate → primeiro em FOR > DEX > CON > INT > SAB > CAR) ou
+  `skillChoice`.
+- `get_talent_choice_counts`: amostra mínima real 20 → 10.
+- A view `latest_confirmed_character_builds` é recriada (para incluir a
+  coluna nova) e continua sem acesso pela API pública.
+
+**Aplique a `0006` antes de publicar o site novo**: o site novo grava
+`skill_choices` ao confirmar, e sem a coluna a confirmação falha.
+
 ## Recomendações de talentos e registros de referência (migration 0004)
 
 `0004` cria a base do recomendador de talentos, **vazia**:
@@ -139,7 +161,8 @@ de cada personagem) entram na contagem com `p_include_user = true` —
 depois da verificação em produção de: (1) "Confirmar personagem"
 gravando `status = 'confirmed'`; (2) estatísticas contando só
 confirmados; (3) isolamento entre sessões. A função nunca devolve uma
-faixa de contexto real com menos de 20 personagens distintos.
+faixa de contexto real com menos de 10 personagens distintos (era 20
+até a `0006`).
 
 As colunas `origin = 'reference'`/`reference_source_id`/
 `reference_content_type` de `character_builds` (preparadas na `0002`)

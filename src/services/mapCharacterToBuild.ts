@@ -5,6 +5,21 @@ import { SKILL_KEYS } from "../domain/ids.js";
 import { getSpellcastingAbility } from "../rules/spellcasting.js";
 import { getSkillProficiency } from "../rules/skills.js";
 import { getRecordedTalentAcquisitions } from "../rules/talentAcquisitionHistory.js";
+import { getSkillChoiceFeatures } from "../rules/features.js";
+import type { SkillKey } from "../domain/ids.js";
+
+/** Seleções de cada escolha de perícia/Especialização, pelo id da `FeatureChoice` — só as já feitas (lista não vazia). */
+function getSkillChoiceSelections(character: Character): Record<string, SkillKey[]> {
+  const selections: Record<string, SkillKey[]> = {};
+  for (const feature of getSkillChoiceFeatures(character)) {
+    for (const choice of feature.choices ?? []) {
+      if (choice.effect.kind !== "skillProficiency" && choice.effect.kind !== "skillExpertise") continue;
+      const value = character.featureChoiceSelections[choice.id]?.value;
+      if (Array.isArray(value) && value.length > 0) selections[choice.id] = value.filter((skill): skill is SkillKey => (SKILL_KEYS as readonly string[]).includes(skill));
+    }
+  }
+  return selections;
+}
 
 /**
  * Converte o personagem em edição (estado completo, incluindo tudo o
@@ -64,6 +79,7 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
     abilityScores,
     skillProficiencies,
     skillExpertise,
+    skillChoices: getSkillChoiceSelections(character),
     savingThrowProficiencies,
     armorId: character.armor.equipped === "unarmed" ? null : character.armor.equipped,
     shield: character.armor.shield,

@@ -25,6 +25,7 @@ interface CharacterBuildRow {
   car_score: number;
   skill_proficiencies: string[];
   skill_expertise: string[];
+  skill_choices: Record<string, string[]>;
   saving_throw_proficiencies: string[];
   armor_id: string | null;
   shield: boolean;
@@ -67,6 +68,7 @@ function toRow(build: CharacterBuild, ownerId: string): CharacterBuildRow {
     car_score: build.abilityScores.CAR,
     skill_proficiencies: build.skillProficiencies,
     skill_expertise: build.skillExpertise,
+    skill_choices: build.skillChoices,
     saving_throw_proficiencies: build.savingThrowProficiencies,
     armor_id: build.armorId,
     shield: build.shield,

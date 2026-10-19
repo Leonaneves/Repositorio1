@@ -14,6 +14,7 @@ import { getBackgroundAbilityAllocationConfig } from "../../../data/backgrounds.
 import { getUnlockedAsiLevels } from "../../../rules/asi.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "../../../rules/abilities.js";
 import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -59,6 +60,12 @@ export function Step6Abilities() {
   const valid = isDraftValid();
   const backgroundConfig = character.backgroundId ? getBackgroundAbilityAllocationConfig(character.backgroundId) : null;
   const hasAsiOpportunities = getUnlockedAsiLevels(character).length > 0;
+  // Recomendação (dados reais confirmados da mesma classe): 1 atributo para ser o MAIOR e 1 para
+  // ser o MENOR ("dump stat") entre os valores base — só um rótulo ao lado do nome, nunca preenche nada.
+  const recommendedHighest = useBuildChoiceRecommendations({ kind: "highestAbility" }, ABILITY_KEYS);
+  const recommendedDump = useBuildChoiceRecommendations({ kind: "dumpAbility" }, ABILITY_KEYS);
+  const abilityLabel = (ability: AbilityKey) =>
+    `${ABILITY_NAMES[ability]}${recommendedHighest.has(ability) ? " (Recomendado: maior)" : ""}${recommendedDump.has(ability) ? " (Recomendado: menor)" : ""}`;
 
   return (
     <div className="builder-step" aria-label="Atributos">
@@ -86,7 +93,7 @@ export function Step6Abilities() {
         <div className="ability-draft-grid">
           {ABILITY_KEYS.map((ability) => (
             <label className="field" key={ability}>
-              <span>{ABILITY_NAMES[ability]}</span>
+              <span>{abilityLabel(ability)}</span>
               {mode === "standardArray" ? (
                 <select
                   value={draftScores[ability] ?? ""}

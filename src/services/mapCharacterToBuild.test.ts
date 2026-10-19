@@ -94,4 +94,23 @@ describe("mapCharacterToBuild", () => {
     expect(build.talentAcquisitions[0].talentId).toBe("atacante-selvagem");
     expect(build.talentAcquisitions[0].opportunityId).toBe("background");
   });
+
+  it("skillChoices guarda as perícias de CADA escolha de perícia/Especialização já feita, pelo id da escolha", () => {
+    const character = createBlankCharacter("build-test-7");
+    character.classId = "bardo";
+    character.level = 2;
+    character.featureChoiceSelections["classe-bardo-pericias"] = { value: ["persuasao", "atuacao", "furtividade"] };
+    character.featureChoiceSelections["bardo-especialista-1-escolha"] = { value: ["persuasao", "atuacao"] };
+    character.featureChoiceSelections["escolha-que-nao-existe"] = { value: ["arcanismo"] };
+    expect(mapCharacterToBuild(character).skillChoices).toEqual({
+      "classe-bardo-pericias": ["persuasao", "atuacao", "furtividade"],
+      "bardo-especialista-1-escolha": ["persuasao", "atuacao"],
+    });
+  });
+
+  it("skillChoices fica vazio enquanto nenhuma perícia foi escolhida", () => {
+    const character = createBlankCharacter("build-test-8");
+    character.classId = "guerreiro";
+    expect(mapCharacterToBuild(character).skillChoices).toEqual({});
+  });
 });

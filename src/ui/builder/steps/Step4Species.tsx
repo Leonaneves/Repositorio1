@@ -7,6 +7,7 @@ import { getSpeciesTraitsPrintedText } from "../../../rules/speciesLineagePrinte
 import { getAvailableOriginFeatsForHumanSpecies, hasHumanOriginFeatConflictWithBackground } from "../../../rules/feats.js";
 import { HUMAN_ORIGIN_FEAT_OPPORTUNITY } from "../../../recommendations/currentOpportunityContext.js";
 import { useTalentRecommendations, withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
 
 /**
  * Etapa 4 — escolha de espécie, com subseção de Linhagem/Ancestralidade
@@ -49,6 +50,7 @@ export function Step4Species() {
   const eligibleOriginFeatIds = availableOriginFeats
     .filter((feat) => !(hasConflict && feat.id === character.humanOriginFeatId))
     .map((feat) => feat.id);
+  const recommendedSpecies = useBuildChoiceRecommendations({ kind: "species" }, SPECIES_IDS);
   const recommendedOriginFeats = useTalentRecommendations(speciesId === "humano" ? HUMAN_ORIGIN_FEAT_OPPORTUNITY : null, eligibleOriginFeatIds);
 
   return (
@@ -59,7 +61,7 @@ export function Step4Species() {
           <option value="">- Selecione -</option>
           {SPECIES_IDS.map((id) => (
             <option key={id} value={id}>
-              {species[id].name}
+              {withRecommendedLabel(species[id].name, recommendedSpecies.has(id))}
             </option>
           ))}
         </select>
