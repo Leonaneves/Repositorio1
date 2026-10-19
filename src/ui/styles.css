@@ -690,6 +690,34 @@ select:focus-visible {
   background: var(--sheet-bg);
 }
 
+.character-roster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg) 0;
+}
+
+.character-roster__picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  font-family: var(--font-label);
+  font-size: var(--text-sm);
+}
+
+.character-roster__picker select {
+  min-width: 16rem;
+  max-width: 100%;
+}
+
+.character-roster__note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary, inherit);
+}
+
 .app-mode-switch {
   display: flex;
   gap: var(--space-2xs);

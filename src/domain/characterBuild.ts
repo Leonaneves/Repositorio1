@@ -98,13 +98,11 @@ export interface CharacterBuildReferenceSource {
  * `services/mapCharacterToBuild.ts`, `repositories/CharacterBuildRepository.ts`
  * e `analytics/`).
  *
- * `buildId` não tem qualquer relação com identidade real — é gerado no
- * navegador (mesmo `Character.id`) e reaproveitado enquanto o jogador
- * edita ESTE personagem; trocar de classe/subclasse/espécie etc. várias
- * vezes atualiza o mesmo registro (upsert por `buildId`), em vez de
- * criar um registro novo a cada alteração (ver §6 do pedido do
- * usuário). Um personagem novo (`resetCharacter`) gera um `buildId`
- * novo.
+ * Só é gravado quando o jogador CONFIRMA o personagem na Revisão
+ * (`services/publishConfirmedCharacter.ts`) — rascunhos nunca saem do
+ * navegador. Cada confirmação é um registro NOVO e imutável (nunca
+ * atualizado depois): editar e confirmar de novo cria outra versão do
+ * mesmo `characterId`, e um personagem novo nunca altera os anteriores.
  *
  * Só existem aqui campos ESTRUTURADOS relevantes para analisar
  * escolhas de criação — nunca texto livre nem qualquer coisa que
@@ -124,7 +122,17 @@ export interface CharacterBuildReferenceSource {
  * `origin === "user" && status === "confirmed"`.
  */
 export interface CharacterBuild {
+  /** Id DESTA versão confirmada (chave primária do registro) — cada confirmação gera um novo; nunca reaproveitado. */
   buildId: string;
+  /**
+   * Id estável do PERSONAGEM (o próprio `Character.id`, UUID gerado no
+   * navegador, sem vínculo com identidade real). Várias confirmações do
+   * mesmo personagem (ex.: confirmar, editar, confirmar de novo) viram
+   * várias versões com o mesmo `characterId` — as estatísticas contam só
+   * a MAIS RECENTE de cada personagem (fonte "CONFIRMAR PERSONAGENS SEM
+   * ALTERAR OS ANTERIORES").
+   */
+  characterId: string;
 
   origin: "user" | "reference";
   status: "draft" | "confirmed";
@@ -152,5 +160,5 @@ export interface CharacterBuild {
   /** Talentos Gerais/de Origem, Estilos de Luta e Dádiva Épica adquiridos, cada um com origem/nível/contexto histórico — ver `TalentAcquisitionRecord`. */
   talentAcquisitions: TalentAcquisitionRecord[];
 
-  updatedAt: string; // ISO 8601, atribuído pelo repositório no momento do upsert
+  updatedAt: string; // ISO 8601, momento da confirmação no navegador (o banco também registra `confirmed_at` pelo próprio relógio)
 }

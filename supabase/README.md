@@ -39,8 +39,9 @@ apliquei nada a um banco real. Para ativar:
 2. Abra o SQL Editor do projeto e rode, NESTA ORDEM,
    `migrations/0001_character_builds.sql`,
    `migrations/0002_build_ownership_and_talents.sql`,
-   `migrations/0003_select_own_builds_for_upsert.sql` e
-   `migrations/0004_talent_recommendations.sql` (ou use
+   `migrations/0003_select_own_builds_for_upsert.sql`,
+   `migrations/0004_talent_recommendations.sql` e
+   `migrations/0005_confirmed_versions.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -90,6 +91,28 @@ upsert (`INSERT ... ON CONFLICT DO UPDATE`), e o Postgres aplica as
 políticas de SELECT também a esse comando — sem ela, toda gravação é
 recusada com "new row violates row-level security policy". Cada sessão
 continua sem conseguir ler o build de qualquer outra pessoa.
+
+## Confirmação como versão imutável (migration 0005)
+
+A partir da `0005`, o app **só grava ao confirmar** — rascunhos nunca
+saem do navegador — e cada "Confirmar" é um **registro novo**, nunca a
+atualização de um registro existente:
+
+- `character_id` liga as versões do mesmo personagem; `confirmed_at` é
+  a hora da confirmação, pelo relógio do banco.
+- A única política de escrita é INSERT de uma versão `confirmed` da
+  própria sessão anônima. As políticas de UPDATE e SELECT da `0002`/`0003`
+  foram removidas: nada gravado pode ser alterado nem lido
+  individualmente pela API pública.
+- As estatísticas (insights e recomendador) leem a view
+  `latest_confirmed_character_builds` — só a versão confirmada mais
+  recente de cada personagem; confirmar de novo depois de editar
+  substitui a versão anterior na contagem, nunca soma. A view não é
+  acessível pela API pública (`revoke` explícito).
+- Um personagem novo ("Meus personagens" → "Novo personagem") tem
+  `character_id` próprio e nunca altera os anteriores.
+- Linhas antigas: rascunhos continuam guardados e são ignorados; uma
+  linha antiga já confirmada vira a versão única do seu personagem.
 
 ## Recomendações de talentos e registros de referência (migration 0004)
 

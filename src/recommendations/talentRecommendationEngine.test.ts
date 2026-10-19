@@ -13,7 +13,7 @@ const QUERY: TalentChoiceCountQuery = {
   level: 4,
   subclassId: "Campeão",
   highestAbility: "FOR",
-  excludeBuildId: null,
+  excludeCharacterId: null,
   includeUserRecords: false,
 };
 

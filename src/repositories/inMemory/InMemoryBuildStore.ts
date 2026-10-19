@@ -34,26 +34,45 @@ function distribution(rows: string[]): DistributionRow[] {
 }
 
 /**
+ * Mais recente versão confirmada de cada personagem real — mesma regra
+ * da view `latest_confirmed_character_builds` (migration 0005): por
+ * `characterId`, a de `updatedAt` mais recente (empate: a inserida por
+ * último). Rascunhos e referências nunca entram.
+ */
+export function latestConfirmedUserBuilds(builds: Iterable<CharacterBuild>): CharacterBuild[] {
+  const latest = new Map<string, CharacterBuild>();
+  for (const build of builds) {
+    if (build.origin !== "user" || build.status !== "confirmed") continue;
+    const current = latest.get(build.characterId);
+    if (!current || build.updatedAt >= current.updatedAt) latest.set(build.characterId, build);
+  }
+  return [...latest.values()];
+}
+
+/**
  * Implementação de referência usada em desenvolvimento e nos testes:
- * guarda os builds num `Map` em memória (perdido ao recarregar a
- * página/processo). Implementa as duas interfaces de repositório com o
- * MESMO conjunto de dados, para que os testes de `analytics/` não
- * precisem de um banco de verdade.
+ * guarda as versões confirmadas num `Map` em memória (perdido ao
+ * recarregar a página/processo). Implementa as interfaces de
+ * repositório com o MESMO conjunto de dados, para que os testes de
+ * `analytics/`/`recommendations/` não precisem de um banco de verdade.
  *
- * `upsert` por `buildId` garante a mesma semântica exigida da
- * implementação de produção (Supabase): nunca duplica um registro para
- * o mesmo personagem em construção.
+ * Mesma semântica da produção (Supabase, migration 0005): cada
+ * confirmação é um registro NOVO e imutável (`buildId` repetido é
+ * recusado, como a chave primária do banco), e as estatísticas contam
+ * só a versão mais recente de cada personagem.
  */
 export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRepository, TalentChoiceStatsRepository {
   private builds = new Map<string, CharacterBuild>();
   /** Referências externas/sintéticas já normalizadas (`references/referenceFacts.ts`) — vazio por padrão: o app nunca embute referências no bundle. */
   private referenceFacts: TalentChoiceFact[] = [];
 
-  async upsert(build: CharacterBuild): Promise<void> {
+  async insertConfirmed(build: CharacterBuild): Promise<void> {
+    if (build.origin !== "user" || build.status !== "confirmed") throw new Error("Só personagens confirmados são gravados.");
+    if (this.builds.has(build.buildId)) throw new Error(`Versão ${build.buildId} já registrada (registros confirmados nunca são alterados).`);
     this.builds.set(build.buildId, { ...build });
   }
 
-  /** Utilitário só de teste: quantos registros distintos existem (nunca cresce por edição do mesmo build). */
+  /** Utilitário só de teste: quantas versões confirmadas foram gravadas (cada confirmação conta 1). */
   get size(): number {
     return this.builds.size;
   }
@@ -70,25 +89,13 @@ export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRe
 
   /** Mesmas regras da função SQL `get_talent_choice_counts` (ver `recommendations/countTalentChoices.ts`). */
   async getTalentChoiceCounts(query: TalentChoiceCountQuery): Promise<TalentChoiceCountRow[]> {
-    const userFacts = [...this.builds.values()].flatMap(buildToTalentChoiceFacts);
+    const userFacts = latestConfirmedUserBuilds(this.builds.values()).flatMap(buildToTalentChoiceFacts);
     return countTalentChoices([...userFacts, ...this.referenceFacts], query);
   }
 
-  /**
-   * Estatísticas de escolhas reais só consideram registros de usuários
-   * CONFIRMADOS (fonte "IMPLEMENTAR A BASE DE DADOS PARA FUTURAS
-   * RECOMENDAÇÕES" §7) — rascunhos (`status === "draft"`) e registros
-   * de referência (`origin === "reference"`) ficam de fora aqui, no
-   * mesmo ponto usado por todo método de leitura agregada abaixo,
-   * espelhando o filtro `origin = 'user' and status = 'confirmed'` das
-   * funções SQL de `supabase/migrations/0002_build_ownership_and_talents.sql`
-   * — combinar com referências é da etapa futura do recomendador, não
-   * desta.
-   */
+  /** Estatísticas de escolhas reais: só a versão confirmada mais recente de cada personagem (ver `latestConfirmedUserBuilds`). */
   private filtered(filter: BuildFilter): CharacterBuild[] {
-    return [...this.builds.values()].filter(
-      (build) => build.origin === "user" && build.status === "confirmed" && matchesFilter(build, filter),
-    );
+    return latestConfirmedUserBuilds(this.builds.values()).filter((build) => matchesFilter(build, filter));
   }
 
   async countBuilds(filter: BuildFilter): Promise<number> {

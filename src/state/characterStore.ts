@@ -25,7 +25,7 @@ import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
 import { decreaseAbility, increaseAbility } from "../rules/abilityAllocation.js";
 import { getAutomaticClassTools } from "../rules/tools.js";
 import { captureConfirmationSnapshot } from "../services/buildConfirmation.js";
-import { loadStoredCharacter, saveStoredCharacter } from "../services/localCharacterPersistence.js";
+import { isBlankCharacter, loadRoster, saveRoster, type RosterEntry } from "../services/characterRoster.js";
 
 /**
  * Store central do personagem em construção.
@@ -259,7 +259,16 @@ function applyFeatArmorProficiencies(character: Character, featId: string | null
  * embaixo do jogador). Sem dado local válido, comporta-se exatamente
  * como antes desta fonte: um personagem novo, id novo.
  */
-const storedCharacter = loadStoredCharacter();
+const storedRoster = loadRoster();
+const storedActiveEntry = storedRoster?.entries.find((entry) => entry.character.id === storedRoster.activeCharacterId) ?? storedRoster?.entries[0] ?? null;
+const storedOtherEntries = storedRoster?.entries.filter((entry) => entry !== storedActiveEntry) ?? [];
+
+/** Guarda o personagem ativo na lista (mais recente primeiro) — nunca um personagem ainda em branco. */
+function withActiveSaved(others: RosterEntry[], character: Character, confirmedBuildSnapshot: string | null): RosterEntry[] {
+  const rest = others.filter((entry) => entry.character.id !== character.id);
+  if (isBlankCharacter(character)) return rest;
+  return [{ character, confirmedBuildSnapshot, savedAt: new Date().toISOString() }, ...rest];
+}
 
 interface CharacterStore {
   character: Character;
@@ -268,11 +277,25 @@ interface CharacterStore {
    * Ver `services/buildConfirmation.ts` — `null` enquanto o personagem
    * ATUAL nunca foi confirmado, ou deixou de corresponder ao que foi
    * confirmado por uma mudança posterior. Nunca lido/escrito
-   * diretamente fora de `confirmCharacter`/`services/buildSync.ts`.
+   * diretamente fora de `confirmCharacter`/`ui/builder/steps/Step11Review.tsx`.
    */
   confirmedBuildSnapshot: string | null;
-  /** Confirma o personagem ATUAL para as estatísticas da comunidade — ação explícita da Revisão, nunca automática (ver `ui/builder/steps/Step11Review.tsx`). */
+  /** Marca o personagem ATUAL como confirmado — chamado pela Revisão só DEPOIS de a versão ser gravada (`services/publishConfirmedCharacter.ts`), nunca automático. */
   confirmCharacter: () => void;
+
+  /**
+   * "Meus personagens" (ver `services/characterRoster.ts`): os OUTROS
+   * personagens salvos neste navegador (o ativo é `character`), mais
+   * recente primeiro. Trocar/criar/excluir aqui nunca toca nas versões
+   * já confirmadas nas estatísticas.
+   */
+  otherCharacters: RosterEntry[];
+  /** Guarda o atual na lista (se não estiver em branco) e começa um personagem novo, com id novo. */
+  startNewCharacter: () => void;
+  /** Guarda o atual na lista e abre `characterId` para edição. */
+  openCharacter: (characterId: string) => void;
+  /** Remove `characterId` deste navegador; se for o ativo, abre o mais recente da lista (ou um em branco). */
+  deleteCharacter: (characterId: string) => void;
 
   setName: (name: string) => void;
   setLevel: (level: number) => void;
@@ -396,8 +419,36 @@ interface CharacterStore {
 }
 
 export const useCharacterStore = create<CharacterStore>((set) => ({
-  character: storedCharacter?.character ?? createBlankCharacter(generateId()),
-  confirmedBuildSnapshot: storedCharacter?.confirmedBuildSnapshot ?? null,
+  character: storedActiveEntry?.character ?? createBlankCharacter(generateId()),
+  confirmedBuildSnapshot: storedActiveEntry?.confirmedBuildSnapshot ?? null,
+  otherCharacters: storedOtherEntries,
+
+  startNewCharacter: () =>
+    set((state) => ({
+      otherCharacters: withActiveSaved(state.otherCharacters, state.character, state.confirmedBuildSnapshot),
+      character: createBlankCharacter(generateId()),
+      confirmedBuildSnapshot: null,
+    })),
+  openCharacter: (characterId) =>
+    set((state) => {
+      const target = state.otherCharacters.find((entry) => entry.character.id === characterId);
+      if (!target) return state;
+      return {
+        otherCharacters: withActiveSaved(state.otherCharacters, state.character, state.confirmedBuildSnapshot).filter((entry) => entry.character.id !== characterId),
+        character: target.character,
+        confirmedBuildSnapshot: target.confirmedBuildSnapshot,
+      };
+    }),
+  deleteCharacter: (characterId) =>
+    set((state) => {
+      if (state.character.id !== characterId) {
+        return { otherCharacters: state.otherCharacters.filter((entry) => entry.character.id !== characterId) };
+      }
+      const [next, ...rest] = state.otherCharacters;
+      return next
+        ? { character: next.character, confirmedBuildSnapshot: next.confirmedBuildSnapshot, otherCharacters: rest }
+        : { character: createBlankCharacter(generateId()), confirmedBuildSnapshot: null, otherCharacters: [] };
+    }),
 
   confirmCharacter: () => set((state) => ({ confirmedBuildSnapshot: captureConfirmationSnapshot(state.character) })),
 
@@ -847,15 +898,18 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
 }));
 
 /**
- * Persiste o personagem (e a confirmação) a cada mudança — ao
- * contrário de `services/buildSync.ts` (rede, por isso debounced), esta
- * escrita é só local e barata, então roda sem debounce: o
+ * Persiste "Meus personagens" (o ativo, com a confirmação, mais os
+ * demais — `services/characterRoster.ts`) a cada mudança. Escrita só
+ * local e barata, então roda sem debounce: o
  * `localStorage` nunca fica desatualizado em relação ao estado em
  * memória, nem mesmo se a aba fechar um instante depois de uma
  * mudança. Falhas são sempre silenciosas (ver
- * `services/localCharacterPersistence.ts`) — nunca impedem continuar
+ * `services/characterRoster.ts`) — nunca impedem continuar
  * editando.
  */
 useCharacterStore.subscribe((state) => {
-  saveStoredCharacter(state.character, state.confirmedBuildSnapshot);
+  saveRoster({
+    activeCharacterId: state.character.id,
+    entries: [{ character: state.character, confirmedBuildSnapshot: state.confirmedBuildSnapshot, savedAt: new Date().toISOString() }, ...state.otherCharacters],
+  });
 });

@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { App } from "../App.js";
+import { getCharacterBuildRepository, InMemoryBuildStore } from "../../repositories/index.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 import { useBuilderStore } from "../../state/builderStore.js";
 import { useInsightSessionStore } from "../insights/insightSessionStore.js";
@@ -369,28 +370,54 @@ describe("BuilderWizard — ação 'Confirmar personagem' na Revisão (fonte \"I
     expect(screen.getByText(/Ainda não confirmado/)).toBeInTheDocument();
   });
 
-  it("clicar em 'Confirmar personagem' muda o texto do botão e a nota para o estado confirmado", () => {
+  it("clicar em 'Confirmar personagem' grava UMA versão nova e só então mostra o estado confirmado", async () => {
+    const repository = getCharacterBuildRepository() as InMemoryBuildStore;
+    const before = repository.size;
     render(<App />);
     act(() => buildFullyResolvedWarlock());
     act(() => useBuilderStore.getState().goToStep("review"));
-
     fireEvent.click(screen.getByRole("button", { name: "Confirmar personagem" }));
 
-    expect(screen.getByRole("button", { name: "Confirmado — confirmar novamente" })).toBeInTheDocument();
-    expect(screen.getByText("Este personagem está confirmado e entra nas estatísticas da comunidade.")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Confirmado" })).toBeDisabled();
+    expect(screen.getByText(/Este personagem está confirmado e entra nas estatísticas da comunidade/)).toBeInTheDocument();
+    expect(repository.size).toBe(before + 1);
   });
 
-  it("alterar uma escolha relevante depois de confirmar volta o personagem ao estado não confirmado", () => {
+  it("alterar uma escolha depois de confirmar oferece 'Confirmar nova versão', que grava OUTRA versão sem alterar a anterior", async () => {
+    const repository = getCharacterBuildRepository() as InMemoryBuildStore;
+    const before = repository.size;
     render(<App />);
     act(() => buildFullyResolvedWarlock());
     act(() => useBuilderStore.getState().goToStep("review"));
     fireEvent.click(screen.getByRole("button", { name: "Confirmar personagem" }));
-    expect(screen.getByRole("button", { name: "Confirmado — confirmar novamente" })).toBeInTheDocument();
+    await screen.findByRole("button", { name: "Confirmado" });
 
     act(() => useCharacterStore.getState().setAbilityScore("FOR", 11));
 
-    expect(screen.getByRole("button", { name: "Confirmar personagem" })).toBeInTheDocument();
-    expect(screen.getByText(/Ainda não confirmado/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar nova versão" })).toBeEnabled();
+    expect(screen.getByText(/A versão confirmada antes continua nas estatísticas/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar nova versão" }));
+    await screen.findByRole("button", { name: "Confirmado" });
+    expect(repository.size).toBe(before + 2);
+  });
+
+  it("falha ao gravar: mostra o erro, NÃO marca como confirmado e permite tentar de novo", async () => {
+    const repository = getCharacterBuildRepository() as InMemoryBuildStore;
+    const spy = vi.spyOn(repository, "insertConfirmed").mockRejectedValueOnce(new Error("Failed to fetch"));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    render(<App />);
+    act(() => buildFullyResolvedWarlock());
+    act(() => useBuilderStore.getState().goToStep("review"));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar personagem" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível registrar agora");
+    expect(screen.getByRole("button", { name: "Confirmar personagem" })).toBeEnabled();
+    expect(useCharacterStore.getState().confirmedBuildSnapshot).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar personagem" }));
+    expect(await screen.findByRole("button", { name: "Confirmado" })).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledTimes(2);
+    vi.restoreAllMocks();
   });
 
   it("confirmar NUNCA é exigido para exportar o PDF: sem confirmação, Exportar PDF já fica habilitado quando não há pendências", () => {

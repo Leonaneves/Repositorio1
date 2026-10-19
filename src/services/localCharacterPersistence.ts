@@ -1,6 +1,10 @@
 import type { Character } from "../domain/character.js";
 
 /**
+ * ⚠️ Formato ANTIGO (um único personagem) — hoje só lido uma vez, para
+ * migrar para "Meus personagens" (`services/characterRoster.ts`), e
+ * reaproveitado por ele (validação/acesso a `localStorage`).
+ *
  * Persistência local do personagem em edição — fonte "IMPLEMENTAR A
  * BASE DE DADOS PARA FUTURAS RECOMENDAÇÕES" §5. Só o NAVEGADOR deste
  * dispositivo (`localStorage`) — nunca cria conta, nunca promete
@@ -27,7 +31,7 @@ export interface StoredCharacterPayload {
   confirmedBuildSnapshot: string | null;
 }
 
-function getLocalStorage(): Storage | null {
+export function getLocalStorage(): Storage | null {
   try {
     if (typeof localStorage === "undefined") return null;
     return localStorage;
@@ -47,7 +51,7 @@ const ABILITY_KEYS_FOR_VALIDATION = ["FOR", "DEX", "CON", "INT", "SAB", "CAR"] a
  * o Builder ao ler os campos mais lidos logo na abertura
  * (`abilities`/`asiSelections`/`featureChoiceSelections`).
  */
-function isValidCharacter(value: unknown): value is Character {
+export function isValidCharacter(value: unknown): value is Character {
   if (typeof value !== "object" || value === null) return false;
   const character = value as Record<string, unknown>;
   if (typeof character.id !== "string" || character.id.length === 0) return false;

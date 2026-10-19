@@ -4,8 +4,10 @@ import type { CharacterBuild } from "../domain/characterBuild.js";
 import { clearInsightCache, getChoiceInsights } from "./insightEngine.js";
 
 function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
+  const buildId = overrides.buildId ?? `b-${Math.random()}`;
   return {
-    buildId: `b-${Math.random()}`,
+    buildId,
+    characterId: overrides.characterId ?? buildId,
     origin: "user",
     status: "confirmed",
     referenceSource: null,
@@ -41,7 +43,7 @@ describe("getChoiceInsights", () => {
   it("retorna vários insights quando a amostra é suficiente para mais de uma métrica", async () => {
     const store = new InMemoryBuildStore();
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `b${i}` }));
+      await store.insertConfirmed(build({ buildId: `b${i}` }));
     }
     const insights = await getChoiceInsights({ classId: "mago" }, { repository: store, minSampleSize: 20 });
     const metrics = insights.map((i) => i.metric);
@@ -54,7 +56,7 @@ describe("getChoiceInsights", () => {
   it("toda entrada tem sampleSize e nunca aparece percentual sem ele", async () => {
     const store = new InMemoryBuildStore();
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `b${i}` }));
+      await store.insertConfirmed(build({ buildId: `b${i}` }));
     }
     const insights = await getChoiceInsights({ classId: "mago" }, { repository: store, minSampleSize: 20 });
     for (const insight of insights) {
@@ -67,7 +69,7 @@ describe("getChoiceInsights", () => {
   it("usa cache: a segunda chamada com o mesmo contexto não consulta o repositório de novo", async () => {
     const store = new InMemoryBuildStore();
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `b${i}` }));
+      await store.insertConfirmed(build({ buildId: `b${i}` }));
     }
     const countSpy = vi.spyOn(store, "countBuilds");
 
@@ -82,8 +84,8 @@ describe("getChoiceInsights", () => {
   it("contextos diferentes não compartilham cache", async () => {
     const store = new InMemoryBuildStore();
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `mago-${i}`, classId: "mago" }));
-      await store.upsert(build({ buildId: `barbaro-${i}`, classId: "barbaro", subclassId: "Trilha do Berserker" }));
+      await store.insertConfirmed(build({ buildId: `mago-${i}`, classId: "mago" }));
+      await store.insertConfirmed(build({ buildId: `barbaro-${i}`, classId: "barbaro", subclassId: "Trilha do Berserker" }));
     }
 
     const magoInsights = await getChoiceInsights({ classId: "mago" }, { repository: store, minSampleSize: 20 });

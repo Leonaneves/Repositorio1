@@ -5,6 +5,7 @@ import { ensureOwnedSession, getSupabaseClient } from "./client.js";
 
 interface CharacterBuildRow {
   build_id: string;
+  character_id: string;
   origin: "user" | "reference";
   status: "draft" | "confirmed";
   /** `auth.uid()` da sessão (Supabase Anonymous Auth) que gravou o registro — exigido pela política de RLS de `0002_build_ownership_and_talents.sql`. */
@@ -47,6 +48,7 @@ interface CharacterBuildRow {
 function toRow(build: CharacterBuild, ownerId: string): CharacterBuildRow {
   return {
     build_id: build.buildId,
+    character_id: build.characterId,
     origin: build.origin,
     status: build.status,
     owner_id: ownerId,
@@ -75,32 +77,31 @@ function toRow(build: CharacterBuild, ownerId: string): CharacterBuildRow {
 }
 
 /**
- * Implementação real (Postgres via Supabase). `upsert` grava por
- * `build_id` (chave primária/`onConflict`), então reenviar o mesmo
- * personagem em construção várias vezes atualiza a mesma linha — nunca
- * duplica.
+ * Implementação real (Postgres via Supabase). Cada confirmação é um
+ * INSERT de um registro novo (`build_id` novo) — nunca atualiza nada
+ * já gravado, então um personagem novo (ou uma nova versão do mesmo)
+ * nunca altera os anteriores.
  *
  * Só grava colunas estruturadas (ver `toRow`); nenhum campo de texto
  * livre ou pessoal chega perto desta classe — o `CharacterBuild` já
  * chega aqui filtrado por `mapCharacterToBuild`.
  *
  * Antes de gravar, garante uma sessão autenticada (`ensureOwnedSession`)
- * e usa o `uid` dela como `owner_id` — é essa sessão, e não qualquer
- * valor vindo do `build`, que a política de RLS (ver migration 0002)
- * exige bater com `auth.uid()` tanto para inserir quanto para atualizar.
- * Se a sessão anônima não puder ser criada (ex.: "Enable anonymous
- * sign-ins" desativado no projeto Supabase), `upsert` rejeita e quem
- * chamou decide o que fazer — `services/buildSync.ts` só registra o erro
- * e nunca deixa isso bloquear a criação/exportação do personagem.
+ * e usa o `uid` dela como `owner_id` — exigido pela política de INSERT
+ * (migration 0005). Se a gravação falhar, rejeita: quem chamou
+ * (`services/publishConfirmedCharacter.ts`/Revisão) mostra o erro ao
+ * jogador e NÃO marca o personagem como confirmado.
  */
 export class SupabaseCharacterBuildRepository implements CharacterBuildRepository {
   constructor(private readonly client: SupabaseClient = getSupabaseClient()) {}
 
-  async upsert(build: CharacterBuild): Promise<void> {
+  /** INSERT puro (nunca upsert): a política de RLS da migration 0005 só permite inserir versões confirmadas da própria sessão, e não existe mais política de UPDATE/SELECT. */
+  async insertConfirmed(build: CharacterBuild): Promise<void> {
+    if (build.origin !== "user" || build.status !== "confirmed") throw new Error("Só personagens confirmados são gravados.");
     const ownerId = await ensureOwnedSession(this.client);
-    const { error } = await this.client.from("character_builds").upsert(toRow(build, ownerId), { onConflict: "build_id" });
+    const { error } = await this.client.from("character_builds").insert(toRow(build, ownerId));
     if (error) {
-      throw new Error(`Falha ao gravar build anônimo: ${error.message}`);
+      throw new Error(`Falha ao registrar personagem confirmado: ${error.message}`);
     }
   }
 }

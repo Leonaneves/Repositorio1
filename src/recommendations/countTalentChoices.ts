@@ -21,9 +21,10 @@ export function highestAbilityOrNull(scores: unknown): AbilityKey | null {
 }
 
 /**
- * Aquisições VOLUNTÁRIAS de um personagem real CONFIRMADO, no formato
- * comum de contagem — `[]` para rascunhos, registros de referência e
- * qualquer build ainda sem classe. O Talento de Origem do Antecedente
+ * Aquisições VOLUNTÁRIAS de uma versão confirmada de personagem real, no
+ * formato comum de contagem — `[]` para rascunhos, registros de
+ * referência e qualquer build ainda sem classe. Quem chama passa só a
+ * versão mais recente de cada personagem (`latestConfirmedUserBuilds`). O Talento de Origem do Antecedente
  * (`voluntary: false`) é só contexto e nunca vira um fato contável.
  */
 export function buildToTalentChoiceFacts(build: CharacterBuild): TalentChoiceFact[] {
@@ -35,8 +36,8 @@ export function buildToTalentChoiceFacts(build: CharacterBuild): TalentChoiceFac
       const subclassId = record.context?.subclassId;
       return {
         pool: "user" as const,
-        characterKey: build.buildId,
-        groupKey: build.buildId,
+        characterKey: build.characterId,
+        groupKey: build.characterId,
         opportunityKind: deriveOpportunityKind(record),
         classId,
         level: record.acquisitionLevel ?? null,
@@ -60,7 +61,7 @@ export function countTalentChoices(facts: readonly TalentChoiceFact[], query: Ta
     (fact) =>
       fact.opportunityKind === query.opportunityKind &&
       fact.classId === query.classId &&
-      (fact.pool !== "user" || (query.includeUserRecords && fact.characterKey !== query.excludeBuildId)),
+      (fact.pool !== "user" || (query.includeUserRecords && fact.characterKey !== query.excludeCharacterId)),
   );
 
   const rows: TalentChoiceCountRow[] = [];

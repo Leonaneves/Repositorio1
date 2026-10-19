@@ -9,10 +9,10 @@ import { mapCharacterToBuild } from "./mapCharacterToBuild.js";
  * solto: é uma serialização ESTÁVEL das escolhas estruturadas do
  * personagem no momento da confirmação — assim, qualquer mudança
  * posterior a uma escolha relevante (classe, atributos, talentos etc.)
- * muda essa serialização, e `services/buildSync.ts` detecta que o build
- * já não corresponde mais ao que foi confirmado, voltando `status` a
- * `"draft"` até nova confirmação — nunca um booleano que ficaria
- * "preso" em `true` mesmo depois de uma edição.
+ * muda essa serialização, e a Revisão volta a oferecer "Confirmar"
+ * (que grava uma NOVA versão — `services/publishConfirmedCharacter.ts`)
+ * — nunca um booleano que ficaria "preso" em `true` mesmo depois de uma
+ * edição.
  *
  * `buildId` entra na serialização (via `mapCharacterToBuild`), então
  * trocar de personagem (`resetCharacter`, novo id) invalida sozinho

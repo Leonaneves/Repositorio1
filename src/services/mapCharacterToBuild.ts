@@ -15,8 +15,8 @@ import { getRecordedTalentAcquisitions } from "../rules/talentAcquisitionHistory
  * propósito (lista negativa explícita, para deixar claro na leitura do
  * código o que fica de fora — ver §7 do pedido do usuário):
  *
- * - `id` / `name` — usa-se só `buildId` (o próprio `id`, que já é um
- *   UUID gerado no navegador sem qualquer vínculo com identidade real).
+ * - `name` — nunca. `id` só entra como `characterId` (UUID gerado no
+ *   navegador sem qualquer vínculo com identidade real).
  * - `weaponProficienciesNotes`, `toolProficienciesNotes`,
  *   `speciesTraitsNotes`, `talentsNotes`, `classFeatures`, `appearance`,
  *   `languages` — texto livre escrito pelo jogador.
@@ -36,8 +36,8 @@ import { getRecordedTalentAcquisitions } from "../rules/talentAcquisitionHistory
  * RECOMENDAÇÕES" §2) nunca passam por aqui, são gravados por um
  * caminho próprio (importação futura). `status` começa sempre
  * `"draft"` — nunca presumido confirmado só por este mapeamento;
- * `services/buildSync.ts` é quem decide o status real, comparando com
- * `services/buildConfirmation.ts`, antes de gravar.
+ * só `services/publishConfirmedCharacter.ts` grava, e sempre como
+ * `"confirmed"`, depois da ação explícita do jogador.
  */
 export function mapCharacterToBuild(character: Character, updatedAt: string = new Date().toISOString()): CharacterBuild {
   const abilityScores = Object.fromEntries(ABILITY_KEYS.map((key) => [key, character.abilities[key].score])) as Record<
@@ -50,7 +50,9 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
   const savingThrowProficiencies = ABILITY_KEYS.filter((ability) => character.savingThrows[ability].proficient);
 
   return {
+    // Placeholder determinístico — `services/publishConfirmedCharacter.ts` troca por um id novo a cada confirmação.
     buildId: character.id,
+    characterId: character.id,
     origin: "user",
     status: "draft",
     referenceSource: null,

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useBuildSync } from "../services/buildSync.js";
 import { useInsights, findInsightByMetric } from "../services/useInsights.js";
 import { IdentitySection } from "./sections/IdentitySection.js";
 import { AbilitiesSection } from "./sections/AbilitiesSection.js";
@@ -7,6 +6,7 @@ import { VitalsSection } from "./sections/VitalsSection.js";
 import { ArmorSection } from "./sections/ArmorSection.js";
 import { SpellcastingSection } from "./sections/SpellcastingSection.js";
 import { BuilderWizard } from "./builder/BuilderWizard.js";
+import { CharacterRoster } from "./CharacterRoster.js";
 
 type AppMode = "builder" | "sheet";
 
@@ -50,11 +50,11 @@ function CharacterSheet() {
  * nada do personagem em construção.
  */
 export function App() {
-  useBuildSync();
   const [mode, setMode] = useState<AppMode>("builder");
 
   return (
     <div className="app-shell">
+      <CharacterRoster />
       <nav className="app-mode-switch" aria-label="Modo">
         <button type="button" aria-pressed={mode === "builder"} onClick={() => setMode("builder")}>
           Criar Personagem

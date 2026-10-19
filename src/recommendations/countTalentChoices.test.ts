@@ -22,7 +22,7 @@ function query(overrides: Partial<TalentChoiceCountQuery> = {}): TalentChoiceCou
     level: 4,
     subclassId: "Campeão",
     highestAbility: "FOR",
-    excludeBuildId: null,
+    excludeCharacterId: null,
     includeUserRecords: false,
     ...overrides,
   };
@@ -119,7 +119,7 @@ describe("countTalentChoices — dados reais", () => {
 
   it("o próprio personagem é excluído da sua amostra", () => {
     const facts = twentyConfirmed().flatMap(buildToTalentChoiceFacts);
-    expect(countTalentChoices(facts, query({ includeUserRecords: true, excludeBuildId: testBuildId(1) }))).toEqual([]);
+    expect(countTalentChoices(facts, query({ includeUserRecords: true, excludeCharacterId: testBuildId(1) }))).toEqual([]);
   });
 
   it("rascunhos, referências gravadas em character_builds e o talento do Antecedente (não voluntário) nunca contam", () => {

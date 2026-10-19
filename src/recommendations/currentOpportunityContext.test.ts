@@ -42,7 +42,7 @@ describe("buildTalentChoiceCountQuery — contexto antes da aquisição", () => 
       level: null,
       subclassId: null,
       highestAbility: null,
-      excludeBuildId: "ctx-test",
+      excludeCharacterId: "ctx-test",
       includeUserRecords: false,
     });
   });

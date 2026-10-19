@@ -32,7 +32,7 @@ export class SupabaseTalentChoiceStatsRepository implements TalentChoiceStatsRep
       p_level: query.level,
       p_subclass_id: query.subclassId,
       p_highest_ability: query.highestAbility,
-      p_exclude_build_id: query.excludeBuildId,
+      p_exclude_character_id: query.excludeCharacterId,
       p_include_user: query.includeUserRecords,
     });
     if (error) throw new Error(`Falha ao consultar get_talent_choice_counts: ${error.message}`);

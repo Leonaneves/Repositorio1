@@ -29,6 +29,10 @@ async function createDatabase(): Promise<PGlite> {
   await db.exec(`
     create role anon;
     create role authenticated;
+    -- Como no Supabase: objetos novos do schema public nascem legíveis/executáveis por anon/authenticated.
+    alter default privileges in schema public grant all on tables to anon, authenticated;
+    alter default privileges in schema public grant all on functions to anon, authenticated;
+    grant usage on schema public to anon, authenticated;
     create schema auth;
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   `);
@@ -52,9 +56,9 @@ async function count(db: PGlite, table: string): Promise<number> {
 async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
   const s = build.abilityScores;
   await db.query(
-    `insert into character_builds (build_id, level, class_id, subclass_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb)`,
-    [build.buildId, build.level, build.classId, build.subclassId, s.FOR, s.DEX, s.CON, s.INT, s.SAB, s.CAR, build.origin, build.status, JSON.stringify(build.talentAcquisitions)],
+    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, updated_at, confirmed_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15, $15)`,
+    [build.buildId, build.characterId, build.level, build.classId, build.subclassId, s.FOR, s.DEX, s.CON, s.INT, s.SAB, s.CAR, build.origin, build.status, JSON.stringify(build.talentAcquisitions), build.updatedAt],
   );
 }
 
@@ -75,7 +79,7 @@ async function rpcCounts(db: PGlite, query: TalentChoiceCountQuery): Promise<Tal
     query.level,
     query.subclassId,
     query.highestAbility,
-    query.excludeBuildId,
+    query.excludeCharacterId,
     query.includeUserRecords,
   ]);
   return result.rows.map((row) => ({
@@ -104,13 +108,13 @@ beforeEach(async () => {
   await db.exec("reset role; delete from reference_sources; delete from character_builds;");
 });
 
-describe("migrations 0001→0004", () => {
-  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0004 pode ser reaplicada", { timeout: 60_000 }, async () => {
+describe("migrations 0001→0005", () => {
+  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0005 pode ser reaplicada", { timeout: 60_000 }, async () => {
     const fresh = await createDatabase();
     for (const table of ["reference_sources", "reference_characters", "reference_acquisitions", "reference_character_citations", "reference_mentions"]) {
       expect(await count(fresh, table)).toBe(0);
     }
-    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0004_talent_recommendations.sql`, "utf8"));
+    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0005_confirmed_versions.sql`, "utf8"));
     expect(await count(fresh, "reference_sources")).toBe(0);
     await fresh.close();
   });
@@ -167,7 +171,7 @@ describe("importação de referências (SQL gerado)", () => {
     await db.exec(referenceDatasetToSql(dataset(copy)));
     expect(await count(db, "reference_characters")).toBe(2);
     expect(await count(db, "reference_character_citations")).toBe(1);
-    const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", level: 4, subclassId: null, highestAbility: null, excludeBuildId: null, includeUserRecords: false });
+    const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", level: 4, subclassId: null, highestAbility: null, excludeCharacterId: null, includeUserRecords: false });
     expect(rows.find((row) => row.tier === "level")!.sampleCharacters).toBe(2);
   });
 
@@ -188,13 +192,79 @@ describe("importação de referências (SQL gerado)", () => {
   });
 });
 
+describe("versões confirmadas (migration 0005)", () => {
+  const OWNER = "11111111-1111-4111-8111-111111111111";
+  const OTHER = "22222222-2222-4222-8222-222222222222";
+  const v = (n: number, characterN: number, classId: "mago" | "barbaro", updatedAt: string) =>
+    testUserBuild(n, classId, [], { characterId: testBuildId(characterN), updatedAt });
+
+  async function asSession(userId: string, run: () => Promise<unknown>): Promise<unknown> {
+    await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub', '${userId}', false);`);
+    try {
+      return await run();
+    } finally {
+      await db.exec("reset role");
+    }
+  }
+
+  async function insertAs(userId: string, build: CharacterBuild, status = "confirmed") {
+    return asSession(userId, () =>
+      db.query(
+        `insert into character_builds (build_id, character_id, owner_id, level, class_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status)
+         values ($1, $2, $3, 1, $4, 10, 10, 10, 10, 10, 10, 'user', $5)`,
+        [build.buildId, build.characterId, OWNER === userId ? OWNER : userId, build.classId, status],
+      ),
+    );
+  }
+
+  it("estatísticas contam só a versão mais recente de cada personagem; personagens diferentes contam separado", async () => {
+    await insertBuild(db, v(1, 1, "mago", "2026-01-01T00:00:00.000Z"));
+    await insertBuild(db, v(2, 1, "barbaro", "2026-02-01T00:00:00.000Z")); // nova versão do personagem 1
+    await insertBuild(db, v(3, 3, "mago", "2026-01-15T00:00:00.000Z")); // outro personagem
+    const count = async (classId: string) => Number((await db.query<{ n: number }>("select count_builds($1) as n", [classId])).rows[0].n);
+    expect(await count("barbaro")).toBe(1);
+    expect(await count("mago")).toBe(1);
+    expect(await db.query("select * from character_builds")).toMatchObject({ rows: { length: 3 } });
+  });
+
+  it("a sessão só INSERE versões confirmadas suas — nunca rascunho, nunca em nome de outra sessão", async () => {
+    await insertAs(OWNER, v(1, 1, "mago", "2026-01-01T00:00:00.000Z"));
+    await expect(insertAs(OWNER, v(2, 2, "mago", "2026-01-01T00:00:00.000Z"), "draft")).rejects.toThrow(/row-level security/);
+    await expect(
+      asSession(OWNER, () =>
+        db.query(
+          `insert into character_builds (build_id, character_id, owner_id, level, class_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status)
+           values ($1, 'x', $2, 1, 'mago', 10, 10, 10, 10, 10, 10, 'user', 'confirmed')`,
+          [testBuildId(3), OTHER],
+        ),
+      ),
+    ).rejects.toThrow(/row-level security/);
+    expect((await db.query("select * from character_builds")).rows).toHaveLength(1);
+  });
+
+  it("nada gravado pode ser alterado nem lido individualmente pela API pública", async () => {
+    await insertAs(OWNER, v(1, 1, "mago", "2026-01-01T00:00:00.000Z"));
+    const updated = (await asSession(OWNER, () => db.query("update character_builds set class_id = 'barbaro'"))) as { affectedRows?: number };
+    expect(updated.affectedRows ?? 0).toBe(0);
+    const visible = (await asSession(OWNER, () => db.query("select * from character_builds"))) as { rows: unknown[] };
+    expect(visible.rows).toHaveLength(0);
+    await expect(asSession(OWNER, () => db.query("select * from latest_confirmed_character_builds"))).rejects.toThrow(/permission denied/);
+    for (const role of ["anon", "authenticated"]) {
+      await db.exec(`set role ${role}`);
+      await expect(db.query("select * from latest_confirmed_character_builds")).rejects.toThrow(/permission denied/);
+      await db.exec("reset role");
+    }
+    expect((await db.query<{ class_id: string }>("select class_id from character_builds")).rows).toEqual([{ class_id: "mago" }]);
+  });
+});
+
 describe("acesso pela API pública", () => {
   it("anon/authenticated não leem as tabelas de referência diretamente, mas executam a função de contagem", async () => {
     await db.exec(referenceDatasetToSql(dataset(testReferenceFile("acesso", { characters: [testFighterAsi4("c1", "alerta", null)] }))));
     for (const role of ["anon", "authenticated"]) {
       await db.exec(`set role ${role}`);
       await expect(db.query("select * from reference_characters")).rejects.toThrow(/permission denied/);
-      const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", level: 4, subclassId: null, highestAbility: null, excludeBuildId: null, includeUserRecords: false });
+      const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", level: 4, subclassId: null, highestAbility: null, excludeCharacterId: null, includeUserRecords: false });
       expect(rows.length).toBeGreaterThan(0);
       await db.exec("reset role");
     }
@@ -260,14 +330,14 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
     level: 4,
     subclassId: "Campeão",
     highestAbility: "FOR",
-    excludeBuildId: null,
+    excludeCharacterId: null,
     includeUserRecords: true,
   };
   const queries: TalentChoiceCountQuery[] = [
     base,
     { ...base, includeUserRecords: false },
-    { ...base, excludeBuildId: testBuildId(1) },
-    { ...base, excludeBuildId: testBuildId(2) },
+    { ...base, excludeCharacterId: testBuildId(1) },
+    { ...base, excludeCharacterId: testBuildId(2) },
     { ...base, highestAbility: null, subclassId: null },
     { ...base, highestAbility: "DEX" },
     { ...base, level: 6, highestAbility: "DEX" },
@@ -290,6 +360,6 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
     expect(rows.every((row) => row.pool === "user" && row.sampleCharacters >= 20)).toBe(true);
     expect(rows.find((row) => row.tier === "level" && row.talentId === "sentinela")!.characters).toBe(14);
     // Excluir o próprio personagem derruba a amostra para 21 — ainda >= 20.
-    expect((await rpcCounts(db, { ...base, excludeBuildId: testBuildId(1) })).find((row) => row.tier === "level")!.sampleCharacters).toBe(21);
+    expect((await rpcCounts(db, { ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "level")!.sampleCharacters).toBe(21);
   });
 });

@@ -5,8 +5,10 @@ import type { ArmorId } from "../domain/ids.js";
 import { computeInsight, insightMetricDefinitions } from "./insightRules.js";
 
 function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
+  const buildId = overrides.buildId ?? `b-${Math.random()}`;
   return {
-    buildId: `b-${Math.random()}`,
+    buildId,
+    characterId: overrides.characterId ?? buildId,
     origin: "user",
     status: "confirmed",
     referenceSource: null,
@@ -43,7 +45,7 @@ beforeEach(() => {
 describe("computeInsight — tamanho mínimo de amostra (§11)", () => {
   it("não gera insight com amostra abaixo do mínimo configurado", async () => {
     for (let i = 0; i < 3; i++) {
-      await store.upsert(build({ buildId: `b${i}`, subclassId: "Evocador" }));
+      await store.insertConfirmed(build({ buildId: `b${i}`, subclassId: "Evocador" }));
     }
     const insight = await computeInsight(definitionFor("subclassPopularity"), store, { classId: "mago" }, { minSampleSize: 20 });
     expect(insight).toBeNull();
@@ -51,7 +53,7 @@ describe("computeInsight — tamanho mínimo de amostra (§11)", () => {
 
   it("gera o insight assim que a amostra atinge o mínimo configurado", async () => {
     for (let i = 0; i < 20; i++) {
-      await store.upsert(build({ buildId: `b${i}`, subclassId: "Evocador" }));
+      await store.insertConfirmed(build({ buildId: `b${i}`, subclassId: "Evocador" }));
     }
     const insight = await computeInsight(definitionFor("subclassPopularity"), store, { classId: "mago" }, { minSampleSize: 20 });
     expect(insight).not.toBeNull();
@@ -62,10 +64,10 @@ describe("computeInsight — tamanho mínimo de amostra (§11)", () => {
 describe("computeInsight — cálculo de percentual", () => {
   it("calcula a porcentagem corretamente e arredonda", async () => {
     for (let i = 0; i < 31; i++) {
-      await store.upsert(build({ buildId: `evocador-${i}`, subclassId: "Evocador" }));
+      await store.insertConfirmed(build({ buildId: `evocador-${i}`, subclassId: "Evocador" }));
     }
     for (let i = 0; i < 69; i++) {
-      await store.upsert(build({ buildId: `abjurador-${i}`, subclassId: "Abjurador" }));
+      await store.insertConfirmed(build({ buildId: `abjurador-${i}`, subclassId: "Abjurador" }));
     }
     const insight = await computeInsight(definitionFor("subclassPopularity"), store, { classId: "mago" }, { minSampleSize: 20 });
     expect(insight?.sampleSize).toBe(100);
@@ -79,10 +81,10 @@ describe("computeInsight — cálculo de percentual", () => {
 describe("computeInsight — filtragem por contexto (§10)", () => {
   it("não mistura builds de outra classe na população analisada", async () => {
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `mago-${i}`, classId: "mago", subclassId: "Evocador" }));
+      await store.insertConfirmed(build({ buildId: `mago-${i}`, classId: "mago", subclassId: "Evocador" }));
     }
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `barbaro-${i}`, classId: "barbaro", subclassId: "Trilha do Berserker" }));
+      await store.insertConfirmed(build({ buildId: `barbaro-${i}`, classId: "barbaro", subclassId: "Trilha do Berserker" }));
     }
     const insight = await computeInsight(definitionFor("subclassPopularity"), store, { classId: "mago" }, { minSampleSize: 20 });
     expect(insight?.sampleSize).toBe(25);
@@ -92,11 +94,11 @@ describe("computeInsight — filtragem por contexto (§10)", () => {
   it("tenta o contexto mais específico primeiro, mas cai para um mais amplo se a amostra for insuficiente", async () => {
     // Só 5 Magos Humanos — não é amostra suficiente sozinha.
     for (let i = 0; i < 5; i++) {
-      await store.upsert(build({ buildId: `mh-${i}`, speciesId: "humano", subclassId: "Evocador" }));
+      await store.insertConfirmed(build({ buildId: `mh-${i}`, speciesId: "humano", subclassId: "Evocador" }));
     }
     // Mas 25 Magos no total (contando os humanos) — suficiente no nível "classe apenas".
     for (let i = 0; i < 20; i++) {
-      await store.upsert(build({ buildId: `mo-${i}`, speciesId: "elfo", subclassId: "Abjurador" }));
+      await store.insertConfirmed(build({ buildId: `mo-${i}`, speciesId: "elfo", subclassId: "Abjurador" }));
     }
 
     const insight = await computeInsight(
@@ -135,7 +137,7 @@ describe("computeInsight — cold start / fallback sem dados (§12)", () => {
 describe("computeInsight — rótulos legíveis por métrica", () => {
   it("mapeia espécie/antecedente/armadura/atributo para nomes de exibição em português", async () => {
     for (let i = 0; i < 20; i++) {
-      await store.upsert(
+      await store.insertConfirmed(
         build({
           buildId: `b${i}`,
           classId: "bardo",
@@ -182,10 +184,10 @@ describe("computeInsight — dimensão highestAbility em armorPopularity (§1.2)
 
   it("usa o contexto classe+highestAbility quando a amostra é suficiente", async () => {
     for (let i = 0; i < 25; i++) {
-      await store.upsert(withHighestDex(`dex-${i}`, "couroBatido"));
+      await store.insertConfirmed(withHighestDex(`dex-${i}`, "couroBatido"));
     }
     for (let i = 0; i < 25; i++) {
-      await store.upsert(withHighestInt(`int-${i}`, "placas"));
+      await store.insertConfirmed(withHighestInt(`int-${i}`, "placas"));
     }
 
     const insight = await computeInsight(
@@ -201,10 +203,10 @@ describe("computeInsight — dimensão highestAbility em armorPopularity (§1.2)
 
   it("calcula o percentual corretamente dentro do contexto highestAbility", async () => {
     for (let i = 0; i < 15; i++) {
-      await store.upsert(withHighestDex(`a-${i}`, "couroBatido"));
+      await store.insertConfirmed(withHighestDex(`a-${i}`, "couroBatido"));
     }
     for (let i = 0; i < 5; i++) {
-      await store.upsert(withHighestDex(`b-${i}`, "couro"));
+      await store.insertConfirmed(withHighestDex(`b-${i}`, "couro"));
     }
 
     const insight = await computeInsight(
@@ -226,11 +228,11 @@ describe("computeInsight — dimensão highestAbility em armorPopularity (§1.2)
   it("cai para um contexto mais amplo quando highestAbility não tem amostra suficiente", async () => {
     // Só 3 Magos com DEX como maior atributo — insuficiente sozinho.
     for (let i = 0; i < 3; i++) {
-      await store.upsert(withHighestDex(`dex-${i}`, "couroBatido"));
+      await store.insertConfirmed(withHighestDex(`dex-${i}`, "couroBatido"));
     }
     // Mas 25 Magos no total (incluindo os 3 acima) — suficiente sem o filtro de atributo.
     for (let i = 0; i < 22; i++) {
-      await store.upsert(withHighestInt(`int-${i}`, "placas"));
+      await store.insertConfirmed(withHighestInt(`int-${i}`, "placas"));
     }
 
     const insight = await computeInsight(
@@ -246,7 +248,7 @@ describe("computeInsight — dimensão highestAbility em armorPopularity (§1.2)
 
   it("não inventa resultado quando nem o contexto amplo tem amostra suficiente", async () => {
     for (let i = 0; i < 3; i++) {
-      await store.upsert(withHighestDex(`dex-${i}`, "couroBatido"));
+      await store.insertConfirmed(withHighestDex(`dex-${i}`, "couroBatido"));
     }
 
     const insight = await computeInsight(

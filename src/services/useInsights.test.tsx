@@ -8,8 +8,10 @@ import * as repositoriesModule from "../repositories/index.js";
 import { useInsightContext, useInsights } from "./useInsights.js";
 
 function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
+  const buildId = overrides.buildId ?? `b-${Math.random()}`;
   return {
-    buildId: `b-${Math.random()}`,
+    buildId,
+    characterId: overrides.characterId ?? buildId,
     origin: "user",
     status: "confirmed",
     referenceSource: null,
@@ -81,8 +83,8 @@ describe("useInsights — mudança de classe atualiza os insights", () => {
   it("busca de novo ao trocar de classe, refletindo a nova população", async () => {
     const store = new InMemoryBuildStore();
     for (let i = 0; i < 25; i++) {
-      await store.upsert(build({ buildId: `mago-${i}`, classId: "mago", subclassId: "Evocador" }));
-      await store.upsert(build({ buildId: `barbaro-${i}`, classId: "barbaro", subclassId: "Trilha do Berserker" }));
+      await store.insertConfirmed(build({ buildId: `mago-${i}`, classId: "mago", subclassId: "Evocador" }));
+      await store.insertConfirmed(build({ buildId: `barbaro-${i}`, classId: "barbaro", subclassId: "Trilha do Berserker" }));
     }
 
     // Troca a implementação usada pela fábrica só para este teste, sem

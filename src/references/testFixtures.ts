@@ -113,6 +113,7 @@ export function testUserBuild(
   });
   return {
     buildId: testBuildId(n),
+    characterId: testBuildId(n),
     origin: "user",
     status: "confirmed",
     referenceSource: null,

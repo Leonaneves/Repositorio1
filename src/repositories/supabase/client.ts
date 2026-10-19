@@ -51,36 +51,34 @@ export function getSupabaseClient(): SupabaseClient {
  * resultante é real e autenticada (`auth.uid()` verificável pelo banco),
  * só que sem exigir nenhum dado de identidade do jogador.
  *
- * Cacheia a PROMISE (não só o `uid` resolvido) para que chamadas
- * concorrentes antes do login terminar (ex.: duas sincronizações
- * disparadas quase juntas) reaproveitem a mesma tentativa, em vez de
- * abrir duas sessões; numa falha, a cache é limpa para permitir uma nova
- * tentativa na próxima sincronização (nunca fica presa num erro antigo).
+ * Relê a sessão ATUAL a cada chamada (leitura local, barata) — nunca
+ * reaproveita um `uid` antigo, que ficaria errado se o Supabase renovar
+ * ou trocar a sessão anônima. Só a criação de sessão em andamento é
+ * compartilhada, para que chamadas concorrentes não abram duas sessões.
  *
  * ⚠️ Exige "Enable anonymous sign-ins" ativado em Authentication →
  * Providers no painel do projeto Supabase — configuração externa que
  * este código não pode ativar por si só. Sem isso, a Promise rejeita e
- * quem chamar trata o erro normalmente (ver `services/buildSync.ts`: uma
- * falha aqui nunca bloqueia a criação/exportação do personagem).
+ * quem chamar trata o erro (ver `services/publishConfirmedCharacter.ts`:
+ * a confirmação mostra o erro ao jogador e não marca o personagem como
+ * confirmado; nunca bloqueia a criação/exportação do personagem).
  */
-let ownedSessionUserId: Promise<string> | null = null;
+let pendingAnonymousSignIn: Promise<string> | null = null;
 
-export function ensureOwnedSession(client: SupabaseClient = getSupabaseClient()): Promise<string> {
-  if (!ownedSessionUserId) {
-    ownedSessionUserId = resolveOwnedSessionUserId(client).catch((error: unknown) => {
-      ownedSessionUserId = null;
-      throw error;
-    });
-  }
-  return ownedSessionUserId;
-}
-
-async function resolveOwnedSessionUserId(client: SupabaseClient): Promise<string> {
+export async function ensureOwnedSession(client: SupabaseClient = getSupabaseClient()): Promise<string> {
   const { data: existing } = await client.auth.getSession();
   if (existing.session?.user.id) {
     return existing.session.user.id;
   }
+  if (!pendingAnonymousSignIn) {
+    pendingAnonymousSignIn = signInAnonymously(client).finally(() => {
+      pendingAnonymousSignIn = null;
+    });
+  }
+  return pendingAnonymousSignIn;
+}
 
+async function signInAnonymously(client: SupabaseClient): Promise<string> {
   const { data, error } = await client.auth.signInAnonymously();
   if (error || !data.session) {
     throw new Error(`Falha ao criar sessão anônima (verifique se "Enable anonymous sign-ins" está ativado no projeto Supabase): ${error?.message ?? "sessão ausente"}`);

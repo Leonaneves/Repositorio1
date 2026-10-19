@@ -22,6 +22,7 @@ import { getClassProgression } from "../../../rules/classProgression.js";
 import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
 import { getPendingBuilderSteps } from "../../../rules/builderProgress.js";
 import { isConfirmationStillValid } from "../../../services/buildConfirmation.js";
+import { publishConfirmedCharacter } from "../../../services/publishConfirmedCharacter.js";
 import { isStepVisible, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
 import { getSubclassDisplayName } from "../../../rules/subclasses.js";
 import { getKnownMetamagicOptions } from "../../../rules/metamagic.js";
@@ -173,6 +174,7 @@ export function Step11Review() {
   const confirmCharacter = useCharacterStore((s) => s.confirmCharacter);
   const goToStep = useBuilderStore((s) => s.goToStep);
   const [exportState, setExportState] = useState<"idle" | "exporting" | "error">("idle");
+  const [confirmState, setConfirmState] = useState<"idle" | "sending" | "error">("idle");
 
   const ac = getArmorClass(character);
   const hp = getMaxHitPoints(character);
@@ -184,6 +186,7 @@ export function Step11Review() {
   const classChoiceRows = getClassChoiceRows(character);
   const subclassChoiceRows = getSubclassChoiceRows(character);
   const isConfirmed = isConfirmationStillValid(character, confirmedBuildSnapshot);
+  const hasEarlierConfirmation = confirmedBuildSnapshot !== null && !isConfirmed;
 
   const editButton = (label: string, stepId: BuilderStepId) => (
     <button type="button" className="review-edit-button" onClick={() => goToStep(stepId)} aria-label={`Editar ${label}`}>
@@ -201,6 +204,24 @@ export function Step11Review() {
       setExportState("idle");
     } catch {
       setExportState("error");
+    }
+  }
+
+  /**
+   * Grava uma NOVA versão confirmada (nunca altera a anterior nem outro
+   * personagem) e só depois marca como confirmado — se a gravação falhar,
+   * o jogador vê o erro e pode tentar de novo; nunca aparece
+   * "Confirmado" sem o registro existir.
+   */
+  async function handleConfirm() {
+    setConfirmState("sending");
+    try {
+      await publishConfirmedCharacter(character);
+      confirmCharacter();
+      setConfirmState("idle");
+    } catch (error) {
+      console.warn("Falha ao registrar personagem confirmado:", error);
+      setConfirmState("error");
     }
   }
 
@@ -234,15 +255,22 @@ export function Step11Review() {
 
       <section className="review-block" aria-label="Confirmação para estatísticas">
         <h3>Estatísticas da comunidade</h3>
-        <button type="button" onClick={confirmCharacter} disabled={pendingSteps.length > 0}>
-          {isConfirmed ? "Confirmado — confirmar novamente" : "Confirmar personagem"}
+        <button type="button" onClick={handleConfirm} disabled={isConfirmed || confirmState === "sending" || pendingSteps.length > 0}>
+          {confirmState === "sending" ? "Enviando…" : isConfirmed ? "Confirmado" : hasEarlierConfirmation ? "Confirmar nova versão" : "Confirmar personagem"}
         </button>
+        {confirmState === "error" && (
+          <p className="empty-note" role="alert">
+            Não foi possível registrar agora. Verifique a conexão e tente novamente — o personagem continua salvo neste navegador.
+          </p>
+        )}
         <p className="empty-note">
           {isConfirmed
-            ? "Este personagem está confirmado e entra nas estatísticas da comunidade."
+            ? "Este personagem está confirmado e entra nas estatísticas da comunidade. Se você alterar alguma escolha, poderá confirmar uma nova versão — a anterior é substituída nas estatísticas, nunca somada."
             : pendingSteps.length > 0
               ? "Resolva as escolhas pendentes acima antes de confirmar."
-              : "Ainda não confirmado — confirme para contar nas estatísticas da comunidade (opcional, nunca exigido para exportar o PDF)."}
+              : hasEarlierConfirmation
+                ? "Você alterou escolhas depois de confirmar. A versão confirmada antes continua nas estatísticas até você confirmar esta nova versão."
+                : "Ainda não confirmado — confirme para contar nas estatísticas da comunidade (opcional, nunca exigido para exportar o PDF)."}
         </p>
       </section>
 

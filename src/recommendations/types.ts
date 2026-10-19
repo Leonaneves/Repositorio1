@@ -40,8 +40,8 @@ export interface TalentChoiceCountQuery {
   subclassId: string | null;
   /** Maior atributo NO MOMENTO da aquisição (desempate FOR > DEX > CON > INT > SAB > CAR) — `null` quando os atributos ainda não estão definidos. */
   highestAbility: AbilityKey | null;
-  /** O próprio personagem nunca conta para a sua recomendação (`buildId` = `Character.id`). */
-  excludeBuildId: string | null;
+  /** O próprio personagem (todas as suas versões confirmadas) nunca conta para a sua recomendação — `Character.id`. */
+  excludeCharacterId: string | null;
   /** `false` enquanto `policy.ts#REAL_RECORDS_ENABLED` estiver desligado — dados reais nem chegam a ser consultados. */
   includeUserRecords: boolean;
 }
