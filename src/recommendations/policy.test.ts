@@ -17,8 +17,8 @@ const REFS_OK = { characters: 6, groups: 3 };
 const ELIGIBLE = ["alerta", "sentinela", "resistente", "mestre-atirador", "velocista"];
 
 describe("policy — constantes aprovadas", () => {
-  it("dados reais ficam fora do recomendador até a verificação em produção", () => {
-    expect(REAL_RECORDS_ENABLED).toBe(false);
+  it("dados reais liberados no recomendador após a verificação em produção (sempre sujeitos à amostra mínima de 20)", () => {
+    expect(REAL_RECORDS_ENABLED).toBe(true);
   });
 
   it("no máximo 3 recomendações por seletor", () => {

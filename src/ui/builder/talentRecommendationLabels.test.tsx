@@ -8,7 +8,7 @@ import { getTalentChoiceStatsRepository, InMemoryBuildStore } from "../../reposi
 import { clearTalentRecommendationCache } from "../../recommendations/talentRecommendationEngine.js";
 import { referenceDatasetsToFacts } from "../../references/referenceFacts.js";
 import type { ReferenceFile, ReferenceFileCharacter } from "../../references/referenceFormat.js";
-import { testAbilities, testAcquisition, testCharacter, testFighterAsi4, testReferenceFile } from "../../references/testFixtures.js";
+import { testAbilities, testAcquisition, testCharacter, testFighterAsi4, testReferenceFile, testUserBuild } from "../../references/testFixtures.js";
 import { validateReferenceFile } from "../../references/validateReferenceFile.js";
 import { getTalentOpportunityFeatures } from "../../rules/features.js";
 import { pdfTextFields } from "../../pdf/fieldMap.js";
@@ -99,7 +99,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  repository.setReferenceFacts([]);
+  repository.clear();
 });
 
 describe("AsiControl — Talento Geral", () => {
@@ -250,5 +250,44 @@ describe("Step4Species — Talento de Origem do Humano", () => {
     expect(await screen.findByRole("option", { name: "Alerta (Recomendado)" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Sortudo (Recomendado)" })).toBeInTheDocument();
     expect(useCharacterStore.getState().character.humanOriginFeatId).toBeNull();
+  });
+});
+
+describe("Dados reais liberados no recomendador", () => {
+  async function confirmFighters(count: number, talentId: string) {
+    for (let i = 1; i <= count; i++) {
+      await repository.insertConfirmed(
+        testUserBuild(i, "guerreiro", [
+          { kind: "generalFeat", opportunityId: "asi-4", level: 4, talentId, subclassId: "Campeão", abilityScores: FOR_HIGH },
+        ]),
+      );
+    }
+  }
+
+  it("com 20 personagens reais confirmados no mesmo contexto, recomenda pelo que eles escolheram (sem nenhuma referência)", async () => {
+    await confirmFighters(20, "resistente");
+    setCharacter(fighterAtAsi4());
+    render(<AsiControl level={4} showUnavailableFeats={false} />);
+    expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();
+    expect(recommendedOptions()).toEqual(["Resistente (Recomendado)"]);
+  });
+
+  it("com 19, a amostra real é insuficiente e nada é recomendado", async () => {
+    await confirmFighters(19, "resistente");
+    const spy = vi.spyOn(repository, "getTalentChoiceCounts");
+    setCharacter(fighterAtAsi4());
+    render(<AsiControl level={4} showUnavailableFeats={false} />);
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    await spy.mock.results[0].value;
+    expect(recommendedOptions()).toEqual([]);
+  });
+
+  it("dados reais suficientes têm prioridade sobre referências (sem misturar os rankings)", async () => {
+    loadReferences(asiReferences());
+    await confirmFighters(20, "resistente");
+    setCharacter(fighterAtAsi4());
+    render(<AsiControl level={4} showUnavailableFeats={false} />);
+    expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();
+    expect(recommendedOptions()).toEqual(["Resistente (Recomendado)"]);
   });
 });

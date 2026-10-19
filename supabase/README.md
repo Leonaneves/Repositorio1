@@ -133,12 +133,12 @@ atualização de um registro existente:
   tabelas acima não têm nenhuma política de leitura para `anon`/
   `authenticated`.
 
-Dados reais (`character_builds`) só entram na contagem com
-`p_include_user = true`, que o app mantém **desligado**
-(`src/recommendations/policy.ts#REAL_RECORDS_ENABLED = false`) até a
-verificação em produção de: (1) "Confirmar personagem" gravando
-`status = 'confirmed'`; (2) estatísticas contando só confirmados; (3)
-isolamento entre sessões. Mesmo ligado, a função nunca devolve uma
+Dados reais (`character_builds`, só a versão confirmada mais recente
+de cada personagem) entram na contagem com `p_include_user = true` —
+**ligado** no app (`src/recommendations/policy.ts#REAL_RECORDS_ENABLED`)
+depois da verificação em produção de: (1) "Confirmar personagem"
+gravando `status = 'confirmed'`; (2) estatísticas contando só
+confirmados; (3) isolamento entre sessões. A função nunca devolve uma
 faixa de contexto real com menos de 20 personagens distintos.
 
 As colunas `origin = 'reference'`/`reference_source_id`/

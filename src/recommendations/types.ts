@@ -42,7 +42,7 @@ export interface TalentChoiceCountQuery {
   highestAbility: AbilityKey | null;
   /** O próprio personagem (todas as suas versões confirmadas) nunca conta para a sua recomendação — `Character.id`. */
   excludeCharacterId: string | null;
-  /** `false` enquanto `policy.ts#REAL_RECORDS_ENABLED` estiver desligado — dados reais nem chegam a ser consultados. */
+  /** Segue `policy.ts#REAL_RECORDS_ENABLED` — com `false`, dados reais nem chegam a ser consultados. */
   includeUserRecords: boolean;
 }
 
