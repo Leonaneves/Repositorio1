@@ -3,6 +3,9 @@ import { useBuilderStore } from "../../../state/builderStore.js";
 import { getAvailableSubclasses } from "../../../rules/subclasses.js";
 import { getSubclassFeaturesWithChoices, getFeatureView, isSkillKindChoice } from "../../../rules/features.js";
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
 
 /**
  * Seção de Subclasse — renderizada DENTRO da etapa Classe (fonte
@@ -21,6 +24,9 @@ import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
  * "Perícias"); "Glamour Transcendental" (Andarilho Feérico) é só
  * perícia, então o card fica sem nenhum `FeatureChoiceControl`, só o
  * link.
+ *
+ * Recomendação (dados reais confirmados da mesma classe): a subclasse
+ * mais escolhida ganha "(Recomendado)", com o motivo logo abaixo.
  */
 export function Step3Subclass() {
   const character = useCharacterStore((s) => s.character);
@@ -29,6 +35,7 @@ export function Step3Subclass() {
 
   const available = character.classId ? getAvailableSubclasses(character.classId) : [];
   const choiceFeatures = getSubclassFeaturesWithChoices(character);
+  const recommendedSubclasses = useBuildChoiceRecommendations({ kind: "subclass" }, available.map((s) => s.fullName));
 
   return (
     <section className="feature-card" aria-label="Subclasse">
@@ -39,11 +46,12 @@ export function Step3Subclass() {
           <option value="">- Selecione -</option>
           {available.map((s) => (
             <option key={s.fullName} value={s.fullName}>
-              {s.shortName}
+              {withRecommendedLabel(s.shortName, recommendedSubclasses.has(s.fullName))}
             </option>
           ))}
         </select>
       </label>
+      <RecommendationReasonsHint reasons={recommendedSubclasses} nameOf={(fullName) => available.find((s) => s.fullName === fullName)?.shortName ?? fullName} />
 
       {choiceFeatures.map((feature) => {
         const view = getFeatureView(feature);

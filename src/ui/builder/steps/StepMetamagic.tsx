@@ -1,5 +1,8 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
 import { getKnownMetamagicOptions, getMetamagicOptionsKnownCount, getSelectableMetamagicOptions } from "../../../rules/metamagic.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
 
 /**
  * Etapa PRÓPRIA do Builder — "Metamagia" (fonte "INTEGRAÇÃO COMPLETA —
@@ -8,6 +11,9 @@ import { getKnownMetamagicOptions, getMetamagicOptionsKnownCount, getSelectableM
  * PRÓPRIO, fora do `FeatureChoiceControl` genérico, mesmo raciocínio
  * de `StepInvocations`: a quantidade exigida varia por nível e nunca
  * pode haver duplicata.
+ *
+ * Recomendação (dados reais confirmados de Feiticeiros): até 3 opções
+ * ainda não conhecidas ganham "(Recomendado)", com o motivo logo abaixo.
  */
 export function StepMetamagic() {
   const character = useCharacterStore((s) => s.character);
@@ -18,6 +24,7 @@ export function StepMetamagic() {
   const known = getKnownMetamagicOptions(character);
   const canAddMore = known.length < required;
   const selectable = getSelectableMetamagicOptions().filter((option) => !character.knownMetamagicOptions.includes(option.id));
+  const recommended = useBuildChoiceRecommendations({ kind: "metamagic" }, selectable.map((option) => option.id));
 
   return (
     <div className="builder-step" aria-label="Metamagia">
@@ -46,10 +53,11 @@ export function StepMetamagic() {
         {selectable.map((option) => (
           <label key={option.id} className="checkbox-field checkbox-field--compact">
             <button type="button" disabled={!canAddMore} onClick={() => addMetamagicOption(option.id)}>
-              + {option.name}
+              + {withRecommendedLabel(option.name, recommended.has(option.id))}
             </button>
           </label>
         ))}
+        <RecommendationReasonsHint reasons={recommended} nameOf={(id) => selectable.find((option) => option.id === id)?.name ?? id} />
       </fieldset>
     </div>
   );

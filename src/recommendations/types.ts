@@ -88,15 +88,17 @@ export interface TalentChoiceFact {
 }
 
 /**
- * Resultado interno de uma recomendação — a UI só usa `talentIds` (rótulo
- * "(Recomendado)"); `pool`/`tier`/amostra ficam guardados para
- * auditoria (fonte §1: "manter internamente a origem dos dados usada em
- * cada recomendação"), nunca exibidos como se fossem escolhas de
- * jogadores reais.
+ * Resultado de uma recomendação — a UI usa `talentIds` (rótulo
+ * "(Recomendado)") e `characters`/`sampleCharacters`/`pool` para o
+ * motivo ("escolhido por X de 10 guerreiros"); referências aparecem
+ * como "personagens de referência", nunca como escolhas de jogadores
+ * reais. `tier`/`sampleGroups` ficam guardados para auditoria (fonte §1).
  */
 export interface TalentRecommendationResult {
   /** No máximo `MAX_RECOMMENDATIONS_PER_SELECTOR`, já na ordem do ranking. */
   talentIds: string[];
+  /** Personagens distintos que escolheram cada talento recomendado (base do motivo "escolhido por X de 10"). */
+  characters: Record<string, number>;
   pool: RecommendationPool;
   tier: ContextTier;
   sampleCharacters: number;

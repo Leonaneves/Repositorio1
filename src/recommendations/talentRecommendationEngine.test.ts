@@ -34,7 +34,7 @@ beforeEach(() => {
 describe("getTalentRecommendations", () => {
   it("devolve as recomendações elegíveis com a origem dos dados guardada internamente", async () => {
     const result = await getTalentRecommendations(QUERY, ["alerta", "sentinela", "resistente"], { repository: storeWithReferences() });
-    expect(result).toEqual({ talentIds: ["sentinela", "alerta"], pool: "reference_extracted", tier: "level_subclass_ability", sampleCharacters: 3, sampleGroups: 2 });
+    expect(result).toEqual({ talentIds: ["sentinela", "alerta"], characters: { sentinela: 2, alerta: 1 }, pool: "reference_extracted", tier: "level_subclass_ability", sampleCharacters: 3, sampleGroups: 2 });
   });
 
   it("sem dados (repositório vazio): nenhuma recomendação", async () => {

@@ -41,8 +41,9 @@ apliquei nada a um banco real. Para ativar:
    `migrations/0002_build_ownership_and_talents.sql`,
    `migrations/0003_select_own_builds_for_upsert.sql`,
    `migrations/0004_talent_recommendations.sql`,
-   `migrations/0005_confirmed_versions.sql` e
-   `migrations/0006_build_choice_recommendations.sql` (ou use
+   `migrations/0005_confirmed_versions.sql`,
+   `migrations/0006_build_choice_recommendations.sql` e
+   `migrations/0007_subclass_metamagic_recommendations.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -114,6 +115,23 @@ atualização de um registro existente:
   `character_id` próprio e nunca altera os anteriores.
 - Linhas antigas: rascunhos continuam guardados e são ignorados; uma
   linha antiga já confirmada vira a versão única do seu personagem.
+
+## Recomendações de Subclasse e Metamagia (migration 0007)
+
+- Nova coluna `metamagic_options` (text[]): as opções de Metamagia
+  conhecidas pelo Feiticeiro. Linhas antigas ficam vazias e não contam.
+- `get_build_choice_counts` (mesma assinatura) ganha `p_kind =
+  'subclass'` (só a faixa da classe: só personagens que já escolheram
+  subclasse) e `'metamagic'`.
+- A view `latest_confirmed_character_builds` é recriada de novo (coluna
+  nova) e continua sem acesso pela API pública.
+
+Cada opção recomendada mostra o motivo abaixo do seletor, sempre na
+proporção "de 10" (ex.: "escolhido por 7 de 10 guerreiros"; com mais de
+10 personagens, "cerca de 6 de cada 10").
+
+**Aplique a `0007` antes de publicar o site novo** (o site novo grava
+`metamagic_options` ao confirmar).
 
 ## Recomendações de Espécie, Antecedente, Perícias, Especialização e atributos (migration 0006)
 

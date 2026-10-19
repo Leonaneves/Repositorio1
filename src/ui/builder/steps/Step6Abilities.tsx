@@ -15,6 +15,7 @@ import { getUnlockedAsiLevels } from "../../../rules/asi.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "../../../rules/abilities.js";
 import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
 import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -122,6 +123,8 @@ export function Step6Abilities() {
             </label>
           ))}
         </div>
+        <RecommendationReasonsHint reasons={recommendedHighest} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} verb="o maior atributo de" />
+        <RecommendationReasonsHint reasons={recommendedDump} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} verb="o menor atributo de" />
 
         <button type="button" disabled={!valid} onClick={commitDraftScores}>
           Confirmar atributos

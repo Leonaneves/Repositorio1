@@ -2,6 +2,7 @@ import { useCharacterStore } from "../../state/characterStore.js";
 import { formatFeatIneligibilityReason, getChosenAsiFeatIneligibilityReasons, getFeatCatalogForAsiLevel } from "../../rules/feats.js";
 import { getAsiFeatOpportunity } from "../../recommendations/currentOpportunityContext.js";
 import { useTalentRecommendations, withRecommendedLabel } from "../../services/useTalentRecommendations.js";
+import { RecommendationReasonsHint } from "./RecommendationReasonsHint.js";
 
 export interface AsiControlProps {
   level: number;
@@ -93,6 +94,7 @@ export function AsiControl({ level, showUnavailableFeats }: AsiControlProps) {
               ))}
             </select>
           </label>
+          <RecommendationReasonsHint reasons={recommendedFeats} nameOf={(id) => catalog.find((entry) => entry.feat.id === id)?.feat.name ?? id} />
           {ineligibilityReasons.length > 0 && (
             <p className="builder-step__hint builder-step__hint--warning">
               Este talento não atende mais aos pré-requisitos: {ineligibilityReasons.map(formatFeatIneligibilityReason).join(" ")}

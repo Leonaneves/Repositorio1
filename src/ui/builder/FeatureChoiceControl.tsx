@@ -12,6 +12,7 @@ import { getTalentChoiceOpportunity } from "../../recommendations/currentOpportu
 import { getOptionPickTalentId } from "../../recommendations/opportunityKind.js";
 import { useTalentRecommendations, withRecommendedLabel } from "../../services/useTalentRecommendations.js";
 import { useBuildChoiceRecommendations } from "../../services/useBuildChoiceRecommendations.js";
+import { RecommendationReasonsHint } from "./RecommendationReasonsHint.js";
 import type { SkillKey } from "../../domain/ids.js";
 
 export interface FeatureChoiceControlProps {
@@ -84,6 +85,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
             <span>{skillLabel(skillId)}</span>
           </label>
         ))}
+        <RecommendationReasonsHint reasons={recommendedSkills} nameOf={(skillId) => skills[skillId as SkillKey].name} />
       </fieldset>
     );
   }
@@ -110,6 +112,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
             <span>{skillLabel(skillId)}</span>
           </label>
         ))}
+        <RecommendationReasonsHint reasons={recommendedSkills} nameOf={(skillId) => skills[skillId as SkillKey].name} />
         {options.length === 0 && <p className="builder-step__hint">Escolha proficiência em ao menos uma perícia antes de especializar-se.</p>}
       </fieldset>
     );
@@ -321,20 +324,23 @@ function OptionPickChoiceControl({ choice, options }: { choice: FeatureChoice; o
   const recommended = useTalentRecommendations(talentKind ? opportunity : null, eligibleTalentIds);
 
   return (
-    <label className="field feature-choice">
-      <span>{choice.prompt}</span>
-      <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
-        <option value="">- Selecione -</option>
-        {options.map((option) => {
-          const talentId = talentIdOf(option);
-          return (
-            <option key={option} value={option}>
-              {withRecommendedLabel(option, talentId !== null && recommended.has(talentId))}
-            </option>
-          );
-        })}
-      </select>
-    </label>
+    <>
+      <label className="field feature-choice">
+        <span>{choice.prompt}</span>
+        <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
+          <option value="">- Selecione -</option>
+          {options.map((option) => {
+            const talentId = talentIdOf(option);
+            return (
+              <option key={option} value={option}>
+                {withRecommendedLabel(option, talentId !== null && recommended.has(talentId))}
+              </option>
+            );
+          })}
+        </select>
+      </label>
+      <RecommendationReasonsHint reasons={recommended} nameOf={(talentId) => options.find((option) => talentIdOf(option) === talentId) ?? talentId} />
+    </>
   );
 }
 

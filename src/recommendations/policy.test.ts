@@ -138,6 +138,7 @@ describe("selectTalentRecommendations", () => {
     const rows = [row("reference_extracted", "level", "alerta", 3, { characters: 4, groups: 2 })];
     expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false })).toEqual({
       talentIds: ["alerta"],
+      characters: { alerta: 3 },
       pool: "reference_extracted",
       tier: "level",
       sampleCharacters: 4,

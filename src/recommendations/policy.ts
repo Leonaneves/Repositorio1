@@ -147,8 +147,10 @@ export function selectTalentRecommendations(
         .sort((a, b) => b.characters - a.characters || b.independentGroups - a.independentGroups || order.get(a.talentId)! - order.get(b.talentId)!);
       if (ranked.length === 0) continue;
 
+      const chosen = ranked.slice(0, MAX_RECOMMENDATIONS_PER_SELECTOR);
       return {
-        talentIds: ranked.slice(0, MAX_RECOMMENDATIONS_PER_SELECTOR).map((row) => row.talentId),
+        talentIds: chosen.map((row) => row.talentId),
+        characters: Object.fromEntries(chosen.map((row) => [row.talentId, row.characters])),
         pool,
         tier,
         sampleCharacters,

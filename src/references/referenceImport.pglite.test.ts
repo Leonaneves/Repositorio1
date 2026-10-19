@@ -16,7 +16,7 @@ import { validateReferenceFile } from "./validateReferenceFile.js";
 
 /**
  * Integração com um Postgres REAL (PGlite, em memória) — aplica as
- * migrations 0001→0006 exatamente como estão no repositório, com só o
+ * migrations 0001→0007 exatamente como estão no repositório, com só o
  * mínimo do Supabase simulado (papéis `anon`/`authenticated` e
  * `auth.uid()`). Cobre: importação/reimportação sem duplicar, transação
  * desfeita em erro, bloqueio de leitura direta das referências e
@@ -58,8 +58,8 @@ async function count(db: PGlite, table: string): Promise<number> {
 async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
   const s = build.abilityScores;
   await db.query(
-    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, updated_at, confirmed_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $18)`,
+    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, metamagic_options, updated_at, confirmed_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $19, $19)`,
     [
       build.buildId,
       build.characterId,
@@ -78,6 +78,7 @@ async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
       build.status,
       JSON.stringify(build.talentAcquisitions),
       JSON.stringify(build.skillChoices),
+      build.metamagicOptions,
       build.updatedAt,
     ],
   );
@@ -129,13 +130,14 @@ beforeEach(async () => {
   await db.exec("reset role; delete from reference_sources; delete from character_builds;");
 });
 
-describe("migrations 0001→0006", () => {
-  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006 pode ser reaplicada", { timeout: 60_000 }, async () => {
+describe("migrations 0001→0007", () => {
+  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006/0007 podem ser reaplicadas", { timeout: 60_000 }, async () => {
     const fresh = await createDatabase();
     for (const table of ["reference_sources", "reference_characters", "reference_acquisitions", "reference_character_citations", "reference_mentions"]) {
       expect(await count(fresh, table)).toBe(0);
     }
     await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0006_build_choice_recommendations.sql`, "utf8"));
+    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0007_subclass_metamagic_recommendations.sql`, "utf8"));
     expect(await count(fresh, "reference_sources")).toBe(0);
     await fresh.close();
   });
@@ -407,6 +409,7 @@ describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () =
         backgroundId: i % 4 === 0 ? null : BACKGROUNDS[i % 2],
         abilityScores: ABILITIES[i % 3],
         skillChoices: i % 5 === 0 ? {} : { [SKILL_CHOICE]: [...SKILLS[i % 3]] },
+        metamagicOptions: i % 7 === 0 ? [] : i % 2 === 0 ? ["acelerada", "duplicada"] : ["acelerada", "sutil"],
       }),
     ),
     // Versão antiga do personagem 1 (deve ser ignorada) + rascunho + outra classe.
@@ -426,6 +429,10 @@ describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () =
     { ...base, kind: "dumpAbility" },
     { ...base, kind: "skillChoice", choiceId: SKILL_CHOICE },
     { ...base, kind: "skillChoice", choiceId: "outra-escolha" },
+    { ...base, kind: "subclass" },
+    { ...base, kind: "subclass", subclassId: null },
+    { ...base, kind: "metamagic" },
+    { ...base, kind: "metamagic", subclassId: null },
     { ...base, classId: "mago" },
   ];
 
@@ -452,6 +459,20 @@ describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () =
     // Sem o personagem 1, a subclasse fica com 10 — ainda vale; o Mestre de Batalha (3) nunca vale.
     expect((await rpcBuildChoiceCounts({ ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "class_subclass")!.sampleCharacters).toBe(10);
     expect((await rpcBuildChoiceCounts({ ...base, subclassId: "Mestre de Batalha" })).every((row) => row.tier === "class")).toBe(true);
+  });
+
+  it("subclasse: só a faixa da classe, mesmo com a subclasse do personagem informada", async () => {
+    for (const build of userBuilds) await insertBuild(db, build);
+    const rows = await rpcBuildChoiceCounts({ ...base, kind: "subclass" });
+    expect(Object.fromEntries(rows.map((row) => [`${row.tier}|${row.value}`, row.characters]))).toEqual({ "class|Campeão": 11, "class|Mestre de Batalha": 3 });
+  });
+
+  it("metamagia: cada opção conta o personagem uma vez; quem não tem nenhuma fica fora da amostra", async () => {
+    for (const build of userBuilds) await insertBuild(db, build);
+    const rows = (await rpcBuildChoiceCounts({ ...base, kind: "metamagic", subclassId: null })).filter((row) => row.tier === "class");
+    // i = 0 e 7 sem Metamagia → 12 na amostra.
+    expect(Object.fromEntries(rows.map((row) => [row.value, row.characters]))).toEqual({ acelerada: 12, duplicada: 6, sutil: 6 });
+    expect(rows.every((row) => row.sampleCharacters === 12)).toBe(true);
   });
 
   it("menor atributo: empate fica com o primeiro na ordem FOR > DEX > CON > INT > SAB > CAR", async () => {

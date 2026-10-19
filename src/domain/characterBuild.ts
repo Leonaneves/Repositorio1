@@ -159,6 +159,8 @@ export interface CharacterBuild {
    */
   skillChoices: Record<string, SkillKey[]>;
   savingThrowProficiencies: AbilityKey[];
+  /** Opções de Metamagia conhecidas (Feiticeiro — ids de `data/metamagic.ts`), na ordem escolhida. Base da recomendação de Metamagia. `[]` em registros gravados antes deste campo existir. */
+  metamagicOptions: string[];
 
   armorId: ArmorId | null; // null = sem armadura
   shield: boolean;

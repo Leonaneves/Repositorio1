@@ -8,6 +8,7 @@ import { getAvailableOriginFeatsForHumanSpecies, hasHumanOriginFeatConflictWithB
 import { HUMAN_ORIGIN_FEAT_OPPORTUNITY } from "../../../recommendations/currentOpportunityContext.js";
 import { useTalentRecommendations, withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
 import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
 
 /**
  * Etapa 4 — escolha de espécie, com subseção de Linhagem/Ancestralidade
@@ -66,6 +67,7 @@ export function Step4Species() {
           ))}
         </select>
       </label>
+      <RecommendationReasonsHint reasons={recommendedSpecies} nameOf={(id) => species[id as (typeof SPECIES_IDS)[number]].name} />
 
       {speciesId && hasSpeciesLineage(speciesId) && (
         <fieldset className="species-lineage">
@@ -98,6 +100,7 @@ export function Step4Species() {
               ))}
             </select>
           </label>
+          <RecommendationReasonsHint reasons={recommendedOriginFeats} nameOf={(id) => availableOriginFeats.find((feat) => feat.id === id)?.name ?? id} />
           {hasConflict && (
             <p className="builder-step__hint builder-step__hint--warning">
               Este talento já é concedido pelo Antecedente atual e não é repetível — escolha outro Talento de Origem para o Humano.

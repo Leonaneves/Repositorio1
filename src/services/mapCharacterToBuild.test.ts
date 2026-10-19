@@ -113,4 +113,12 @@ describe("mapCharacterToBuild", () => {
     character.classId = "guerreiro";
     expect(mapCharacterToBuild(character).skillChoices).toEqual({});
   });
+
+  it("metamagicOptions copia as opções de Metamagia conhecidas", () => {
+    const character = createBlankCharacter("build-test-9");
+    character.classId = "feiticeiro";
+    character.level = 2;
+    character.knownMetamagicOptions = ["acelerada", "duplicada"];
+    expect(mapCharacterToBuild(character).metamagicOptions).toEqual(["acelerada", "duplicada"]);
+  });
 });

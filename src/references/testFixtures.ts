@@ -126,6 +126,7 @@ export function testUserBuild(
     skillProficiencies: [],
     skillExpertise: [],
     skillChoices: {},
+    metamagicOptions: [],
     savingThrowProficiencies: [],
     armorId: null,
     shield: false,

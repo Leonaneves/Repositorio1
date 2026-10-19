@@ -113,6 +113,10 @@ describe("AsiControl — Talento Geral", () => {
     // Sentinela (2 personagens) + empate de 1 entre Alerta/Vigoroso/Resistente → ordem do seletor (catálogo).
     // As opções continuam na ordem original do seletor (nunca reordenadas).
     expect(recommendedOptions()).toEqual(["Alerta (Recomendado)", "Vigoroso (Recomendado)", "Sentinela (Recomendado)"]);
+    // Referências nunca aparecem como escolha de jogadores; o motivo segue a ordem do ranking.
+    const reasons = screen.getAllByRole("listitem").map((item) => item.textContent ?? "");
+    expect(reasons.map((text) => text.split(":")[0])).toEqual(["Sentinela", "Alerta", "Vigoroso"]);
+    expect(reasons.every((text) => text.includes("guerreiros de referência (guias e fontes externas)"))).toBe(true);
     expect(screen.getByRole("option", { name: "Resistente" })).toBeInTheDocument();
     expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: null });
   });
@@ -270,6 +274,7 @@ describe("Dados reais liberados no recomendador", () => {
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();
     expect(recommendedOptions()).toEqual(["Resistente (Recomendado)"]);
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Resistente: escolhido por 10 de 10 guerreiros"]);
   });
 
   it("com 9, a amostra real é insuficiente e nada é recomendado", async () => {

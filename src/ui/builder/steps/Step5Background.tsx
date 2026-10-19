@@ -6,6 +6,7 @@ import { skills } from "../../../data/skills.js";
 import { hasHumanOriginFeatConflictWithBackground } from "../../../rules/feats.js";
 import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
 import { withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
 
 /**
  * Etapa 5 — escolha de antecedente, informações e benefícios já
@@ -50,6 +51,7 @@ export function Step5Background() {
           ))}
         </select>
       </label>
+      <RecommendationReasonsHint reasons={recommendedBackgrounds} nameOf={(id) => backgrounds[id as (typeof BACKGROUND_IDS)[number]].name} />
       {backgroundId && (
         <p className="builder-step__hint">
           Perícias: {backgrounds[backgroundId].grantedSkills.map((skillId) => skills[skillId].name).join(", ")}

@@ -1155,3 +1155,11 @@ select:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Motivo das opções recomendadas ("Anão: escolhido por 4 de 10 guerreiros") — abaixo de cada seletor. */
+.recommendation-reasons {
+  margin: 0;
+  padding-left: var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}

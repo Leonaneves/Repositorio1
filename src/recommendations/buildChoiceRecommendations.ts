@@ -6,8 +6,8 @@ import { MIN_REAL_CHARACTERS } from "./policy.js";
 /**
  * Recomendações de escolhas de CRIAÇÃO além dos talentos (pedido do
  * usuário "ampliar o escopo"): Espécie, Antecedente, Perícias,
- * Especialização e, na distribuição de atributos, 1 atributo maior e 1
- * "dump stat" (o menor). Só dados REAIS — a versão confirmada mais
+ * Especialização, Subclasse, Metamagia e, na distribuição de atributos,
+ * 1 atributo maior e 1 "dump stat" (o menor). Só dados REAIS — a versão confirmada mais
  * recente de cada personagem —, porque o formato de referências não
  * traz essas escolhas. Mesmas regras gerais dos talentos: amostra mínima
  * de `MIN_REAL_CHARACTERS` personagens distintos no contexto, só opções
@@ -16,19 +16,30 @@ import { MIN_REAL_CHARACTERS } from "./policy.js";
  * `get_build_choice_counts` (migration 0006).
  */
 
-export type BuildChoiceKind = "species" | "background" | "highestAbility" | "dumpAbility" | "skillChoice";
+export type BuildChoiceKind = "species" | "background" | "highestAbility" | "dumpAbility" | "skillChoice" | "subclass" | "metamagic";
 
-/** Contexto: sempre a mesma classe; primeiro também a mesma subclasse (quando o personagem atual já tem uma), depois só a classe. */
+/**
+ * Contexto: sempre a mesma classe; primeiro também a mesma subclasse
+ * (quando o personagem atual já tem uma), depois só a classe. A própria
+ * Subclasse só usa a faixa `class` (comparar com quem já tem a mesma
+ * subclasse daria sempre 100%).
+ */
 export type BuildChoiceTier = "class_subclass" | "class";
 export const BUILD_CHOICE_TIERS: readonly BuildChoiceTier[] = ["class_subclass", "class"];
 
-/** Quantas opções podem ser marcadas por seletor: atributos indicam UM maior e UM menor; os demais seguem o limite de 3. */
+/**
+ * Quantas opções podem ser marcadas por seletor: atributos indicam UM
+ * maior e UM menor; Subclasse indica só a mais escolhida (cada classe tem
+ * só 4 — marcar 3 não ajudaria a decidir); os demais seguem o limite de 3.
+ */
 export const MAX_BUILD_CHOICE_RECOMMENDATIONS: Readonly<Record<BuildChoiceKind, number>> = {
   species: 3,
   background: 3,
   highestAbility: 1,
   dumpAbility: 1,
   skillChoice: 3,
+  subclass: 1,
+  metamagic: 3,
 };
 
 export interface BuildChoiceCountQuery {
@@ -52,6 +63,8 @@ export interface BuildChoiceCountRow {
 
 export interface BuildChoiceRecommendationResult {
   values: string[];
+  /** Personagens distintos que escolheram cada valor recomendado (base do motivo "escolhido por X de 10"). */
+  characters: Record<string, number>;
   tier: BuildChoiceTier;
   sampleCharacters: number;
 }
@@ -69,6 +82,10 @@ function valuesOf(build: CharacterBuild, query: BuildChoiceCountQuery): string[]
       return [lowestAbility(build.abilityScores)];
     case "skillChoice":
       return query.choiceId ? [...(build.skillChoices?.[query.choiceId] ?? [])] : [];
+    case "subclass":
+      return build.subclassId ? [build.subclassId] : [];
+    case "metamagic":
+      return [...(build.metamagicOptions ?? [])];
   }
 }
 
@@ -82,7 +99,7 @@ export function countBuildChoices(latestBuilds: readonly CharacterBuild[], query
   const relevant = latestBuilds.filter((build) => build.classId === query.classId && build.characterId !== query.excludeCharacterId);
   const rows: BuildChoiceCountRow[] = [];
   for (const tier of BUILD_CHOICE_TIERS) {
-    if (tier === "class_subclass" && query.subclassId === null) continue;
+    if (tier === "class_subclass" && (query.subclassId === null || query.kind === "subclass")) continue;
     const inTier = relevant.filter((build) => tier === "class" || build.subclassId === query.subclassId);
     const byValue = new Map<string, Set<string>>();
     const sample = new Set<string>();
@@ -119,7 +136,13 @@ export function selectBuildChoiceRecommendations(
       .filter((row) => row.characters > 0 && order.has(row.value))
       .sort((a, b) => b.characters - a.characters || order.get(a.value)! - order.get(b.value)!);
     if (ranked.length === 0) continue;
-    return { values: ranked.slice(0, max).map((row) => row.value), tier, sampleCharacters: tierRows[0].sampleCharacters };
+    const chosen = ranked.slice(0, max);
+    return {
+      values: chosen.map((row) => row.value),
+      characters: Object.fromEntries(chosen.map((row) => [row.value, row.characters])),
+      tier,
+      sampleCharacters: tierRows[0].sampleCharacters,
+    };
   }
   return null;
 }

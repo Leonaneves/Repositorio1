@@ -22,7 +22,7 @@ const fighters = (count: number, overrides: (index: number) => Parameters<typeof
 
 describe("limites por seletor", () => {
   it("Espécie/Antecedente/Perícias: até 3; atributos: 1 maior e 1 menor", () => {
-    expect(MAX_BUILD_CHOICE_RECOMMENDATIONS).toEqual({ species: 3, background: 3, highestAbility: 1, dumpAbility: 1, skillChoice: 3 });
+    expect(MAX_BUILD_CHOICE_RECOMMENDATIONS).toEqual({ species: 3, background: 3, highestAbility: 1, dumpAbility: 1, skillChoice: 3, subclass: 1, metamagic: 3 });
   });
 });
 
@@ -66,6 +66,22 @@ describe("countBuildChoices", () => {
     expect(rows.every((row) => row.sampleCharacters === 10)).toBe(true);
   });
 
+  it("subclasse: só a faixa da classe; quem ainda não tem subclasse fica fora da amostra", () => {
+    const builds = fighters(13, (index) => ({ subclassId: index < 3 ? null : index < 9 ? "Campeão" : "Psiônico" }));
+    expect(countBuildChoices(builds, query({ kind: "subclass", subclassId: "Campeão" }))).toEqual([
+      { tier: "class", value: "Campeão", characters: 6, sampleCharacters: 10 },
+      { tier: "class", value: "Psiônico", characters: 4, sampleCharacters: 10 },
+    ]);
+  });
+
+  it("metamagia: cada opção conhecida conta o personagem uma vez", () => {
+    const builds = Array.from({ length: 10 }, (_, index) =>
+      testUserBuild(index + 1, "feiticeiro", [], { metamagicOptions: index < 6 ? ["acelerada", "duplicada"] : ["acelerada", "sutil"] }),
+    );
+    const rows = countBuildChoices(builds, query({ kind: "metamagic", classId: "feiticeiro" }));
+    expect(Object.fromEntries(rows.map((row) => [row.value, row.characters]))).toEqual({ acelerada: 10, duplicada: 6, sutil: 4 });
+  });
+
   it("registros antigos sem `skillChoices` não quebram nem contam", () => {
     const legacy = fighters(10).map((build) => ({ ...build, skillChoices: undefined as unknown as Record<string, never> }));
     expect(countBuildChoices(legacy, query({ kind: "skillChoice", choiceId: "classe-guerreiro-pericias" }))).toEqual([]);
@@ -77,7 +93,12 @@ describe("selectBuildChoiceRecommendations", () => {
 
   it("ranking por personagens, empate pela ordem do seletor, corte no máximo", () => {
     const rows = [row("class", "elfo", 3), row("class", "anao", 3), row("class", "humano", 5), row("class", "orc", 1)];
-    expect(selectBuildChoiceRecommendations(rows, ["anao", "elfo", "humano", "orc"], 3)?.values).toEqual(["humano", "anao", "elfo"]);
+    expect(selectBuildChoiceRecommendations(rows, ["anao", "elfo", "humano", "orc"], 3)).toEqual({
+      values: ["humano", "anao", "elfo"],
+      characters: { humano: 5, anao: 3, elfo: 3 },
+      tier: "class",
+      sampleCharacters: 12,
+    });
     expect(selectBuildChoiceRecommendations(rows, ["anao", "elfo", "humano", "orc"], 1)?.values).toEqual(["humano"]);
   });
 
