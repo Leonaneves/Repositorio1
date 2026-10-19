@@ -5,7 +5,7 @@ import { classFeatures, getEpicBoonChoiceId } from "../data/features/classes.js"
 import { FIGHTER_FIGHTING_STYLE_CHOICE_ID } from "../data/features/fighter.js";
 import { PALADIN_FIGHTING_STYLE_CHOICE_ID, PALADIN_FIGHTING_STYLE_OR_BLESSED_WARRIOR_CHOICE_ID } from "../data/features/paladin.js";
 import { RANGER_FIGHTING_STYLE_OR_DRUIDIC_CHOICE_ID, RANGER_FIGHTING_STYLE_TALENT_CHOICE_ID } from "../data/features/ranger.js";
-import { speciesFeatures } from "../data/features/species.js";
+import { HUMANO_HABIL_CHOICE_ID, speciesFeatures } from "../data/features/species.js";
 import {
   subclassFeatures,
   FIGHTER_CHAMPION_ADDITIONAL_FIGHTING_STYLE_CHOICE_ID,
@@ -236,7 +236,12 @@ export function getCharacterFeatures(character: Character): FeatureDefinition[] 
 export function isFeatureChoiceComplete(choice: FeatureChoice, character: Character): boolean {
   const selection = character.featureChoiceSelections[choice.id]?.value;
 
-  if (choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise" || choice.effect.kind === "toolProficiency") {
+  if (
+    choice.effect.kind === "skillProficiency" ||
+    choice.effect.kind === "skillExpertise" ||
+    choice.effect.kind === "toolProficiency" ||
+    choice.effect.kind === "skillOrToolProficiency"
+  ) {
     const selected = Array.isArray(selection) ? selection : [];
     return selected.length === choice.effect.count;
   }
@@ -320,10 +325,18 @@ export function getOtherFeaturesWithChoices(character: Character): FeatureDefini
  * `skillProficiencyOrExpertise` ("Mente Aguçada", fonte "COMPLETAR
  * TALENTOS GERAIS NO BUILDER E NO PDF" §9) entra aqui pelo mesmo motivo:
  * é sempre uma escolha DE PERÍCIA, mesmo concedendo Proficiência OU
- * Especialização dependendo do estado atual.
+ * Especialização dependendo do estado atual. "Hábil" do Humano
+ * (`skillOrToolProficiency`: 1 perícia OU ferramenta) também fica na
+ * etapa "Perícias", junto da escolha de espécie do Elfo — o talento
+ * Habilidoso, com o mesmo efeito, continua na etapa Talentos.
  */
 export function isSkillKindChoice(choice: FeatureChoice): boolean {
-  return choice.effect.kind === "skillProficiency" || choice.effect.kind === "skillExpertise" || choice.effect.kind === "skillProficiencyOrExpertise";
+  return (
+    choice.effect.kind === "skillProficiency" ||
+    choice.effect.kind === "skillExpertise" ||
+    choice.effect.kind === "skillProficiencyOrExpertise" ||
+    choice.id === HUMANO_HABIL_CHOICE_ID
+  );
 }
 
 /**

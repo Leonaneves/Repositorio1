@@ -16,6 +16,7 @@ import { getClassSkillChoiceId } from "../../data/classes.js";
 import { MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID } from "../../data/features/feats.js";
 import { getFeatChoiceId } from "../../rules/feats.js";
 import { getSkillProficiencyOrigin } from "../../rules/skills.js";
+import { HUMANO_HABIL_CHOICE_ID } from "../../data/features/species.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -301,6 +302,7 @@ describe("BuilderWizard — Revisão detecta pendências e bloqueia a exportaç�
       store.setLevel(1);
       store.setSpecies("humano");
       store.setHumanOriginFeat("vigoroso"); // Talento de Origem do Humano (traço Versátil) — sem escolhas internas
+      store.setFeatureChoiceSelection(HUMANO_HABIL_CHOICE_ID, ["furtividade"]); // traço Hábil do Humano
       store.setBackground("acolito"); // INT, SAB, CAR
       store.increaseBackgroundAbilityBonus("INT");
       store.increaseBackgroundAbilityBonus("INT");
@@ -333,6 +335,7 @@ describe("BuilderWizard — ação 'Confirmar personagem' na Revisão (fonte \"I
     store.setLevel(1);
     store.setSpecies("humano");
     store.setHumanOriginFeat("vigoroso");
+    store.setFeatureChoiceSelection(HUMANO_HABIL_CHOICE_ID, ["furtividade"]);
     store.setBackground("acolito");
     store.increaseBackgroundAbilityBonus("INT");
     store.increaseBackgroundAbilityBonus("INT");
@@ -648,10 +651,12 @@ describe("BuilderWizard — etapa 'Perícias' centraliza as escolhas (fonte \"CE
     setupGuerreiroAcolito();
     act(() => useBuilderStore.getState().goToStep("skills"));
 
+    // O personagem de teste é Humano: "Hábil" também lista Furtividade — a edição manual é a da lista "Todas as perícias".
+    const allSkills = () => within(screen.getByRole("heading", { name: "Todas as perícias" }).closest("section")!);
     fireEvent.click(screen.getByRole("button", { name: /Editar perícias manualmente \(Homebrew\)/ }));
-    fireEvent.click(screen.getByRole("checkbox", { name: "Furtividade" })); // sem nenhuma origem automática neste personagem
+    fireEvent.click(allSkills().getByRole("checkbox", { name: "Furtividade" })); // sem nenhuma origem automática neste personagem
     // Depois de marcada manualmente, a origem passa a "Manual" e o rótulo da perícia muda de acordo (§10) — por isso o regex abaixo.
-    expect(screen.getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
+    expect(allSkills().getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
 
     const character = useCharacterStore.getState().character;
     expect(character.skills.furtividade.manualOverride).toBe(true);
@@ -665,7 +670,7 @@ describe("BuilderWizard — etapa 'Perícias' centraliza as escolhas (fonte \"CE
     // Navegar para outra etapa e voltar preserva a seleção manual — a etapa não reseta o Homebrew a cada visita.
     act(() => useBuilderStore.getState().goToStep("equipment"));
     act(() => useBuilderStore.getState().goToStep("skills"));
-    expect(screen.getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
+    expect(allSkills().getByRole("checkbox", { name: /^Furtividade/ })).toBeChecked();
 
     // A Revisão reflete a perícia recém-habilitada.
     act(() => useBuilderStore.getState().goToStep("review"));

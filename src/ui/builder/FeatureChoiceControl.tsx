@@ -6,7 +6,7 @@ import { skills } from "../../data/skills.js";
 import { tools } from "../../data/tools.js";
 import { getWeaponsByCategory, weapons } from "../../rules/weapons.js";
 import { getSkillExpertise, getSkillProficiency, isSkillGrantedExpertiseByMenteAgucadaChoice } from "../../rules/skills.js";
-import { getEligibleTools } from "../../rules/tools.js";
+import { getEligibleTools, getKnownTools } from "../../rules/tools.js";
 import { useCharacterStore } from "../../state/characterStore.js";
 import { getTalentChoiceOpportunity } from "../../recommendations/currentOpportunityContext.js";
 import { getOptionPickTalentId } from "../../recommendations/opportunityKind.js";
@@ -204,7 +204,9 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     // `FeatureChoiceControl` (um de `skillProficiency`, outro de `toolProficiency`) lado a lado.
     const selected = Array.isArray(selection?.value) ? selection.value : [];
     const skillOptions = SKILL_KEYS.filter((skillId) => selected.includes(skillId) || !getSkillProficiency(character, skillId));
-    const toolOptions = getEligibleTools(effect.toolCategory);
+    // Mesma regra das perícias: uma ferramenta já conhecida por outra origem nunca é oferecida de novo.
+    const knownTools = getKnownTools(character);
+    const toolOptions = getEligibleTools(effect.toolCategory).filter((tool) => selected.includes(tool.id) || !knownTools.includes(tool.id));
     const atLimit = selected.length >= effect.count;
     return (
       <fieldset className="feature-choice">

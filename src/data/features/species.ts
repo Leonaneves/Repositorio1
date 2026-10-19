@@ -15,6 +15,19 @@ export const ELFO_SENTIDOS_AGUCADOS_CHOICE_ID = "elfo-sentidos-acucados-escolha"
 const ELFO_SENTIDOS_AGUCADOS_OPTIONS: SkillKey[] = ["intuicao", "percepcao", "sobrevivencia"];
 
 /**
+ * Hábil (Humano, traço básico): proficiência em 1 perícia OU 1
+ * ferramenta/instrumento à escolha, entre todas as existentes (pedido do
+ * usuário). Mesmo efeito combinado do talento Habilidoso
+ * (`skillOrToolProficiency`, um único limite para as duas listas), mas
+ * exibido na etapa "Perícias" junto da escolha do Elfo — ver
+ * `rules/features.ts#isSkillKindChoice`. Lido por
+ * `rules/skills.ts#isSkillGrantedBySpeciesChoice` (perícia),
+ * `rules/tools.ts#getSpeciesGrantedTools` e
+ * `rules/proficiencyText.ts#getSpeciesToolProficiencyEntries` (ferramenta).
+ */
+export const HUMANO_HABIL_CHOICE_ID = "humano-habil-escolha";
+
+/**
  * Uma feature por espécie, reaproveitando o `traitsText` já confirmado
  * (extraído literalmente do script `ESPECIE` do PDF original — ver
  * `data/species.ts`). Mantido como um bloco único por espécie, e não
@@ -25,7 +38,7 @@ const ELFO_SENTIDOS_AGUCADOS_OPTIONS: SkillKey[] = ["intuicao", "percepcao", "so
  * sobrescreve `summary` com o texto DINÂMICO de
  * `rules/speciesLineagePrintedFeatures.ts` (resolve nível/linhagem
  * atuais) — o `traitsText` estático aqui nunca é lido para essas 5.
- * Só o Elfo tem `choices` (Sentidos Aguçados) — a escolha de Linhagem
+ * Só o Elfo (Sentidos Aguçados) e o Humano (Hábil) têm `choices` — a escolha de Linhagem
  * Élfica em si fica fora do `FeatureChoice` genérico, com UI própria
  * na etapa Espécie (mesmo padrão de Metamagia/Invocações/ASI).
  */
@@ -35,7 +48,7 @@ export const speciesFeatures: FeatureDefinition[] = SPECIES_IDS.map((speciesId) 
   sourceType: "species",
   speciesId,
   level: null,
-  autoGranted: speciesId !== "elfo",
+  autoGranted: speciesId !== "elfo" && speciesId !== "humano",
   summary: species[speciesId].traitsText,
   ...(speciesId === "elfo"
     ? {
@@ -47,5 +60,15 @@ export const speciesFeatures: FeatureDefinition[] = SPECIES_IDS.map((speciesId) 
           },
         ],
       }
-    : {}),
+    : speciesId === "humano"
+      ? {
+          choices: [
+            {
+              id: HUMANO_HABIL_CHOICE_ID,
+              prompt: "Hábil — escolha 1 perícia ou ferramenta",
+              effect: { kind: "skillOrToolProficiency" as const, toolCategory: ["artisanTool" as const, "musicalInstrument" as const, "thievesTools" as const], count: 1 },
+            },
+          ],
+        }
+      : {}),
 }));

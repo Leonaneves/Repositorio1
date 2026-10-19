@@ -1,6 +1,8 @@
 import type { Character, AutoTextEntry } from "../domain/character.js";
 import { classes } from "../data/classes.js";
 import { getSpeciesTraitsPrintedText } from "./speciesLineagePrintedFeatures.js";
+import { toolsById } from "../data/tools.js";
+import { getSpeciesGrantedTools } from "./tools.js";
 
 /**
  * Estas funções substituem a técnica do PDF original de concatenar
@@ -23,6 +25,12 @@ export function getClassToolProficiencyEntries(character: Character): AutoTextEn
   if (!character.classId) return [];
   const text = classes[character.classId].toolProficiencyText;
   return text ? [{ text, source: "class" }] : [];
+}
+
+/** Ferramenta escolhida em "Hábil" do Humano, para o campo "PROF.ferramentas" — nenhuma linha quando a escolha foi uma perícia. */
+export function getSpeciesToolProficiencyEntries(character: Character): AutoTextEntry[] {
+  const toolNames = getSpeciesGrantedTools(character).map((id) => toolsById[id].name);
+  return toolNames.length > 0 ? [{ text: `Hábil: ${toolNames.join(", ")}`, source: "species" }] : [];
 }
 
 export function getSpeciesTraitEntries(character: Character): AutoTextEntry[] {

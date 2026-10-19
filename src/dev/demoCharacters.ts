@@ -1,6 +1,7 @@
 import { getClassSkillChoiceId } from "../data/classes.js";
 import { CONHECIMENTO_PRIMORDIAL_CHOICE_ID, getBarbarianWeaponMasteryChoiceId } from "../data/features/barbarian.js";
 import { useCharacterStore } from "../state/characterStore.js";
+import { HUMANO_HABIL_CHOICE_ID } from "../data/features/species.js";
 
 /**
  * Personagens de demonstração — só para desenvolvimento/apresentação
@@ -35,6 +36,7 @@ function loadFighter(): void {
   s.setAbilityScore("SAB", 12);
   s.setAbilityScore("CAR", 8);
   s.setFeatureChoiceSelection(getClassSkillChoiceId("guerreiro"), ["atletismo", "intimidacao"]);
+  s.setFeatureChoiceSelection(HUMANO_HABIL_CHOICE_ID, ["percepcao"]);
   s.setStartingEquipmentOption("A");
   s.setArmorEquipped("cotaDeMalha");
   s.setShield(true);
@@ -55,6 +57,7 @@ function loadWizard(): void {
   s.setAbilityScore("SAB", 12);
   s.setAbilityScore("CAR", 10);
   s.setFeatureChoiceSelection(getClassSkillChoiceId("mago"), ["arcanismo", "investigacao"]);
+  s.setFeatureChoiceSelection(HUMANO_HABIL_CHOICE_ID, ["intuicao"]);
   s.setStartingEquipmentOption("A");
 }
 
@@ -74,6 +77,7 @@ function loadBarbarian(): void {
   s.setAbilityScore("CAR", 8);
   s.setFeatureChoiceSelection(getClassSkillChoiceId("barbaro"), ["atletismo", "percepcao"]);
   s.setFeatureChoiceSelection(CONHECIMENTO_PRIMORDIAL_CHOICE_ID, ["intimidacao"]);
+  s.setFeatureChoiceSelection(HUMANO_HABIL_CHOICE_ID, ["sobrevivencia"]);
   s.setFeatureChoiceSelection(getBarbarianWeaponMasteryChoiceId(1), "machadoGrande");
   s.setFeatureChoiceSelection(getBarbarianWeaponMasteryChoiceId(2), "azagaia");
   s.setFeatureChoiceSelection(getBarbarianWeaponMasteryChoiceId(3), "clava");

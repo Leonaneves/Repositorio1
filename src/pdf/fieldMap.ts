@@ -20,7 +20,13 @@ import {
   getMaxHitDice,
   getMaxHitPoints,
 } from "../rules/index.js";
-import { getClassToolProficiencyEntries, getClassWeaponProficiencyEntries, getSpeciesTraitEntries, renderAutoTextBlock } from "../rules/proficiencyText.js";
+import {
+  getClassToolProficiencyEntries,
+  getClassWeaponProficiencyEntries,
+  getSpeciesToolProficiencyEntries,
+  getSpeciesTraitEntries,
+  renderAutoTextBlock,
+} from "../rules/proficiencyText.js";
 import { getFeatTalentEntries, getFeatToolProficiencyEntries, getFeatWeaponProficiencyEntries } from "../rules/featTalentEntries.js";
 import { getSkillProficiency } from "../rules/skills.js";
 import { getBarbarianPrintedBlocks } from "../rules/barbarianPrintedFeatures.js";
@@ -357,6 +363,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getRogueAssassinToolProficiencyEntries(c),
           ...getMonkMercyToolProficiencyEntries(c),
           ...getFeatToolProficiencyEntries(c),
+          ...getSpeciesToolProficiencyEntries(c),
         ],
         c.toolProficienciesNotes,
       ),

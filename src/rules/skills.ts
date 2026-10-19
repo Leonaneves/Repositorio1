@@ -1,12 +1,12 @@
 import { computedValue, type ComputedValue } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
-import { SKILL_KEYS, type ClassId, type SkillKey } from "../domain/ids.js";
+import { SKILL_KEYS, type ClassId, type SkillKey, type SpeciesId } from "../domain/ids.js";
 import { skills } from "../data/skills.js";
 import { backgrounds } from "../data/backgrounds.js";
 import { classes, getClassSkillChoiceId } from "../data/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
-import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../data/features/species.js";
+import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID, HUMANO_HABIL_CHOICE_ID } from "../data/features/species.js";
 import { FIGHTER_BATTLE_MASTER_ESTUDIOSO_SKILL_CHOICE_ID, RANGER_GLAMOUR_SKILL_CHOICE_ID } from "../data/features/subclasses.js";
 import { RANGER_ESPECIALISTA_EXPERTISE_CHOICE_ID, RANGER_EXPLORADOR_HABIL_EXPERTISE_CHOICE_ID } from "../data/features/ranger.js";
 import { ROGUE_EXPERTISE_CHOICE_ID_LEVEL_1, ROGUE_EXPERTISE_CHOICE_ID_LEVEL_6 } from "../data/features/rogue.js";
@@ -80,16 +80,22 @@ export function isSkillGrantedByClassChoice(character: Character, skill: SkillKe
 }
 
 /**
- * `true` se o jogador escolheu esta perícia em "Sentidos Aguçados" do
- * Elfo (traço básico, independente da Linhagem Élfica escolhida —
- * fonte "IMPLEMENTAR LINHAGENS..." §5). Única fonte de proficiência
- * ligada à ESPÉCIE hoje; se outra espécie ganhar uma escolha
- * equivalente no futuro, generalizar para um mapa por `SpeciesId`
- * (mesmo padrão de `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima).
+ * Escolha de perícia ligada a cada ESPÉCIE (mesmo padrão de
+ * `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima): "Sentidos Aguçados" do Elfo
+ * (traço básico, independente da Linhagem Élfica — fonte "IMPLEMENTAR
+ * LINHAGENS..." §5) e "Hábil" do Humano (perícia OU ferramenta — só a
+ * metade perícia conta aqui; ferramentas em `rules/tools.ts`).
  */
+const SPECIES_SKILL_CHOICE_IDS: Partial<Record<SpeciesId, string>> = {
+  elfo: ELFO_SENTIDOS_AGUCADOS_CHOICE_ID,
+  humano: HUMANO_HABIL_CHOICE_ID,
+};
+
+/** `true` se o jogador escolheu esta perícia na escolha de perícia da espécie ATUAL (`SPECIES_SKILL_CHOICE_IDS`). */
 export function isSkillGrantedBySpeciesChoice(character: Character, skill: SkillKey): boolean {
-  if (character.speciesId !== "elfo") return false;
-  const selection = character.featureChoiceSelections[ELFO_SENTIDOS_AGUCADOS_CHOICE_ID]?.value;
+  const choiceId = character.speciesId ? SPECIES_SKILL_CHOICE_IDS[character.speciesId] : undefined;
+  if (!choiceId) return false;
+  const selection = character.featureChoiceSelections[choiceId]?.value;
   const selected = Array.isArray(selection) ? selection : [];
   return selected.includes(skill);
 }
