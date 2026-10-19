@@ -1,4 +1,3 @@
-import { ABILITY_KEYS } from "../domain/common.js";
 import type { Character } from "../domain/character.js";
 import type { FeatureDefinition } from "../domain/features.js";
 import { warlockInvocationsById } from "../data/invocations.js";
@@ -8,6 +7,7 @@ import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
 import { getSpeciesLineageLabel, hasSpeciesLineage } from "../data/speciesLineages.js";
 import { generalFeats } from "../data/features/feats.js";
 import { isSpeciesLineageResolved } from "./speciesLineage.js";
+import { hasGeneratedBaseAbilityScores } from "./abilities.js";
 import { formatFeatIneligibilityReason, getChosenAsiFeatIneligibilityReasons, hasHumanOriginFeatConflictWithBackground } from "./feats.js";
 import {
   EARTH_CIRCLE_TERRAIN_CHOICE_ID,
@@ -156,13 +156,8 @@ export function getStepBlockers(stepId: BuilderStepId, character: Character): st
   }
 
   if (stepId === "abilities") {
-    // Heurística: os 6 atributos ainda no valor padrão (10) indicam que
-    // o jogador nunca gerou/confirmou os atributos nesta etapa — não há
-    // como distinguir isso de uma build deliberada com os 6 em 10, mas
-    // é o único sinal disponível sem inventar um estado extra no
-    // Character (regra de ouro: só inputs/ajustes manuais).
-    const untouched = ABILITY_KEYS.every((ability) => character.abilities[ability].score === 10);
-    if (untouched) blockers.push("Gere e confirme os 6 atributos antes de continuar.");
+    // Heurística compartilhada (ver `rules/abilities.ts#hasGeneratedBaseAbilityScores`).
+    if (!hasGeneratedBaseAbilityScores(character)) blockers.push("Gere e confirme os 6 atributos antes de continuar.");
 
     if (character.backgroundId) {
       const config = getBackgroundAbilityAllocationConfig(character.backgroundId);

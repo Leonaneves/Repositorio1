@@ -5,6 +5,8 @@ import { species } from "../../../data/species.js";
 import { getSpeciesLineageLabel, getSpeciesLineageOptions, hasSpeciesLineage } from "../../../data/speciesLineages.js";
 import { getSpeciesTraitsPrintedText } from "../../../rules/speciesLineagePrintedFeatures.js";
 import { getAvailableOriginFeatsForHumanSpecies, hasHumanOriginFeatConflictWithBackground } from "../../../rules/feats.js";
+import { HUMAN_ORIGIN_FEAT_OPPORTUNITY } from "../../../recommendations/currentOpportunityContext.js";
+import { useTalentRecommendations, withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
 
 /**
  * Etapa 4 — escolha de espécie, com subseção de Linhagem/Ancestralidade
@@ -28,6 +30,9 @@ import { getAvailableOriginFeatsForHumanSpecies, hasHumanOriginFeatConflictWithB
  * expõe a aquisição com `acquisitionKey: "species"`, tratada pelo resto
  * do motor exatamente como a do Antecedente/ASI). Nunca exige atributos
  * distribuídos antes (os 10 Talentos de Origem não têm pré-requisito).
+ * Opções recomendadas (fonte "IMPLEMENTAR RECOMENDAÇÕES DE TALENTOS")
+ * ganham só o sufixo "(Recomendado)" — nunca uma seleção automática; um
+ * talento em conflito com o Antecedente nunca é recomendado.
  */
 export function Step4Species() {
   const character = useCharacterStore((s) => s.character);
@@ -41,6 +46,10 @@ export function Step4Species() {
   const lineageLabel = speciesId ? getSpeciesLineageLabel(speciesId) : null;
   const availableOriginFeats = speciesId === "humano" ? getAvailableOriginFeatsForHumanSpecies(character) : [];
   const hasConflict = hasHumanOriginFeatConflictWithBackground(character);
+  const eligibleOriginFeatIds = availableOriginFeats
+    .filter((feat) => !(hasConflict && feat.id === character.humanOriginFeatId))
+    .map((feat) => feat.id);
+  const recommendedOriginFeats = useTalentRecommendations(speciesId === "humano" ? HUMAN_ORIGIN_FEAT_OPPORTUNITY : null, eligibleOriginFeatIds);
 
   return (
     <div className="builder-step" aria-label="Espécie">
@@ -82,7 +91,7 @@ export function Step4Species() {
               <option value="">- Selecione -</option>
               {availableOriginFeats.map((feat) => (
                 <option key={feat.id} value={feat.id}>
-                  {feat.name}
+                  {withRecommendedLabel(feat.name, recommendedOriginFeats.has(feat.id))}
                 </option>
               ))}
             </select>

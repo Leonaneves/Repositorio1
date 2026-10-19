@@ -7,6 +7,9 @@ import { getWeaponsByCategory, weapons } from "../../rules/weapons.js";
 import { getSkillExpertise, getSkillProficiency, isSkillGrantedExpertiseByMenteAgucadaChoice } from "../../rules/skills.js";
 import { getEligibleTools } from "../../rules/tools.js";
 import { useCharacterStore } from "../../state/characterStore.js";
+import { getTalentChoiceOpportunity } from "../../recommendations/currentOpportunityContext.js";
+import { getOptionPickTalentId } from "../../recommendations/opportunityKind.js";
+import { useTalentRecommendations, withRecommendedLabel } from "../../services/useTalentRecommendations.js";
 
 export interface FeatureChoiceControlProps {
   choice: FeatureChoice;
@@ -127,20 +130,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   }
 
   if (effect.kind === "optionPick") {
-    const value = typeof selection?.value === "string" ? selection.value : "";
-    return (
-      <label className="field feature-choice">
-        <span>{choice.prompt}</span>
-        <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
-          <option value="">- Selecione -</option>
-          {effect.options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </label>
-    );
+    return <OptionPickChoiceControl choice={choice} options={effect.options} />;
   }
 
   if (effect.kind === "toolProficiency") {
@@ -300,6 +290,45 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     <label className="field feature-choice feature-choice--manual">
       <span>{choice.prompt} (entrada manual — sem catálogo ainda)</span>
       <textarea value={value} placeholder={effect.placeholder} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)} />
+    </label>
+  );
+}
+
+/**
+ * `optionPick` genérico — componente próprio só para poder usar o hook
+ * de recomendações incondicionalmente. Quando a escolha é a de um Estilo
+ * de Luta ou de uma Dádiva Épica (`getTalentChoiceOpportunity`), até 3
+ * opções da lista (já restrita às elegíveis por `rules/features.ts`)
+ * ganham o sufixo "(Recomendado)"; o valor gravado continua sendo o
+ * nome da opção, nunca o rótulo. Qualquer outra `optionPick` (ramo
+ * Estilo de Luta/Combatente, listas, atributos…) nunca recebe rótulo.
+ */
+function OptionPickChoiceControl({ choice, options }: { choice: FeatureChoice; options: string[] }) {
+  const character = useCharacterStore((s) => s.character);
+  const setFeatureChoiceSelection = useCharacterStore((s) => s.setFeatureChoiceSelection);
+  const selection = character.featureChoiceSelections[choice.id];
+  const value = typeof selection?.value === "string" ? selection.value : "";
+
+  const opportunity = getTalentChoiceOpportunity(character, choice.id);
+  const talentKind = opportunity && (opportunity.kind === "fightingStyle" || opportunity.kind === "epicBoon") ? opportunity.kind : null;
+  const talentIdOf = (option: string) => (talentKind ? getOptionPickTalentId(talentKind, option) : null);
+  const eligibleTalentIds = options.map(talentIdOf).filter((id): id is string => id !== null);
+  const recommended = useTalentRecommendations(talentKind ? opportunity : null, eligibleTalentIds);
+
+  return (
+    <label className="field feature-choice">
+      <span>{choice.prompt}</span>
+      <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
+        <option value="">- Selecione -</option>
+        {options.map((option) => {
+          const talentId = talentIdOf(option);
+          return (
+            <option key={option} value={option}>
+              {withRecommendedLabel(option, talentId !== null && recommended.has(talentId))}
+            </option>
+          );
+        })}
+      </select>
     </label>
   );
 }

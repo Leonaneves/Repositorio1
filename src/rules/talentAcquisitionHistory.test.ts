@@ -155,3 +155,27 @@ describe("getRecordedTalentAcquisitions — Estilo de Luta (categorias existente
     expect(records.find((r) => r.opportunityId === FIGHTER_FIGHTING_STYLE_CHOICE_ID)).toBeUndefined();
   });
 });
+
+describe("getRecordedTalentAcquisitions — tipo de oportunidade (base do recomendador)", () => {
+  it("cada registro informa o tipo: origem (Antecedente/Humano), geral (ASI), Estilo de Luta, Dádiva Épica", () => {
+    const character = createBlankCharacter("history-test");
+    character.classId = "guerreiro";
+    character.level = 19;
+    character.subclassId = "Campeão";
+    character.speciesId = "humano";
+    character.humanOriginFeatId = "vigoroso";
+    character.backgroundId = "soldado";
+    character.asiSelections[4] = { kind: "feat", featId: "sentinela" };
+    character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID] = { value: "Defensivo" };
+    character.featureChoiceSelections["guerreiro-dadiva-epica-escolha"] = { value: "Dádiva da Fortitude" };
+
+    const kinds = Object.fromEntries(getRecordedTalentAcquisitions(character).map((record) => [record.opportunityId, record.opportunityKind]));
+    expect(kinds).toMatchObject({
+      background: "originFeat",
+      species: "originFeat",
+      "asi-4": "generalFeat",
+      [FIGHTER_FIGHTING_STYLE_CHOICE_ID]: "fightingStyle",
+      "guerreiro-dadiva-epica-escolha": "epicBoon",
+    });
+  });
+});

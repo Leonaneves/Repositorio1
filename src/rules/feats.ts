@@ -103,7 +103,7 @@ export function isFeatRepeatable(featId: string): boolean {
  * 4+, que na prática nunca filtra nada para eles: todo nível de ASI já é
  * ≥4 — ver `getUnlockedAsiLevels`).
  */
-interface GeneralFeatPrerequisite {
+export interface GeneralFeatPrerequisite {
   armorTraining?: "medium" | "heavy" | "shield";
   abilityAtLeast13?: AbilityKey[];
 }
@@ -124,6 +124,11 @@ const GENERAL_FEAT_PREREQUISITES: Partial<Record<string, GeneralFeatPrerequisite
   [SORRATEIRO_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
   [VELOCISTA_FEAT_ID]: { abilityAtLeast13: ["DEX", "CON"] },
 };
+
+/** Pré-requisitos (além do nível 4+) de um Talento Geral — `null` sem pré-requisito extra. Exposto para a validação de referências importadas (`references/validateReferenceFile.ts`), que reaplica a MESMA tabela a registros externos. */
+export function getGeneralFeatPrerequisite(featId: string): Readonly<GeneralFeatPrerequisite> | null {
+  return GENERAL_FEAT_PREREQUISITES[featId] ?? null;
+}
 
 /** Id-BASE convencional da `FeatureChoice` de "Aumento de 1 num atributo" de QUALQUER um dos 26 Talentos Gerais — sempre `${featId}-atributo` (ver `data/features/feats.ts`, nunca uma constante nomeada por talento). */
 export function getFeatAbilityIncreaseChoiceId(featId: string): string {

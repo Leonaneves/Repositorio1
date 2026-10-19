@@ -13,6 +13,25 @@ import type { ArmorId, BackgroundId, ClassId, SkillKey, SpeciesId } from "./ids.
 export type TalentGrantOrigin = "class" | "subclass" | "species" | "background";
 
 /**
+ * TIPO da oportunidade de talento (fonte "IMPLEMENTAR RECOMENDAÇÕES DE
+ * TALENTOS" — primeiro escopo): define qual catálogo vale para a escolha
+ * e é a primeira dimensão de comparação do recomendador — uma escolha
+ * de Estilo de Luta nunca é comparada com uma de Talento Geral, mesmo
+ * com classe/nível iguais.
+ *
+ * - `originFeat`: Talento de Origem — o do Humano (traço Versátil,
+ *   `opportunityId: "species"`, voluntário) ou o do Antecedente
+ *   (`"background"`, concedido automaticamente, `voluntary: false` —
+ *   só contexto, nunca recomendado nem contado como escolha);
+ * - `generalFeat`: Talento escolhido num nível de ASI (`"asi-{nível}"`);
+ * - `fightingStyle`: Estilo de Luta (id da `FeatureChoice` do ponto de concessão);
+ * - `epicBoon`: Dádiva Épica (id da `FeatureChoice` de nível 19).
+ */
+export type TalentOpportunityKind = "originFeat" | "generalFeat" | "fightingStyle" | "epicBoon";
+
+export const TALENT_OPPORTUNITY_KINDS: readonly TalentOpportunityKind[] = ["originFeat", "generalFeat", "fightingStyle", "epicBoon"];
+
+/**
  * Contexto do personagem IMEDIATAMENTE ANTES de aplicar os benefícios
  * da PRÓPRIA aquisição — nunca inclui a contribuição dela mesma nem de
  * qualquer aquisição de nível POSTERIOR (fonte "IMPLEMENTAR A BASE DE
@@ -52,6 +71,8 @@ export interface TalentAcquisitionRecord {
   /** Id do talento/Estilo de Luta/Dádiva Épica escolhido (catálogo de `data/features/feats.ts`, `data/fightingStyles.ts` ou `data/features/epicBoons.ts`). */
   talentId: string;
   opportunityId: string;
+  /** Ver `TalentOpportunityKind`. Registros gravados antes deste campo existir não o têm — quem lê o banco deriva o tipo a partir de `opportunityId` (ver `recommendations/opportunityKind.ts#deriveOpportunityKind`). */
+  opportunityKind: TalentOpportunityKind;
   grantOrigin: TalentGrantOrigin;
   acquisitionLevel: number | null;
   /** `false` só para o Talento de Origem fixo do Antecedente (o jogador não escolhe QUAL) — todas as demais oportunidades são `true`. */

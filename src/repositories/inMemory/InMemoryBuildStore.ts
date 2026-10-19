@@ -1,6 +1,9 @@
 import type { AbilityKey } from "../../domain/common.js";
 import type { CharacterBuild } from "../../domain/characterBuild.js";
 import type { CharacterBuildRepository } from "../CharacterBuildRepository.js";
+import type { TalentChoiceStatsRepository } from "../TalentChoiceStatsRepository.js";
+import { buildToTalentChoiceFacts, countTalentChoices } from "../../recommendations/countTalentChoices.js";
+import type { TalentChoiceCountQuery, TalentChoiceCountRow, TalentChoiceFact } from "../../recommendations/types.js";
 import {
   armorIdToFilterValue,
   highestAbility,
@@ -41,8 +44,10 @@ function distribution(rows: string[]): DistributionRow[] {
  * implementação de produção (Supabase): nunca duplica um registro para
  * o mesmo personagem em construção.
  */
-export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRepository {
+export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRepository, TalentChoiceStatsRepository {
   private builds = new Map<string, CharacterBuild>();
+  /** Referências externas/sintéticas já normalizadas (`references/referenceFacts.ts`) — vazio por padrão: o app nunca embute referências no bundle. */
+  private referenceFacts: TalentChoiceFact[] = [];
 
   async upsert(build: CharacterBuild): Promise<void> {
     this.builds.set(build.buildId, { ...build });
@@ -55,6 +60,18 @@ export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRe
 
   clear(): void {
     this.builds.clear();
+    this.referenceFacts = [];
+  }
+
+  /** Só para testes/uso local explícito: substitui as referências usadas pelo recomendador (o caminho de produção é o banco — migration 0004). */
+  setReferenceFacts(facts: readonly TalentChoiceFact[]): void {
+    this.referenceFacts = facts.filter((fact) => fact.pool !== "user");
+  }
+
+  /** Mesmas regras da função SQL `get_talent_choice_counts` (ver `recommendations/countTalentChoices.ts`). */
+  async getTalentChoiceCounts(query: TalentChoiceCountQuery): Promise<TalentChoiceCountRow[]> {
+    const userFacts = [...this.builds.values()].flatMap(buildToTalentChoiceFacts);
+    return countTalentChoices([...userFacts, ...this.referenceFacts], query);
   }
 
   /**

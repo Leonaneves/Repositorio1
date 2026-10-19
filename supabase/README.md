@@ -38,8 +38,9 @@ apliquei nada a um banco real. Para ativar:
 1. Crie um projeto em https://supabase.com.
 2. Abra o SQL Editor do projeto e rode, NESTA ORDEM,
    `migrations/0001_character_builds.sql`,
-   `migrations/0002_build_ownership_and_talents.sql` e
-   `migrations/0003_select_own_builds_for_upsert.sql` (ou use
+   `migrations/0002_build_ownership_and_talents.sql`,
+   `migrations/0003_select_own_builds_for_upsert.sql` e
+   `migrations/0004_talent_recommendations.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -90,14 +91,40 @@ políticas de SELECT também a esse comando — sem ela, toda gravação é
 recusada com "new row violates row-level security policy". Cada sessão
 continua sem conseguir ler o build de qualquer outra pessoa.
 
-## Registros de referência (preparado, mas NÃO implementado nesta etapa)
+## Recomendações de talentos e registros de referência (migration 0004)
 
-A tabela já tem `origin`, `reference_source_id` e
-`reference_content_type` para, numa etapa futura, guardar personagens
-de referência importados de fontes externas — identificados
-separadamente dos personagens reais (`origin = 'reference'`) e da
-origem do próprio conteúdo (extraído vs. sintético). Nenhum código
-desta etapa grava um registro de referência: a importação em si, e o
-"caminho administrativo" que a faria (rodando server-side com a chave
-`service_role`, nunca pelo navegador), ficam para quando o
-recomendador for implementado.
+`0004` cria a base do recomendador de talentos, **vazia**:
+
+- `reference_sources` → `reference_characters` → `reference_acquisitions`:
+  personagens de referência extraídos de fontes externas (guias,
+  artigos, vídeos…) ou, no futuro, gerados por uma regra sintética
+  aprovada — sempre identificados pela fonte e pelo tipo de conteúdo,
+  nunca misturados com personagens reais;
+- `reference_character_citations`: o mesmo personagem republicado por
+  outra fonte (cópia) — guardado só como citação, nunca contado de novo;
+- `reference_mentions`: menções parciais ("o guia recomenda o talento X
+  para a classe Y") — não são personagens e nunca entram na contagem;
+- `get_talent_choice_counts(...)`: a ÚNICA leitura possível pela API
+  pública. Devolve só contagens agregadas (personagens distintos por
+  talento, tamanho da amostra, número de fontes independentes) — as
+  tabelas acima não têm nenhuma política de leitura para `anon`/
+  `authenticated`.
+
+Dados reais (`character_builds`) só entram na contagem com
+`p_include_user = true`, que o app mantém **desligado**
+(`src/recommendations/policy.ts#REAL_RECORDS_ENABLED = false`) até a
+verificação em produção de: (1) "Confirmar personagem" gravando
+`status = 'confirmed'`; (2) estatísticas contando só confirmados; (3)
+isolamento entre sessões. Mesmo ligado, a função nunca devolve uma
+faixa de contexto real com menos de 20 personagens distintos.
+
+As colunas `origin = 'reference'`/`reference_source_id`/
+`reference_content_type` de `character_builds` (preparadas na `0002`)
+continuam sem uso: referências podem ser parciais (sem atributos, sem
+subclasse) e `character_builds` exige atributos/nível preenchidos —
+forçar valores ali seria inventar dados.
+
+A importação NÃO usa nenhuma chave: o importador
+(`npm run references -- sql <arquivo.json>`) valida o arquivo e gera um
+SQL que é colado no SQL Editor do painel (que roda como dono do banco).
+Ver `reference-data/README.md`.

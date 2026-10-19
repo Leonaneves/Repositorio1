@@ -1,5 +1,5 @@
 import type { Character } from "../domain/character.js";
-import type { AbilityKey } from "../domain/common.js";
+import { ABILITY_KEYS, type AbilityKey } from "../domain/common.js";
 import { getAsiAbilityBonus } from "./asi.js";
 import { getEpicBoonAbilityIncreaseBonus } from "./epicBoons.js";
 import { getFeatAbilityIncreaseBonus } from "./feats.js";
@@ -85,4 +85,19 @@ export function getProficiencyBonus(level: number): number {
   if (level >= 13 && level <= 16) return 5;
   if (level >= 17 && level <= 20) return 6;
   throw new RangeError(`Nível inválido: ${level}. Esperado um inteiro entre 1 e 20.`);
+}
+
+/**
+ * Se os 6 atributos BASE já foram gerados/confirmados na etapa Atributos
+ * — heurística única do projeto: os 6 ainda no valor padrão (10) de
+ * `createBlankCharacter` indicam que o jogador nunca passou por ela. Não
+ * distingue uma build deliberada com os 6 em 10, mas é o único sinal
+ * disponível sem inventar um estado extra no `Character`. Usada pelo
+ * bloqueio da etapa Atributos (`rules/builderProgress.ts`) e pelo
+ * recomendador (`recommendations/currentOpportunityContext.ts`), que
+ * trata os atributos como DESCONHECIDOS enquanto isto for `false` —
+ * nunca compara o "maior atributo" de valores padrão.
+ */
+export function hasGeneratedBaseAbilityScores(character: Character): boolean {
+  return !ABILITY_KEYS.every((ability) => character.abilities[ability].score === 10);
 }

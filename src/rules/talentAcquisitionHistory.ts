@@ -44,9 +44,12 @@ function excludeKeyForLevel(acquisitionLevel: number | null): string {
  * `subclassId` só é preenchido a partir do nível 3 (única regra que
  * permite escolher subclasse); antes disso, ou sem nível numérico
  * (Antecedente/Humano), fica "desconhecido" — nunca presume a
- * subclasse ATUAL como se já valesse nesse ponto.
+ * subclasse ATUAL como se já valesse nesse ponto. Exportada também para
+ * `recommendations/currentOpportunityContext.ts`: o contexto da
+ * oportunidade que o jogador está decidindo AGORA usa exatamente o mesmo
+ * corte histórico dos registros com que ele é comparado.
  */
-function buildContext(character: Character, acquisitionLevel: number | null): TalentAcquisitionContext {
+export function getTalentAcquisitionContext(character: Character, acquisitionLevel: number | null): TalentAcquisitionContext {
   const excludeKey = excludeKeyForLevel(acquisitionLevel);
   const abilityScores = Object.fromEntries(
     ABILITY_KEYS.map((ability) => [ability, getAbilityScoreForPrerequisite(character, ability, excludeKey)]),
@@ -82,12 +85,13 @@ function buildGeneralFeatRecord(character: Character, acquisition: FeatAcquisiti
   return {
     talentId: acquisition.featId,
     opportunityId: acquisition.acquisitionKey,
+    opportunityKind: getAcquisitionAsiLevel(acquisition.acquisitionKey) === null ? "originFeat" : "generalFeat",
     grantOrigin: getGeneralFeatGrantOrigin(acquisition.acquisitionKey),
     acquisitionLevel,
     voluntary: acquisition.acquisitionKey !== "background",
     internalChoices,
     abilityIncreased: getFeatAbilityIncreaseChoice(character, acquisition),
-    context: buildContext(character, acquisitionLevel),
+    context: getTalentAcquisitionContext(character, acquisitionLevel),
   };
 }
 
@@ -131,12 +135,13 @@ function buildFightingStyleAndEpicBoonRecords(character: Character): TalentAcqui
         records.push({
           talentId: style.id,
           opportunityId: choice.id,
+          opportunityKind: "fightingStyle",
           grantOrigin,
           acquisitionLevel: feature.level,
           voluntary: true,
           internalChoices: {},
           abilityIncreased: null,
-          context: buildContext(character, feature.level),
+          context: getTalentAcquisitionContext(character, feature.level),
         });
         continue;
       }
@@ -146,12 +151,13 @@ function buildFightingStyleAndEpicBoonRecords(character: Character): TalentAcqui
         records.push({
           talentId: boon.id,
           opportunityId: choice.id,
+          opportunityKind: "epicBoon",
           grantOrigin,
           acquisitionLevel: feature.level,
           voluntary: true,
           internalChoices: getEpicBoonInternalChoices(character, boon.id),
           abilityIncreased: getEpicBoonAbilityIncreaseChoice(character),
-          context: buildContext(character, feature.level),
+          context: getTalentAcquisitionContext(character, feature.level),
         });
       }
     }

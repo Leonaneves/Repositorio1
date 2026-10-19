@@ -1,5 +1,7 @@
 import { useCharacterStore } from "../../state/characterStore.js";
 import { formatFeatIneligibilityReason, getChosenAsiFeatIneligibilityReasons, getFeatCatalogForAsiLevel } from "../../rules/feats.js";
+import { getAsiFeatOpportunity } from "../../recommendations/currentOpportunityContext.js";
+import { useTalentRecommendations, withRecommendedLabel } from "../../services/useTalentRecommendations.js";
 
 export interface AsiControlProps {
   level: number;
@@ -34,6 +36,11 @@ export interface AsiControlProps {
  * aparece abaixo do seletor — a escolha NUNCA é apagada/substituída
  * sozinha (fonte §9), só sinalizada (e também bloqueia "Avançar" — ver
  * `rules/builderProgress.ts`).
+ *
+ * Recomendações (fonte "IMPLEMENTAR RECOMENDAÇÕES DE TALENTOS"): até 3
+ * talentos ELEGÍVEIS ganham o sufixo "(Recomendado)" — nunca um
+ * indisponível, nunca o talento já escolhido que deixou de cumprir os
+ * pré-requisitos, nunca uma seleção automática.
  */
 export function AsiControl({ level, showUnavailableFeats }: AsiControlProps) {
   const character = useCharacterStore((s) => s.character);
@@ -44,6 +51,11 @@ export function AsiControl({ level, showUnavailableFeats }: AsiControlProps) {
   const catalog = selection?.kind === "feat" ? getFeatCatalogForAsiLevel(character, level) : [];
   const visibleCatalog = showUnavailableFeats ? catalog : catalog.filter((entry) => entry.eligible);
   const ineligibilityReasons = selection?.kind === "feat" ? getChosenAsiFeatIneligibilityReasons(character, level) : [];
+  const chosenFeatId = selection?.kind === "feat" ? selection.featId : null;
+  const eligibleFeatIds = catalog
+    .filter((entry) => entry.eligible && !(entry.feat.id === chosenFeatId && ineligibilityReasons.length > 0))
+    .map((entry) => entry.feat.id);
+  const recommendedFeats = useTalentRecommendations(selection?.kind === "feat" ? getAsiFeatOpportunity(level) : null, eligibleFeatIds);
 
   return (
     <article className="feature-card" aria-label={`Aumento no Valor de Atributo — nível ${level}`}>
@@ -75,7 +87,7 @@ export function AsiControl({ level, showUnavailableFeats }: AsiControlProps) {
               <option value="">- Selecione -</option>
               {visibleCatalog.map((entry) => (
                 <option key={entry.feat.id} value={entry.feat.id} disabled={!entry.eligible}>
-                  {entry.feat.name}
+                  {withRecommendedLabel(entry.feat.name, recommendedFeats.has(entry.feat.id))}
                   {entry.eligible ? "" : ` — ${entry.reasons.map(formatFeatIneligibilityReason).join(" ")}`}
                 </option>
               ))}
