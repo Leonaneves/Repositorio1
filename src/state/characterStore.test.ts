@@ -1094,3 +1094,24 @@ describe("useCharacterStore — Homebrew de Ferramentas (REORGANIZAÇÃO DO BUIL
     ]);
   });
 });
+
+describe("useCharacterStore — confirmação do personagem para estatísticas (fonte \"IMPLEMENTAR A BASE DE DADOS PARA FUTURAS RECOMENDAÇÕES\" §4)", () => {
+  it("personagem novo (resetCharacter) nunca começa confirmado", () => {
+    expect(useCharacterStore.getState().confirmedBuildSnapshot).toBeNull();
+  });
+
+  it("confirmCharacter grava um snapshot não-nulo", () => {
+    useCharacterStore.getState().setClass("mago");
+    useCharacterStore.getState().confirmCharacter();
+    expect(useCharacterStore.getState().confirmedBuildSnapshot).not.toBeNull();
+  });
+
+  it("resetCharacter (novo personagem) limpa a confirmação do personagem anterior — o novo nunca herda a confirmação", () => {
+    useCharacterStore.getState().setClass("mago");
+    useCharacterStore.getState().confirmCharacter();
+
+    useCharacterStore.getState().resetCharacter();
+
+    expect(useCharacterStore.getState().confirmedBuildSnapshot).toBeNull();
+  });
+});

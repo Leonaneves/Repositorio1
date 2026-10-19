@@ -325,6 +325,84 @@ describe("BuilderWizard — Revisão detecta pendências e bloqueia a exportaç�
   });
 });
 
+describe("BuilderWizard — ação 'Confirmar personagem' na Revisão (fonte \"IMPLEMENTAR A BASE DE DADOS PARA FUTURAS RECOMENDAÇÕES\" §4)", () => {
+  function buildFullyResolvedWarlock() {
+    const store = useCharacterStore.getState();
+    store.setClass("bruxo");
+    store.setLevel(1);
+    store.setSpecies("humano");
+    store.setHumanOriginFeat("vigoroso");
+    store.setBackground("acolito");
+    store.increaseBackgroundAbilityBonus("INT");
+    store.increaseBackgroundAbilityBonus("INT");
+    store.increaseBackgroundAbilityBonus("SAB");
+    store.setAbilityScore("FOR", 10);
+    store.setAbilityScore("DEX", 14);
+    store.setAbilityScore("CON", 13);
+    store.setAbilityScore("INT", 12);
+    store.setAbilityScore("SAB", 8);
+    store.setAbilityScore("CAR", 15);
+    store.addInvocation("mente-mistica");
+    store.setStartingEquipmentOption("A");
+    store.setFeatureChoiceSelection(getClassSkillChoiceId("bruxo"), ["arcanismo", "enganacao"]);
+    store.setFeatureChoiceSelection(getFeatChoiceId(MAGIC_INITIATE_ABILITY_CHOICE_BASE_ID, "background"), "Sabedoria");
+  }
+
+  it("com pendências: botão 'Confirmar personagem' fica desabilitado e mostra a nota de pendência", () => {
+    render(<App />);
+    act(() => {
+      useCharacterStore.getState().setClass("bruxo");
+      useCharacterStore.getState().setLevel(1);
+    });
+    act(() => useBuilderStore.getState().goToStep("review"));
+
+    expect(screen.getByRole("button", { name: "Confirmar personagem" })).toBeDisabled();
+    expect(screen.getByText("Resolva as escolhas pendentes acima antes de confirmar.")).toBeInTheDocument();
+  });
+
+  it("sem pendências e ainda não confirmado: botão fica habilitado com a nota de 'ainda não confirmado'", () => {
+    render(<App />);
+    act(() => buildFullyResolvedWarlock());
+    act(() => useBuilderStore.getState().goToStep("review"));
+
+    expect(screen.getByRole("button", { name: "Confirmar personagem" })).toBeEnabled();
+    expect(screen.getByText(/Ainda não confirmado/)).toBeInTheDocument();
+  });
+
+  it("clicar em 'Confirmar personagem' muda o texto do botão e a nota para o estado confirmado", () => {
+    render(<App />);
+    act(() => buildFullyResolvedWarlock());
+    act(() => useBuilderStore.getState().goToStep("review"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar personagem" }));
+
+    expect(screen.getByRole("button", { name: "Confirmado — confirmar novamente" })).toBeInTheDocument();
+    expect(screen.getByText("Este personagem está confirmado e entra nas estatísticas da comunidade.")).toBeInTheDocument();
+  });
+
+  it("alterar uma escolha relevante depois de confirmar volta o personagem ao estado não confirmado", () => {
+    render(<App />);
+    act(() => buildFullyResolvedWarlock());
+    act(() => useBuilderStore.getState().goToStep("review"));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar personagem" }));
+    expect(screen.getByRole("button", { name: "Confirmado — confirmar novamente" })).toBeInTheDocument();
+
+    act(() => useCharacterStore.getState().setAbilityScore("FOR", 11));
+
+    expect(screen.getByRole("button", { name: "Confirmar personagem" })).toBeInTheDocument();
+    expect(screen.getByText(/Ainda não confirmado/)).toBeInTheDocument();
+  });
+
+  it("confirmar NUNCA é exigido para exportar o PDF: sem confirmação, Exportar PDF já fica habilitado quando não há pendências", () => {
+    render(<App />);
+    act(() => buildFullyResolvedWarlock());
+    act(() => useBuilderStore.getState().goToStep("review"));
+
+    expect(screen.getByRole("button", { name: "Confirmar personagem" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Exportar PDF" })).toBeEnabled();
+  });
+});
+
 describe("BuilderWizard — Revisão mostra as escolhas específicas de classe/subclasse (§15)", () => {
   it("Feiticeiro com Metamagia conhecida aparece em 'Escolhas de Classe'", () => {
     render(<App />);

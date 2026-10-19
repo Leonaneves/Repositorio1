@@ -74,3 +74,67 @@ describe("createBuildSyncSubscription", () => {
     expect(upsertSpy).not.toHaveBeenCalled();
   });
 });
+
+describe("createBuildSyncSubscription — status via confirmação (fonte §4) e tolerância a falhas (fonte §7)", () => {
+  it("sem confirmação: sincroniza sempre como 'draft', mesmo sem pendências", () => {
+    const store = new InMemoryBuildStore();
+    const unsubscribe = createBuildSyncSubscription(useCharacterStore, store, 500);
+
+    useCharacterStore.getState().setClass("mago");
+    vi.advanceTimersByTime(500);
+
+    const [build] = [...(store as unknown as { builds: Map<string, { status: string }> }).builds.values()];
+    expect(build.status).toBe("draft");
+
+    unsubscribe();
+  });
+
+  it("depois de confirmCharacter: sincroniza como 'confirmed'", () => {
+    const store = new InMemoryBuildStore();
+    const unsubscribe = createBuildSyncSubscription(useCharacterStore, store, 500);
+
+    useCharacterStore.getState().setClass("mago");
+    useCharacterStore.getState().confirmCharacter();
+    vi.advanceTimersByTime(500);
+
+    const [build] = [...(store as unknown as { builds: Map<string, { status: string }> }).builds.values()];
+    expect(build.status).toBe("confirmed");
+
+    unsubscribe();
+  });
+
+  it("confirmar e depois mudar uma escolha relevante volta a sincronizar como 'draft' sozinho, sem nenhuma ação explícita", () => {
+    const store = new InMemoryBuildStore();
+    const unsubscribe = createBuildSyncSubscription(useCharacterStore, store, 500);
+
+    useCharacterStore.getState().setClass("mago");
+    useCharacterStore.getState().confirmCharacter();
+    vi.advanceTimersByTime(500);
+
+    useCharacterStore.getState().setClass("guerreiro");
+    vi.advanceTimersByTime(500);
+
+    const [build] = [...(store as unknown as { builds: Map<string, { status: string }> }).builds.values()];
+    expect(build.status).toBe("draft");
+
+    unsubscribe();
+  });
+
+  it("uma falha no upsert nunca propaga (nenhuma rejeição não tratada) — só é registrada e descartada", async () => {
+    const store = new InMemoryBuildStore();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(store, "upsert").mockRejectedValue(new Error("falha simulada de rede"));
+    const unsubscribe = createBuildSyncSubscription(useCharacterStore, store, 500);
+
+    useCharacterStore.getState().setClass("mago");
+    // Async: sob fake timers, avançar o tempo só dispara o setTimeout — ainda
+    // precisa dar a chance da promise rejeitada (o .catch já encadeado) ser
+    // resolvida na microtask queue antes de verificar.
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(warnSpy).toHaveBeenCalled();
+
+    unsubscribe();
+    warnSpy.mockRestore();
+  });
+});

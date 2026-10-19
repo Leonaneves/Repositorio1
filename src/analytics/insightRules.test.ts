@@ -7,6 +7,9 @@ import { computeInsight, insightMetricDefinitions } from "./insightRules.js";
 function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
   return {
     buildId: `b-${Math.random()}`,
+    origin: "user",
+    status: "confirmed",
+    referenceSource: null,
     level: 5,
     classId: "mago",
     subclassId: null,
@@ -19,6 +22,7 @@ function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
     armorId: null,
     shield: false,
     spellcastingAbility: null,
+    talentAcquisitions: [],
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };

@@ -4,6 +4,7 @@ import type { CharacterBuild } from "../domain/characterBuild.js";
 import { SKILL_KEYS } from "../domain/ids.js";
 import { getSpellcastingAbility } from "../rules/spellcasting.js";
 import { getSkillProficiency } from "../rules/skills.js";
+import { getRecordedTalentAcquisitions } from "../rules/talentAcquisitionHistory.js";
 
 /**
  * Converte o personagem em edição (estado completo, incluindo tudo o
@@ -28,6 +29,15 @@ import { getSkillProficiency } from "../rules/skills.js";
  *   pontuais, não escolhas de criação que fazem sentido agregar.
  * - Nenhum dado de rede (IP, user agent, cookies) é coletado por este
  *   mapeador nem em nenhum outro ponto do sistema.
+ *
+ * `origin` é sempre `"user"` aqui — este mapeador só processa
+ * personagens reais em edição; registros de referência importados de
+ * fontes externas (fonte "IMPLEMENTAR A BASE DE DADOS PARA FUTURAS
+ * RECOMENDAÇÕES" §2) nunca passam por aqui, são gravados por um
+ * caminho próprio (importação futura). `status` começa sempre
+ * `"draft"` — nunca presumido confirmado só por este mapeamento;
+ * `services/buildSync.ts` é quem decide o status real, comparando com
+ * `services/buildConfirmation.ts`, antes de gravar.
  */
 export function mapCharacterToBuild(character: Character, updatedAt: string = new Date().toISOString()): CharacterBuild {
   const abilityScores = Object.fromEntries(ABILITY_KEYS.map((key) => [key, character.abilities[key].score])) as Record<
@@ -41,6 +51,9 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
 
   return {
     buildId: character.id,
+    origin: "user",
+    status: "draft",
+    referenceSource: null,
     level: character.level,
     classId: character.classId,
     subclassId: character.subclassId,
@@ -53,6 +66,7 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
     armorId: character.armor.equipped === "unarmed" ? null : character.armor.equipped,
     shield: character.armor.shield,
     spellcastingAbility: getSpellcastingAbility(character),
+    talentAcquisitions: getRecordedTalentAcquisitions(character),
     updatedAt,
   };
 }

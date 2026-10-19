@@ -77,4 +77,21 @@ describe("mapCharacterToBuild", () => {
     const build = mapCharacterToBuild(character);
     expect(build.spellcastingAbility).toBeNull();
   });
+
+  it("origin/status/referenceSource têm sempre o mesmo valor padrão (fonte §2) — status NUNCA é 'confirmed' aqui, mesmo sem pendências", () => {
+    const character = createBlankCharacter("build-test-5");
+    const build = mapCharacterToBuild(character);
+    expect(build.origin).toBe("user");
+    expect(build.status).toBe("draft");
+    expect(build.referenceSource).toBeNull();
+  });
+
+  it("talentAcquisitions reflete rules/talentAcquisitionHistory.ts (nunca uma lista vazia à parte/duplicada)", () => {
+    const character = createBlankCharacter("build-test-6");
+    character.backgroundId = "soldado"; // concede Atacante Selvagem, sem escolhas internas
+    const build = mapCharacterToBuild(character);
+    expect(build.talentAcquisitions).toHaveLength(1);
+    expect(build.talentAcquisitions[0].talentId).toBe("atacante-selvagem");
+    expect(build.talentAcquisitions[0].opportunityId).toBe("background");
+  });
 });

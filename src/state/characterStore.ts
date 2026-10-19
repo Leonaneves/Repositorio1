@@ -24,6 +24,8 @@ import { ASI_ALLOCATION_CONFIG } from "../rules/asi.js";
 import { getBackgroundAbilityAllocationConfig } from "../data/backgrounds.js";
 import { decreaseAbility, increaseAbility } from "../rules/abilityAllocation.js";
 import { getAutomaticClassTools } from "../rules/tools.js";
+import { captureConfirmationSnapshot } from "../services/buildConfirmation.js";
+import { loadStoredCharacter, saveStoredCharacter } from "../services/localCharacterPersistence.js";
 
 /**
  * Store central do personagem em construção.
@@ -248,8 +250,29 @@ function applyFeatArmorProficiencies(character: Character, featId: string | null
   return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, heavy: true } } };
 }
 
+/**
+ * Hidrata o estado inicial a partir do `localStorage` (fonte
+ * "IMPLEMENTAR A BASE DE DADOS PARA FUTURAS RECOMENDAÇÕES" §5) — lido
+ * uma ÚNICA vez, na inicialização do módulo (nunca dentro de um
+ * componente: precisa estar pronto ANTES da primeira renderização, ou
+ * o Builder abriria em branco por um instante e trocaria de personagem
+ * embaixo do jogador). Sem dado local válido, comporta-se exatamente
+ * como antes desta fonte: um personagem novo, id novo.
+ */
+const storedCharacter = loadStoredCharacter();
+
 interface CharacterStore {
   character: Character;
+
+  /**
+   * Ver `services/buildConfirmation.ts` — `null` enquanto o personagem
+   * ATUAL nunca foi confirmado, ou deixou de corresponder ao que foi
+   * confirmado por uma mudança posterior. Nunca lido/escrito
+   * diretamente fora de `confirmCharacter`/`services/buildSync.ts`.
+   */
+  confirmedBuildSnapshot: string | null;
+  /** Confirma o personagem ATUAL para as estatísticas da comunidade — ação explícita da Revisão, nunca automática (ver `ui/builder/steps/Step11Review.tsx`). */
+  confirmCharacter: () => void;
 
   setName: (name: string) => void;
   setLevel: (level: number) => void;
@@ -373,7 +396,10 @@ interface CharacterStore {
 }
 
 export const useCharacterStore = create<CharacterStore>((set) => ({
-  character: createBlankCharacter(generateId()),
+  character: storedCharacter?.character ?? createBlankCharacter(generateId()),
+  confirmedBuildSnapshot: storedCharacter?.confirmedBuildSnapshot ?? null,
+
+  confirmCharacter: () => set((state) => ({ confirmedBuildSnapshot: captureConfirmationSnapshot(state.character) })),
 
   setName: (name) => set((state) => ({ character: { ...state.character, name } })),
 
@@ -814,5 +840,22 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
       character: { ...state.character, manualToolOverrides: (state.character.manualToolOverrides ?? []).filter((id) => id !== toolId) },
     })),
 
-  resetCharacter: () => set({ character: createBlankCharacter(generateId()) }),
+  // Novo personagem = novo id sempre (fonte §5: "criar um novo personagem deve gerar um novo ID") —
+  // nunca herda a confirmação do personagem anterior (buildId diferente já invalidaria sozinho, mas
+  // limpar aqui também evita guardar bytes de um snapshot que nunca mais se aplica).
+  resetCharacter: () => set({ character: createBlankCharacter(generateId()), confirmedBuildSnapshot: null }),
 }));
+
+/**
+ * Persiste o personagem (e a confirmação) a cada mudança — ao
+ * contrário de `services/buildSync.ts` (rede, por isso debounced), esta
+ * escrita é só local e barata, então roda sem debounce: o
+ * `localStorage` nunca fica desatualizado em relação ao estado em
+ * memória, nem mesmo se a aba fechar um instante depois de uma
+ * mudança. Falhas são sempre silenciosas (ver
+ * `services/localCharacterPersistence.ts`) — nunca impedem continuar
+ * editando.
+ */
+useCharacterStore.subscribe((state) => {
+  saveStoredCharacter(state.character, state.confirmedBuildSnapshot);
+});

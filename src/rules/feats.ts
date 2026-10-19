@@ -131,7 +131,7 @@ export function getFeatAbilityIncreaseChoiceId(featId: string): string {
 }
 
 /** Extrai o nível de uma `acquisitionKey` no formato `asi-{nível}` — `null` para `"background"`/`"species"` (sem nível numérico, sempre tratadas como anteriores a qualquer ASI). */
-function getAcquisitionAsiLevel(acquisitionKey: string): number | null {
+export function getAcquisitionAsiLevel(acquisitionKey: string): number | null {
   const match = /^asi-(\d+)$/.exec(acquisitionKey);
   return match ? Number(match[1]) : null;
 }
@@ -149,9 +149,12 @@ function getAcquisitionAsiLevel(acquisitionKey: string): number | null {
  * retroativamente a escolha do nível 4"). Aumento do Antecedente conta
  * sempre (concedido na criação, antes de qualquer ASI). Nunca aplica o
  * teto de 25 do Bárbaro/Monge nível 20 — irrelevante para um limiar de
- * 13.
+ * 13. Exportada também para `rules/talentAcquisitionHistory.ts` (fonte
+ * "IMPLEMENTAR A BASE DE DADOS PARA FUTURAS RECOMENDAÇÕES" §3): o
+ * contexto "antes da aquisição" registrado para estatísticas reusa
+ * literalmente este mesmo cálculo, nunca uma segunda implementação.
  */
-function getAbilityScoreForPrerequisite(character: Character, ability: AbilityKey, excludeAcquisitionKey: string): number {
+export function getAbilityScoreForPrerequisite(character: Character, ability: AbilityKey, excludeAcquisitionKey: string): number {
   const beforeLevel = getAcquisitionAsiLevel(excludeAcquisitionKey) ?? undefined;
   const base = character.abilities[ability].score;
   const backgroundBonus = character.backgroundAbilityBonuses[ability] ?? 0;

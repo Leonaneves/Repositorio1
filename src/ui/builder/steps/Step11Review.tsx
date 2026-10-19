@@ -21,6 +21,7 @@ import { getSpellcastingAbility, getSpellAttackBonus, getSpellSaveDC } from "../
 import { getClassProgression } from "../../../rules/classProgression.js";
 import { getCharacterFeatures, getFeatureView } from "../../../rules/features.js";
 import { getPendingBuilderSteps } from "../../../rules/builderProgress.js";
+import { isConfirmationStillValid } from "../../../services/buildConfirmation.js";
 import { isStepVisible, isEarthCircleTerrainApplicable, isElementalAffinityApplicable } from "../../../rules/builderSteps.js";
 import { getSubclassDisplayName } from "../../../rules/subclasses.js";
 import { getKnownMetamagicOptions } from "../../../rules/metamagic.js";
@@ -168,6 +169,8 @@ function getSubclassChoiceRows(character: Character): ClassChoiceRow[] {
 /** Etapa 11 — resumo compacto de tudo, com "Editar" voltando à etapa relevante (mesmo useCharacterStore, sem recomeçar do zero). */
 export function Step11Review() {
   const character = useCharacterStore((s) => s.character);
+  const confirmedBuildSnapshot = useCharacterStore((s) => s.confirmedBuildSnapshot);
+  const confirmCharacter = useCharacterStore((s) => s.confirmCharacter);
   const goToStep = useBuilderStore((s) => s.goToStep);
   const [exportState, setExportState] = useState<"idle" | "exporting" | "error">("idle");
 
@@ -180,6 +183,7 @@ export function Step11Review() {
   const pendingSteps = getPendingBuilderSteps(character);
   const classChoiceRows = getClassChoiceRows(character);
   const subclassChoiceRows = getSubclassChoiceRows(character);
+  const isConfirmed = isConfirmationStillValid(character, confirmedBuildSnapshot);
 
   const editButton = (label: string, stepId: BuilderStepId) => (
     <button type="button" className="review-edit-button" onClick={() => goToStep(stepId)} aria-label={`Editar ${label}`}>
@@ -226,6 +230,20 @@ export function Step11Review() {
         </button>
         {exportState === "error" && <p className="empty-note">Não foi possível gerar o PDF. Tente novamente.</p>}
         {pendingSteps.length > 0 && <p className="empty-note">Resolva as escolhas pendentes acima antes de exportar o PDF.</p>}
+      </section>
+
+      <section className="review-block" aria-label="Confirmação para estatísticas">
+        <h3>Estatísticas da comunidade</h3>
+        <button type="button" onClick={confirmCharacter} disabled={pendingSteps.length > 0}>
+          {isConfirmed ? "Confirmado — confirmar novamente" : "Confirmar personagem"}
+        </button>
+        <p className="empty-note">
+          {isConfirmed
+            ? "Este personagem está confirmado e entra nas estatísticas da comunidade."
+            : pendingSteps.length > 0
+              ? "Resolva as escolhas pendentes acima antes de confirmar."
+              : "Ainda não confirmado — confirme para contar nas estatísticas da comunidade (opcional, nunca exigido para exportar o PDF)."}
+        </p>
       </section>
 
       <section className="review-block">

@@ -10,6 +10,9 @@ import { useInsightContext, useInsights } from "./useInsights.js";
 function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
   return {
     buildId: `b-${Math.random()}`,
+    origin: "user",
+    status: "confirmed",
+    referenceSource: null,
     level: 5,
     classId: "mago",
     subclassId: "Evocador",
@@ -22,6 +25,7 @@ function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
     armorId: null,
     shield: false,
     spellcastingAbility: "INT",
+    talentAcquisitions: [],
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };

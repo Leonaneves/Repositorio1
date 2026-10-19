@@ -57,8 +57,21 @@ export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRe
     this.builds.clear();
   }
 
+  /**
+   * Estatísticas de escolhas reais só consideram registros de usuários
+   * CONFIRMADOS (fonte "IMPLEMENTAR A BASE DE DADOS PARA FUTURAS
+   * RECOMENDAÇÕES" §7) — rascunhos (`status === "draft"`) e registros
+   * de referência (`origin === "reference"`) ficam de fora aqui, no
+   * mesmo ponto usado por todo método de leitura agregada abaixo,
+   * espelhando o filtro `origin = 'user' and status = 'confirmed'` das
+   * funções SQL de `supabase/migrations/0002_build_ownership_and_talents.sql`
+   * — combinar com referências é da etapa futura do recomendador, não
+   * desta.
+   */
   private filtered(filter: BuildFilter): CharacterBuild[] {
-    return [...this.builds.values()].filter((build) => matchesFilter(build, filter));
+    return [...this.builds.values()].filter(
+      (build) => build.origin === "user" && build.status === "confirmed" && matchesFilter(build, filter),
+    );
   }
 
   async countBuilds(filter: BuildFilter): Promise<number> {
