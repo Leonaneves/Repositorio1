@@ -88,7 +88,7 @@ export function AsiControl({ level, showUnavailableFeats }: AsiControlProps) {
               <option value="">- Selecione -</option>
               {visibleCatalog.map((entry) => (
                 <option key={entry.feat.id} value={entry.feat.id} disabled={!entry.eligible}>
-                  {withRecommendedLabel(entry.feat.name, recommendedFeats.has(entry.feat.id))}
+                  {withRecommendedLabel(entry.feat.name, recommendedFeats.get(entry.feat.id))}
                   {entry.eligible ? "" : ` — ${entry.reasons.map(formatFeatIneligibilityReason).join(" ")}`}
                 </option>
               ))}

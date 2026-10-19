@@ -1,23 +1,44 @@
 import type { ClassId } from "../domain/ids.js";
 
 /**
- * Motivo de UMA opção recomendada, exibido abaixo do seletor (pedido do
- * usuário: "escolhido por x de 10 {classe}", para ficar mais fácil de
- * entender a proporção). `characters` = personagens distintos que
- * fizeram a escolha; `sampleCharacters` = personagens comparados.
+ * Motivo de UMA opção recomendada. Dois modos (pedido do usuário: "a
+ * mensagem pode ser diferente dependendo do que está sendo recomendado"):
+ *
+ * - `proportion` — recomendação de UM fator só (Subclasse: só a classe):
+ *   "escolhido por X de 10 {classe}";
+ * - `blend` — recomendação influenciada por vários fatores (classe,
+ *   subclasse, atributos, escolhas já feitas): só "★ Recomendado", com
+ *   uma linha abaixo do seletor dizendo quais fatores foram usados.
+ *
  * `source` separa jogadores reais de personagens de referência — uma
  * referência nunca é descrita como escolha de jogadores.
  */
-export interface RecommendationReason {
-  characters: number;
-  sampleCharacters: number;
-  source: "user" | "reference";
+export type RecommendationReason =
+  | { mode: "proportion"; characters: number; sampleCharacters: number; source: "user" | "reference" }
+  | { mode: "blend"; source: "user" | "reference" };
+
+/** Opções recomendadas de UM seletor (na ordem do ranking) + os fatores usados (modo `blend`). */
+export class Recommendations {
+  constructor(
+    readonly reasons: ReadonlyMap<string, RecommendationReason> = new Map(),
+    /** Ex.: ["sua classe", "sua subclasse"] — exibido como "★ Recomendações com base em sua classe e sua subclasse." */
+    readonly basis: readonly string[] = [],
+  ) {}
+
+  has(value: string): boolean {
+    return this.reasons.has(value);
+  }
+
+  get(value: string): RecommendationReason | undefined {
+    return this.reasons.get(value);
+  }
+
+  get size(): number {
+    return this.reasons.size;
+  }
 }
 
-/** Opções recomendadas de UM seletor → motivo, na ordem do ranking. Vazio = sem recomendação. */
-export type RecommendationReasons = ReadonlyMap<string, RecommendationReason>;
-
-export const NO_RECOMMENDATIONS: RecommendationReasons = new Map();
+export const NO_RECOMMENDATIONS = new Recommendations();
 
 const CLASS_PLURAL: Record<ClassId, string> = {
   artifice: "artífices",
@@ -49,12 +70,27 @@ export function formatProportionOfTen(characters: number, sampleCharacters: numb
   return `cerca de ${Math.min(9, Math.round(scaled))} de cada 10`;
 }
 
-/**
- * Ex.: "escolhido por 7 de 10 guerreiros", "o maior atributo de cerca de
- * 6 de cada 10 magos", "escolhido por 2 de cada 10 bardos de referência
- * (guias e fontes externas)".
- */
-export function formatRecommendationReason(reason: RecommendationReason, classId: ClassId, verb = "escolhido por"): string {
-  const group = reason.source === "user" ? CLASS_PLURAL[classId] : `${CLASS_PLURAL[classId]} de referência (guias e fontes externas)`;
-  return `${verb} ${formatProportionOfTen(reason.characters, reason.sampleCharacters)} ${group}`;
+/** Ex.: "escolhido por 7 de 10 guerreiros" (modo `proportion`). */
+export function formatProportionReason(characters: number, sampleCharacters: number, source: "user" | "reference", classId: ClassId): string {
+  const group = source === "user" ? CLASS_PLURAL[classId] : `${CLASS_PLURAL[classId]} de referência (guias e fontes externas)`;
+  return `escolhido por ${formatProportionOfTen(characters, sampleCharacters)} ${group}`;
+}
+
+/** "a", "a e b", "a, b e c". */
+export function joinWithE(items: readonly string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+}
+
+/** Linha do modo `blend`: "★ Recomendações com base em sua classe e sua subclasse." */
+export function formatBlendBasis(basis: readonly string[], source: "user" | "reference"): string {
+  const who = source === "user" ? "" : " de personagens de referência (guias e fontes externas)";
+  return basis.length > 0 ? `★ Recomendações${who} com base em ${joinWithE(basis)}.` : `★ Recomendações${who}.`;
+}
+
+/** Texto exibido no `<option>`/rótulo — o motivo fica abaixo do seletor (`RecommendationReasonsHint`). */
+export function withRecommendedLabel(name: string, reason: RecommendationReason | boolean | undefined): string {
+  if (!reason) return name;
+  if (reason === true || reason.mode === "proportion") return `${name} (Recomendado)`;
+  return `${name} (★ Recomendado)`;
 }

@@ -1,6 +1,6 @@
-import type { BuildChoiceCountQuery, BuildChoiceCountRow } from "../recommendations/buildChoiceRecommendations.js";
+import type { BuildChoiceScoreQuery, BuildChoiceScoreRow } from "../recommendations/scoring.js";
 
-/** Contagens agregadas para as recomendações de Espécie/Antecedente/Perícias/Especialização/atributos — ver `recommendations/buildChoiceRecommendations.ts`. Implementações: Supabase (`get_build_choice_counts`, migration 0006) e em memória. */
+/** Pontuações agregadas das recomendações de criação — ver `recommendations/scoring.ts`. Implementações: Supabase (`get_build_choice_scores`, migration 0008) e em memória. Nunca registros individuais. */
 export interface BuildChoiceStatsRepository {
-  getBuildChoiceCounts(query: BuildChoiceCountQuery): Promise<BuildChoiceCountRow[]>;
+  getBuildChoiceScores(query: BuildChoiceScoreQuery): Promise<BuildChoiceScoreRow[]>;
 }

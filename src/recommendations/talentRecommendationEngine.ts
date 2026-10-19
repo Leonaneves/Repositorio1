@@ -1,7 +1,8 @@
 import { getTalentChoiceStatsRepository } from "../repositories/index.js";
 import type { TalentChoiceStatsRepository } from "../repositories/TalentChoiceStatsRepository.js";
 import { selectTalentRecommendations } from "./policy.js";
-import type { TalentChoiceCountQuery, TalentChoiceCountRow, TalentRecommendationResult } from "./types.js";
+import type { TalentChoiceCountQuery, TalentRecommendationResult } from "./types.js";
+import type { TalentChoiceScoreRow } from "./scoring.js";
 
 /**
  * Ponto único de entrada do recomendador de talentos para a UI —
@@ -16,7 +17,7 @@ export interface GetTalentRecommendationsOptions {
 
 interface CacheEntry {
   expiresAt: number;
-  promise: Promise<TalentChoiceCountRow[]>;
+  promise: Promise<TalentChoiceScoreRow[]>;
 }
 
 const CACHE_TTL_MS = 60_000;
@@ -28,14 +29,14 @@ const cache = new Map<string, CacheEntry>();
  * consulta). Uma falha nunca fica presa no cache: a próxima chamada
  * tenta de novo.
  */
-function getCounts(query: TalentChoiceCountQuery, repository: TalentChoiceStatsRepository, cacheable: boolean): Promise<TalentChoiceCountRow[]> {
-  if (!cacheable) return repository.getTalentChoiceCounts(query);
+function getCounts(query: TalentChoiceCountQuery, repository: TalentChoiceStatsRepository, cacheable: boolean): Promise<TalentChoiceScoreRow[]> {
+  if (!cacheable) return repository.getTalentChoiceScores(query);
   const key = JSON.stringify(query);
   const now = Date.now();
   const cached = cache.get(key);
   if (cached && cached.expiresAt > now) return cached.promise;
 
-  const promise = repository.getTalentChoiceCounts(query);
+  const promise = repository.getTalentChoiceScores(query);
   cache.set(key, { expiresAt: now + CACHE_TTL_MS, promise });
   promise.catch(() => cache.delete(key));
   return promise;

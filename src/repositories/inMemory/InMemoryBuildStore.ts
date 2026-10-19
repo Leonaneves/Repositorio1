@@ -3,7 +3,7 @@ import type { CharacterBuild } from "../../domain/characterBuild.js";
 import type { CharacterBuildRepository } from "../CharacterBuildRepository.js";
 import type { TalentChoiceStatsRepository } from "../TalentChoiceStatsRepository.js";
 import type { BuildChoiceStatsRepository } from "../BuildChoiceStatsRepository.js";
-import { countBuildChoices, type BuildChoiceCountQuery, type BuildChoiceCountRow } from "../../recommendations/buildChoiceRecommendations.js";
+import { scoreBuildChoices, scoreTalentChoices, type BuildChoiceScoreQuery, type BuildChoiceScoreRow, type TalentChoiceScoreRow } from "../../recommendations/scoring.js";
 import { buildToTalentChoiceFacts, countTalentChoices } from "../../recommendations/countTalentChoices.js";
 import type { TalentChoiceCountQuery, TalentChoiceCountRow, TalentChoiceFact } from "../../recommendations/types.js";
 import {
@@ -95,9 +95,15 @@ export class InMemoryBuildStore implements CharacterBuildRepository, AnalyticsRe
     return countTalentChoices([...userFacts, ...this.referenceFacts], query);
   }
 
-  /** Mesmas regras da função SQL `get_build_choice_counts` (ver `recommendations/buildChoiceRecommendations.ts`). */
-  async getBuildChoiceCounts(query: BuildChoiceCountQuery): Promise<BuildChoiceCountRow[]> {
-    return countBuildChoices(latestConfirmedUserBuilds(this.builds.values()), query);
+  /** Mesmas regras da função SQL `get_build_choice_scores` (ver `recommendations/scoring.ts`). */
+  async getBuildChoiceScores(query: BuildChoiceScoreQuery): Promise<BuildChoiceScoreRow[]> {
+    return scoreBuildChoices(latestConfirmedUserBuilds(this.builds.values()), query);
+  }
+
+  /** Mesmas regras da função SQL `get_talent_choice_scores` (ver `recommendations/scoring.ts`). */
+  async getTalentChoiceScores(query: TalentChoiceCountQuery): Promise<TalentChoiceScoreRow[]> {
+    const userFacts = latestConfirmedUserBuilds(this.builds.values()).flatMap(buildToTalentChoiceFacts);
+    return scoreTalentChoices([...userFacts, ...this.referenceFacts], query);
   }
 
   /** Estatísticas de escolhas reais: só a versão confirmada mais recente de cada personagem (ver `latestConfirmedUserBuilds`). */

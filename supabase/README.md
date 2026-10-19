@@ -42,8 +42,9 @@ apliquei nada a um banco real. Para ativar:
    `migrations/0003_select_own_builds_for_upsert.sql`,
    `migrations/0004_talent_recommendations.sql`,
    `migrations/0005_confirmed_versions.sql`,
-   `migrations/0006_build_choice_recommendations.sql` e
-   `migrations/0007_subclass_metamagic_recommendations.sql` (ou use
+   `migrations/0006_build_choice_recommendations.sql`,
+   `migrations/0007_subclass_metamagic_recommendations.sql` e
+   `migrations/0008_recommendation_scores.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -115,6 +116,33 @@ atualização de um registro existente:
   `character_id` próprio e nunca altera os anteriores.
 - Linhas antigas: rascunhos continuam guardados e são ignorados; uma
   linha antiga já confirmada vira a versão única do seu personagem.
+
+## Recomendações por hierarquia de influência (migration 0008)
+
+O site passa a usar `get_build_choice_scores` e `get_talent_choice_scores`
+(as funções antigas continuam no banco, sem uso). A CLASSE define a base
+— só com 10+ personagens distintos; abaixo disso, nada é devolvido — e
+cada fator mais específico a refina por suavização:
+`(escolheram_no_contexto + K × base) / (amostra_do_contexto + K)`, com
+K = 10 (Espécie: K = 20, a classe pesa mais). Com poucos personagens no
+contexto a base quase não muda; com muitos, o contexto decide.
+
+| Escolha | Fatores (do mais ao menos importante) |
+|---|---|
+| Subclasse | classe ("escolhido por X de 10 {classe}") |
+| Espécie | classe → subclasse |
+| Antecedente | classe → subclasse; ajuste por regra: atributos que o Antecedente aumenta × atributos que a classe/subclasse deixa como maior e menor |
+| Maior / menor atributo | classe → subclasse |
+| Perícias / Especialização | classe → maior atributo; ajuste por regra: atributo da perícia × atributos do personagem |
+| Talentos | classe e nível → subclasse e maior atributo na hora da escolha |
+| Metamagia | classe → Metamagias já escolhidas (o que costuma vir junto) |
+| Invocações | classe → subclasse → Invocações já escolhidas |
+| Manobras | classe → subclasse → Manobras já escolhidas |
+
+Nenhuma contagem pequena sai do banco: as funções devolvem só a
+pontuação e a contagem da classe (amostra 10+). Novas colunas
+`invocations` e `maneuvers` (linhas antigas: vazias). **Aplique a `0008`
+antes de publicar o site novo.**
 
 ## Recomendações de Subclasse e Metamagia (migration 0007)
 

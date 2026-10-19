@@ -62,7 +62,7 @@ export function Step4Species() {
           <option value="">- Selecione -</option>
           {SPECIES_IDS.map((id) => (
             <option key={id} value={id}>
-              {withRecommendedLabel(species[id].name, recommendedSpecies.has(id))}
+              {withRecommendedLabel(species[id].name, recommendedSpecies.get(id))}
             </option>
           ))}
         </select>
@@ -95,7 +95,7 @@ export function Step4Species() {
               <option value="">- Selecione -</option>
               {availableOriginFeats.map((feat) => (
                 <option key={feat.id} value={feat.id}>
-                  {withRecommendedLabel(feat.name, recommendedOriginFeats.has(feat.id))}
+                  {withRecommendedLabel(feat.name, recommendedOriginFeats.get(feat.id))}
                 </option>
               ))}
             </select>

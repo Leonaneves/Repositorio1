@@ -161,6 +161,10 @@ export interface CharacterBuild {
   savingThrowProficiencies: AbilityKey[];
   /** Opções de Metamagia conhecidas (Feiticeiro — ids de `data/metamagic.ts`), na ordem escolhida. Base da recomendação de Metamagia. `[]` em registros gravados antes deste campo existir. */
   metamagicOptions: string[];
+  /** Invocações Místicas escolhidas (Bruxo — ids de `data/invocations.ts`). Base da recomendação de Invocações. `[]` antes deste campo existir. */
+  invocationIds: string[];
+  /** Manobras escolhidas (Mestre de Batalha — ids de `data/maneuvers.ts`). Base da recomendação de Manobras. `[]` antes deste campo existir. */
+  maneuverIds: string[];
 
   armorId: ArmorId | null; // null = sem armadura
   shield: boolean;

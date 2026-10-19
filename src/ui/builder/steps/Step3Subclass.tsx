@@ -46,7 +46,7 @@ export function Step3Subclass() {
           <option value="">- Selecione -</option>
           {available.map((s) => (
             <option key={s.fullName} value={s.fullName}>
-              {withRecommendedLabel(s.shortName, recommendedSubclasses.has(s.fullName))}
+              {withRecommendedLabel(s.shortName, recommendedSubclasses.get(s.fullName))}
             </option>
           ))}
         </select>

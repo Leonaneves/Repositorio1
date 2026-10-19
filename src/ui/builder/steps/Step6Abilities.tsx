@@ -61,12 +61,12 @@ export function Step6Abilities() {
   const valid = isDraftValid();
   const backgroundConfig = character.backgroundId ? getBackgroundAbilityAllocationConfig(character.backgroundId) : null;
   const hasAsiOpportunities = getUnlockedAsiLevels(character).length > 0;
-  // Recomendação (dados reais confirmados da mesma classe): 1 atributo para ser o MAIOR e 1 para
-  // ser o MENOR ("dump stat") entre os valores base — só um rótulo ao lado do nome, nunca preenche nada.
+  // Recomendação (dados reais confirmados — classe, refinada pela subclasse): 1 atributo para ser o MAIOR
+  // e 1 para ser o MENOR ("dump stat") entre os valores base — só um rótulo ao lado do nome, nunca preenche nada.
   const recommendedHighest = useBuildChoiceRecommendations({ kind: "highestAbility" }, ABILITY_KEYS);
   const recommendedDump = useBuildChoiceRecommendations({ kind: "dumpAbility" }, ABILITY_KEYS);
   const abilityLabel = (ability: AbilityKey) =>
-    `${ABILITY_NAMES[ability]}${recommendedHighest.has(ability) ? " (Recomendado: maior)" : ""}${recommendedDump.has(ability) ? " (Recomendado: menor)" : ""}`;
+    `${ABILITY_NAMES[ability]}${recommendedHighest.has(ability) ? " (★ Recomendado: maior)" : ""}${recommendedDump.has(ability) ? " (★ Recomendado: menor)" : ""}`;
 
   return (
     <div className="builder-step" aria-label="Atributos">
@@ -123,8 +123,8 @@ export function Step6Abilities() {
             </label>
           ))}
         </div>
-        <RecommendationReasonsHint reasons={recommendedHighest} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} verb="o maior atributo de" />
-        <RecommendationReasonsHint reasons={recommendedDump} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} verb="o menor atributo de" />
+        {/* Maior e menor usam os mesmos fatores (classe → subclasse): uma linha de explicação só. */}
+        <RecommendationReasonsHint reasons={recommendedHighest.size > 0 ? recommendedHighest : recommendedDump} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} />
 
         <button type="button" disabled={!valid} onClick={commitDraftScores}>
           Confirmar atributos

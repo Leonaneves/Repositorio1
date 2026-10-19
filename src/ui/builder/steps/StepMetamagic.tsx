@@ -13,7 +13,9 @@ import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
  * pode haver duplicata.
  *
  * Recomendação (dados reais confirmados de Feiticeiros): até 3 opções
- * ainda não conhecidas ganham "(Recomendado)", com o motivo logo abaixo.
+ * ainda não conhecidas ganham "(★ Recomendado)" — base: a classe;
+ * influência: as Metamagias que o personagem já escolheu (o que costuma
+ * ser escolhido junto delas).
  */
 export function StepMetamagic() {
   const character = useCharacterStore((s) => s.character);
@@ -24,7 +26,10 @@ export function StepMetamagic() {
   const known = getKnownMetamagicOptions(character);
   const canAddMore = known.length < required;
   const selectable = getSelectableMetamagicOptions().filter((option) => !character.knownMetamagicOptions.includes(option.id));
-  const recommended = useBuildChoiceRecommendations({ kind: "metamagic" }, selectable.map((option) => option.id));
+  const recommended = useBuildChoiceRecommendations(
+    { kind: "metamagic", withValues: character.knownMetamagicOptions },
+    selectable.map((option) => option.id),
+  );
 
   return (
     <div className="builder-step" aria-label="Metamagia">
@@ -53,7 +58,7 @@ export function StepMetamagic() {
         {selectable.map((option) => (
           <label key={option.id} className="checkbox-field checkbox-field--compact">
             <button type="button" disabled={!canAddMore} onClick={() => addMetamagicOption(option.id)}>
-              + {withRecommendedLabel(option.name, recommended.has(option.id))}
+              + {withRecommendedLabel(option.name, recommended.get(option.id))}
             </button>
           </label>
         ))}

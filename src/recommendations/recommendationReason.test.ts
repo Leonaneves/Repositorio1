@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatProportionOfTen, formatRecommendationReason } from "./recommendationReason.js";
+import { formatBlendBasis, formatProportionOfTen, formatProportionReason, withRecommendedLabel } from "./recommendationReason.js";
 
 describe("formatProportionOfTen", () => {
   it("exatamente 10 comparados: X de 10", () => {
@@ -19,19 +19,28 @@ describe("formatProportionOfTen", () => {
   });
 });
 
-describe("formatRecommendationReason", () => {
+describe("formatProportionReason (Subclasse)", () => {
   it("jogadores reais: escolhido por X de 10 {classe no plural}", () => {
-    expect(formatRecommendationReason({ characters: 4, sampleCharacters: 10, source: "user" }, "guerreiro")).toBe("escolhido por 4 de 10 guerreiros");
-    expect(formatRecommendationReason({ characters: 12, sampleCharacters: 20, source: "user" }, "clerigo")).toBe("escolhido por 6 de cada 10 clérigos");
-  });
-
-  it("verbo próprio (atributos)", () => {
-    expect(formatRecommendationReason({ characters: 7, sampleCharacters: 10, source: "user" }, "mago", "o maior atributo de")).toBe("o maior atributo de 7 de 10 magos");
+    expect(formatProportionReason(4, 10, "user", "guerreiro")).toBe("escolhido por 4 de 10 guerreiros");
+    expect(formatProportionReason(12, 20, "user", "clerigo")).toBe("escolhido por 6 de cada 10 clérigos");
   });
 
   it("referências nunca aparecem como escolha de jogadores", () => {
-    expect(formatRecommendationReason({ characters: 2, sampleCharacters: 4, source: "reference" }, "bardo")).toBe(
-      "escolhido por 5 de cada 10 bardos de referência (guias e fontes externas)",
+    expect(formatProportionReason(2, 4, "reference", "bardo")).toBe("escolhido por 5 de cada 10 bardos de referência (guias e fontes externas)");
+  });
+});
+
+describe("recomendações de vários fatores", () => {
+  it("rótulo com ★ e uma linha com os fatores usados", () => {
+    expect(withRecommendedLabel("Anão", { mode: "blend", source: "user" })).toBe("Anão (★ Recomendado)");
+    expect(withRecommendedLabel("Dracônica", { mode: "proportion", characters: 7, sampleCharacters: 10, source: "user" })).toBe("Dracônica (Recomendado)");
+    expect(withRecommendedLabel("Orc", undefined)).toBe("Orc");
+    expect(formatBlendBasis(["sua classe", "sua subclasse"], "user")).toBe("★ Recomendações com base em sua classe e sua subclasse.");
+    expect(formatBlendBasis(["sua classe", "sua subclasse", "os atributos que ela mais usa"], "user")).toBe(
+      "★ Recomendações com base em sua classe, sua subclasse e os atributos que ela mais usa.",
+    );
+    expect(formatBlendBasis(["sua classe e nível"], "reference")).toBe(
+      "★ Recomendações de personagens de referência (guias e fontes externas) com base em sua classe e nível.",
     );
   });
 });

@@ -2,6 +2,9 @@ import { useCharacterStore } from "../../../state/characterStore.js";
 import { getInvocationsKnown } from "../../../rules/classResources.js";
 import { getInvalidChosenInvocations, getSelectableInvocations } from "../../../rules/invocations.js";
 import { warlockInvocationsById } from "../../../data/invocations.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
 
 /**
  * Etapa própria do Builder — "Invocações Místicas" (fonte "INTEGRAÇÃO
@@ -22,6 +25,12 @@ export function StepInvocations() {
   const invalidIndexes = new Set(invalid.map((i) => i.index));
   const selectable = getSelectableInvocations(character);
   const canAddMore = chosenCount < known;
+  // Recomendação (dados reais confirmados de Bruxos): base a classe, refinada pela subclasse e pelas
+  // Invocações que o personagem já escolheu (o que costuma ser escolhido junto delas).
+  const recommended = useBuildChoiceRecommendations(
+    { kind: "invocation", withValues: character.chosenInvocations.map((chosen) => chosen.invocationId) },
+    selectable.map((invocation) => invocation.id),
+  );
 
   return (
     <div className="builder-step" aria-label="Invocações Místicas">
@@ -68,10 +77,11 @@ export function StepInvocations() {
         {selectable.map((invocation) => (
           <label key={invocation.id} className="checkbox-field checkbox-field--compact">
             <button type="button" disabled={!canAddMore} onClick={() => addInvocation(invocation.id)}>
-              + {invocation.name}
+              + {withRecommendedLabel(invocation.name, recommended.get(invocation.id))}
             </button>
           </label>
         ))}
+        <RecommendationReasonsHint reasons={recommended} nameOf={(id) => warlockInvocationsById[id]?.name ?? id} />
       </fieldset>
     </div>
   );

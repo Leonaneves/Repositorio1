@@ -5,7 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import type { CharacterBuild } from "../domain/characterBuild.js";
 import { buildToTalentChoiceFacts, countTalentChoices } from "../recommendations/countTalentChoices.js";
-import { countBuildChoices, type BuildChoiceCountQuery, type BuildChoiceCountRow } from "../recommendations/buildChoiceRecommendations.js";
+import { scoreBuildChoices, scoreTalentChoices, type BuildChoiceScoreQuery, type BuildChoiceScoreRow, type TalentChoiceScoreRow } from "../recommendations/scoring.js";
 import { latestConfirmedUserBuilds } from "../repositories/inMemory/InMemoryBuildStore.js";
 import type { TalentChoiceCountQuery, TalentChoiceCountRow } from "../recommendations/types.js";
 import { referenceDatasetsToFacts } from "./referenceFacts.js";
@@ -16,7 +16,7 @@ import { validateReferenceFile } from "./validateReferenceFile.js";
 
 /**
  * Integração com um Postgres REAL (PGlite, em memória) — aplica as
- * migrations 0001→0007 exatamente como estão no repositório, com só o
+ * migrations 0001→0008 exatamente como estão no repositório, com só o
  * mínimo do Supabase simulado (papéis `anon`/`authenticated` e
  * `auth.uid()`). Cobre: importação/reimportação sem duplicar, transação
  * desfeita em erro, bloqueio de leitura direta das referências e
@@ -58,8 +58,8 @@ async function count(db: PGlite, table: string): Promise<number> {
 async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
   const s = build.abilityScores;
   await db.query(
-    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, metamagic_options, updated_at, confirmed_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $19, $19)`,
+    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, metamagic_options, invocations, maneuvers, updated_at, confirmed_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $19, $20, $21, $21)`,
     [
       build.buildId,
       build.characterId,
@@ -79,6 +79,8 @@ async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
       JSON.stringify(build.talentAcquisitions),
       JSON.stringify(build.skillChoices),
       build.metamagicOptions,
+      build.invocationIds,
+      build.maneuverIds,
       build.updatedAt,
     ],
   );
@@ -130,14 +132,15 @@ beforeEach(async () => {
   await db.exec("reset role; delete from reference_sources; delete from character_builds;");
 });
 
-describe("migrations 0001→0007", () => {
-  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006/0007 podem ser reaplicadas", { timeout: 60_000 }, async () => {
+describe("migrations 0001→0008", () => {
+  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006/0007/0008 podem ser reaplicadas", { timeout: 60_000 }, async () => {
     const fresh = await createDatabase();
     for (const table of ["reference_sources", "reference_characters", "reference_acquisitions", "reference_character_citations", "reference_mentions"]) {
       expect(await count(fresh, table)).toBe(0);
     }
     await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0006_build_choice_recommendations.sql`, "utf8"));
     await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0007_subclass_metamagic_recommendations.sql`, "utf8"));
+    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0008_recommendation_scores.sql`, "utf8"));
     expect(await count(fresh, "reference_sources")).toBe(0);
     await fresh.close();
   });
@@ -394,7 +397,7 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
   });
 });
 
-describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () => {
+describe("get_build_choice_scores × scoreBuildChoices (paridade SQL/app)", () => {
   const SPECIES = ["humano", "anao", "elfo"] as const;
   const BACKGROUNDS = ["soldado", "guarda"] as const;
   const SKILL_CHOICE = "classe-guerreiro-pericias";
@@ -410,6 +413,8 @@ describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () =
         abilityScores: ABILITIES[i % 3],
         skillChoices: i % 5 === 0 ? {} : { [SKILL_CHOICE]: [...SKILLS[i % 3]] },
         metamagicOptions: i % 7 === 0 ? [] : i % 2 === 0 ? ["acelerada", "duplicada"] : ["acelerada", "sutil"],
+        invocationIds: i % 3 === 0 ? ["explosao-agonizante", "lanca-mistica", "lanca-mistica"] : ["mente-mistica"],
+        maneuverIds: i < 11 ? [] : ["ataque-preciso", i === 11 ? "derrubar" : "desarmar"],
       }),
     ),
     // Versão antiga do personagem 1 (deve ser ignorada) + rascunho + outra classe.
@@ -418,77 +423,151 @@ describe("get_build_choice_counts × countBuildChoices (paridade SQL/app)", () =
     testUserBuild(42, "mago", [], { speciesId: "orc" }),
   ];
 
-  const base: BuildChoiceCountQuery = { kind: "species", classId: "guerreiro", subclassId: "Campeão", choiceId: null, excludeCharacterId: null };
-  const queries: BuildChoiceCountQuery[] = [
+  const base: BuildChoiceScoreQuery = {
+    kind: "species",
+    classId: "guerreiro",
+    subclassId: "Campeão",
+    choiceId: null,
+    highestAbility: null,
+    withValues: [],
+    excludeCharacterId: null,
+  };
+  const queries: BuildChoiceScoreQuery[] = [
     base,
     { ...base, subclassId: null },
     { ...base, subclassId: "Mestre de Batalha" },
+    { ...base, subclassId: "Ninguém" },
     { ...base, excludeCharacterId: testBuildId(1) },
     { ...base, kind: "background" },
     { ...base, kind: "highestAbility" },
     { ...base, kind: "dumpAbility" },
-    { ...base, kind: "skillChoice", choiceId: SKILL_CHOICE },
-    { ...base, kind: "skillChoice", choiceId: "outra-escolha" },
-    { ...base, kind: "subclass" },
+    { ...base, kind: "skillChoice", choiceId: SKILL_CHOICE, subclassId: null },
+    { ...base, kind: "skillChoice", choiceId: SKILL_CHOICE, subclassId: null, highestAbility: "DEX" },
+    { ...base, kind: "skillChoice", choiceId: "outra-escolha", subclassId: null },
     { ...base, kind: "subclass", subclassId: null },
-    { ...base, kind: "metamagic" },
     { ...base, kind: "metamagic", subclassId: null },
+    { ...base, kind: "metamagic", subclassId: null, withValues: ["acelerada"] },
+    { ...base, kind: "metamagic", subclassId: null, withValues: ["sutil", "nunca-escolhida"] },
+    { ...base, kind: "invocation", withValues: ["explosao-agonizante"] },
+    { ...base, kind: "invocation", subclassId: null },
+    { ...base, kind: "maneuver", subclassId: "Mestre de Batalha", withValues: ["ataque-preciso"] },
     { ...base, classId: "mago" },
   ];
 
-  async function rpcBuildChoiceCounts(query: BuildChoiceCountQuery): Promise<BuildChoiceCountRow[]> {
-    const result = await db.query<{ tier: BuildChoiceCountRow["tier"]; value: string; characters: number; sample_characters: number }>(
-      "select * from get_build_choice_counts($1, $2, $3, $4, $5)",
-      [query.kind, query.classId, query.subclassId, query.choiceId, query.excludeCharacterId],
+  async function rpcBuildChoiceScores(query: BuildChoiceScoreQuery): Promise<BuildChoiceScoreRow[]> {
+    const result = await db.query<{ value: string; score: number; class_characters: number; class_sample: number }>(
+      "select * from get_build_choice_scores($1, $2, $3, $4, $5, $6, $7)",
+      [query.kind, query.classId, query.subclassId, query.choiceId, query.highestAbility, query.withValues.length > 0 ? query.withValues : null, query.excludeCharacterId],
     );
-    return result.rows.map((row) => ({ tier: row.tier, value: row.value, characters: Number(row.characters), sampleCharacters: Number(row.sample_characters) }));
+    return result.rows.map((row) => ({
+      value: row.value,
+      score: Number(row.score),
+      classCharacters: Number(row.class_characters),
+      classSample: Number(row.class_sample),
+    }));
   }
-  const byKey = (rows: BuildChoiceCountRow[]) => [...rows].sort((a, b) => `${a.tier}|${a.value}`.localeCompare(`${b.tier}|${b.value}`));
+  const byValue = (rows: BuildChoiceScoreRow[]) => [...rows].sort((a, b) => a.value.localeCompare(b.value));
 
-  it.each(queries.map((query, index) => [index, query] as const))("consulta %i: mesmas linhas no banco e no app", async (_index, query) => {
+  it.each(queries.map((query, index) => [index, query] as const))("consulta %i: mesmas pontuações no banco e no app", async (_index, query) => {
     for (const build of userBuilds) await insertBuild(db, build);
-    expect(byKey(await rpcBuildChoiceCounts(query))).toEqual(byKey(countBuildChoices(latestConfirmedUserBuilds(userBuilds), query)));
+    const sql = byValue(await rpcBuildChoiceScores(query));
+    const app = byValue(scoreBuildChoices(latestConfirmedUserBuilds(userBuilds), query));
+    expect(sql.map(({ score: _score, ...rest }) => rest)).toEqual(app.map(({ score: _score, ...rest }) => rest));
+    sql.forEach((row, index) => expect(row.score).toBeCloseTo(app[index].score, 10));
   });
 
-  it("conta só a versão mais recente; faixa com menos de 10 personagens não sai do banco", async () => {
-    for (const build of userBuilds) await insertBuild(db, build);
-    const rows = await rpcBuildChoiceCounts(base);
-    expect(rows.some((row) => row.value === "orc")).toBe(false);
-    expect(rows.filter((row) => row.tier === "class").reduce((total, row) => total + row.characters, 0)).toBe(14);
-    expect(rows.find((row) => row.tier === "class_subclass")!.sampleCharacters).toBe(11);
-    // Sem o personagem 1, a subclasse fica com 10 — ainda vale; o Mestre de Batalha (3) nunca vale.
-    expect((await rpcBuildChoiceCounts({ ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "class_subclass")!.sampleCharacters).toBe(10);
-    expect((await rpcBuildChoiceCounts({ ...base, subclassId: "Mestre de Batalha" })).every((row) => row.tier === "class")).toBe(true);
+  it("menos de 10 personagens da classe: nada sai do banco", async () => {
+    for (const build of userBuilds.slice(0, 9)) await insertBuild(db, build);
+    expect(await rpcBuildChoiceScores(base)).toEqual([]);
   });
 
-  it("subclasse: só a faixa da classe, mesmo com a subclasse do personagem informada", async () => {
+  it("a subclasse refina a classe, e as escolhas já feitas nunca voltam como recomendação", async () => {
     for (const build of userBuilds) await insertBuild(db, build);
-    const rows = await rpcBuildChoiceCounts({ ...base, kind: "subclass" });
-    expect(Object.fromEntries(rows.map((row) => [`${row.tier}|${row.value}`, row.characters]))).toEqual({ "class|Campeão": 11, "class|Mestre de Batalha": 3 });
+    const classOnly = await rpcBuildChoiceScores({ ...base, kind: "dumpAbility", subclassId: null });
+    const champion = await rpcBuildChoiceScores({ ...base, kind: "dumpAbility" });
+    expect(classOnly.find((row) => row.value === "CAR")!.score).not.toBeCloseTo(champion.find((row) => row.value === "CAR")!.score, 6);
+    const withQuickened = await rpcBuildChoiceScores({ ...base, kind: "metamagic", subclassId: null, withValues: ["acelerada"] });
+    expect(withQuickened.some((row) => row.value === "acelerada")).toBe(false);
   });
 
-  it("metamagia: cada opção conta o personagem uma vez; quem não tem nenhuma fica fora da amostra", async () => {
-    for (const build of userBuilds) await insertBuild(db, build);
-    const rows = (await rpcBuildChoiceCounts({ ...base, kind: "metamagic", subclassId: null })).filter((row) => row.tier === "class");
-    // i = 0 e 7 sem Metamagia → 12 na amostra.
-    expect(Object.fromEntries(rows.map((row) => [row.value, row.characters]))).toEqual({ acelerada: 12, duplicada: 6, sutil: 6 });
-    expect(rows.every((row) => row.sampleCharacters === 12)).toBe(true);
-  });
-
-  it("menor atributo: empate fica com o primeiro na ordem FOR > DEX > CON > INT > SAB > CAR", async () => {
-    for (const build of userBuilds) await insertBuild(db, build);
-    const dump = (await rpcBuildChoiceCounts({ ...base, kind: "dumpAbility" })).filter((row) => row.tier === "class");
-    // ABILITIES[2] não tem nenhum atributo abaixo de 10: o "menor" é CON (primeiro dos 10).
-    expect(Object.fromEntries(dump.map((row) => [row.value, row.characters]))).toEqual({ CAR: 5, INT: 5, CON: 4 });
-  });
-
-  it("anon/authenticated executam a função, mas não leem a coluna de perícias diretamente", async () => {
+  it("anon/authenticated executam a função, mas não leem a view diretamente", async () => {
     for (const build of userBuilds) await insertBuild(db, build);
     for (const role of ["anon", "authenticated"]) {
       await db.exec(`set role ${role}`);
-      expect((await rpcBuildChoiceCounts(base)).length).toBeGreaterThan(0);
-      await expect(db.query("select skill_choices from latest_confirmed_character_builds")).rejects.toThrow(/permission denied/);
+      expect((await rpcBuildChoiceScores(base)).length).toBeGreaterThan(0);
+      await expect(db.query("select invocations from latest_confirmed_character_builds")).rejects.toThrow(/permission denied/);
       await db.exec("reset role");
     }
+  });
+});
+
+describe("get_talent_choice_scores × scoreTalentChoices (paridade SQL/app)", () => {
+  const asi4 = (talentId: string, subclassId: string, abilityScores = testAbilities({ FOR: 16 })) => ({
+    kind: "generalFeat" as const,
+    opportunityId: "asi-4",
+    level: 4,
+    talentId,
+    subclassId,
+    abilityScores,
+  });
+  const userBuilds: CharacterBuild[] = [
+    ...Array.from({ length: 12 }, (_, i) => testUserBuild(i + 1, "guerreiro", [asi4(i % 3 === 0 ? "alerta" : "sentinela", "Campeão")])),
+    ...Array.from({ length: 3 }, (_, i) => testUserBuild(20 + i, "guerreiro", [asi4("alerta", "Mestre de Batalha", testAbilities({ DEX: 16 }))])),
+    testUserBuild(30, "guerreiro", [{ kind: "generalFeat", opportunityId: "asi-6", level: 6, talentId: "habilidoso", subclassId: "Campeão" }]),
+  ];
+  const references = [
+    dataset(
+      testReferenceFile("s-a", {
+        independenceGroup: "grupo-a",
+        characters: [testFighterAsi4("a1", "sentinela", testAbilities({ FOR: 16 })), testFighterAsi4("a2", "resistente", testAbilities({ DEX: 16 }))],
+      }),
+    ),
+    dataset(testReferenceFile("s-b", { independenceGroup: "grupo-b", characters: [testFighterAsi4("b1", "sentinela", testAbilities({ FOR: 16 }))] })),
+  ];
+  const facts = [...referenceDatasetsToFacts(references), ...userBuilds.flatMap(buildToTalentChoiceFacts)];
+
+  const base: TalentChoiceCountQuery = {
+    opportunityKind: "generalFeat",
+    classId: "guerreiro",
+    level: 4,
+    subclassId: null,
+    highestAbility: null,
+    excludeCharacterId: null,
+    includeUserRecords: true,
+  };
+  const queries: TalentChoiceCountQuery[] = [
+    base,
+    { ...base, includeUserRecords: false },
+    { ...base, subclassId: "Mestre de Batalha" },
+    { ...base, highestAbility: "DEX" },
+    { ...base, subclassId: "Mestre de Batalha", highestAbility: "DEX" },
+    { ...base, subclassId: "Campeão", highestAbility: "FOR", excludeCharacterId: testBuildId(1) },
+    { ...base, level: 6 },
+    { ...base, classId: "mago" },
+  ];
+
+  async function rpcTalentScores(query: TalentChoiceCountQuery): Promise<TalentChoiceScoreRow[]> {
+    const result = await db.query<{ pool: TalentChoiceScoreRow["pool"]; talent_id: string; score: number; base_characters: number; base_groups: number; base_sample: number }>(
+      "select * from get_talent_choice_scores($1, $2, $3, $4, $5, $6, $7)",
+      [query.opportunityKind, query.classId, query.level, query.subclassId, query.highestAbility, query.excludeCharacterId, query.includeUserRecords],
+    );
+    return result.rows.map((row) => ({
+      pool: row.pool,
+      talentId: row.talent_id,
+      score: Number(row.score),
+      baseCharacters: Number(row.base_characters),
+      baseGroups: Number(row.base_groups),
+      baseSample: Number(row.base_sample),
+    }));
+  }
+  const byKey = (rows: TalentChoiceScoreRow[]) => [...rows].sort((a, b) => `${a.pool}|${a.talentId}`.localeCompare(`${b.pool}|${b.talentId}`));
+
+  it.each(queries.map((query, index) => [index, query] as const))("consulta %i: mesmas pontuações no banco e no app", async (_index, query) => {
+    for (const reference of references) await db.exec(referenceDatasetToSql(reference));
+    for (const build of userBuilds) await insertBuild(db, build);
+    const sql = byKey(await rpcTalentScores(query));
+    const app = byKey(scoreTalentChoices(facts, query));
+    expect(sql.map(({ score: _score, ...rest }) => rest)).toEqual(app.map(({ score: _score, ...rest }) => rest));
+    sql.forEach((row, index) => expect(row.score).toBeCloseTo(app[index].score, 10));
   });
 });

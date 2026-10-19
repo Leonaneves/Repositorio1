@@ -81,6 +81,8 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
     skillExpertise,
     skillChoices: getSkillChoiceSelections(character),
     metamagicOptions: [...character.knownMetamagicOptions],
+    invocationIds: character.chosenInvocations.map((chosen) => chosen.invocationId),
+    maneuverIds: [...character.chosenManeuvers],
     savingThrowProficiencies,
     armorId: character.armor.equipped === "unarmed" ? null : character.armor.equipped,
     shield: character.armor.shield,

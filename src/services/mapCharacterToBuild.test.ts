@@ -121,4 +121,13 @@ describe("mapCharacterToBuild", () => {
     character.knownMetamagicOptions = ["acelerada", "duplicada"];
     expect(mapCharacterToBuild(character).metamagicOptions).toEqual(["acelerada", "duplicada"]);
   });
+
+  it("invocationIds/maneuverIds copiam as Invocações e Manobras escolhidas (só os ids)", () => {
+    const character = createBlankCharacter("build-test-10");
+    character.chosenInvocations = [{ invocationId: "explosao-agonizante", subChoice: "Rajada Mística" }];
+    character.chosenManeuvers = ["aparar"];
+    const build = mapCharacterToBuild(character);
+    expect(build.invocationIds).toEqual(["explosao-agonizante"]);
+    expect(build.maneuverIds).toEqual(["aparar"]);
+  });
 });

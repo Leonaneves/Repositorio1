@@ -34,7 +34,7 @@ beforeEach(() => {
 describe("getTalentRecommendations", () => {
   it("devolve as recomendações elegíveis com a origem dos dados guardada internamente", async () => {
     const result = await getTalentRecommendations(QUERY, ["alerta", "sentinela", "resistente"], { repository: storeWithReferences() });
-    expect(result).toEqual({ talentIds: ["sentinela", "alerta"], characters: { sentinela: 2, alerta: 1 }, pool: "reference_extracted", tier: "level_subclass_ability", sampleCharacters: 3, sampleGroups: 2 });
+    expect(result).toEqual({ talentIds: ["sentinela", "alerta"], characters: { sentinela: 2, alerta: 1 }, pool: "reference_extracted", sampleCharacters: 3 });
   });
 
   it("sem dados (repositório vazio): nenhuma recomendação", async () => {
@@ -42,19 +42,19 @@ describe("getTalentRecommendations", () => {
   });
 
   it("lista elegível vazia: nem consulta o repositório", async () => {
-    const repository: TalentChoiceStatsRepository = { getTalentChoiceCounts: vi.fn() };
+    const repository: TalentChoiceStatsRepository = { getTalentChoiceCounts: vi.fn(), getTalentChoiceScores: vi.fn() };
     expect(await getTalentRecommendations(QUERY, [], { repository })).toBeNull();
-    expect(repository.getTalentChoiceCounts).not.toHaveBeenCalled();
+    expect(repository.getTalentChoiceScores).not.toHaveBeenCalled();
   });
 
   it("falha de conexão: nenhuma recomendação, sem lançar erro", async () => {
-    const repository: TalentChoiceStatsRepository = { getTalentChoiceCounts: vi.fn().mockRejectedValue(new Error("Failed to fetch")) };
+    const repository: TalentChoiceStatsRepository = { getTalentChoiceCounts: vi.fn(), getTalentChoiceScores: vi.fn().mockRejectedValue(new Error("Failed to fetch")) };
     await expect(getTalentRecommendations(QUERY, ["alerta"], { repository })).resolves.toBeNull();
   });
 
   it("repositório padrão: cacheia a consulta, e uma falha nunca fica presa no cache", async () => {
     const repository = getTalentChoiceStatsRepository();
-    const spy = vi.spyOn(repository, "getTalentChoiceCounts").mockRejectedValueOnce(new Error("offline"));
+    const spy = vi.spyOn(repository, "getTalentChoiceScores").mockRejectedValueOnce(new Error("offline"));
     expect(await getTalentRecommendations(QUERY, ["alerta"])).toBeNull();
     expect(await getTalentRecommendations(QUERY, ["alerta"])).toBeNull(); // tentou de novo (sem dados no app)
     expect(spy).toHaveBeenCalledTimes(2);

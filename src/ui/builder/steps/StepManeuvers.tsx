@@ -1,6 +1,9 @@
 import { useCharacterStore } from "../../../state/characterStore.js";
 import { getBattleMasterManeuversKnownCount } from "../../../rules/classResources.js";
 import { getKnownManeuvers, getSelectableManeuvers } from "../../../rules/maneuvers.js";
+import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { withRecommendedLabel } from "../../../services/useTalentRecommendations.js";
+import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
 
 /**
  * Etapa própria do Builder — "Manobras" (Mestre de Batalha, fonte
@@ -22,6 +25,12 @@ export function StepManeuvers() {
   const canAddMore = chosenCount < required;
   const chosenIds = new Set(character.chosenManeuvers);
   const selectable = getSelectableManeuvers().filter((maneuver) => !chosenIds.has(maneuver.id));
+  // Recomendação (dados reais confirmados): Mestres de Batalha (subclasse) e as Manobras que o
+  // personagem já escolheu (o que costuma ser escolhido junto delas).
+  const recommended = useBuildChoiceRecommendations(
+    { kind: "maneuver", withValues: character.chosenManeuvers },
+    selectable.map((maneuver) => maneuver.id),
+  );
 
   return (
     <div className="builder-step" aria-label="Manobras">
@@ -48,13 +57,14 @@ export function StepManeuvers() {
         {selectable.length === 0 && <p className="empty-note">Nenhuma manobra disponível agora.</p>}
         {selectable.map((maneuver) => (
           <details key={maneuver.id} className="checkbox-field checkbox-field--compact">
-            <summary>{maneuver.name}</summary>
+            <summary>{withRecommendedLabel(maneuver.name, recommended.get(maneuver.id))}</summary>
             <p>{maneuver.summary}</p>
             <button type="button" disabled={!canAddMore} onClick={() => addManeuver(maneuver.id)}>
               + {maneuver.name}
             </button>
           </details>
         ))}
+        <RecommendationReasonsHint reasons={recommended} nameOf={(id) => selectable.find((maneuver) => maneuver.id === id)?.name ?? id} />
       </fieldset>
     </div>
   );

@@ -88,7 +88,7 @@ function recommendedOptions(): string[] {
   return screen
     .queryAllByRole("option")
     .map((option) => option.textContent ?? "")
-    .filter((text) => text.includes("(Recomendado)"));
+    .filter((text) => text.includes("Recomendado)"));
 }
 
 beforeEach(() => {
@@ -108,15 +108,15 @@ describe("AsiControl — Talento Geral", () => {
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
 
-    expect(await screen.findByRole("option", { name: "Sentinela (Recomendado)" })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Sentinela (★ Recomendado)" })).toBeInTheDocument();
     // Mestre-Atirador (o mais escolhido) é inelegível com DEX 12 → nunca recomendado.
     // Sentinela (2 personagens) + empate de 1 entre Alerta/Vigoroso/Resistente → ordem do seletor (catálogo).
     // As opções continuam na ordem original do seletor (nunca reordenadas).
-    expect(recommendedOptions()).toEqual(["Alerta (Recomendado)", "Vigoroso (Recomendado)", "Sentinela (Recomendado)"]);
-    // Referências nunca aparecem como escolha de jogadores; o motivo segue a ordem do ranking.
-    const reasons = screen.getAllByRole("listitem").map((item) => item.textContent ?? "");
-    expect(reasons.map((text) => text.split(":")[0])).toEqual(["Sentinela", "Alerta", "Vigoroso"]);
-    expect(reasons.every((text) => text.includes("guerreiros de referência (guias e fontes externas)"))).toBe(true);
+    expect(recommendedOptions()).toEqual(["Alerta (★ Recomendado)", "Vigoroso (★ Recomendado)", "Sentinela (★ Recomendado)"]);
+    // Referências nunca aparecem como escolha de jogadores.
+    expect(screen.getByLabelText("Por que recomendado").textContent).toBe(
+      "★ Recomendações de personagens de referência (guias e fontes externas) com base em sua classe e nível, sua subclasse e seus atributos.",
+    );
     expect(screen.getByRole("option", { name: "Resistente" })).toBeInTheDocument();
     expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: null });
   });
@@ -125,7 +125,7 @@ describe("AsiControl — Talento Geral", () => {
     loadReferences(asiReferences());
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={true} />);
-    await screen.findByRole("option", { name: "Sentinela (Recomendado)" });
+    await screen.findByRole("option", { name: "Sentinela (★ Recomendado)" });
     const sharpshooter = screen.getAllByRole("option").find((option) => option.textContent?.startsWith("Mestre-Atirador"))!;
     expect(sharpshooter).toBeDisabled();
     expect(sharpshooter.textContent).not.toContain("Recomendado");
@@ -135,7 +135,7 @@ describe("AsiControl — Talento Geral", () => {
     loadReferences(asiReferences());
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
-    await screen.findByRole("option", { name: "Sentinela (Recomendado)" });
+    await screen.findByRole("option", { name: "Sentinela (★ Recomendado)" });
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "sentinela" } });
 
     const character = useCharacterStore.getState().character;
@@ -148,16 +148,18 @@ describe("AsiControl — Talento Geral", () => {
     loadReferences(asiReferences());
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
-    await screen.findByRole("option", { name: "Sentinela (Recomendado)" });
+    await screen.findByRole("option", { name: "Sentinela (★ Recomendado)" });
 
     updateCharacter((character) => ({ ...character, abilities: { ...character.abilities, DEX: { ...character.abilities.DEX, score: 18 } } }));
-    expect(await screen.findByRole("option", { name: "Velocista (Recomendado)" })).toBeInTheDocument();
-    expect(recommendedOptions()).toEqual(["Imobilizador (Recomendado)", "Velocista (Recomendado)"]);
+    expect(await screen.findByRole("option", { name: "Velocista (★ Recomendado)" })).toBeInTheDocument();
+    // O perfil DEX puxa Velocista/Imobilizador para cima; Mestre-Atirador (o mais escolhido pela classe,
+    // agora elegível com DEX 18) continua recomendado — a classe é a base, o atributo refina.
+    expect(recommendedOptions()).toEqual(["Imobilizador (★ Recomendado)", "Mestre-Atirador (★ Recomendado)", "Velocista (★ Recomendado)"]);
     expect(screen.getByRole("option", { name: "Sentinela" })).toBeInTheDocument();
   });
 
   it("sem dados: seleção normal, sem nenhum rótulo", async () => {
-    const spy = vi.spyOn(repository, "getTalentChoiceCounts");
+    const spy = vi.spyOn(repository, "getTalentChoiceScores");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -169,7 +171,7 @@ describe("AsiControl — Talento Geral", () => {
 
   it("amostra insuficiente (1 fonte só): nenhum rótulo", async () => {
     loadReferences([asiReferences()[0]]);
-    const spy = vi.spyOn(repository, "getTalentChoiceCounts");
+    const spy = vi.spyOn(repository, "getTalentChoiceScores");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -179,7 +181,7 @@ describe("AsiControl — Talento Geral", () => {
 
   it("falha de conexão: seleção continua funcionando, sem rótulo e sem erro", async () => {
     loadReferences(asiReferences());
-    const spy = vi.spyOn(repository, "getTalentChoiceCounts").mockRejectedValue(new Error("Failed to fetch"));
+    const spy = vi.spyOn(repository, "getTalentChoiceScores").mockRejectedValue(new Error("Failed to fetch"));
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -214,15 +216,15 @@ describe("FeatureChoiceControl — Estilo de Luta", () => {
       .find((candidate) => candidate.id === FIGHTER_FIGHTING_STYLE_CHOICE_ID)!;
     render(<FeatureChoiceControl choice={choice} />);
 
-    expect(await screen.findByRole("option", { name: "Arquearia (Recomendado)" })).toBeInTheDocument();
-    expect(recommendedOptions()).toEqual(["Arquearia (Recomendado)", "Defensivo (Recomendado)"]);
+    expect(await screen.findByRole("option", { name: "Arquearia (★ Recomendado)" })).toBeInTheDocument();
+    expect(recommendedOptions()).toEqual(["Arquearia (★ Recomendado)", "Defensivo (★ Recomendado)"]);
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "Arquearia" } });
     expect(useCharacterStore.getState().character.featureChoiceSelections[FIGHTER_FIGHTING_STYLE_CHOICE_ID]).toEqual({ value: "Arquearia" });
   });
 
   it("escolha que não é de talento (ramo do Patrulheiro) nunca consulta recomendações", async () => {
     loadReferences(styleReferences());
-    const spy = vi.spyOn(repository, "getTalentChoiceCounts");
+    const spy = vi.spyOn(repository, "getTalentChoiceScores");
     const character = createBlankCharacter("ui-reco-test");
     character.classId = "patrulheiro";
     character.level = 2;
@@ -251,8 +253,8 @@ describe("Step4Species — Talento de Origem do Humano", () => {
     setCharacter(character);
     render(<Step4Species />);
 
-    expect(await screen.findByRole("option", { name: "Alerta (Recomendado)" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Sortudo (Recomendado)" })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Alerta (★ Recomendado)" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Sortudo (★ Recomendado)" })).toBeInTheDocument();
     expect(useCharacterStore.getState().character.humanOriginFeatId).toBeNull();
   });
 });
@@ -272,14 +274,14 @@ describe("Dados reais liberados no recomendador", () => {
     await confirmFighters(10, "resistente");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
-    expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();
-    expect(recommendedOptions()).toEqual(["Resistente (Recomendado)"]);
-    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual(["Resistente: escolhido por 10 de 10 guerreiros"]);
+    expect(await screen.findByRole("option", { name: "Resistente (★ Recomendado)" })).toBeInTheDocument();
+    expect(recommendedOptions()).toEqual(["Resistente (★ Recomendado)"]);
+    expect(screen.getByLabelText("Por que recomendado").textContent).toBe("★ Recomendações com base em sua classe e nível, sua subclasse e seus atributos.");
   });
 
   it("com 9, a amostra real é insuficiente e nada é recomendado", async () => {
     await confirmFighters(9, "resistente");
-    const spy = vi.spyOn(repository, "getTalentChoiceCounts");
+    const spy = vi.spyOn(repository, "getTalentChoiceScores");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -292,7 +294,7 @@ describe("Dados reais liberados no recomendador", () => {
     await confirmFighters(10, "resistente");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);
-    expect(await screen.findByRole("option", { name: "Resistente (Recomendado)" })).toBeInTheDocument();
-    expect(recommendedOptions()).toEqual(["Resistente (Recomendado)"]);
+    expect(await screen.findByRole("option", { name: "Resistente (★ Recomendado)" })).toBeInTheDocument();
+    expect(recommendedOptions()).toEqual(["Resistente (★ Recomendado)"]);
   });
 });

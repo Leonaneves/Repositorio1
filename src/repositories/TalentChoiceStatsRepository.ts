@@ -1,4 +1,5 @@
 import type { TalentChoiceCountQuery, TalentChoiceCountRow } from "../recommendations/types.js";
+import type { TalentChoiceScoreRow } from "../recommendations/scoring.js";
 
 /**
  * Porta de consulta das contagens usadas pelo recomendador de talentos
@@ -11,4 +12,6 @@ import type { TalentChoiceCountQuery, TalentChoiceCountRow } from "../recommenda
  */
 export interface TalentChoiceStatsRepository {
   getTalentChoiceCounts(query: TalentChoiceCountQuery): Promise<TalentChoiceCountRow[]>;
+  /** Pontuação por hierarquia de influência (classe/nível → subclasse e atributo) — `get_talent_choice_scores` (migration 0008) / `scoring.ts`. */
+  getTalentChoiceScores(query: TalentChoiceCountQuery): Promise<TalentChoiceScoreRow[]>;
 }

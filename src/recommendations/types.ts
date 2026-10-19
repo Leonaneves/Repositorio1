@@ -97,10 +97,9 @@ export interface TalentChoiceFact {
 export interface TalentRecommendationResult {
   /** No máximo `MAX_RECOMMENDATIONS_PER_SELECTOR`, já na ordem do ranking. */
   talentIds: string[];
-  /** Personagens distintos que escolheram cada talento recomendado (base do motivo "escolhido por X de 10"). */
+  /** Personagens distintos que escolheram cada talento recomendado na base (mesma classe e nível). */
   characters: Record<string, number>;
   pool: RecommendationPool;
-  tier: ContextTier;
+  /** Personagens comparados na base. */
   sampleCharacters: number;
-  sampleGroups: number;
 }

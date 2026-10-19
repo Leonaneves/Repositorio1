@@ -1,4 +1,5 @@
-import type { ContextTier, RecommendationPool, TalentChoiceCountRow, TalentChoiceFact, TalentChoiceCountQuery, TalentRecommendationResult } from "./types.js";
+import type { ContextTier, RecommendationPool, TalentChoiceFact, TalentChoiceCountQuery, TalentRecommendationResult } from "./types.js";
+import type { TalentChoiceScoreRow } from "./scoring.js";
 
 /**
  * Regras do recomendador de talentos (fonte "IMPLEMENTAR RECOMENDAÇÕES
@@ -105,29 +106,24 @@ export interface SelectRecommendationsOptions {
 }
 
 /**
- * Escolhe as recomendações de UM seletor:
+ * Escolhe as recomendações de UM seletor de talento a partir das
+ * pontuações (`scoring.ts#scoreTalentChoices` / `get_talent_choice_scores`):
  *
  * 1. Percorre os conjuntos na ordem `POOL_ORDER` (reais → referências
- *    extraídas → referências sintéticas aprovadas) e, dentro de cada
- *    um, as faixas na ordem `CONTEXT_TIERS` (mais específica primeiro).
- * 2. O primeiro par (conjunto, faixa) que atinge a amostra mínima E tem
- *    ao menos um talento ELEGÍVEL para o personagem atual decide
- *    sozinho — nunca completa a lista com outro conjunto/faixa.
- * 3. Ranking: personagens distintos que escolheram o talento (maior
- *    primeiro); empate → mais grupos de fontes independentes; empate →
- *    ordem em que a opção aparece no próprio seletor (`eligibleTalentIds`,
- *    que já segue a ordem estável do catálogo). Desempate determinístico
- *    e documentado (fonte §2).
- * 4. Corta em `MAX_RECOMMENDATIONS_PER_SELECTOR`.
+ *    extraídas → referências sintéticas aprovadas); o primeiro conjunto
+ *    com ao menos um talento ELEGÍVEL decide sozinho — os rankings de
+ *    conjuntos diferentes nunca são misturados.
+ * 2. Ranking: pontuação (classe/nível refinados por subclasse e
+ *    atributo) → personagens na base → fontes independentes → ordem do
+ *    seletor (`eligibleTalentIds`, ordem estável do catálogo).
+ * 3. Corta em `MAX_RECOMMENDATIONS_PER_SELECTOR`.
  *
  * `eligibleTalentIds` é OBRIGATORIAMENTE a lista de opções elegíveis do
- * personagem atual (fonte §5: elegibilidade sempre antes de qualquer
- * recomendação) — um talento fora dela nunca é recomendado, por mais
- * escolhido que seja. `null` = nenhuma recomendação (dados ausentes ou
- * insuficientes).
+ * personagem atual — um talento fora dela nunca é recomendado. `null` =
+ * nenhuma recomendação.
  */
 export function selectTalentRecommendations(
-  rows: readonly TalentChoiceCountRow[],
+  rows: readonly TalentChoiceScoreRow[],
   eligibleTalentIds: readonly string[],
   options: SelectRecommendationsOptions,
 ): TalentRecommendationResult | null {
@@ -136,27 +132,20 @@ export function selectTalentRecommendations(
 
   for (const pool of POOL_ORDER) {
     if (pool === "user" && !options.includeUserRecords) continue;
-    for (const { tier } of CONTEXT_TIERS) {
-      const tierRows = rows.filter((row) => row.pool === pool && row.tier === tier);
-      if (tierRows.length === 0) continue;
-      const { sampleCharacters, sampleGroups } = tierRows[0];
-      if (!meetsMinimumSample(pool, sampleCharacters, sampleGroups)) continue;
-
-      const ranked = tierRows
-        .filter((row) => row.characters > 0 && order.has(row.talentId))
-        .sort((a, b) => b.characters - a.characters || b.independentGroups - a.independentGroups || order.get(a.talentId)! - order.get(b.talentId)!);
-      if (ranked.length === 0) continue;
-
-      const chosen = ranked.slice(0, MAX_RECOMMENDATIONS_PER_SELECTOR);
-      return {
-        talentIds: chosen.map((row) => row.talentId),
-        characters: Object.fromEntries(chosen.map((row) => [row.talentId, row.characters])),
-        pool,
-        tier,
-        sampleCharacters,
-        sampleGroups,
-      };
-    }
+    const ranked = rows
+      .filter((row) => row.pool === pool && row.baseCharacters > 0 && order.has(row.talentId))
+      .sort(
+        (a, b) =>
+          b.score - a.score || b.baseCharacters - a.baseCharacters || b.baseGroups - a.baseGroups || order.get(a.talentId)! - order.get(b.talentId)!,
+      );
+    if (ranked.length === 0) continue;
+    const chosen = ranked.slice(0, MAX_RECOMMENDATIONS_PER_SELECTOR);
+    return {
+      talentIds: chosen.map((row) => row.talentId),
+      characters: Object.fromEntries(chosen.map((row) => [row.talentId, row.baseCharacters])),
+      pool,
+      sampleCharacters: chosen[0].baseSample,
+    };
   }
   return null;
 }

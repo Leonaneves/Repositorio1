@@ -8,13 +8,9 @@ import {
   REAL_RECORDS_ENABLED,
   selectTalentRecommendations,
 } from "./policy.js";
-import type { ContextTier, RecommendationPool, TalentChoiceCountRow } from "./types.js";
+import type { RecommendationPool } from "./types.js";
+import type { TalentChoiceScoreRow } from "./scoring.js";
 
-function row(pool: RecommendationPool, tier: ContextTier, talentId: string, characters: number, sample: { characters: number; groups: number }, independentGroups = Math.min(characters, sample.groups)): TalentChoiceCountRow {
-  return { pool, tier, talentId, characters, independentGroups, sampleCharacters: sample.characters, sampleGroups: sample.groups };
-}
-
-const REFS_OK = { characters: 6, groups: 3 };
 const ELIGIBLE = ["alerta", "sentinela", "resistente", "mestre-atirador", "velocista"];
 
 describe("policy — constantes aprovadas", () => {
@@ -50,99 +46,46 @@ describe("policy — amostra mínima", () => {
   });
 });
 
-describe("selectTalentRecommendations", () => {
+describe("selectTalentRecommendations (pontuações)", () => {
+  const row = (pool: RecommendationPool, talentId: string, score: number, baseCharacters = 2, baseGroups = 1): TalentChoiceScoreRow => ({
+    pool,
+    talentId,
+    score,
+    baseCharacters,
+    baseGroups,
+    baseSample: 12,
+  });
+
   it("sem dados: nenhuma recomendação", () => {
-    expect(selectTalentRecommendations([], ELIGIBLE, { includeUserRecords: false })).toBeNull();
+    expect(selectTalentRecommendations([], ELIGIBLE, { includeUserRecords: true })).toBeNull();
   });
 
-  it("limita a 3 no total, ordenando por personagens distintos", () => {
+  it("limita a 3, pela pontuação; empate → personagens na base → fontes → ordem do seletor", () => {
     const rows = [
-      row("reference_extracted", "level", "alerta", 1, REFS_OK),
-      row("reference_extracted", "level", "sentinela", 4, REFS_OK),
-      row("reference_extracted", "level", "resistente", 3, REFS_OK),
-      row("reference_extracted", "level", "mestre-atirador", 2, REFS_OK),
+      row("user", "alerta", 0.1),
+      row("user", "sentinela", 0.4),
+      row("user", "resistente", 0.3, 3),
+      row("user", "mestre-atirador", 0.3, 2),
+      row("user", "velocista", 0.3, 2),
     ];
-    const result = selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false });
-    expect(result?.talentIds).toEqual(["sentinela", "resistente", "mestre-atirador"]);
-    expect(result?.pool).toBe("reference_extracted");
-    expect(result?.tier).toBe("level");
+    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: true })).toEqual({
+      talentIds: ["sentinela", "resistente", "mestre-atirador"],
+      characters: { sentinela: 2, resistente: 3, "mestre-atirador": 2 },
+      pool: "user",
+      sampleCharacters: 12,
+    });
   });
 
-  it("elegibilidade obrigatória: um talento fora da lista elegível nunca é recomendado, por mais escolhido que seja", () => {
-    const rows = [row("reference_extracted", "level", "imobilizador", 6, REFS_OK), row("reference_extracted", "level", "alerta", 1, REFS_OK)];
-    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false })?.talentIds).toEqual(["alerta"]);
-    expect(selectTalentRecommendations(rows, ["sentinela"], { includeUserRecords: false })).toBeNull();
+  it("elegibilidade obrigatória", () => {
+    const rows = [row("user", "imobilizador", 0.9), row("user", "alerta", 0.1)];
+    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: true })?.talentIds).toEqual(["alerta"]);
+    expect(selectTalentRecommendations(rows, ["sentinela"], { includeUserRecords: true })).toBeNull();
   });
 
-  it("desempate estável: personagens → fontes independentes → ordem do seletor", () => {
-    const rows = [
-      row("reference_extracted", "level", "velocista", 2, REFS_OK, 2),
-      row("reference_extracted", "level", "resistente", 2, REFS_OK, 1),
-      row("reference_extracted", "level", "alerta", 2, REFS_OK, 1),
-    ];
-    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false })?.talentIds).toEqual(["velocista", "alerta", "resistente"]);
-    // Mesma entrada em outra ordem → mesmo resultado.
-    expect(selectTalentRecommendations([...rows].reverse(), ELIGIBLE, { includeUserRecords: false })?.talentIds).toEqual(["velocista", "alerta", "resistente"]);
-  });
-
-  it("faixa mais específica com amostra suficiente vence; sem amostra, cai para a próxima", () => {
-    const rows = [
-      row("reference_extracted", "level_subclass", "alerta", 2, { characters: 2, groups: 2 }),
-      row("reference_extracted", "level_ability", "resistente", 3, { characters: 3, groups: 2 }),
-      row("reference_extracted", "level", "sentinela", 5, REFS_OK),
-    ];
-    const result = selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false });
-    expect(result?.tier).toBe("level_ability");
-    expect(result?.talentIds).toEqual(["resistente"]);
-  });
-
-  it("reais desligados: linhas de usuários são ignoradas mesmo com 10+", () => {
-    const rows = [row("user", "level", "alerta", 20, { characters: 25, groups: 25 }), row("reference_extracted", "level", "sentinela", 3, REFS_OK)];
+  it("reais primeiro, sem nunca misturar com referências; reais desligados → referências", () => {
+    const rows = [row("user", "alerta", 0.2), row("reference_extracted", "sentinela", 0.9), row("reference_synthetic", "resistente", 0.9)];
+    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: true })).toMatchObject({ pool: "user", talentIds: ["alerta"] });
     expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false })).toMatchObject({ pool: "reference_extracted", talentIds: ["sentinela"] });
-  });
-
-  it("reais ligados e com 10+: usa SÓ o ranking real (nunca mistura com referências)", () => {
-    const rows = [
-      row("user", "level_band", "alerta", 6, { characters: 10, groups: 10 }),
-      row("reference_extracted", "level_subclass_ability", "sentinela", 3, REFS_OK),
-      row("reference_extracted", "level_subclass_ability", "resistente", 3, REFS_OK),
-    ];
-    const result = selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: true });
-    expect(result).toMatchObject({ pool: "user", tier: "level_band", talentIds: ["alerta"] });
-  });
-
-  it("reais abaixo de 10: usa referências extraídas", () => {
-    const rows = [row("user", "level", "alerta", 5, { characters: 9, groups: 9 }), row("reference_extracted", "level", "sentinela", 3, REFS_OK)];
-    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: true })?.pool).toBe("reference_extracted");
-  });
-
-  it("sintéticas só quando as extraídas não atingem a amostra — e nunca completam a lista das extraídas", () => {
-    const syntheticOnly = [
-      row("reference_extracted", "level", "alerta", 2, { characters: 2, groups: 2 }),
-      row("reference_synthetic", "level", "sentinela", 3, REFS_OK),
-    ];
-    expect(selectTalentRecommendations(syntheticOnly, ELIGIBLE, { includeUserRecords: false })).toMatchObject({ pool: "reference_synthetic", talentIds: ["sentinela"] });
-
-    const extractedWithOne = [
-      row("reference_extracted", "level", "alerta", 3, REFS_OK),
-      row("reference_synthetic", "level", "sentinela", 5, REFS_OK),
-      row("reference_synthetic", "level", "resistente", 4, REFS_OK),
-    ];
-    expect(selectTalentRecommendations(extractedWithOne, ELIGIBLE, { includeUserRecords: false })).toMatchObject({
-      pool: "reference_extracted",
-      talentIds: ["alerta"],
-    });
-  });
-
-  it("guarda internamente a origem dos dados usada (conjunto, faixa e amostra)", () => {
-    const rows = [row("reference_extracted", "level", "alerta", 3, { characters: 4, groups: 2 })];
-    expect(selectTalentRecommendations(rows, ELIGIBLE, { includeUserRecords: false })).toEqual({
-      talentIds: ["alerta"],
-      characters: { alerta: 3 },
-      pool: "reference_extracted",
-      tier: "level",
-      sampleCharacters: 4,
-      sampleGroups: 2,
-    });
+    expect(selectTalentRecommendations(rows.slice(2), ELIGIBLE, { includeUserRecords: true })).toMatchObject({ pool: "reference_synthetic" });
   });
 });

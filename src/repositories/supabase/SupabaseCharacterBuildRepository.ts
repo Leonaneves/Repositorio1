@@ -27,6 +27,8 @@ interface CharacterBuildRow {
   skill_expertise: string[];
   skill_choices: Record<string, string[]>;
   metamagic_options: string[];
+  invocations: string[];
+  maneuvers: string[];
   saving_throw_proficiencies: string[];
   armor_id: string | null;
   shield: boolean;
@@ -71,6 +73,8 @@ function toRow(build: CharacterBuild, ownerId: string): CharacterBuildRow {
     skill_expertise: build.skillExpertise,
     skill_choices: build.skillChoices,
     metamagic_options: build.metamagicOptions,
+    invocations: build.invocationIds,
+    maneuvers: build.maneuverIds,
     saving_throw_proficiencies: build.savingThrowProficiencies,
     armor_id: build.armorId,
     shield: build.shield,

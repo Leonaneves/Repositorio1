@@ -16,6 +16,8 @@ import { Step5Background } from "./steps/Step5Background.js";
 import { Step6Abilities } from "./steps/Step6Abilities.js";
 import { Step3Subclass } from "./steps/Step3Subclass.js";
 import { StepMetamagic } from "./steps/StepMetamagic.js";
+import { StepInvocations } from "./steps/StepInvocations.js";
+import { StepManeuvers } from "./steps/StepManeuvers.js";
 
 /**
  * Rótulo "(Recomendado)" em Espécie, Antecedente, Perícias,
@@ -41,7 +43,9 @@ function fighter(): Character {
   return character;
 }
 
-const recommendedTexts = () => screen.queryAllByText(/\(Recomendado/).map((element) => element.textContent);
+const recommendedTexts = () => screen.queryAllByText(/\((★ )?Recomendado/).map((element) => element.textContent);
+/** Linha de explicação das recomendações de vários fatores ("★ Recomendações com base em …"). */
+const basisText = () => screen.queryAllByLabelText("Por que recomendado").map((element) => element.textContent);
 const reasonTexts = () =>
   screen
     .queryAllByRole("list", { name: "Por que recomendado" })
@@ -65,17 +69,17 @@ describe("Espécie e Antecedente", () => {
     await confirm(10, "guerreiro", (i) => ({ speciesId: species[i] }));
     setCharacter(fighter());
     render(<Step4Species />);
-    expect(await screen.findByRole("option", { name: "Anão (Recomendado)" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Elfo (Recomendado)" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Humano (Recomendado)" })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Anão (★ Recomendado)" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Elfo (★ Recomendado)" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Humano (★ Recomendado)" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Orc" })).toBeInTheDocument();
-    expect(reasonTexts()).toEqual(["Anão: escolhido por 4 de 10 guerreiros", "Elfo: escolhido por 3 de 10 guerreiros", "Humano: escolhido por 2 de 10 guerreiros"]);
+    expect(basisText()).toEqual(["★ Recomendações com base em sua classe."]);
     expect(useCharacterStore.getState().character.speciesId).toBeNull();
   });
 
   it("com 9, nada é recomendado", async () => {
     await confirm(9, "guerreiro", () => ({ speciesId: "anao" }));
-    const spy = vi.spyOn(repository, "getBuildChoiceCounts");
+    const spy = vi.spyOn(repository, "getBuildChoiceScores");
     setCharacter(fighter());
     render(<Step4Species />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -86,7 +90,7 @@ describe("Espécie e Antecedente", () => {
 
   it("outra classe não conta; sem classe nem consulta", async () => {
     await confirm(10, "mago", () => ({ backgroundId: "sabio" }));
-    const spy = vi.spyOn(repository, "getBuildChoiceCounts");
+    const spy = vi.spyOn(repository, "getBuildChoiceScores");
     setCharacter(fighter());
     render(<Step5Background />);
     await waitFor(() => expect(spy).toHaveBeenCalled());
@@ -103,14 +107,14 @@ describe("Espécie e Antecedente", () => {
     await confirm(10, "guerreiro", (i) => ({ backgroundId: i < 6 ? "soldado" : "guarda" }));
     setCharacter(fighter());
     render(<Step5Background />);
-    expect(await screen.findByRole("option", { name: "Soldado (Recomendado)" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Guarda (Recomendado)" })).toBeInTheDocument();
-    expect(reasonTexts()).toEqual(["Soldado: escolhido por 6 de 10 guerreiros", "Guarda: escolhido por 4 de 10 guerreiros"]);
+    expect(await screen.findByRole("option", { name: "Soldado (★ Recomendado)" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Guarda (★ Recomendado)" })).toBeInTheDocument();
+    expect(basisText()).toEqual(["★ Recomendações com base em sua classe e os atributos que ela mais usa."]);
   });
 
   it("o próprio personagem nunca conta para a sua recomendação", async () => {
     await confirm(10, "guerreiro", () => ({ speciesId: "anao" }));
-    const spy = vi.spyOn(repository, "getBuildChoiceCounts");
+    const spy = vi.spyOn(repository, "getBuildChoiceScores");
     const character = fighter();
     character.id = testBuildId(1);
     setCharacter(character);
@@ -126,10 +130,10 @@ describe("Atributos: 1 maior e 1 menor", () => {
     await confirm(10, "guerreiro", (i) => ({ abilityScores: i < 7 ? testAbilities({ FOR: 15, INT: 8 }) : testAbilities({ DEX: 15, CAR: 8 }) }));
     setCharacter(fighter());
     render(<Step6Abilities />);
-    expect(await screen.findByText("Força (Recomendado: maior)")).toBeInTheDocument();
-    expect(await screen.findByText("Inteligência (Recomendado: menor)")).toBeInTheDocument();
+    expect(await screen.findByText("Força (★ Recomendado: maior)")).toBeInTheDocument();
+    expect(await screen.findByText("Inteligência (★ Recomendado: menor)")).toBeInTheDocument();
     expect(recommendedTexts()).toHaveLength(2);
-    expect(reasonTexts()).toEqual(["Força: o maior atributo de 7 de 10 guerreiros", "Inteligência: o menor atributo de 7 de 10 guerreiros"]);
+    expect(basisText()).toEqual(["★ Recomendações com base em sua classe."]);
   });
 });
 
@@ -144,9 +148,9 @@ describe("Perícias e Especialização", () => {
       .flatMap((feature) => feature.choices ?? [])
       .find((candidate) => candidate.id === choiceId)!;
     render(<FeatureChoiceControl choice={choice} />);
-    expect(await screen.findByText("Percepção (Recomendado)")).toBeInTheDocument();
-    expect(recommendedTexts()).toEqual(["Percepção (Recomendado)"]);
-    expect(reasonTexts()).toEqual(["Percepção: escolhido por 10 de 10 guerreiros"]);
+    expect(await screen.findByText("Percepção (★ Recomendado)")).toBeInTheDocument();
+    expect(recommendedTexts()).toEqual(["Percepção (★ Recomendado)"]);
+    expect(basisText()).toEqual(["★ Recomendações com base em sua classe."]);
   });
 
   it("Especialização: recomenda entre as perícias já proficientes", async () => {
@@ -161,9 +165,9 @@ describe("Perícias e Especialização", () => {
       .flatMap((feature) => feature.choices ?? [])
       .find((candidate) => candidate.id === choiceId)!;
     render(<FeatureChoiceControl choice={choice} />);
-    expect(await screen.findByText("Persuasão (Recomendado)")).toBeInTheDocument();
+    expect(await screen.findByText("Persuasão (★ Recomendado)")).toBeInTheDocument();
     // Enganação foi escolhida por 4, mas o personagem não é proficiente nela — nunca aparece.
-    expect(recommendedTexts().sort()).toEqual(["Atuação (Recomendado)", "Persuasão (Recomendado)"]);
+    expect(recommendedTexts().sort()).toEqual(["Atuação (★ Recomendado)", "Persuasão (★ Recomendado)"]);
     expect(useCharacterStore.getState().character.featureChoiceSelections[choiceId]).toBeUndefined();
   });
 });
@@ -194,9 +198,38 @@ describe("Subclasse e Metamagia", () => {
     character.knownMetamagicOptions = ["acelerada"];
     setCharacter(character);
     render(<StepMetamagic />);
-    expect(await screen.findByText("+ Magia Duplicada (Recomendado)")).toBeInTheDocument();
-    expect(screen.getByText("+ Magia Sutil (Recomendado)")).toBeInTheDocument();
-    expect(reasonTexts()).toEqual(["Magia Duplicada: escolhido por 6 de 10 feiticeiros", "Magia Sutil: escolhido por 4 de 10 feiticeiros"]);
+    expect(await screen.findByText("+ Magia Duplicada (★ Recomendado)")).toBeInTheDocument();
+    expect(screen.getByText("+ Magia Sutil (★ Recomendado)")).toBeInTheDocument();
+    expect(basisText()).toEqual(["★ Recomendações com base em sua classe e as Metamagias que você já escolheu."]);
     expect(useCharacterStore.getState().character.knownMetamagicOptions).toEqual(["acelerada"]);
+  });
+});
+
+describe("Invocações e Manobras", () => {
+  it("Invocações: classe/subclasse + o que costuma ser escolhido junto das já escolhidas", async () => {
+    await confirm(10, "bruxo", (i) => ({ invocationIds: i < 6 ? ["mente-mistica", "armadura-de-sombras"] : ["mente-mistica", "explosao-repulsiva"] }));
+    const character = createBlankCharacter("ui-build-choice-warlock");
+    character.classId = "bruxo";
+    character.level = 2;
+    character.chosenInvocations = [{ invocationId: "mente-mistica", subChoice: "" }];
+    setCharacter(character);
+    render(<StepInvocations />);
+    expect(await screen.findByText("+ Armadura de Sombras (★ Recomendado)")).toBeInTheDocument();
+    expect(screen.getByText("+ Explosão Repulsiva (★ Recomendado)")).toBeInTheDocument();
+    expect(basisText()).toEqual(["★ Recomendações com base em sua classe e as Invocações que você já escolheu."]);
+    expect(useCharacterStore.getState().character.chosenInvocations).toHaveLength(1);
+  });
+
+  it("Manobras: Mestres de Batalha + o que costuma ser escolhido junto das já escolhidas", async () => {
+    await confirm(10, "guerreiro", (i) => ({ subclassId: "Mestre da Batalha", maneuverIds: i < 7 ? ["aparar", "ataque-ameacador"] : ["aparar", "ataque-de-varredura"] }));
+    const character = createBlankCharacter("ui-build-choice-battlemaster");
+    character.classId = "guerreiro";
+    character.level = 3;
+    character.subclassId = "Mestre da Batalha";
+    character.chosenManeuvers = ["aparar"];
+    setCharacter(character);
+    render(<StepManeuvers />);
+    expect(await screen.findByText("Ataque Ameaçador (★ Recomendado)")).toBeInTheDocument();
+    expect(basisText()).toEqual(["★ Recomendações com base em sua subclasse e as Manobras que você já escolheu."]);
   });
 });

@@ -61,7 +61,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   const eligibleSkills =
     effect.kind === "skillProficiency" ? skillOptions.filter((skillId) => selectedSkills.includes(skillId) || !getSkillProficiency(character, skillId)) : skillOptions;
   const recommendedSkills = useBuildChoiceRecommendations(skillOptions.length > 0 ? { kind: "skillChoice", choiceId: choice.id } : null, eligibleSkills);
-  const skillLabel = (skillId: SkillKey) => withRecommendedLabel(skills[skillId].name, recommendedSkills.has(skillId));
+  const skillLabel = (skillId: SkillKey) => withRecommendedLabel(skills[skillId].name, recommendedSkills.get(skillId));
 
   if (effect.kind === "skillProficiency") {
     const selected = selectedSkills;
@@ -335,7 +335,7 @@ function OptionPickChoiceControl({ choice, options }: { choice: FeatureChoice; o
             const talentId = talentIdOf(option);
             return (
               <option key={option} value={option}>
-                {withRecommendedLabel(option, talentId !== null && recommended.has(talentId))}
+                {withRecommendedLabel(option, talentId !== null ? recommended.get(talentId) : undefined)}
               </option>
             );
           })}

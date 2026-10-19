@@ -46,7 +46,7 @@ export function Step5Background() {
           <option value="">- Selecione -</option>
           {BACKGROUND_IDS.map((id) => (
             <option key={id} value={id}>
-              {withRecommendedLabel(backgrounds[id].name, recommendedBackgrounds.has(id))}
+              {withRecommendedLabel(backgrounds[id].name, recommendedBackgrounds.get(id))}
             </option>
           ))}
         </select>
