@@ -37,8 +37,9 @@ apliquei nada a um banco real. Para ativar:
 
 1. Crie um projeto em https://supabase.com.
 2. Abra o SQL Editor do projeto e rode, NESTA ORDEM,
-   `migrations/0001_character_builds.sql` e depois
-   `migrations/0002_build_ownership_and_talents.sql` (ou use
+   `migrations/0001_character_builds.sql`,
+   `migrations/0002_build_ownership_and_talents.sql` e
+   `migrations/0003_select_own_builds_for_upsert.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -81,6 +82,13 @@ projeto; sem isso, `ensureOwnedSession` rejeita e a sincronização
 falha silenciosamente (o personagem continua editável e exportável
 normalmente — só não entra nas estatísticas da comunidade enquanto o
 provedor não estiver ativo).
+
+`0003` acrescenta uma política de SELECT restrita ao próprio build
+(`owner_id = auth.uid()`). Ela é necessária porque o app grava com
+upsert (`INSERT ... ON CONFLICT DO UPDATE`), e o Postgres aplica as
+políticas de SELECT também a esse comando — sem ela, toda gravação é
+recusada com "new row violates row-level security policy". Cada sessão
+continua sem conseguir ler o build de qualquer outra pessoa.
 
 ## Registros de referência (preparado, mas NÃO implementado nesta etapa)
 
