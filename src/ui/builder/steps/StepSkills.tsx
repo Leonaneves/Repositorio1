@@ -3,7 +3,7 @@ import { useBuilderUiStore } from "../../../state/builderUiStore.js";
 import { ABILITY_KEYS, type AbilityKey } from "../../../domain/common.js";
 import type { SkillKey } from "../../../domain/ids.js";
 import { skillsByAbility, skills } from "../../../data/skills.js";
-import { getFeatureView, getSkillChoiceFeatures, isSkillKindChoice } from "../../../rules/features.js";
+import { getFeatureView, getSkillChoiceFeatures } from "../../../rules/features.js";
 import { getAutomaticSkillProficiencyGrants } from "../../../rules/skills.js";
 import { getInvalidExpertiseSelections, getRedundantSkillChoiceSelections } from "../../../rules/skillChoiceConflicts.js";
 import { SkillRow } from "../../sections/SkillsSection.js";
@@ -72,11 +72,7 @@ export function StepSkills() {
 
   const skillChoiceFeatures = getSkillChoiceFeatures(character);
   const proficiencyBlocks = skillChoiceFeatures
-    .map((feature) => ({
-      feature,
-      // `skillOrToolProficiency` aqui só aparece para "Hábil" do Humano (rules/features.ts#isSkillKindChoice).
-      choices: (feature.choices ?? []).filter((choice) => choice.effect.kind === "skillProficiency" || (choice.effect.kind === "skillOrToolProficiency" && isSkillKindChoice(choice))),
-    }))
+    .map((feature) => ({ feature, choices: (feature.choices ?? []).filter((choice) => choice.effect.kind === "skillProficiency") }))
     .filter((entry) => entry.choices.length > 0);
   const expertiseBlocks = skillChoiceFeatures
     .map((feature) => ({ feature, choices: (feature.choices ?? []).filter((choice) => choice.effect.kind === "skillExpertise") }))

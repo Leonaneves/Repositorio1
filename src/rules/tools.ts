@@ -2,7 +2,6 @@ import type { Character } from "../domain/character.js";
 import { classes, getClassToolChoiceId } from "../data/classes.js";
 import { tools, toolsById, type ToolCategory, type ToolDefinition } from "../data/tools.js";
 import { getCharacterFeatures } from "./features.js";
-import { HUMANO_HABIL_CHOICE_ID } from "../data/features/species.js";
 
 /** Ferramentas/Instrumentos do catálogo que pertencem a UMA das categorias informadas (array = "ou", ex.: Monge: Ferramenta de Artesão OU Instrumento Musical). */
 export function getEligibleTools(category: ToolCategory | ToolCategory[]): ToolDefinition[] {
@@ -41,17 +40,6 @@ export function getFeatGrantedTools(character: Character): string[] {
 }
 
 /**
- * Ferramenta/instrumento escolhido em "Hábil" do Humano (perícia OU
- * ferramenta — só a metade ferramenta conta aqui). Só vale enquanto a
- * espécie atual for Humano.
- */
-export function getSpeciesGrantedTools(character: Character): string[] {
-  if (character.speciesId !== "humano") return [];
-  const selection = character.featureChoiceSelections[HUMANO_HABIL_CHOICE_ID]?.value;
-  return (Array.isArray(selection) ? selection : []).filter((value) => value in toolsById);
-}
-
-/**
  * Ferramentas conhecidas "resultado final" (fonte §5: `automaticSources`
  * + `manualOverrides` = resultado final). Em modo Homebrew
  * (`character.manualToolOverrides !== null`), o override SUBSTITUI por
@@ -61,7 +49,7 @@ export function getSpeciesGrantedTools(character: Character): string[] {
  * são destruídos, só ignorados enquanto o override estiver ativo).
  */
 export function getKnownTools(character: Character): string[] {
-  return character.manualToolOverrides ?? [...getAutomaticClassTools(character), ...getFeatGrantedTools(character), ...getSpeciesGrantedTools(character)];
+  return character.manualToolOverrides ?? [...getAutomaticClassTools(character), ...getFeatGrantedTools(character)];
 }
 
 /** Se a escolha "Ferramentas de Classe" está completa (modo automático) — Homebrew nunca bloqueia (escolha livre, sem quantidade fixa). */

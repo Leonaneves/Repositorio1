@@ -83,8 +83,7 @@ export function isSkillGrantedByClassChoice(character: Character, skill: SkillKe
  * Escolha de perícia ligada a cada ESPÉCIE (mesmo padrão de
  * `EXTRA_SKILL_CHOICE_IDS_BY_CLASS` acima): "Sentidos Aguçados" do Elfo
  * (traço básico, independente da Linhagem Élfica — fonte "IMPLEMENTAR
- * LINHAGENS..." §5) e "Hábil" do Humano (perícia OU ferramenta — só a
- * metade perícia conta aqui; ferramentas em `rules/tools.ts`).
+ * LINHAGENS..." §5) e "Hábil" do Humano (1 perícia qualquer).
  */
 const SPECIES_SKILL_CHOICE_IDS: Partial<Record<SpeciesId, string>> = {
   elfo: ELFO_SENTIDOS_AGUCADOS_CHOICE_ID,

@@ -2,18 +2,16 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { createBlankCharacter, type Character } from "../domain/character.js";
 import { HUMANO_HABIL_CHOICE_ID, speciesFeatures } from "../data/features/species.js";
-import { tools } from "../data/tools.js";
 import { getSkillChoiceFeatures, isFeatureChoiceComplete, isSkillKindChoice } from "./features.js";
 import { getSkillProficiency, getSkillProficiencyOrigin } from "./skills.js";
 import { getKnownTools } from "./tools.js";
-import { getSpeciesToolProficiencyEntries } from "./proficiencyText.js";
 import { getStepBlockers } from "./builderProgress.js";
 import { getRedundantSkillChoiceSelections } from "./skillChoiceConflicts.js";
 import { pdfTextFields } from "../pdf/fieldMap.js";
 import { useCharacterStore } from "../state/characterStore.js";
 import { StepSkills } from "../ui/builder/steps/StepSkills.js";
 
-/** "Hábil" do Humano: proficiência em 1 perícia OU 1 ferramenta/instrumento, entre todas as existentes. */
+/** "Hábil" do Humano: proficiência em 1 perícia à escolha, entre todas (nunca ferramenta). */
 
 function human(overrides: (character: Character) => void = () => {}): Character {
   const character = createBlankCharacter("humano-habil");
@@ -26,16 +24,14 @@ function human(overrides: (character: Character) => void = () => {}): Character 
 const proficiencyTools = (character: Character) => pdfTextFields.find((field) => field.pdfField === "PROF.ferramentas")!.getValue(character) as string;
 
 describe("Hábil — dados", () => {
-  it("o Humano tem UMA escolha de 1 perícia ou ferramenta, com todas as ferramentas/instrumentos", () => {
+  it("o Humano tem UMA escolha de 1 perícia qualquer", () => {
     const feature = speciesFeatures.find((candidate) => candidate.speciesId === "humano")!;
     expect(feature.autoGranted).toBe(false);
     expect(feature.choices).toHaveLength(1);
     const choice = feature.choices![0];
     expect(choice.id).toBe(HUMANO_HABIL_CHOICE_ID);
-    expect(choice.effect).toMatchObject({ kind: "skillOrToolProficiency", count: 1 });
+    expect(choice.effect).toEqual({ kind: "skillProficiency", options: "any", count: 1, excludeAlreadyProficient: true });
     expect(isSkillKindChoice(choice)).toBe(true);
-    const categories = (choice.effect as { toolCategory: string[] }).toolCategory;
-    expect(tools.every((tool) => categories.includes(tool.category))).toBe(true);
   });
 
   it("aparece na etapa Perícias só para o Humano", () => {
@@ -51,20 +47,10 @@ describe("Hábil — efeitos", () => {
     expect(getSkillProficiency(character, "furtividade")).toBe(true);
     expect(getSkillProficiencyOrigin(character, "furtividade")).toBe("species");
     expect(getKnownTools(character)).toEqual([]);
-    expect(getSpeciesToolProficiencyEntries(character)).toEqual([]);
+    expect(proficiencyTools(character)).not.toContain("Hábil");
 
     character.speciesId = "anao";
     expect(getSkillProficiency(character, "furtividade")).toBe(false);
-  });
-
-  it("ferramenta escolhida entra nas ferramentas conhecidas e no PDF (PROF.ferramentas)", () => {
-    const character = human((c) => (c.featureChoiceSelections[HUMANO_HABIL_CHOICE_ID] = { value: ["suprimentos-alquimista"] }));
-    expect(getKnownTools(character)).toContain("suprimentos-alquimista");
-    expect(proficiencyTools(character)).toContain("Hábil: Suprimentos de Alquimista");
-
-    character.speciesId = "anao";
-    expect(getKnownTools(character)).not.toContain("suprimentos-alquimista");
-    expect(proficiencyTools(character)).not.toContain("Hábil");
   });
 
   it("a etapa Perícias fica bloqueada até a escolha ser feita", () => {
@@ -92,17 +78,15 @@ describe("Hábil — efeitos", () => {
 describe("Hábil — etapa Perícias", () => {
   beforeEach(() => useCharacterStore.getState().resetCharacter());
 
-  it("lista perícias e ferramentas, sem as que o personagem já tem, e grava a escolha", () => {
+  it("lista só perícias, sem as que o personagem já tem, e grava a escolha", () => {
     useCharacterStore.setState({ character: human((c) => (c.backgroundId = "soldado")) });
     render(<StepSkills />);
-    const block = screen.getByText(/Hábil — escolha 1 perícia ou ferramenta/).closest("fieldset")!;
+    const block = screen.getByText(/Hábil — escolha 1 perícia/).closest("fieldset")!;
     expect(within(block).queryByRole("checkbox", { name: "Atletismo" })).toBeNull(); // já vem do Antecedente
-    expect(within(block).getByRole("checkbox", { name: "Furtividade" })).toBeInTheDocument();
-    expect(within(block).getByRole("checkbox", { name: "Suprimentos de Alquimista" })).toBeInTheDocument();
+    expect(within(block).queryByRole("checkbox", { name: "Suprimentos de Alquimista" })).toBeNull(); // nunca ferramenta
+    expect(within(block).getAllByRole("checkbox")).toHaveLength(16); // 18 perícias − 2 do Soldado
 
-    fireEvent.click(within(block).getByRole("checkbox", { name: "Suprimentos de Alquimista" }));
-    expect(useCharacterStore.getState().character.featureChoiceSelections[HUMANO_HABIL_CHOICE_ID]?.value).toEqual(["suprimentos-alquimista"]);
-    // Limite de 1: o resto fica desabilitado.
-    expect(within(block).getByRole("checkbox", { name: "Furtividade" })).toBeDisabled();
+    fireEvent.click(within(block).getByRole("checkbox", { name: "Furtividade" }));
+    expect(useCharacterStore.getState().character.featureChoiceSelections[HUMANO_HABIL_CHOICE_ID]?.value).toEqual(["furtividade"]);
   });
 });

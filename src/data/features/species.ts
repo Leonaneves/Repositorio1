@@ -15,15 +15,10 @@ export const ELFO_SENTIDOS_AGUCADOS_CHOICE_ID = "elfo-sentidos-acucados-escolha"
 const ELFO_SENTIDOS_AGUCADOS_OPTIONS: SkillKey[] = ["intuicao", "percepcao", "sobrevivencia"];
 
 /**
- * Hábil (Humano, traço básico): proficiência em 1 perícia OU 1
- * ferramenta/instrumento à escolha, entre todas as existentes (pedido do
- * usuário). Mesmo efeito combinado do talento Habilidoso
- * (`skillOrToolProficiency`, um único limite para as duas listas), mas
- * exibido na etapa "Perícias" junto da escolha do Elfo — ver
- * `rules/features.ts#isSkillKindChoice`. Lido por
- * `rules/skills.ts#isSkillGrantedBySpeciesChoice` (perícia),
- * `rules/tools.ts#getSpeciesGrantedTools` e
- * `rules/proficiencyText.ts#getSpeciesToolProficiencyEntries` (ferramenta).
+ * Hábil (Humano, traço básico): proficiência em 1 perícia à escolha,
+ * entre todas (nunca ferramenta). Mesmo mecanismo de Sentidos Aguçados:
+ * `excludeAlreadyProficient` evita oferecer uma perícia já concedida por
+ * outra origem. Lido por `rules/skills.ts#isSkillGrantedBySpeciesChoice`.
  */
 export const HUMANO_HABIL_CHOICE_ID = "humano-habil-escolha";
 
@@ -65,8 +60,8 @@ export const speciesFeatures: FeatureDefinition[] = SPECIES_IDS.map((speciesId) 
           choices: [
             {
               id: HUMANO_HABIL_CHOICE_ID,
-              prompt: "Hábil — escolha 1 perícia ou ferramenta",
-              effect: { kind: "skillOrToolProficiency" as const, toolCategory: ["artisanTool" as const, "musicalInstrument" as const, "thievesTools" as const], count: 1 },
+              prompt: "Hábil — escolha 1 perícia",
+              effect: { kind: "skillProficiency" as const, options: "any" as const, count: 1, excludeAlreadyProficient: true },
             },
           ],
         }
