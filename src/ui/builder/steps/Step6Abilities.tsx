@@ -14,7 +14,7 @@ import { getBackgroundAbilityAllocationConfig } from "../../../data/backgrounds.
 import { getUnlockedAsiLevels } from "../../../rules/asi.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "../../../rules/abilities.js";
 import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
-import { useAbilityRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { useAbilityRecommendations, useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
 import { AbilityRecommendationsHint } from "../RecommendationReasonsHint.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
@@ -31,6 +31,36 @@ const MODE_LABELS: Record<AbilityGenerationMode, string> = {
   pointBuy: "Point Buy",
   manual: "Manual / Rolado",
 };
+
+/**
+ * Um seletor do Array Padrão. ★ marca o valor que outros personagens da
+ * mesma classe (refinado pela subclasse) mais escolheram PARA ESTE
+ * atributo, entre as opções exibidas — só o símbolo, sem explicação
+ * (pedido do usuário), nunca seleciona nada.
+ */
+function StandardArraySelect({
+  ability,
+  value,
+  options,
+  onChange,
+}: {
+  ability: AbilityKey;
+  value: number | undefined;
+  options: number[];
+  onChange: (value: number | null) => void;
+}) {
+  const recommended = useBuildChoiceRecommendations({ kind: "abilityScore", choiceId: ability }, options.map(String));
+  return (
+    <select value={value ?? ""} onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}>
+      <option value="">- Selecione -</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {recommended.has(String(option)) ? `${option} ★` : option}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 /**
  * Etapa 6 — Atributos (fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA
@@ -98,20 +128,14 @@ export function Step6Abilities() {
             <label className="field" key={ability}>
               <span>{abilityLabel(ability)}</span>
               {mode === "standardArray" ? (
-                <select
-                  value={draftScores[ability] ?? ""}
-                  onChange={(e) => setDraftScore(ability, e.target.value ? Number(e.target.value) : null)}
-                >
-                  <option value="">- Selecione -</option>
-                  {[...getStandardArrayRemainingValues(draftScores), draftScores[ability]]
+                <StandardArraySelect
+                  ability={ability}
+                  value={draftScores[ability]}
+                  options={[...getStandardArrayRemainingValues(draftScores), draftScores[ability]]
                     .filter((v): v is number => v !== undefined)
-                    .sort((a, b) => b - a)
-                    .map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                </select>
+                    .sort((a, b) => b - a)}
+                  onChange={(value) => setDraftScore(ability, value)}
+                />
               ) : (
                 <input
                   type="number"

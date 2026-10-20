@@ -24,7 +24,7 @@ const fighters = (count: number, overrides: (index: number) => Parameters<typeof
 const scoreOf = (rows: BuildChoiceScoreRow[], value: string) => rows.find((row) => row.value === value)?.score;
 
 describe("limites por seletor", () => {
-  it("Espécie/Antecedente/Perícias/Metamagia/Invocações/Manobras: até 3; atributos: 1 maior, 1 2º maior e 1 menor; Subclasse e Linhagem: 1", () => {
+  it("Espécie/Antecedente/Perícias/Metamagia/Invocações/Manobras: até 3; atributos: 1 maior, 1 2º maior e 1 menor; Array Padrão: 1 valor por atributo; Subclasse e Linhagem: 1", () => {
     expect(MAX_BUILD_CHOICE_RECOMMENDATIONS).toEqual({
       species: 3,
       lineage: 1,
@@ -32,6 +32,7 @@ describe("limites por seletor", () => {
       highestAbility: 1,
       secondAbility: 1,
       dumpAbility: 1,
+      abilityScore: 1,
       skillChoice: 3,
       subclass: 1,
       metamagic: 3,

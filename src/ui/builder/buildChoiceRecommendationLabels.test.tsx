@@ -290,3 +290,29 @@ describe("Linhagem, aumentos de atributo e Perícias por fonte", () => {
     expect(basisText()).toEqual(["★ Recomendações com base em outros personagens com Traços de Elfo."]);
   });
 });
+
+describe("Array Padrão — ★ no valor mais escolhido de cada atributo", () => {
+  it("cada seletor marca só o valor que outros personagens da classe mais usaram NAQUELE atributo, sem texto explicativo", async () => {
+    await confirm(5, "guerreiro", (i) => ({ abilityScores: testAbilities({ FOR: 15, DEX: i < 3 ? 13 : 12, CON: 14, CAR: 8 }) }));
+    setCharacter(fighter());
+    render(<Step6Abilities />);
+    const [forSelect, dexSelect, conSelect] = screen.getAllByRole("combobox");
+    expect(await within(conSelect).findByRole("option", { name: "14 ★" })).toBeInTheDocument();
+    expect(within(conSelect).getByRole("option", { name: "15" })).toBeInTheDocument();
+    expect(within(forSelect).getByRole("option", { name: "15 ★" })).toBeInTheDocument();
+    expect(within(forSelect).getByRole("option", { name: "14" })).toBeInTheDocument();
+    expect(within(dexSelect).getByRole("option", { name: "13 ★" })).toBeInTheDocument();
+    for (const select of [forSelect, dexSelect, conSelect]) {
+      expect(within(select).getAllByRole("option").filter((option) => option.textContent?.includes("★"))).toHaveLength(1);
+    }
+    expect(screen.queryByText(/Recomendações com base em sua classe e seus atributos/)).toBeNull();
+  });
+
+  it("sem 5 personagens da classe, nenhum valor recebe ★", async () => {
+    await confirm(4, "guerreiro", () => ({ abilityScores: testAbilities({ CON: 14 }) }));
+    setCharacter(fighter());
+    render(<Step6Abilities />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getAllByRole("option").filter((option) => option.textContent?.includes("★"))).toHaveLength(0);
+  });
+});

@@ -38,6 +38,7 @@ export type BuildChoiceKind =
   | "highestAbility"
   | "secondAbility"
   | "dumpAbility"
+  | "abilityScore"
   | "skillChoice"
   | "subclass"
   | "metamagic"
@@ -47,7 +48,7 @@ export type BuildChoiceKind =
 /** Tipos com várias escolhas por personagem, em que as já feitas influenciam as próximas (coocorrência). */
 export const COOCCURRENCE_KINDS: readonly BuildChoiceKind[] = ["metamagic", "invocation", "maneuver"];
 /** Tipos refinados pela subclasse (a Subclasse em si e as Perícias não). */
-export const SUBCLASS_REFINED_KINDS: readonly BuildChoiceKind[] = ["species", "background", "highestAbility", "secondAbility", "dumpAbility", "invocation", "maneuver"];
+export const SUBCLASS_REFINED_KINDS: readonly BuildChoiceKind[] = ["species", "background", "highestAbility", "secondAbility", "dumpAbility", "abilityScore", "invocation", "maneuver"];
 
 export interface BuildChoiceScoreQuery {
   kind: BuildChoiceKind;
@@ -57,7 +58,7 @@ export interface BuildChoiceScoreQuery {
   speciesId: SpeciesId | null;
   /** Subclasse atual (refina os tipos de `SUBCLASS_REFINED_KINDS`). */
   subclassId: string | null;
-  /** Só para `skillChoice`: id da `FeatureChoice`. */
+  /** `skillChoice`: id da `FeatureChoice`; `abilityScore`: o atributo (ex.: "CON"). */
   choiceId: string | null;
   /** Só para `skillChoice`: maior atributo base do personagem atual. */
   highestAbility: AbilityKey | null;
@@ -90,6 +91,11 @@ function buildValues(build: CharacterBuild, query: BuildChoiceScoreQuery): strin
       return [secondHighestAbility(build.abilityScores)];
     case "dumpAbility":
       return [lowestAbility(build.abilityScores)];
+    case "abilityScore": {
+      // Valor BASE escolhido para um atributo (ex.: CON = "14") — recomendação do Array Padrão.
+      const score = query.choiceId ? build.abilityScores[query.choiceId as AbilityKey] : undefined;
+      return typeof score === "number" ? [String(score)] : [];
+    }
     case "skillChoice":
       return query.choiceId ? [...(build.skillChoices?.[query.choiceId] ?? [])] : [];
     case "subclass":

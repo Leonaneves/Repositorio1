@@ -16,7 +16,7 @@ import { validateReferenceFile } from "./validateReferenceFile.js";
 
 /**
  * Integração com um Postgres REAL (PGlite, em memória) — aplica as
- * migrations 0001→0010 exatamente como estão no repositório, com só o
+ * migrations 0001→0011 exatamente como estão no repositório, com só o
  * mínimo do Supabase simulado (papéis `anon`/`authenticated` e
  * `auth.uid()`). Cobre: importação/reimportação sem duplicar, transação
  * desfeita em erro, bloqueio de leitura direta das referências e
@@ -461,6 +461,9 @@ describe("get_build_choice_scores × scoreBuildChoices (paridade SQL/app)", () =
     { ...base, classId: "mago" },
     { ...base, kind: "secondAbility" },
     { ...base, kind: "secondAbility", subclassId: null },
+    { ...base, kind: "abilityScore", choiceId: "CON" },
+    { ...base, kind: "abilityScore", choiceId: "FOR", subclassId: null },
+    { ...base, kind: "abilityScore", choiceId: "atributo-invalido", subclassId: null },
     { ...base, kind: "lineage", classId: null, speciesId: "elfo", subclassId: null },
     { ...base, kind: "skillChoice", classId: null, choiceId: SKILL_CHOICE, subclassId: null, highestAbility: "FOR" },
   ];
