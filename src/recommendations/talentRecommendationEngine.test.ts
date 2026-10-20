@@ -10,7 +10,6 @@ import type { TalentChoiceCountQuery } from "./types.js";
 const QUERY: TalentChoiceCountQuery = {
   opportunityKind: "generalFeat",
   classId: "guerreiro",
-  level: 4,
   subclassId: "Campeão",
   highestAbility: "FOR",
   excludeCharacterId: null,

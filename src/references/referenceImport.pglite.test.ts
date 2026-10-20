@@ -16,7 +16,7 @@ import { validateReferenceFile } from "./validateReferenceFile.js";
 
 /**
  * Integração com um Postgres REAL (PGlite, em memória) — aplica as
- * migrations 0001→0009 exatamente como estão no repositório, com só o
+ * migrations 0001→0010 exatamente como estão no repositório, com só o
  * mínimo do Supabase simulado (papéis `anon`/`authenticated` e
  * `auth.uid()`). Cobre: importação/reimportação sem duplicar, transação
  * desfeita em erro, bloqueio de leitura direta das referências e
@@ -101,7 +101,7 @@ async function rpcCounts(db: PGlite, query: TalentChoiceCountQuery): Promise<Tal
   const result = await db.query<RpcRow>(`select * from get_talent_choice_counts($1, $2, $3, $4, $5, $6, $7)`, [
     query.opportunityKind,
     query.classId,
-    query.level,
+    null, // p_level: ignorado (o nível nunca influencia)
     query.subclassId,
     query.highestAbility,
     query.excludeCharacterId,
@@ -199,8 +199,8 @@ describe("importação de referências (SQL gerado)", () => {
     await db.exec(referenceDatasetToSql(dataset(copy)));
     expect(await count(db, "reference_characters")).toBe(2);
     expect(await count(db, "reference_character_citations")).toBe(1);
-    const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", level: 4, subclassId: null, highestAbility: null, excludeCharacterId: null, includeUserRecords: false });
-    expect(rows.find((row) => row.tier === "level")!.sampleCharacters).toBe(2);
+    const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", subclassId: null, highestAbility: null, excludeCharacterId: null, includeUserRecords: false });
+    expect(rows.find((row) => row.tier === "class")!.sampleCharacters).toBe(2);
   });
 
   it("sameAs apontando para personagem não importado: transação inteira desfeita", async () => {
@@ -292,7 +292,7 @@ describe("acesso pela API pública", () => {
     for (const role of ["anon", "authenticated"]) {
       await db.exec(`set role ${role}`);
       await expect(db.query("select * from reference_characters")).rejects.toThrow(/permission denied/);
-      const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", level: 4, subclassId: null, highestAbility: null, excludeCharacterId: null, includeUserRecords: false });
+      const rows = await rpcCounts(db, { opportunityKind: "generalFeat", classId: "guerreiro", subclassId: null, highestAbility: null, excludeCharacterId: null, includeUserRecords: false });
       expect(rows.length).toBeGreaterThan(0);
       await db.exec("reset role");
     }
@@ -355,7 +355,6 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
   const base: TalentChoiceCountQuery = {
     opportunityKind: "generalFeat",
     classId: "guerreiro",
-    level: 4,
     subclassId: "Campeão",
     highestAbility: "FOR",
     excludeCharacterId: null,
@@ -368,10 +367,10 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
     { ...base, excludeCharacterId: testBuildId(2) },
     { ...base, highestAbility: null, subclassId: null },
     { ...base, highestAbility: "DEX" },
-    { ...base, level: 6, highestAbility: "DEX" },
-    { ...base, level: 8, highestAbility: null },
-    { ...base, opportunityKind: "fightingStyle", level: 1, subclassId: null, highestAbility: null },
-    { ...base, opportunityKind: "originFeat", level: null, subclassId: null, highestAbility: null },
+    { ...base, subclassId: null, highestAbility: "DEX" },
+    { ...base, highestAbility: null },
+    { ...base, opportunityKind: "fightingStyle", subclassId: null, highestAbility: null },
+    { ...base, opportunityKind: "originFeat", subclassId: null, highestAbility: null },
     { ...base, classId: "mago" },
   ];
 
@@ -386,16 +385,16 @@ describe("get_talent_choice_counts × countTalentChoices (paridade SQL/app)", ()
     expect(await rpcCounts(db, { ...base, includeUserRecords: false })).toEqual([]);
     const rows = await rpcCounts(db, base);
     expect(rows.every((row) => row.pool === "user" && row.sampleCharacters >= 10)).toBe(true);
-    expect(rows.find((row) => row.tier === "level" && row.talentId === "sentinela")!.characters).toBe(14);
-    // Excluir o próprio personagem derruba a amostra para 21 — ainda >= 10.
-    expect((await rpcCounts(db, { ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "level")!.sampleCharacters).toBe(21);
+    expect(rows.find((row) => row.tier === "class" && row.talentId === "sentinela")!.characters).toBe(14);
+    // Excluir o próprio personagem derruba a amostra para 22 (inclui quem escolheu Talento Geral em outro nível) — ainda >= 10.
+    expect((await rpcCounts(db, { ...base, excludeCharacterId: testBuildId(1) })).find((row) => row.tier === "class")!.sampleCharacters).toBe(22);
   });
 
   it("dados reais: 10 personagens bastam, 9 não", async () => {
     for (const build of userBuilds.slice(0, 9)) await insertBuild(db, build);
     expect(await rpcCounts(db, base)).toEqual([]);
     await insertBuild(db, userBuilds[9]);
-    expect((await rpcCounts(db, base)).find((row) => row.tier === "level")!.sampleCharacters).toBe(10);
+    expect((await rpcCounts(db, base)).find((row) => row.tier === "class")!.sampleCharacters).toBe(10);
   });
 });
 
@@ -550,7 +549,6 @@ describe("get_talent_choice_scores × scoreTalentChoices (paridade SQL/app)", ()
   const base: TalentChoiceCountQuery = {
     opportunityKind: "generalFeat",
     classId: "guerreiro",
-    level: 4,
     subclassId: null,
     highestAbility: null,
     excludeCharacterId: null,
@@ -563,14 +561,14 @@ describe("get_talent_choice_scores × scoreTalentChoices (paridade SQL/app)", ()
     { ...base, highestAbility: "DEX" },
     { ...base, subclassId: "Mestre de Batalha", highestAbility: "DEX" },
     { ...base, subclassId: "Campeão", highestAbility: "FOR", excludeCharacterId: testBuildId(1) },
-    { ...base, level: 6 },
+    { ...base, subclassId: "Campeão" },
     { ...base, classId: "mago" },
   ];
 
   async function rpcTalentScores(query: TalentChoiceCountQuery): Promise<TalentChoiceScoreRow[]> {
     const result = await db.query<{ pool: TalentChoiceScoreRow["pool"]; talent_id: string; score: number; base_characters: number; base_groups: number; base_sample: number }>(
       "select * from get_talent_choice_scores($1, $2, $3, $4, $5, $6, $7)",
-      [query.opportunityKind, query.classId, query.level, query.subclassId, query.highestAbility, query.excludeCharacterId, query.includeUserRecords],
+      [query.opportunityKind, query.classId, null, query.subclassId, query.highestAbility, query.excludeCharacterId, query.includeUserRecords],
     );
     return result.rows.map((row) => ({
       pool: row.pool,

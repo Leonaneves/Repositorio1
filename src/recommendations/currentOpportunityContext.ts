@@ -106,7 +106,6 @@ export function buildTalentChoiceCountQuery(
   return {
     opportunityKind: descriptor.kind,
     classId: character.classId,
-    level: descriptor.level,
     subclassId,
     highestAbility: areAbilitiesKnownBefore(character, descriptor.level) ? highestAbility(context.abilityScores) : null,
     excludeCharacterId: character.id,

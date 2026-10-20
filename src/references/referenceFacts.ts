@@ -20,7 +20,6 @@ export function referenceDatasetsToFacts(datasets: readonly NormalizedReferenceD
         groupKey: dataset.source.independenceGroup,
         opportunityKind: acquisition.opportunityKind,
         classId: character.classId,
-        level: acquisition.level,
         subclassId: acquisition.subclassId,
         highestAbility: highestAbilityOrNull(acquisition.abilityScores),
         talentId: acquisition.talentId,

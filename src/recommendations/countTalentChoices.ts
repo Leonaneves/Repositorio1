@@ -40,7 +40,6 @@ export function buildToTalentChoiceFacts(build: CharacterBuild): TalentChoiceFac
         groupKey: build.characterId,
         opportunityKind: deriveOpportunityKind(record),
         classId,
-        level: record.acquisitionLevel ?? null,
         subclassId: typeof subclassId === "string" && subclassId !== "desconhecido" ? subclassId : null,
         highestAbility: highestAbilityOrNull(record.context?.abilityScores),
         talentId: record.talentId,

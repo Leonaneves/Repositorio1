@@ -184,7 +184,6 @@ describe("scoreTalentChoices — classe/nível → subclasse e atributos", () =>
   const base: TalentChoiceCountQuery = {
     opportunityKind: "generalFeat",
     classId: "guerreiro",
-    level: 4,
     subclassId: null,
     highestAbility: null,
     excludeCharacterId: null,

@@ -30,7 +30,6 @@ export class SupabaseTalentChoiceStatsRepository implements TalentChoiceStatsRep
     const { data, error } = await this.client.rpc("get_talent_choice_counts", {
       p_opportunity_kind: query.opportunityKind,
       p_class_id: query.classId,
-      p_level: query.level,
       p_subclass_id: query.subclassId,
       p_highest_ability: query.highestAbility,
       p_exclude_character_id: query.excludeCharacterId,
@@ -52,7 +51,6 @@ export class SupabaseTalentChoiceStatsRepository implements TalentChoiceStatsRep
     const { data, error } = await this.client.rpc("get_talent_choice_scores", {
       p_opportunity_kind: query.opportunityKind,
       p_class_id: query.classId,
-      p_level: query.level,
       p_subclass_id: query.subclassId,
       p_highest_ability: query.highestAbility,
       p_exclude_character_id: query.excludeCharacterId,

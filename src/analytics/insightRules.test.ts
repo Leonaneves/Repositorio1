@@ -127,7 +127,7 @@ describe("computeInsight — filtragem por contexto (§10)", () => {
 describe("computeInsight — cold start / fallback sem dados (§12)", () => {
   it("devolve null quando não há nenhum build (base vazia)", async () => {
     for (const definition of insightMetricDefinitions) {
-      const insight = await computeInsight(definition, store, { classId: "mago", level: 5 }, { minSampleSize: 20 });
+      const insight = await computeInsight(definition, store, { classId: "mago" }, { minSampleSize: 20 });
       expect(insight).toBeNull();
     }
   });

@@ -52,40 +52,23 @@ export interface ContextTierDefinition {
   needsSubclass: boolean;
   /** Exige maior atributo conhecido dos DOIS lados e igual. */
   needsAbility: boolean;
-  /** `true` = mesmo nível de aquisição; `false` = mesma faixa de nível (`levelBand`). */
-  exactLevel: boolean;
 }
 
 /**
  * Faixas de semelhança, da mais específica para a mais ampla — sempre
- * com o mesmo tipo de oportunidade e a mesma classe. A mais ampla ainda
- * exige a mesma faixa de nível (1–4, 5–10, 11–16, 17–20), para nunca
- * misturar níveis muito diferentes (fonte §4). Um registro com
- * subclasse/atributos desconhecidos só participa das faixas que não
- * dependem deles (fonte §5: "registros parciais só contribuem para as
- * comparações em que tiverem informação suficiente").
+ * com o mesmo tipo de oportunidade e a mesma classe. O nível NUNCA é
+ * fator de recomendação: um talento escolhido no nível 4 e outro no
+ * nível 12 contam igualmente. Um registro com subclasse/atributos
+ * desconhecidos só participa das faixas que não dependem deles (fonte
+ * §5: "registros parciais só contribuem para as comparações em que
+ * tiverem informação suficiente").
  */
 export const CONTEXT_TIERS: readonly ContextTierDefinition[] = [
-  { tier: "level_subclass_ability", needsSubclass: true, needsAbility: true, exactLevel: true },
-  { tier: "level_subclass", needsSubclass: true, needsAbility: false, exactLevel: true },
-  { tier: "level_ability", needsSubclass: false, needsAbility: true, exactLevel: true },
-  { tier: "level", needsSubclass: false, needsAbility: false, exactLevel: true },
-  { tier: "level_band", needsSubclass: false, needsAbility: false, exactLevel: false },
+  { tier: "class_subclass_ability", needsSubclass: true, needsAbility: true },
+  { tier: "class_subclass", needsSubclass: true, needsAbility: false },
+  { tier: "class_ability", needsSubclass: false, needsAbility: true },
+  { tier: "class", needsSubclass: false, needsAbility: false },
 ];
-
-/**
- * Faixa de nível ("tier of play" do D&D 2024): 1–4 → 1, 5–10 → 2,
- * 11–16 → 3, 17–20 → 4. `null` (criação — Talento de Origem do Humano)
- * → 0, uma faixa própria que só casa com outra aquisição de criação.
- * Mesmos limites de `talent_level_band` em `supabase/migrations/0004_talent_recommendations.sql`.
- */
-export function levelBand(level: number | null): number {
-  if (level === null) return 0;
-  if (level <= 4) return 1;
-  if (level <= 10) return 2;
-  if (level <= 16) return 3;
-  return 4;
-}
 
 /** Se a faixa pode ser usada para este contexto — uma faixa que exige um dado desconhecido do personagem atual nunca é consultada. */
 export function isTierApplicable(tier: ContextTierDefinition, query: Pick<TalentChoiceCountQuery, "subclassId" | "highestAbility">): boolean {
@@ -98,8 +81,7 @@ export function isTierApplicable(tier: ContextTierDefinition, query: Pick<Talent
 export function factMatchesTier(fact: TalentChoiceFact, tier: ContextTierDefinition, query: TalentChoiceCountQuery): boolean {
   if (!isTierApplicable(tier, query)) return false;
   if (tier.needsSubclass && fact.subclassId !== query.subclassId) return false;
-  if (tier.needsAbility && fact.highestAbility !== query.highestAbility) return false;
-  return tier.exactLevel ? fact.level === query.level : levelBand(fact.level) === levelBand(query.level);
+  return !(tier.needsAbility && fact.highestAbility !== query.highestAbility);
 }
 
 /** Amostra mínima por conjunto (fonte §3). */
@@ -120,7 +102,7 @@ export interface SelectRecommendationsOptions {
  *    extraídas → referências sintéticas aprovadas); o primeiro conjunto
  *    com ao menos um talento ELEGÍVEL decide sozinho — os rankings de
  *    conjuntos diferentes nunca são misturados.
- * 2. Ranking: pontuação (classe/nível refinados por subclasse e
+ * 2. Ranking: pontuação (classe refinada por subclasse e
  *    atributo) → personagens na base → fontes independentes → ordem do
  *    seletor (`eligibleTalentIds`, ordem estável do catálogo).
  * 3. Corta em `MAX_RECOMMENDATIONS_PER_SELECTOR`.

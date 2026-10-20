@@ -20,9 +20,9 @@ export type RecommendationPool = "user" | "reference_extracted" | "reference_syn
 /**
  * Faixas de semelhança de contexto, da mais específica para a mais
  * ampla — sempre dentro do MESMO tipo de oportunidade e da MESMA
- * classe (ver `policy.ts#CONTEXT_TIERS`).
+ * classe (ver `policy.ts#CONTEXT_TIERS`). O nível nunca é fator.
  */
-export type ContextTier = "level_subclass_ability" | "level_subclass" | "level_ability" | "level" | "level_band";
+export type ContextTier = "class_subclass_ability" | "class_subclass" | "class_ability" | "class";
 
 /**
  * Contexto da oportunidade que o jogador está decidindo agora — sempre o
@@ -34,8 +34,6 @@ export type ContextTier = "level_subclass_ability" | "level_subclass" | "level_a
 export interface TalentChoiceCountQuery {
   opportunityKind: TalentOpportunityKind;
   classId: ClassId;
-  /** Nível da aquisição — `null` só para o Talento de Origem do Humano (concedido na criação, sem nível numérico). */
-  level: number | null;
   /** Subclasse NO MOMENTO da aquisição — `null` antes do nível 3 ou ainda não escolhida. */
   subclassId: string | null;
   /** Maior atributo NO MOMENTO da aquisição (desempate FOR > DEX > CON > INT > SAB > CAR) — `null` quando os atributos ainda não estão definidos. */
@@ -81,7 +79,6 @@ export interface TalentChoiceFact {
   groupKey: string;
   opportunityKind: TalentOpportunityKind;
   classId: string;
-  level: number | null;
   subclassId: string | null;
   highestAbility: AbilityKey | null;
   talentId: string;
@@ -97,7 +94,7 @@ export interface TalentChoiceFact {
 export interface TalentRecommendationResult {
   /** No máximo `MAX_RECOMMENDATIONS_PER_SELECTOR`, já na ordem do ranking. */
   talentIds: string[];
-  /** Personagens distintos que escolheram cada talento recomendado na base (mesma classe e nível). */
+  /** Personagens distintos que escolheram cada talento recomendado na base (mesma classe). */
   characters: Record<string, number>;
   pool: RecommendationPool;
   /** Personagens comparados na base. */

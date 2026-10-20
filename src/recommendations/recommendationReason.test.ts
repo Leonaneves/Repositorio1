@@ -39,8 +39,8 @@ describe("recomendações de vários fatores", () => {
     expect(formatBlendBasis(["sua classe", "sua subclasse", "os atributos que ela mais usa"], "user")).toBe(
       "★ Recomendações com base em sua classe, sua subclasse e os atributos que ela mais usa.",
     );
-    expect(formatBlendBasis(["sua classe e nível"], "reference")).toBe(
-      "★ Recomendações de personagens de referência (guias e fontes externas) com base em sua classe e nível.",
+    expect(formatBlendBasis(["sua classe"], "reference")).toBe(
+      "★ Recomendações de personagens de referência (guias e fontes externas) com base em sua classe.",
     );
   });
 });

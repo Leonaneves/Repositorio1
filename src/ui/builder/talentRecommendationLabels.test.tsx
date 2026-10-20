@@ -115,7 +115,7 @@ describe("AsiControl — Talento Geral", () => {
     expect(recommendedOptions()).toEqual(["Alerta (★ Recomendado)", "Vigoroso (★ Recomendado)", "Sentinela (★ Recomendado)"]);
     // Referências nunca aparecem como escolha de jogadores.
     expect(screen.getByLabelText("Por que recomendado").textContent).toBe(
-      "★ Recomendações de personagens de referência (guias e fontes externas) com base em sua classe e nível, sua subclasse e seus atributos.",
+      "★ Recomendações de personagens de referência (guias e fontes externas) com base em sua classe, sua subclasse e seus atributos.",
     );
     expect(screen.getByRole("option", { name: "Resistente" })).toBeInTheDocument();
     expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "feat", featId: null });
@@ -276,7 +276,7 @@ describe("Dados reais liberados no recomendador", () => {
     render(<AsiControl level={4} showUnavailableFeats={false} />);
     expect(await screen.findByRole("option", { name: "Resistente (★ Recomendado)" })).toBeInTheDocument();
     expect(recommendedOptions()).toEqual(["Resistente (★ Recomendado)"]);
-    expect(screen.getByLabelText("Por que recomendado").textContent).toBe("★ Recomendações com base em sua classe e nível, sua subclasse e seus atributos.");
+    expect(screen.getByLabelText("Por que recomendado").textContent).toBe("★ Recomendações com base em sua classe, sua subclasse e seus atributos.");
   });
 
   it("com 4, a amostra real é insuficiente e nada é recomendado", async () => {

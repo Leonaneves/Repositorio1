@@ -166,7 +166,7 @@ export interface TalentChoiceScoreRow {
   pool: RecommendationPool;
   talentId: string;
   score: number;
-  /** Personagens/grupos que escolheram o talento na base (mesma classe e nível). */
+  /** Personagens/grupos que escolheram o talento na base (mesma classe). */
   baseCharacters: number;
   baseGroups: number;
   baseSample: number;
@@ -174,9 +174,9 @@ export interface TalentChoiceScoreRow {
 
 /**
  * Talentos: por conjunto (reais / referências — nunca misturados), base =
- * mesma classe e mesmo nível (ou a mesma faixa de nível, se o nível exato
- * ainda não tem amostra mínima), refinada pela subclasse e pelo maior
- * atributo no momento da escolha, e depois pelos dois juntos.
+ * mesma classe e mesmo tipo de oportunidade (o nível nunca influencia),
+ * refinada pela subclasse e pelo maior atributo no momento da escolha, e
+ * depois pelos dois juntos.
  */
 export function scoreTalentChoices(facts: readonly TalentChoiceFact[], query: TalentChoiceCountQuery): TalentChoiceScoreRow[] {
   const rows = countTalentChoices(facts, query, { applyMinimum: false });
@@ -189,19 +189,16 @@ export function scoreTalentChoices(facts: readonly TalentChoiceFact[], query: Ta
 
   const result: TalentChoiceScoreRow[] = [];
   for (const pool of new Set(rows.map((row) => row.pool))) {
-    const baseTier = (["level", "level_band"] as const).find((tier) => {
-      const sample = sampleOf(pool, tier);
-      return sample.n > 0 && meetsMinimumSample(pool, sample.n, sample.groups);
-    });
-    if (!baseTier) continue;
+    const baseTier: ContextTier = "class";
     const base = sampleOf(pool, baseTier);
+    if (base.n === 0 || !meetsMinimumSample(pool, base.n, base.groups)) continue;
     for (const row of rows.filter((candidate) => candidate.pool === pool && candidate.tier === baseTier)) {
       const prior = row.characters / base.n;
       const refine = (tier: ContextTier, p: number) => (countOf(pool, tier, row.talentId) + SMOOTHING_K * p) / (sampleOf(pool, tier).n + SMOOTHING_K);
-      const pSubclass = refine("level_subclass", prior);
-      const pAbility = refine("level_ability", prior);
+      const pSubclass = refine("class_subclass", prior);
+      const pAbility = refine("class_ability", prior);
       let score: number;
-      if (query.subclassId !== null && query.highestAbility !== null) score = refine("level_subclass_ability", (pSubclass + pAbility) / 2);
+      if (query.subclassId !== null && query.highestAbility !== null) score = refine("class_subclass_ability", (pSubclass + pAbility) / 2);
       else if (query.subclassId !== null) score = pSubclass;
       else if (query.highestAbility !== null) score = pAbility;
       else score = prior;

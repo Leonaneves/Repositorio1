@@ -12,6 +12,6 @@ import type { TalentChoiceScoreRow } from "../recommendations/scoring.js";
  */
 export interface TalentChoiceStatsRepository {
   getTalentChoiceCounts(query: TalentChoiceCountQuery): Promise<TalentChoiceCountRow[]>;
-  /** Pontuação por hierarquia de influência (classe/nível → subclasse e atributo) — `get_talent_choice_scores` (migration 0008) / `scoring.ts`. */
+  /** Pontuação por hierarquia de influência (classe → subclasse e atributo; o nível nunca influencia) — `get_talent_choice_scores` (migration 0010) / `scoring.ts`. */
   getTalentChoiceScores(query: TalentChoiceCountQuery): Promise<TalentChoiceScoreRow[]>;
 }

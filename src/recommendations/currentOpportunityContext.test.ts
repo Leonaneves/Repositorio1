@@ -32,14 +32,13 @@ describe("buildTalentChoiceCountQuery — contexto antes da aquisição", () => 
     expect(buildTalentChoiceCountQuery(character, HUMAN_ORIGIN_FEAT_OPPORTUNITY, OPTIONS)).toBeNull();
   });
 
-  it("Humano na etapa Espécie, atributos ainda não gerados: nível de criação, subclasse e atributo desconhecidos", () => {
+  it("Humano na etapa Espécie, atributos ainda não gerados: subclasse e atributo desconhecidos (o nível nunca entra na consulta)", () => {
     const character = createBlankCharacter("ctx-test");
     character.classId = "mago";
     character.speciesId = "humano";
     expect(buildTalentChoiceCountQuery(character, HUMAN_ORIGIN_FEAT_OPPORTUNITY, OPTIONS)).toEqual({
       opportunityKind: "originFeat",
       classId: "mago",
-      level: null,
       subclassId: null,
       highestAbility: null,
       excludeCharacterId: "ctx-test",
@@ -53,7 +52,8 @@ describe("buildTalentChoiceCountQuery — contexto antes da aquisição", () => 
     character.asiSelections[4] = { kind: "feat", featId: "imobilizador" };
     character.featureChoiceSelections["imobilizador-atributo-asi-4"] = { value: "DEX" };
     const query = buildTalentChoiceCountQuery(character, getAsiFeatOpportunity(4), OPTIONS)!;
-    expect(query).toMatchObject({ opportunityKind: "generalFeat", level: 4, subclassId: "Campeão" });
+    expect(query).toMatchObject({ opportunityKind: "generalFeat", subclassId: "Campeão" });
+    expect(query).not.toHaveProperty("level");
     // FOR 12+2 = 14, DEX 15, CON 14+1 = 15 → empate DEX/CON, desempate FOR > DEX > CON → DEX.
     expect(query.highestAbility).toBe("DEX");
   });

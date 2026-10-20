@@ -11,7 +11,7 @@ export { withRecommendedLabel } from "../recommendations/recommendationReason.js
  * Talentos recomendados para UM seletor — sempre um subconjunto de
  * `eligibleTalentIds` (as opções habilitadas do próprio seletor, na
  * ordem exibida), no máximo 3. Influências (pedido do usuário):
- * classe e nível → subclasse → atributos no momento da escolha
+ * classe → subclasse → atributos no momento da escolha
  * (`recommendations/scoring.ts#scoreTalentChoices`), por isso o motivo é
  * "★ Recomendado" + os fatores usados. Refaz a consulta só quando o
  * contexto da oportunidade ou a lista elegível muda; enquanto a nova
@@ -23,7 +23,7 @@ export function useTalentRecommendations(descriptor: TalentOpportunityDescriptor
   const query = descriptor ? buildTalentChoiceCountQuery(character, descriptor, { includeUserRecords: REAL_RECORDS_ENABLED }) : null;
   const eligibleKey = eligibleTalentIds.join("|");
   const requestKey = query && eligibleTalentIds.length > 0 ? `${JSON.stringify(query)}#${eligibleKey}` : null;
-  const basis = query ? ["sua classe e nível", ...(query.subclassId ? ["sua subclasse"] : []), ...(query.highestAbility ? ["seus atributos"] : [])] : [];
+  const basis = query ? ["sua classe", ...(query.subclassId ? ["sua subclasse"] : []), ...(query.highestAbility ? ["seus atributos"] : [])] : [];
 
   const [resolved, setResolved] = useState<{ key: string; reasons: [string, RecommendationReason][] } | null>(null);
 

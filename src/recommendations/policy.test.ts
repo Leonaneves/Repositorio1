@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   CONTEXT_TIERS,
-  levelBand,
   MAX_RECOMMENDATIONS_PER_SELECTOR,
   meetsMinimumSample,
   MIN_REAL_CHARACTERS,
@@ -22,12 +21,9 @@ describe("policy — constantes aprovadas", () => {
     expect(MAX_RECOMMENDATIONS_PER_SELECTOR).toBe(3);
   });
 
-  it("faixas da mais específica para a mais ampla, sempre com nível (exato ou mesma faixa)", () => {
-    expect(CONTEXT_TIERS.map((tier) => tier.tier)).toEqual(["level_subclass_ability", "level_subclass", "level_ability", "level", "level_band"]);
-  });
-
-  it("faixas de nível: criação, 1–4, 5–10, 11–16, 17–20", () => {
-    expect([null, 1, 4, 5, 10, 11, 16, 17, 20].map(levelBand)).toEqual([0, 1, 1, 2, 2, 3, 3, 4, 4]);
+  it("faixas da mais específica para a mais ampla, sempre na mesma classe — o nível nunca é fator", () => {
+    expect(CONTEXT_TIERS.map((tier) => tier.tier)).toEqual(["class_subclass_ability", "class_subclass", "class_ability", "class"]);
+    expect(CONTEXT_TIERS.every((tier) => !("exactLevel" in tier))).toBe(true);
   });
 });
 

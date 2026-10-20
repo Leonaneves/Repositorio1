@@ -44,7 +44,7 @@ beforeEach(() => {
 });
 
 describe("useInsightContext — muda quando a classe (ou outro campo relevante) muda", () => {
-  it("reflete classId/subclassId/speciesId/backgroundId/level do personagem", () => {
+  it("reflete classId/subclassId/speciesId/backgroundId do personagem (nunca o nível)", () => {
     const { result } = renderHook(() => useInsightContext());
     // Todos os atributos começam em 10 (empate) — o desempate FOR > DEX > ... escolhe FOR.
     expect(result.current).toEqual({
@@ -52,7 +52,6 @@ describe("useInsightContext — muda quando a classe (ou outro campo relevante) 
       subclassId: undefined,
       speciesId: undefined,
       backgroundId: undefined,
-      level: 1,
       highestAbility: "FOR",
     });
 

@@ -7,7 +7,6 @@ export interface InsightContext {
   subclassId?: string;
   speciesId?: SpeciesId;
   backgroundId?: BackgroundId;
-  level?: number;
   /** Qual atributo é o maior do PRÓPRIO personagem em edição (derivado, nunca escolhido diretamente pelo jogador) — ver §1.2. */
   highestAbility?: AbilityKey;
 }

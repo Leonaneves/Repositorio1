@@ -23,7 +23,6 @@ export function useInsightContext(): InsightContext {
   const subclassId = useCharacterStore((s) => s.character.subclassId);
   const speciesId = useCharacterStore((s) => s.character.speciesId);
   const backgroundId = useCharacterStore((s) => s.character.backgroundId);
-  const level = useCharacterStore((s) => s.character.level);
   const abilities = useCharacterStore((s) => s.character.abilities);
 
   const rawHighestAbility = useMemo(() => {
@@ -38,10 +37,9 @@ export function useInsightContext(): InsightContext {
       subclassId: subclassId ?? undefined,
       speciesId: speciesId ?? undefined,
       backgroundId: backgroundId ?? undefined,
-      level,
       highestAbility: debouncedHighestAbility,
     }),
-    [classId, subclassId, speciesId, backgroundId, level, debouncedHighestAbility],
+    [classId, subclassId, speciesId, backgroundId, debouncedHighestAbility],
   );
 }
 
@@ -70,7 +68,7 @@ export function useInsights(): UseInsightsResult {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context.classId, context.subclassId, context.speciesId, context.backgroundId, context.level, context.highestAbility]);
+  }, [context.classId, context.subclassId, context.speciesId, context.backgroundId, context.highestAbility]);
 
   return { insights, loading };
 }
