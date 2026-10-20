@@ -49,7 +49,7 @@ import { getFighterManeuverTalentEntries } from "../rules/fighterTalentEntries.j
 import { getFightingStyleTalentEntries } from "../rules/fightingStyles.js";
 import { getEpicBoonTalentEntries } from "../rules/epicBoonTalentEntries.js";
 import { getSubclassDisplayName } from "../rules/subclasses.js";
-import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned, truncate } from "./formatter.js";
+import { formatComputedPlain, formatComputedSigned, formatPlain, formatSigned } from "./formatter.js";
 
 /**
  * Abreviação de cada perícia no PDF-molde (`<ATRIBUTO>.<abrev>`),
@@ -169,7 +169,7 @@ export const pdfOverlayFields: PdfOverlayFieldMapping[] = [
     pdfField: "SUBCLASSE",
     pageIndex: 0,
     rect: [146.618, 769.593, 252.982, 784.32],
-    getValue: (c) => (c.subclassId ? truncate(getSubclassDisplayName(c.classId, c.subclassId) ?? c.subclassId, 30) : ""),
+    getValue: (c) => (c.subclassId ? (getSubclassDisplayName(c.classId, c.subclassId) ?? c.subclassId) : ""),
   },
   {
     kind: "overlay",

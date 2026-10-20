@@ -2,6 +2,7 @@ import { AnnotationFlags, PDFDocument, PDFName, type PDFForm, type PDFTextField 
 import type { Character } from "../domain/character.js";
 import { pdfCheckboxFields, pdfDropdownFields, pdfOverlayFields, pdfTextFields } from "./fieldMap.js";
 import { sanitizeForPdf } from "./sanitize.js";
+import { fitTextFieldFontSize, fittingFontSize } from "./fitFontSize.js";
 
 export const PDF_TEMPLATE_URL = "/pdf-template/ficha-interativa.pdf";
 
@@ -38,6 +39,9 @@ export function fillPdfForm(pdfDoc: PDFDocument, form: PDFForm, character: Chara
   if (resetField) form.removeField(resetField);
 
   removeHiddenHelperFields(form);
+  // Fonte padrão do formulário — a mesma que `form.flatten()` usa para desenhar os campos; medir com ela
+  // garante que "cabe" aqui significa "cabe" no PDF final.
+  const font = form.getDefaultFont();
 
   for (const overlay of pdfOverlayFields) {
     const field = form.getFieldMaybe(overlay.pdfField);
@@ -46,8 +50,11 @@ export function fillPdfForm(pdfDoc: PDFDocument, form: PDFForm, character: Chara
     const page = pdfDoc.getPages()[overlay.pageIndex];
     const value = overlay.getValue(character);
     if (value && page) {
-      const [x0, y0] = overlay.rect;
-      page.drawText(sanitizeForPdf(value), { x: x0 + 3, y: y0 + 4, size: 10 });
+      const [x0, y0, x1, y1] = overlay.rect;
+      const text = sanitizeForPdf(value);
+      // Mesma regra das caixas de texto: 10 quando cabe; senão, o maior tamanho que cabe (nunca corta).
+      const size = fittingFontSize(text, font, 10, { x: 0, y: 0, width: x1 - x0 - 6, height: y1 - y0 }, false);
+      page.drawText(text, { x: x0 + 3, y: y0 + 4, size, font });
     }
   }
 
@@ -56,6 +63,8 @@ export function fillPdfForm(pdfDoc: PDFDocument, form: PDFForm, character: Chara
     if (!field) continue;
     const value = mapping.getValue(character);
     (field as PDFTextField).setText(sanitizeForPdf(value) || undefined);
+    // Todas as caixas: se o texto não cabe no tamanho do molde, diminui só o suficiente para caber.
+    fitTextFieldFontSize(field as PDFTextField, font);
   }
 
   for (const mapping of pdfDropdownFields) {
