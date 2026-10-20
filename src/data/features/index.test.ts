@@ -38,8 +38,8 @@ describe("catálogo de features — integridade estrutural", () => {
     }
   });
 
-  it("generalFeats: os 10 Talentos de Origem + 26 Talentos Gerais do PHB 2024 (36 no total), todos com sourceType 'feat' e level null", () => {
-    expect(generalFeats).toHaveLength(36);
+  it("generalFeats: os 10 Talentos de Origem + 29 Talentos Gerais do PHB 2024 (39 no total), todos com sourceType 'feat' e level null", () => {
+    expect(generalFeats).toHaveLength(39);
     const names = generalFeats.map((feature) => feature.name).sort();
     expect(names).toEqual(
       [
@@ -81,6 +81,10 @@ describe("catálogo de features — integridade estrutural", () => {
         "Tocado Por Fadas",
         "Treinamento com Armas Marciais",
         "Velocista",
+        // Pré-requisito: Conjuração ou Magia de Pacto
+        "Adepto Elemental",
+        "Atirador de Magias",
+        "Conjurador de Guerra",
       ].sort(),
     );
     for (const feature of generalFeats) {

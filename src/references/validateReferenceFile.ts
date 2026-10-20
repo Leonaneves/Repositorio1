@@ -7,7 +7,7 @@ import { DADIVA_DA_RECORDACAO_DE_MAGIA_FEAT_ID } from "../data/features/epicBoon
 import { ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID } from "../data/features/feats.js";
 import { subclasses } from "../data/subclasses.js";
 import { hasConjuracaoFeature } from "../rules/epicBoons.js";
-import { BACKGROUND_ORIGIN_FEAT_ID, getGeneralFeatPrerequisite, isFeatRepeatable } from "../rules/feats.js";
+import { BACKGROUND_ORIGIN_FEAT_ID, getGeneralFeatPrerequisite, hasSpellcastingOrPactMagicAt, isFeatRepeatable } from "../rules/feats.js";
 import {
   APPROVED_SYNTHETIC_GENERATION_RULES,
   REFERENCE_FORMAT_VERSION,
@@ -172,6 +172,11 @@ function isSubclassOf(classId: ClassId, subclassId: string): boolean {
   return (subclasses[classId] ?? []).some((subclass) => subclass.fullName === subclassId);
 }
 
+/** Se a classe/subclasse possui Conjuração ou Magia de Pacto no nível `level` — mesma regra de `rules/feats.ts#hasSpellcastingOrPactMagicAt`. */
+function hasSpellcastingOrPactMagic(classId: ClassId, subclassId: string | null, level: number): boolean {
+  return hasSpellcastingOrPactMagicAt({ ...createBlankCharacter("reference-validation-probe"), classId, subclassId, level }, level);
+}
+
 /** Se a classe/subclasse possui a característica Conjuração em algum nível ≤ `level` — mesma regra de `rules/epicBoons.ts#hasConjuracaoFeature`. */
 function hasConjuracao(classId: ClassId, subclassId: string | null, level: number): boolean {
   return hasConjuracaoFeature({ ...createBlankCharacter("reference-validation-probe"), classId, subclassId, level });
@@ -256,6 +261,16 @@ function validateAcquisition(raw: unknown, path: string, character: CharacterCon
         issues.insufficient(path, `Pré-requisito de atributo de "${talentId}" não verificável (atributos não informados).`);
       } else if (!prerequisite.abilityAtLeast13.some((ability) => abilityScores[ability] >= 13)) {
         issues.invalid(path, `"${talentId}" exige ${prerequisite.abilityAtLeast13.join(" ou ")} 13+ antes da escolha, e os atributos informados não atendem.`);
+      }
+    }
+  }
+  if (talentKnown && kind === "generalFeat" && level !== null && getGeneralFeatPrerequisite(talentId)?.spellcastingOrPactMagic) {
+    if (!hasSpellcastingOrPactMagic(character.classId, character.subclassId, level)) {
+      const anySubclassHasIt = (subclasses[character.classId] ?? []).some((subclass) => hasSpellcastingOrPactMagic(character.classId, subclass.fullName, level));
+      if (character.subclassId !== null || !anySubclassHasIt) {
+        issues.invalid(path, `"${talentId}" exige a característica Conjuração ou Magia de Pacto, que esta classe/subclasse não tem no nível ${level}.`);
+      } else {
+        issues.insufficient(path, `"${talentId}": Conjuração depende da subclasse, que não foi informada.`);
       }
     }
   }

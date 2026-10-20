@@ -1,9 +1,12 @@
 import type { AutoTextEntry, Character } from "../domain/character.js";
 import {
+  ADEPTO_ELEMENTAL_FEAT_ID,
   ALERTA_FEAT_ID,
   ARTIFISTA_FEAT_ID,
   ARTIFISTA_TOOL_CHOICE_BASE_IDS,
   ATACANTE_SELVAGEM_FEAT_ID,
+  ATIRADOR_DE_MAGIAS_FEAT_ID,
+  CONJURADOR_DE_GUERRA_FEAT_ID,
   CURANDEIRO_FEAT_ID,
   ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
   ESPECIALISTA_BESTA_FEAT_ID,
@@ -47,6 +50,7 @@ import { toolsById } from "../data/tools.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
 import {
   getFeatAcquisitions,
+  getElementalAdeptDamageType,
   getFeatChoiceId,
   getGreatWeaponMasterDamageBonus,
   getHealerKitHealingBonus,
@@ -144,7 +148,21 @@ export function getFeatTalentEntries(character: Character): AutoTextEntry[] {
         entries.push({ text: "Vigoroso", source: "feat" });
         break;
 
-      // ===================== Talentos Gerais (26) =====================
+      // ===================== Talentos Gerais (29) =====================
+
+      case ADEPTO_ELEMENTAL_FEAT_ID: {
+        const type = getElementalAdeptDamageType(character, acquisition.acquisitionKey);
+        entries.push({ text: `Adepto Elemental (${type ?? "[__]"}): magias ignoram Resistência; 1 no dado de dano conta como 2`, source: "feat" });
+        break;
+      }
+
+      case ATIRADOR_DE_MAGIAS_FEAT_ID:
+        entries.push({ text: "Atirador de Magias: Atq mágico ignora cobertura 1/2 e 3/4; sem Desv por inimigo a 1,5m; alcance ≥3m +18m", source: "feat" });
+        break;
+
+      case CONJURADOR_DE_GUERRA_FEAT_ID:
+        entries.push({ text: "Conjurador de Guerra: Vant Salv de Concent; Reação: magia de 1 ação no lugar de Atq de Oport; somático com mãos ocupadas", source: "feat" });
+        break;
 
       case ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID:
         entries.push({ text: "Especialista em Armaduras Pesadas", source: "feat" });

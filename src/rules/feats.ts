@@ -3,11 +3,17 @@ import type { Character } from "../domain/character.js";
 import type { FeatureDefinition } from "../domain/features.js";
 import type { BackgroundId } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
+import { classFeatures } from "../data/features/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
+import { subclassFeatures } from "../data/features/subclasses.js";
 import {
+  ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID,
+  ADEPTO_ELEMENTAL_FEAT_ID,
   ALERTA_FEAT_ID,
   ARTIFISTA_FEAT_ID,
   ATACANTE_SELVAGEM_FEAT_ID,
+  ATIRADOR_DE_MAGIAS_FEAT_ID,
+  CONJURADOR_DE_GUERRA_FEAT_ID,
   CURANDEIRO_FEAT_ID,
   ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
   ESPECIALISTA_BESTA_FEAT_ID,
@@ -84,9 +90,9 @@ const BACKGROUND_MAGIC_INITIATE_LIST: Partial<Record<BackgroundId, (typeof MAGIC
   sabio: "Mago",
 };
 
-const REPEATABLE_FEAT_IDS: readonly string[] = [HABILIDOSO_FEAT_ID, INICIADO_EM_MAGIA_FEAT_ID];
+const REPEATABLE_FEAT_IDS: readonly string[] = [HABILIDOSO_FEAT_ID, INICIADO_EM_MAGIA_FEAT_ID, ADEPTO_ELEMENTAL_FEAT_ID];
 
-/** Só Habilidoso e Iniciado em Magia são repetíveis neste catálogo (fonte §1). */
+/** Só Habilidoso, Iniciado em Magia e Adepto Elemental (um tipo de dano diferente a cada vez) são repetíveis neste catálogo. */
 export function isFeatRepeatable(featId: string): boolean {
   return REPEATABLE_FEAT_IDS.includes(featId);
 }
@@ -101,14 +107,20 @@ export function isFeatRepeatable(featId: string): boolean {
  * a qualquer checagem RAW de pré-requisito). Os 10 Talentos de Origem
  * nunca aparecem aqui (sem entrada = sem pré-requisito além do nível
  * 4+, que na prática nunca filtra nada para eles: todo nível de ASI já é
- * ≥4 — ver `getUnlockedAsiLevels`).
+ * ≥4 — ver `getUnlockedAsiLevels`). `spellcastingOrPactMagic` exige a
+ * característica Conjuração ou Magia de Pacto da classe/subclasse no
+ * nível da aquisição (`hasSpellcastingOrPactMagicAt`).
  */
 export interface GeneralFeatPrerequisite {
   armorTraining?: "medium" | "heavy" | "shield";
   abilityAtLeast13?: AbilityKey[];
+  spellcastingOrPactMagic?: true;
 }
 
 const GENERAL_FEAT_PREREQUISITES: Partial<Record<string, GeneralFeatPrerequisite>> = {
+  [ADEPTO_ELEMENTAL_FEAT_ID]: { spellcastingOrPactMagic: true },
+  [ATIRADOR_DE_MAGIAS_FEAT_ID]: { spellcastingOrPactMagic: true },
+  [CONJURADOR_DE_GUERRA_FEAT_ID]: { spellcastingOrPactMagic: true },
   [ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID]: { armorTraining: "medium" },
   [ESPECIALISTA_BESTA_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
   [IMOBILIZADOR_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
@@ -128,6 +140,23 @@ const GENERAL_FEAT_PREREQUISITES: Partial<Record<string, GeneralFeatPrerequisite
 /** Pré-requisitos (além do nível 4+) de um Talento Geral — `null` sem pré-requisito extra. Exposto para a validação de referências importadas (`references/validateReferenceFile.ts`), que reaplica a MESMA tabela a registros externos. */
 export function getGeneralFeatPrerequisite(featId: string): Readonly<GeneralFeatPrerequisite> | null {
   return GENERAL_FEAT_PREREQUISITES[featId] ?? null;
+}
+
+/** Nomes das características que satisfazem o pré-requisito "Conjuração ou Magia de Pacto". */
+const SPELLCASTING_FEATURE_NAMES: readonly string[] = ["Conjuração", "Magia de Pacto"];
+
+/**
+ * Se a classe ou a subclasse do personagem já concede a característica
+ * Conjuração ou Magia de Pacto no nível `level` — histórico, como os
+ * demais pré-requisitos: o Cavaleiro Místico e o Trapaceiro Arcano só a
+ * recebem no nível 3; Bruxo (Magia de Pacto), Artífice, Bardo, Clérigo,
+ * Druida, Feiticeiro, Mago, Paladino e Patrulheiro desde o nível 1.
+ * Iniciado em Magia nunca conta: concede magias, não a característica.
+ */
+export function hasSpellcastingOrPactMagicAt(character: Character, level: number): boolean {
+  const grantsAt = (feature: { name: string; level: number | null }) => SPELLCASTING_FEATURE_NAMES.includes(feature.name) && (feature.level ?? 1) <= level;
+  if (character.classId && classFeatures.some((feature) => feature.classId === character.classId && grantsAt(feature))) return true;
+  return character.subclassId !== null && subclassFeatures.some((feature) => feature.subclassFullName === character.subclassId && grantsAt(feature));
 }
 
 /** Id-BASE convencional da `FeatureChoice` de "Aumento de 1 num atributo" de QUALQUER um dos 26 Talentos Gerais — sempre `${featId}-atributo` (ver `data/features/feats.ts`, nunca uma constante nomeada por talento). */
@@ -228,15 +257,16 @@ const ARMOR_TRAINING_NAMES: Record<"medium" | "heavy" | "shield", string> = {
  * Motivo ESPECÍFICO pelo qual uma aquisição não está disponível para um
  * Talento — fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA OCORRER APÓS
  * OS ATRIBUTOS" §7: "Mostrar talentos indisponíveis" precisa do motivo
- * exato, nunca um "indisponível" genérico. Só os 3 casos abaixo têm
+ * exato, nunca um "indisponível" genérico. Só os 4 casos abaixo têm
  * alguma entrada real no catálogo atual (`GENERAL_FEAT_PREREQUISITES`/
- * `isFeatRepeatable`) — nunca inventa um 4º caso (ex.: "requer Estilo de
+ * `isFeatRepeatable`) — nunca inventa um 5º caso (ex.: "requer Estilo de
  * Luta" ou "requer nível 19") sem um Talento cadastrado que realmente
  * dependa disso.
  */
 export type FeatIneligibilityReason =
   | { kind: "abilityBelowThreshold"; required: number; abilities: { ability: AbilityKey; available: number }[] }
   | { kind: "missingArmorTraining"; category: "medium" | "heavy" | "shield" }
+  | { kind: "missingSpellcasting" }
   | { kind: "nonRepeatableAlreadyAcquired" };
 
 /**
@@ -260,6 +290,9 @@ export function formatFeatIneligibilityReason(reason: FeatIneligibilityReason): 
   if (reason.kind === "missingArmorTraining") {
     return `Requer treinamento com ${ARMOR_TRAINING_NAMES[reason.category]}.`;
   }
+  if (reason.kind === "missingSpellcasting") {
+    return "Requer a característica Conjuração ou Magia de Pacto (da classe ou da subclasse) neste nível.";
+  }
   return "Talento já adquirido e não repetível.";
 }
 
@@ -279,6 +312,9 @@ function getFeatPrerequisiteReasons(character: Character, featId: string, acquis
 
   if (prerequisite.armorTraining && !getArmorTrainingForPrerequisite(character, prerequisite.armorTraining, acquisitionLevel, acquisitionKey)) {
     reasons.push({ kind: "missingArmorTraining", category: prerequisite.armorTraining });
+  }
+  if (prerequisite.spellcastingOrPactMagic && !hasSpellcastingOrPactMagicAt(character, acquisitionLevel ?? 1)) {
+    reasons.push({ kind: "missingSpellcasting" });
   }
   if (prerequisite.abilityAtLeast13) {
     const evaluated = prerequisite.abilityAtLeast13.map((ability) => ({ ability, available: getAbilityScoreForPrerequisite(character, ability, acquisitionKey) }));
@@ -476,7 +512,7 @@ export interface FeatCatalogEntry {
 }
 
 /**
- * Catálogo COMPLETO dos 26 Talentos Gerais para UM nível de ASI
+ * Catálogo COMPLETO dos Talentos Gerais para UM nível de ASI
  * específico, cada um com sua elegibilidade e o(s) motivo(s) exatos
  * quando não elegível — fonte "REESTRUTURAR A ESCOLHA DE TALENTOS PARA
  * OCORRER APÓS OS ATRIBUTOS" §7: por padrão a UI mostra só os elegíveis
@@ -614,7 +650,39 @@ export function buildFeatAcquisitionFeature(character: Character, acquisition: F
     );
   }
 
+  if (acquisition.featId === ADEPTO_ELEMENTAL_FEAT_ID) {
+    // Repetível, mas cada aquisição domina um tipo de dano diferente — mesmo padrão das listas de Iniciado em Magia.
+    const instantiated = instantiateFeatAcquisition(base, acquisition.acquisitionKey);
+    const usedTypes = getUsedElementalAdeptDamageTypes(character, acquisition.acquisitionKey);
+    const damageChoiceId = suffixChoiceId(ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, acquisition.acquisitionKey);
+    return withHumanSpeciesMarker(
+      {
+        ...instantiated,
+        choices: instantiated.choices?.map((choice) =>
+          choice.id === damageChoiceId && choice.effect.kind === "optionPick"
+            ? { ...choice, effect: { ...choice.effect, options: choice.effect.options.filter((option) => !usedTypes.includes(option)) } }
+            : choice,
+        ),
+      },
+      acquisition.acquisitionKey,
+    );
+  }
+
   return withHumanSpeciesMarker(instantiateFeatAcquisition(base, acquisition.acquisitionKey), acquisition.acquisitionKey);
+}
+
+/** Tipo de dano escolhido por UMA aquisição de Adepto Elemental — `null` enquanto não resolvida. */
+export function getElementalAdeptDamageType(character: Character, acquisitionKey: string): string | null {
+  const value = character.featureChoiceSelections[suffixChoiceId(ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, acquisitionKey)]?.value;
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+/** Tipos de dano já dominados por OUTRAS aquisições de Adepto Elemental (nunca a própria `excludeAcquisitionKey`). */
+function getUsedElementalAdeptDamageTypes(character: Character, excludeAcquisitionKey: string): string[] {
+  return getFeatAcquisitions(character)
+    .filter((acquisition) => acquisition.featId === ADEPTO_ELEMENTAL_FEAT_ID && acquisition.acquisitionKey !== excludeAcquisitionKey)
+    .map((acquisition) => getElementalAdeptDamageType(character, acquisition.acquisitionKey))
+    .filter((type): type is string => type !== null);
 }
 
 /** Aquisições de Talento vindas de ASI ou do Humano (nunca a do Antecedente — essa é mesclada separadamente por `rules/features.ts#getBackgroundFeatures`, para nunca aparecer duplicada). */

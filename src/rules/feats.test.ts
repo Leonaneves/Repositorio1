@@ -19,6 +19,7 @@ import {
   buildFeatAcquisitionFeature,
   formatFeatIneligibilityReason,
   getActiveFeatIds,
+  getElementalAdeptDamageType,
   getAlertInitiativeBonus,
   getAvailableFeatsForAsiLevel,
   getAvailableOriginFeatsForHumanSpecies,
@@ -35,6 +36,7 @@ import {
   getToughHpBonus,
   getUnarmedStrikeDamageDie,
   hasHumanOriginFeatConflictWithBackground,
+  hasSpellcastingOrPactMagicAt,
   isFeatActive,
   isFeatRepeatable,
   meetsFeatPrerequisites,
@@ -284,17 +286,18 @@ describe("isFeatActive / getFeatAcquisitionCount", () => {
 });
 
 describe("getAvailableFeatsForAsiLevel — exclui talento não-repetível já ativo em outra aquisição", () => {
-  // Personagem em branco (todos os atributos 10, nenhuma proficiência de armadura): dos 36 do
-  // catálogo, os 10 Talentos de Origem (sem pré-requisito) + os 12 Talentos Gerais sem
-  // pré-requisito além do nível 4+ ficam disponíveis (22); os 14 restantes exigem atributo 13+ ou
-  // treinamento de armadura que este personagem não tem — ver `rules/feats.test.ts` abaixo
+  // Personagem em branco (todos os atributos 10, nenhuma proficiência de armadura), Mago: dos 39
+  // do catálogo, os 10 Talentos de Origem (sem pré-requisito) + os 12 Talentos Gerais sem
+  // pré-requisito além do nível 4+ + os 3 de Conjuração/Magia de Pacto (o Mago tem Conjuração)
+  // ficam disponíveis (25); os 14 restantes exigem atributo 13+ ou treinamento de armadura que
+  // este personagem não tem — ver `rules/feats.test.ts` abaixo
   // ("meetsFeatPrerequisites") para a checagem individual de cada um.
-  it("os 22 sem pré-requisito adicional disponíveis sem nenhuma outra aquisição ativa", () => {
+  it("os 25 sem pré-requisito pendente disponíveis sem nenhuma outra aquisição ativa", () => {
     const character = createBlankCharacter("x");
     character.classId = "mago";
     character.level = 4;
     character.asiSelections = { 4: { kind: "feat", featId: null } };
-    expect(getAvailableFeatsForAsiLevel(character, 4)).toHaveLength(22);
+    expect(getAvailableFeatsForAsiLevel(character, 4)).toHaveLength(25);
   });
 
   it("exclui um talento não-repetível já concedido pelo Antecedente", () => {
@@ -304,7 +307,7 @@ describe("getAvailableFeatsForAsiLevel — exclui talento não-repetível já at
     character.asiSelections = { 4: { kind: "feat", featId: null } };
     const available = getAvailableFeatsForAsiLevel(character, 4).map((f) => f.id);
     expect(available).not.toContain("atacante-selvagem");
-    expect(available).toHaveLength(21);
+    expect(available).toHaveLength(24);
   });
 
   it("nunca exclui o próprio talento já escolhido PARA ESTE nível", () => {
@@ -732,5 +735,67 @@ describe("getChosenAsiFeatIneligibilityReasons — recalculação/edição sem a
     const character = createBlankCharacter("recalc-test");
     character.asiSelections = { 4: { kind: "abilityIncrease", allocations: {} } };
     expect(getChosenAsiFeatIneligibilityReasons(character, 4)).toEqual([]);
+  });
+});
+
+describe("pré-requisito Conjuração ou Magia de Pacto (Adepto Elemental, Atirador de Magias, Conjurador de Guerra)", () => {
+  const SPELLCASTING_FEATS = ["adepto-elemental", "atirador-de-magias", "conjurador-de-guerra"];
+
+  function atAsi4(classId: Character["classId"], subclassId: string | null = null): Character {
+    const character = createBlankCharacter("x");
+    character.classId = classId;
+    character.subclassId = subclassId;
+    character.level = 4;
+    character.asiSelections = { 4: { kind: "feat", featId: null } };
+    return character;
+  }
+
+  it.each(["artifice", "bardo", "bruxo", "clerigo", "druida", "feiticeiro", "mago", "paladino", "patrulheiro"] as const)("%s (Conjuração ou Magia de Pacto) vê os 3 talentos", (classId) => {
+    const available = getAvailableFeatsForAsiLevel(atAsi4(classId), 4).map((feat) => feat.id);
+    for (const featId of SPELLCASTING_FEATS) expect(available).toContain(featId);
+  });
+
+  it.each(["barbaro", "guerreiro", "ladino", "monge"] as const)("%s sem subclasse conjuradora não vê nenhum, com o motivo exato", (classId) => {
+    const character = atAsi4(classId);
+    const available = getAvailableFeatsForAsiLevel(character, 4).map((feat) => feat.id);
+    for (const featId of SPELLCASTING_FEATS) expect(available).not.toContain(featId);
+    const entry = getFeatCatalogForAsiLevel(character, 4).find((candidate) => candidate.feat.id === "conjurador-de-guerra")!;
+    expect(entry.reasons).toEqual([{ kind: "missingSpellcasting" }]);
+    expect(formatFeatIneligibilityReason(entry.reasons[0])).toBe("Requer a característica Conjuração ou Magia de Pacto (da classe ou da subclasse) neste nível.");
+  });
+
+  it("Cavaleiro Místico e Trapaceiro Arcano ganham Conjuração no nível 3 — elegíveis no ASI do nível 4", () => {
+    expect(meetsFeatPrerequisites(atAsi4("guerreiro", "Cavaleiro Místico"), "atirador-de-magias", "asi-4")).toBe(true);
+    expect(meetsFeatPrerequisites(atAsi4("ladino", "Trapaceiro Arcano"), "atirador-de-magias", "asi-4")).toBe(true);
+    expect(meetsFeatPrerequisites(atAsi4("guerreiro", "Campeão"), "atirador-de-magias", "asi-4")).toBe(false);
+  });
+
+  it("checagem histórica: a característica precisa existir no nível da aquisição", () => {
+    const eldritchKnight = atAsi4("guerreiro", "Cavaleiro Místico");
+    expect(hasSpellcastingOrPactMagicAt(eldritchKnight, 2)).toBe(false);
+    expect(hasSpellcastingOrPactMagicAt(eldritchKnight, 3)).toBe(true);
+    expect(hasSpellcastingOrPactMagicAt(atAsi4("bruxo"), 1)).toBe(true);
+  });
+
+  it("Iniciado em Magia (Antecedente Sábio) não conta como a característica Conjuração", () => {
+    const character = atAsi4("guerreiro");
+    character.backgroundId = "sabio";
+    expect(meetsFeatPrerequisites(character, "adepto-elemental", "asi-4")).toBe(false);
+  });
+
+  it("Adepto Elemental é repetível, mas cada aquisição domina um tipo de dano diferente", () => {
+    expect(isFeatRepeatable("adepto-elemental")).toBe(true);
+    expect(isFeatRepeatable("conjurador-de-guerra")).toBe(false);
+    const character = atAsi4("feiticeiro");
+    character.level = 8;
+    character.asiSelections = { 4: { kind: "feat", featId: "adepto-elemental" }, 8: { kind: "feat", featId: null } };
+    character.featureChoiceSelections[getFeatChoiceId("adepto-elemental-tipo-de-dano", "asi-4")] = { value: "Fogo" };
+    expect(getAvailableFeatsForAsiLevel(character, 8).map((feat) => feat.id)).toContain("adepto-elemental");
+
+    character.asiSelections[8] = { kind: "feat", featId: "adepto-elemental" };
+    expect(getElementalAdeptDamageType(character, "asi-4")).toBe("Fogo");
+    const second = buildFeatAcquisitionFeature(character, { acquisitionKey: "asi-8", featId: "adepto-elemental" })!;
+    const damageChoice = second.choices!.find((choice) => choice.id === getFeatChoiceId("adepto-elemental-tipo-de-dano", "asi-8"))!;
+    expect(damageChoice.effect).toEqual({ kind: "optionPick", options: ["Ácido", "Elétrico", "Frio", "Trovejante"] });
   });
 });

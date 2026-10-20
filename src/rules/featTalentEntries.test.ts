@@ -340,6 +340,20 @@ describe("Talentos Gerais — textos literais (fonte \"COMPLETAR TALENTOS GERAIS
     );
   });
 
+  it("Adepto Elemental: tipo de dano escolhido (ou [__] enquanto pendente)", () => {
+    const character = withAsiTalent("adepto-elemental");
+    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental ([__]): magias ignoram Resistência; 1 no dado de dano conta como 2");
+    character.featureChoiceSelections["adepto-elemental-tipo-de-dano-asi-4"] = { value: "Frio" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental (Frio): magias ignoram Resistência; 1 no dado de dano conta como 2");
+  });
+
+  it("Atirador de Magias e Conjurador de Guerra: textos literais", () => {
+    expect(getFeatTalentEntries(withAsiTalent("atirador-de-magias"))[0].text).toBe("Atirador de Magias: Atq mágico ignora cobertura 1/2 e 3/4; sem Desv por inimigo a 1,5m; alcance ≥3m +18m");
+    expect(getFeatTalentEntries(withAsiTalent("conjurador-de-guerra"))[0].text).toBe(
+      "Conjurador de Guerra: Vant Salv de Concent; Reação: magia de 1 ação no lugar de Atq de Oport; somático com mãos ocupadas",
+    );
+  });
+
   it("Perfurador: texto literal", () => {
     expect(getFeatTalentEntries(withAsiTalent("perfurador"))[0].text).toBe("Perfurador: 1/turno, acerto Perf repete 1 dado de dano, usa novo; crítico Perf +1 dado");
   });

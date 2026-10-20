@@ -7,14 +7,17 @@ import type { FeatureDefinition } from "../../domain/features.js";
  *    BUILDER E NO PDF") — Alerta, Artifista, Atacante Selvagem,
  *    Curandeiro, Habilidoso, Iniciado em Magia, Músico, Sortudo, Valentão
  *    de Taverna, Vigoroso. Nunca aumentam atributo nem têm pré-requisito.
- * 2. Os 26 Talentos Gerais (fonte "COMPLETAR TALENTOS GERAIS NO BUILDER E
- *    NO PDF") — só disponíveis em nível de ASI (nunca concedidos por
- *    Antecedente — nenhum dos 16 Antecedentes do projeto concede um
- *    destes 26), todos exigindo nível de personagem 4+ e concedendo
+ * 2. Os 29 Talentos Gerais (26 da fonte "COMPLETAR TALENTOS GERAIS NO
+ *    BUILDER E NO PDF" + Adepto Elemental, Atirador de Magias e
+ *    Conjurador de Guerra) — só disponíveis em nível de ASI (nunca
+ *    concedidos por Antecedente — nenhum dos 16 Antecedentes do projeto
+ *    concede um destes), todos exigindo nível de personagem 4+ e concedendo
  *    exatamente 1 escolha de "Aumento de 1 num atributo" (`abilityScoreIncrease`,
  *    `domain/features.ts`), além de alguns exigirem outro pré-requisito
- *    (treinamento com um tipo de armadura, ou um atributo mínimo 13) —
- *    ver `rules/feats.ts#GENERAL_FEAT_PREREQUISITES`. Nenhum é repetível.
+ *    (treinamento com um tipo de armadura, um atributo mínimo 13, ou a
+ *    característica Conjuração/Magia de Pacto) — ver
+ *    `rules/feats.ts#GENERAL_FEAT_PREREQUISITES`. Só Adepto Elemental é
+ *    repetível.
  *
  * Estas são as entradas-BASE do catálogo — cada uma representa "o
  * talento em si", nunca uma aquisição específica. Uma aquisição real
@@ -28,7 +31,7 @@ import type { FeatureDefinition } from "../../domain/features.js";
  * talentos não-repetíveis, mas a parametrização é uniforme por todos,
  * nunca um caso especial por talento).
  *
- * Só Habilidoso e Iniciado em Magia são repetíveis (`repeatable: true`)
+ * Só Habilidoso, Iniciado em Magia e Adepto Elemental são repetíveis (`repeatable: true`)
  * — todos os demais só podem estar ativos em UMA aquisição por vez
  * (`rules/feats.ts#getAvailableFeatsForAsiLevel` exclui um talento
  * não-repetível já ativo em outra aquisição, incluindo a do
@@ -51,7 +54,7 @@ export const VIGOROSO_FEAT_ID = "vigoroso";
  * `generalFeats` pela categoria "Origem" (fonte "ADICIONAR ESCOLHA DE
  * TALENTO DE ORIGEM DO HUMANO NA ETAPA ESPÉCIE" §1: "Permitir escolher
  * exatamente um talento do catálogo existente, filtrado pela categoria
- * Origem"). Nunca inclui nenhum dos 26 Talentos Gerais abaixo — aqueles
+ * Origem"). Nunca inclui nenhum dos Talentos Gerais abaixo — aqueles
  * só ficam disponíveis via ASI (`rules/feats.ts#getAvailableFeatsForAsiLevel`).
  */
 export const ORIGIN_FEAT_IDS = [
@@ -114,6 +117,18 @@ export const TOCADO_PELAS_SOMBRAS_FEAT_ID = "tocado-pelas-sombras";
 export const TOCADO_POR_FADAS_FEAT_ID = "tocado-por-fadas";
 export const TREINAMENTO_COM_ARMAS_MARCIAIS_FEAT_ID = "treinamento-com-armas-marciais";
 export const VELOCISTA_FEAT_ID = "velocista";
+
+/**
+ * Talentos Gerais com pré-requisito "característica Conjuração ou Magia
+ * de Pacto" (além do nível 4+) — ver `rules/feats.ts#hasSpellcastingOrPactMagicAt`.
+ * Adepto Elemental é repetível, com um tipo de dano diferente a cada
+ * aquisição (`rules/feats.ts#buildFeatAcquisitionFeature`).
+ */
+export const ADEPTO_ELEMENTAL_FEAT_ID = "adepto-elemental";
+export const ATIRADOR_DE_MAGIAS_FEAT_ID = "atirador-de-magias";
+export const CONJURADOR_DE_GUERRA_FEAT_ID = "conjurador-de-guerra";
+export const ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID = "adepto-elemental-tipo-de-dano";
+export const ADEPTO_ELEMENTAL_DAMAGE_TYPES = ["Ácido", "Elétrico", "Fogo", "Frio", "Trovejante"] as const;
 
 /** Ids-BASE das `FeatureChoice` que não seguem a convenção genérica `${featId}-atributo` (ver `rules/feats.ts#getFeatAbilityIncreaseChoiceId`) — escolhas de perícia/magia/nota própria de um talento específico. */
 export const ESPECIALISTA_PERICIA_SKILL_CHOICE_ID = "especialista-pericia-pericia";
@@ -263,7 +278,41 @@ export const generalFeats: FeatureDefinition[] = [
       "Nunca repetível. Aumenta os PV máximos em 2 × nível total do personagem (rules/feats.ts#getToughHpBonus, somado em rules/hp.ts#getMaxHitPoints) — calculado pelo NÍVEL TOTAL, nunca por uma classe específica; ao adquirir em nível superior ao 1º, aplica o bônus completo do nível atual (nunca soma retroativamente aumento por aumento). Nunca tratado como cura, PV Temp ou aumento de Constituição. Remover o talento retira só este bônus, preservando qualquer outra fonte de PV.",
   },
 
-  // ===================== Talentos Gerais (26, nível 4+, só via ASI) =====================
+  // ===================== Talentos Gerais (29, nível 4+, só via ASI) =====================
+
+  {
+    id: ADEPTO_ELEMENTAL_FEAT_ID,
+    name: "Adepto Elemental",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Repetível, com um tipo de dano diferente a cada vez. Escolhe Ácido, Elétrico, Fogo, Frio ou Trovejante: magias que o personagem conjura ignoram Resistência a esse tipo de dano, e, ao jogar o dano de uma magia desse tipo, cada 1 no dado conta como 2. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, prompt: "Adepto Elemental — tipo de dano dominado", effect: { kind: "optionPick", options: [...ADEPTO_ELEMENTAL_DAMAGE_TYPES] } },
+      { id: `${ADEPTO_ELEMENTAL_FEAT_ID}-atributo`, prompt: "Adepto Elemental — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
+    ],
+  },
+  {
+    id: ATIRADOR_DE_MAGIAS_FEAT_ID,
+    name: "Atirador de Magias",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Nunca repetível. Ataques com magia ignoram Cobertura Parcial (1/2) e de Três Quartos (3/4); estar a 1,5m de um inimigo não impõe Desvantagem nas jogadas de ataque com magia; magia com alcance de 3m ou mais que exija jogada de ataque tem o alcance aumentado em 18m. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [{ id: `${ATIRADOR_DE_MAGIAS_FEAT_ID}-atributo`, prompt: "Atirador de Magias — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } }],
+  },
+  {
+    id: CONJURADOR_DE_GUERRA_FEAT_ID,
+    name: "Conjurador de Guerra",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Nunca repetível. Concentração: Vantagem nas Salvaguardas de Constituição para manter Concentração. Magia Reativa: quando uma criatura provoca Ataque de Oportunidade do personagem, ele pode, como Reação, conjurar nela uma magia de tempo de conjuração 1 ação, que tenha só ela como alvo, em vez do ataque. Componentes Somáticos: pode executar os componentes somáticos de magias mesmo com armas ou Escudo nas mãos. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [{ id: `${CONJURADOR_DE_GUERRA_FEAT_ID}-atributo`, prompt: "Conjurador de Guerra — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } }],
+  },
 
   {
     id: ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
