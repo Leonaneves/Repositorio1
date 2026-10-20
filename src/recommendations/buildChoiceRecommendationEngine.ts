@@ -51,7 +51,7 @@ export async function getBuildChoiceRecommendations(
 
     if (query.kind === "background") {
       // Antecedente × foco de atributos da classe/subclasse (o que os jogadores deixam como maior e como menor).
-      const focusQuery = { ...query, choiceId: null, highestAbility: null, withValues: [] };
+      const focusQuery = { ...query, speciesId: null, choiceId: null, highestAbility: null, withValues: [] };
       const [highest, dump] = await Promise.all([
         getScores({ ...focusQuery, kind: "highestAbility" }, repository, cacheable),
         getScores({ ...focusQuery, kind: "dumpAbility" }, repository, cacheable),

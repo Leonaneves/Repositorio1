@@ -14,7 +14,7 @@ import type { TalentChoiceScoreRow } from "./scoring.js";
  * em produção (fonte §7): (1) confirmação gravando `status = 'confirmed'`
  * como versão imutável, (2) estatísticas contando só a versão confirmada
  * mais recente de cada personagem e (3) isolamento entre sessões. Mesmo
- * ligado, uma faixa de contexto real só é usada com 10+ personagens
+ * ligado, uma faixa de contexto real só é usada com 5+ personagens
  * distintos (`MIN_REAL_CHARACTERS`, também imposto pela função SQL), e o
  * próprio personagem nunca conta para si mesmo. Com `false`, a consulta
  * nem pede as contagens reais (`p_include_user = false`).
@@ -22,13 +22,20 @@ import type { TalentChoiceScoreRow } from "./scoring.js";
 export const REAL_RECORDS_ENABLED = true;
 
 /**
- * Amostra mínima de dados reais: 10 personagens DISTINTOS confirmados no
- * contexto consultado (pedido do usuário: "só precisa de 10 para que
- * apareçam os recomendados"). Independente do limiar dos insights da
+ * Amostra mínima de dados reais: 5 personagens DISTINTOS confirmados na
+ * base da recomendação (pedido do usuário: "apenas 5 necessárias para a
+ * recomendação ser ativada"). Independente do limiar dos insights da
  * Ficha (`analytics/types.ts#MIN_SAMPLE_SIZE`, que continua 20). Mesmo
- * valor imposto pelas funções SQL (migration 0006).
+ * valor imposto pelas funções SQL de pontuação (migration 0009).
  */
-export const MIN_REAL_CHARACTERS = 10;
+export const MIN_REAL_CHARACTERS = 5;
+
+/**
+ * Limiar das funções ANTIGAS de contagem (`get_talent_choice_counts`,
+ * migration 0006 — mantidas no banco, sem uso pelo app atual):
+ * `countTalentChoices` com `applyMinimum` continua espelhando-as.
+ */
+export const LEGACY_COUNTS_MIN_REAL_CHARACTERS = 10;
 /** Amostra mínima de referências: 3 personagens distintos... */
 export const MIN_REFERENCE_CHARACTERS = 3;
 /** ...vindos de pelo menos 2 fontes independentes (cópias/republicações compartilham o mesmo grupo e contam como 1). */

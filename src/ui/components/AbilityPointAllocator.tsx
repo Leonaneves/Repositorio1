@@ -23,6 +23,8 @@ export interface AbilityPointAllocatorProps {
   baseScores: Record<AbilityKey, number>;
   onIncrease: (ability: AbilityKey) => void;
   onDecrease: (ability: AbilityKey) => void;
+  /** Rótulo de recomendação por atributo ("★ maior", "★ 2º maior", "★ menor") — só informativo, nunca distribui nada. */
+  tagOf?: (ability: AbilityKey) => string | null;
 }
 
 /**
@@ -34,7 +36,7 @@ export interface AbilityPointAllocatorProps {
  * botões desabilitados nunca ficam mudos — cada um some/aparece
  * conforme a regra, sem precisar o jogador descobrir clicando (§43).
  */
-export function AbilityPointAllocator({ config, allocations, baseScores, onIncrease, onDecrease }: AbilityPointAllocatorProps) {
+export function AbilityPointAllocator({ config, allocations, baseScores, onIncrease, onDecrease, tagOf }: AbilityPointAllocatorProps) {
   const remaining = getRemainingPoints(config, allocations);
 
   return (
@@ -47,11 +49,13 @@ export function AbilityPointAllocator({ config, allocations, baseScores, onIncre
         {config.eligibleAbilities.map((ability) => {
           const bonus = allocations[ability] ?? 0;
           const resultingScore = baseScores[ability] + bonus;
+          const tag = tagOf?.(ability) ?? null;
           return (
             <div className="ability-allocator__item" key={ability}>
               <span className="ability-allocator__score" aria-label={`${ABILITY_NAMES[ability]}: ${resultingScore}`}>
                 {resultingScore} {ABILITY_NAMES[ability]}
               </span>
+              {tag && <span className="ability-allocator__tag">({tag})</span>}
               {bonus !== 0 && <span className="ability-allocator__bonus">+{bonus}</span>}
               <span className="ability-allocator__arrows">
                 <button

@@ -130,4 +130,11 @@ describe("mapCharacterToBuild", () => {
     expect(build.invocationIds).toEqual(["explosao-agonizante"]);
     expect(build.maneuverIds).toEqual(["aparar"]);
   });
+
+  it("speciesLineageId copia a Linhagem/Ancestralidade escolhida", () => {
+    const character = createBlankCharacter("build-test-11");
+    character.speciesId = "elfo";
+    character.speciesLineageId = "elfo-alto-elfo";
+    expect(mapCharacterToBuild(character).speciesLineageId).toBe("elfo-alto-elfo");
+  });
 });

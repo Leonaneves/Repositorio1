@@ -11,7 +11,8 @@ import { useCharacterStore } from "../../state/characterStore.js";
 import { getTalentChoiceOpportunity } from "../../recommendations/currentOpportunityContext.js";
 import { getOptionPickTalentId } from "../../recommendations/opportunityKind.js";
 import { useTalentRecommendations, withRecommendedLabel } from "../../services/useTalentRecommendations.js";
-import { useBuildChoiceRecommendations } from "../../services/useBuildChoiceRecommendations.js";
+import { useAbilityIncreaseRecommendation, useBuildChoiceRecommendations } from "../../services/useBuildChoiceRecommendations.js";
+import { getCharacterFeatures } from "../../rules/features.js";
 import { RecommendationReasonsHint } from "./RecommendationReasonsHint.js";
 import type { SkillKey } from "../../domain/ids.js";
 
@@ -60,7 +61,16 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
         : [];
   const eligibleSkills =
     effect.kind === "skillProficiency" ? skillOptions.filter((skillId) => selectedSkills.includes(skillId) || !getSkillProficiency(character, skillId)) : skillOptions;
-  const recommendedSkills = useBuildChoiceRecommendations(skillOptions.length > 0 ? { kind: "skillChoice", choiceId: choice.id } : null, eligibleSkills);
+  // Perícias da CLASSE/SUBCLASSE: base = a classe. De espécie/antecedente/talento: base = quem tem a
+  // mesma escolha, de qualquer classe (ex.: Sentidos Aguçados → outros elfos).
+  const sourceFeature = skillOptions.length > 0 ? getCharacterFeatures(character).find((feature) => feature.choices?.some((candidate) => candidate.id === choice.id)) : undefined;
+  const nonClassSource = sourceFeature && sourceFeature.sourceType !== "class" && sourceFeature.sourceType !== "subclass" ? { label: sourceFeature.name } : undefined;
+  const recommendedSkills = useBuildChoiceRecommendations(
+    skillOptions.length > 0 ? { kind: "skillChoice", choiceId: choice.id, source: nonClassSource } : null,
+    eligibleSkills,
+  );
+  // Talentos com aumento de atributo à escolha: atributo de conjuração → maior atributo dos outros jogadores.
+  const recommendedAbility = useAbilityIncreaseRecommendation(effect.kind === "abilityScoreIncrease" ? effect.options : null);
   const skillLabel = (skillId: SkillKey) => withRecommendedLabel(skills[skillId].name, recommendedSkills.get(skillId));
 
   if (effect.kind === "skillProficiency") {
@@ -254,17 +264,20 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
     // Resiliente — rules/feats.ts#buildFeatAcquisitionFeature).
     const value = typeof selection?.value === "string" ? selection.value : "";
     return (
-      <label className="field feature-choice">
-        <span>{choice.prompt}</span>
-        <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
-          <option value="">- Selecione -</option>
-          {effect.options.map((ability) => (
-            <option key={ability} value={ability}>
-              {ABILITY_NAMES[ability]}
-            </option>
-          ))}
-        </select>
-      </label>
+      <>
+        <label className="field feature-choice">
+          <span>{choice.prompt}</span>
+          <select value={value} onChange={(e) => setFeatureChoiceSelection(choice.id, e.target.value)}>
+            <option value="">- Selecione -</option>
+            {effect.options.map((ability) => (
+              <option key={ability} value={ability}>
+                {withRecommendedLabel(ABILITY_NAMES[ability], recommendedAbility.get(ability))}
+              </option>
+            ))}
+          </select>
+        </label>
+        <RecommendationReasonsHint reasons={recommendedAbility} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} />
+      </>
     );
   }
 

@@ -10,7 +10,7 @@ interface BuildChoiceScoreRpcRow {
   class_sample: number | string;
 }
 
-/** Chama a função `SECURITY DEFINER` `get_build_choice_scores` (migration 0008) — só pontuações e a contagem da classe. */
+/** Chama a função `SECURITY DEFINER` `get_build_choice_scores` (migrations 0008/0009) — só pontuações e a contagem da base. */
 export class SupabaseBuildChoiceStatsRepository implements BuildChoiceStatsRepository {
   constructor(private readonly client: SupabaseClient = getSupabaseClient()) {}
 
@@ -23,6 +23,7 @@ export class SupabaseBuildChoiceStatsRepository implements BuildChoiceStatsRepos
       p_highest_ability: query.highestAbility,
       p_with_values: query.withValues,
       p_exclude_character_id: query.excludeCharacterId,
+      p_species_id: query.speciesId,
     });
     if (error) throw new Error(`Falha ao consultar get_build_choice_scores: ${error.message}`);
     return ((data ?? []) as BuildChoiceScoreRpcRow[]).map((row) => ({

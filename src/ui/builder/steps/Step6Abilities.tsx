@@ -14,8 +14,8 @@ import { getBackgroundAbilityAllocationConfig } from "../../../data/backgrounds.
 import { getUnlockedAsiLevels } from "../../../rules/asi.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "../../../rules/abilities.js";
 import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
-import { useBuildChoiceRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
-import { RecommendationReasonsHint } from "../RecommendationReasonsHint.js";
+import { useAbilityRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { AbilityRecommendationsHint } from "../RecommendationReasonsHint.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -61,12 +61,14 @@ export function Step6Abilities() {
   const valid = isDraftValid();
   const backgroundConfig = character.backgroundId ? getBackgroundAbilityAllocationConfig(character.backgroundId) : null;
   const hasAsiOpportunities = getUnlockedAsiLevels(character).length > 0;
-  // Recomendação (dados reais confirmados — classe, refinada pela subclasse): 1 atributo para ser o MAIOR
-  // e 1 para ser o MENOR ("dump stat") entre os valores base — só um rótulo ao lado do nome, nunca preenche nada.
-  const recommendedHighest = useBuildChoiceRecommendations({ kind: "highestAbility" }, ABILITY_KEYS);
-  const recommendedDump = useBuildChoiceRecommendations({ kind: "dumpAbility" }, ABILITY_KEYS);
-  const abilityLabel = (ability: AbilityKey) =>
-    `${ABILITY_NAMES[ability]}${recommendedHighest.has(ability) ? " (★ Recomendado: maior)" : ""}${recommendedDump.has(ability) ? " (★ Recomendado: menor)" : ""}`;
+  // Recomendação (dados reais confirmados — classe, refinada pela subclasse): 1 atributo para ser o MAIOR,
+  // 1 para o 2º MAIOR e 1 para o MENOR ("dump stat") — só rótulos, nunca preenche nem distribui nada.
+  // Os mesmos rótulos aparecem nos aumentos do Antecedente (distribuição GERAL, nunca a do Antecedente).
+  const abilityRecommendations = useAbilityRecommendations();
+  const abilityLabel = (ability: AbilityKey) => {
+    const tag = abilityRecommendations.tagOf(ability);
+    return tag ? `${ABILITY_NAMES[ability]} (${tag.replace("★ ", "★ Recomendado: ")})` : ABILITY_NAMES[ability];
+  };
 
   return (
     <div className="builder-step" aria-label="Atributos">
@@ -123,8 +125,8 @@ export function Step6Abilities() {
             </label>
           ))}
         </div>
-        {/* Maior e menor usam os mesmos fatores (classe → subclasse): uma linha de explicação só. */}
-        <RecommendationReasonsHint reasons={recommendedHighest.size > 0 ? recommendedHighest : recommendedDump} nameOf={(ability) => ABILITY_NAMES[ability as AbilityKey]} />
+        {/* Maior, 2º maior e menor usam os mesmos fatores (classe → subclasse): uma linha de explicação só. */}
+        <AbilityRecommendationsHint recommendations={abilityRecommendations} />
 
         <button type="button" disabled={!valid} onClick={commitDraftScores}>
           Confirmar atributos
@@ -146,7 +148,9 @@ export function Step6Abilities() {
             ) as Record<AbilityKey, number>}
             onIncrease={increaseBackgroundAbilityBonus}
             onDecrease={decreaseBackgroundAbilityBonus}
+            tagOf={abilityRecommendations.tagOf}
           />
+          <AbilityRecommendationsHint recommendations={abilityRecommendations} />
         </section>
       )}
 

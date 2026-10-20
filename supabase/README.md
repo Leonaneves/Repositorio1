@@ -43,8 +43,9 @@ apliquei nada a um banco real. Para ativar:
    `migrations/0004_talent_recommendations.sql`,
    `migrations/0005_confirmed_versions.sql`,
    `migrations/0006_build_choice_recommendations.sql`,
-   `migrations/0007_subclass_metamagic_recommendations.sql` e
-   `migrations/0008_recommendation_scores.sql` (ou use
+   `migrations/0007_subclass_metamagic_recommendations.sql`,
+   `migrations/0008_recommendation_scores.sql` e
+   `migrations/0009_lineage_second_ability_min5.sql` (ou use
    `supabase db push` com a CLI, se preferir versionar por lá — ela já
    respeita a ordem numérica).
 3. Ative o login anônimo: Authentication → Providers → **Anonymous
@@ -116,6 +117,24 @@ atualização de um registro existente:
   `character_id` próprio e nunca altera os anteriores.
 - Linhas antigas: rascunhos continuam guardados e são ignorados; uma
   linha antiga já confirmada vira a versão única do seu personagem.
+
+## Linhagens, 2º maior atributo, Perícias por fonte e mínimo 5 (migration 0009)
+
+- Amostra mínima de dados reais: **5** personagens distintos na base.
+- Nova coluna `species_lineage_id`; recomendação de Linhagem/Ancestralidade
+  com base só na própria espécie, de qualquer classe ("Alto Elfo:
+  escolhido por 6 de cada 10 elfos").
+- 2º maior atributo (`character_build_second_ability`), recomendado junto
+  do maior e do menor — também nos aumentos do Antecedente e de cada ASI
+  (sempre a distribuição geral dos jogadores, nunca a do Antecedente).
+- `get_build_choice_scores` ganha `p_species_id`; `p_class_id` nulo = qualquer
+  classe (Perícias de espécie/antecedente/talento: base = quem tem a mesma
+  escolha). Pode ser reaplicada sem erro.
+- Talentos com aumento de atributo à escolha: 1º o atributo de conjuração
+  (regra, sem precisar de dados); 2º o maior atributo dos outros jogadores.
+
+**Aplique a `0009` antes de publicar o site novo** (o site novo grava
+`species_lineage_id` e consulta `p_species_id`).
 
 ## Recomendações por hierarquia de influência (migration 0008)
 

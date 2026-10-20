@@ -1,11 +1,12 @@
-import type { ClassId } from "../domain/ids.js";
+import type { ClassId, SpeciesId } from "../domain/ids.js";
 
 /**
  * Motivo de UMA opção recomendada. Dois modos (pedido do usuário: "a
  * mensagem pode ser diferente dependendo do que está sendo recomendado"):
  *
- * - `proportion` — recomendação de UM fator só (Subclasse: só a classe):
- *   "escolhido por X de 10 {classe}";
+ * - `proportion` — recomendação de UM fator só: Subclasse (só a classe),
+ *   "escolhido por X de 10 {classe}"; Linhagem (só a espécie),
+ *   "escolhido por X de 10 {espécie}";
  * - `blend` — recomendação influenciada por vários fatores (classe,
  *   subclasse, atributos, escolhas já feitas): só "★ Recomendado", com
  *   uma linha abaixo do seletor dizendo quais fatores foram usados.
@@ -14,7 +15,14 @@ import type { ClassId } from "../domain/ids.js";
  * referência nunca é descrita como escolha de jogadores.
  */
 export type RecommendationReason =
-  | { mode: "proportion"; characters: number; sampleCharacters: number; source: "user" | "reference" }
+  | {
+      mode: "proportion";
+      characters: number;
+      sampleCharacters: number;
+      source: "user" | "reference";
+      /** Quem foi comparado, no plural — "feiticeiros", "elfos". */
+      group: string;
+    }
   | { mode: "blend"; source: "user" | "reference" };
 
 /** Opções recomendadas de UM seletor (na ordem do ranking) + os fatores usados (modo `blend`). */
@@ -40,7 +48,7 @@ export class Recommendations {
 
 export const NO_RECOMMENDATIONS = new Recommendations();
 
-const CLASS_PLURAL: Record<ClassId, string> = {
+export const CLASS_PLURAL: Record<ClassId, string> = {
   artifice: "artífices",
   barbaro: "bárbaros",
   bardo: "bardos",
@@ -54,6 +62,19 @@ const CLASS_PLURAL: Record<ClassId, string> = {
   monge: "monges",
   paladino: "paladinos",
   patrulheiro: "patrulheiros",
+};
+
+export const SPECIES_PLURAL: Record<SpeciesId, string> = {
+  aasimar: "aasimares",
+  anao: "anões",
+  draconato: "draconatos",
+  elfo: "elfos",
+  gnomo: "gnomos",
+  golias: "golias",
+  halfling: "halflings",
+  humano: "humanos",
+  orc: "orcs",
+  tiefling: "tieflings",
 };
 
 /**
@@ -70,10 +91,10 @@ export function formatProportionOfTen(characters: number, sampleCharacters: numb
   return `cerca de ${Math.min(9, Math.round(scaled))} de cada 10`;
 }
 
-/** Ex.: "escolhido por 7 de 10 guerreiros" (modo `proportion`). */
-export function formatProportionReason(characters: number, sampleCharacters: number, source: "user" | "reference", classId: ClassId): string {
-  const group = source === "user" ? CLASS_PLURAL[classId] : `${CLASS_PLURAL[classId]} de referência (guias e fontes externas)`;
-  return `escolhido por ${formatProportionOfTen(characters, sampleCharacters)} ${group}`;
+/** Ex.: "escolhido por 7 de 10 guerreiros", "escolhido por 3 de cada 10 elfos" (modo `proportion`). */
+export function formatProportionReason(characters: number, sampleCharacters: number, source: "user" | "reference", group: string): string {
+  const who = source === "user" ? group : `${group} de referência (guias e fontes externas)`;
+  return `escolhido por ${formatProportionOfTen(characters, sampleCharacters)} ${who}`;
 }
 
 /** "a", "a e b", "a, b e c". */

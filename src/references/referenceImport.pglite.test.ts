@@ -16,7 +16,7 @@ import { validateReferenceFile } from "./validateReferenceFile.js";
 
 /**
  * Integração com um Postgres REAL (PGlite, em memória) — aplica as
- * migrations 0001→0008 exatamente como estão no repositório, com só o
+ * migrations 0001→0009 exatamente como estão no repositório, com só o
  * mínimo do Supabase simulado (papéis `anon`/`authenticated` e
  * `auth.uid()`). Cobre: importação/reimportação sem duplicar, transação
  * desfeita em erro, bloqueio de leitura direta das referências e
@@ -58,8 +58,8 @@ async function count(db: PGlite, table: string): Promise<number> {
 async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
   const s = build.abilityScores;
   await db.query(
-    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, metamagic_options, invocations, maneuvers, updated_at, confirmed_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $19, $20, $21, $21)`,
+    `insert into character_builds (build_id, character_id, level, class_id, subclass_id, species_id, background_id, for_score, dex_score, con_score, int_score, sab_score, car_score, origin, status, talent_acquisitions, skill_choices, metamagic_options, invocations, maneuvers, species_lineage_id, updated_at, confirmed_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18, $19, $20, $21, $22, $22)`,
     [
       build.buildId,
       build.characterId,
@@ -81,6 +81,7 @@ async function insertBuild(db: PGlite, build: CharacterBuild): Promise<void> {
       build.metamagicOptions,
       build.invocationIds,
       build.maneuverIds,
+      build.speciesLineageId,
       build.updatedAt,
     ],
   );
@@ -132,8 +133,8 @@ beforeEach(async () => {
   await db.exec("reset role; delete from reference_sources; delete from character_builds;");
 });
 
-describe("migrations 0001→0008", () => {
-  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006/0007/0008 podem ser reaplicadas", { timeout: 60_000 }, async () => {
+describe("migrations 0001→0009", () => {
+  it("aplicam numa base limpa, não inserem nenhum dado de referência e a 0006–0009 podem ser reaplicadas", { timeout: 60_000 }, async () => {
     const fresh = await createDatabase();
     for (const table of ["reference_sources", "reference_characters", "reference_acquisitions", "reference_character_citations", "reference_mentions"]) {
       expect(await count(fresh, table)).toBe(0);
@@ -141,6 +142,7 @@ describe("migrations 0001→0008", () => {
     await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0006_build_choice_recommendations.sql`, "utf8"));
     await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0007_subclass_metamagic_recommendations.sql`, "utf8"));
     await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0008_recommendation_scores.sql`, "utf8"));
+    await fresh.exec(readFileSync(`${MIGRATIONS_DIR}0009_lineage_second_ability_min5.sql`, "utf8"));
     expect(await count(fresh, "reference_sources")).toBe(0);
     await fresh.close();
   });
@@ -415,17 +417,23 @@ describe("get_build_choice_scores × scoreBuildChoices (paridade SQL/app)", () =
         metamagicOptions: i % 7 === 0 ? [] : i % 2 === 0 ? ["acelerada", "duplicada"] : ["acelerada", "sutil"],
         invocationIds: i % 3 === 0 ? ["explosao-agonizante", "lanca-mistica", "lanca-mistica"] : ["mente-mistica"],
         maneuverIds: i < 11 ? [] : ["ataque-preciso", i === 11 ? "derrubar" : "desarmar"],
+        speciesLineageId: SPECIES[i % 3] === "elfo" ? (i < 6 ? "elfo-alto-elfo" : "elfo-drow") : null,
       }),
     ),
     // Versão antiga do personagem 1 (deve ser ignorada) + rascunho + outra classe.
     testUserBuild(40, "guerreiro", [], { characterId: testBuildId(1), speciesId: "orc", updatedAt: "2025-01-01T00:00:00.000Z" }),
     testUserBuild(41, "guerreiro", [], { speciesId: "orc", status: "draft" }),
     testUserBuild(42, "mago", [], { speciesId: "orc" }),
+    // Elfos de outra classe: contam para a Linhagem e para Perícias de qualquer classe.
+    ...Array.from({ length: 3 }, (_, i) =>
+      testUserBuild(50 + i, "mago", [], { speciesId: "elfo", speciesLineageId: "elfo-floresta", skillChoices: { [SKILL_CHOICE]: ["arcanismo"] } }),
+    ),
   ];
 
   const base: BuildChoiceScoreQuery = {
     kind: "species",
     classId: "guerreiro",
+    speciesId: null,
     subclassId: "Campeão",
     choiceId: null,
     highestAbility: null,
@@ -452,12 +460,25 @@ describe("get_build_choice_scores × scoreBuildChoices (paridade SQL/app)", () =
     { ...base, kind: "invocation", subclassId: null },
     { ...base, kind: "maneuver", subclassId: "Mestre de Batalha", withValues: ["ataque-preciso"] },
     { ...base, classId: "mago" },
+    { ...base, kind: "secondAbility" },
+    { ...base, kind: "secondAbility", subclassId: null },
+    { ...base, kind: "lineage", classId: null, speciesId: "elfo", subclassId: null },
+    { ...base, kind: "skillChoice", classId: null, choiceId: SKILL_CHOICE, subclassId: null, highestAbility: "FOR" },
   ];
 
   async function rpcBuildChoiceScores(query: BuildChoiceScoreQuery): Promise<BuildChoiceScoreRow[]> {
     const result = await db.query<{ value: string; score: number; class_characters: number; class_sample: number }>(
-      "select * from get_build_choice_scores($1, $2, $3, $4, $5, $6, $7)",
-      [query.kind, query.classId, query.subclassId, query.choiceId, query.highestAbility, query.withValues.length > 0 ? query.withValues : null, query.excludeCharacterId],
+      "select * from get_build_choice_scores($1, $2, $3, $4, $5, $6, $7, $8)",
+      [
+        query.kind,
+        query.classId,
+        query.subclassId,
+        query.choiceId,
+        query.highestAbility,
+        query.withValues.length > 0 ? query.withValues : null,
+        query.excludeCharacterId,
+        query.speciesId,
+      ],
     );
     return result.rows.map((row) => ({
       value: row.value,
@@ -476,8 +497,8 @@ describe("get_build_choice_scores × scoreBuildChoices (paridade SQL/app)", () =
     sql.forEach((row, index) => expect(row.score).toBeCloseTo(app[index].score, 10));
   });
 
-  it("menos de 10 personagens da classe: nada sai do banco", async () => {
-    for (const build of userBuilds.slice(0, 9)) await insertBuild(db, build);
+  it("menos de 5 personagens da classe: nada sai do banco", async () => {
+    for (const build of userBuilds.slice(0, 4)) await insertBuild(db, build);
     expect(await rpcBuildChoiceScores(base)).toEqual([]);
   });
 

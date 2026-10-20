@@ -14,7 +14,7 @@ import type { TalentChoiceScoreRow } from "./scoring.js";
 const ELIGIBLE = ["alerta", "sentinela", "resistente", "mestre-atirador", "velocista"];
 
 describe("policy — constantes aprovadas", () => {
-  it("dados reais liberados no recomendador após a verificação em produção (sempre sujeitos à amostra mínima de 10)", () => {
+  it("dados reais liberados no recomendador após a verificação em produção (sempre sujeitos à amostra mínima de 5)", () => {
     expect(REAL_RECORDS_ENABLED).toBe(true);
   });
 
@@ -32,10 +32,10 @@ describe("policy — constantes aprovadas", () => {
 });
 
 describe("policy — amostra mínima", () => {
-  it("reais: 10 personagens distintos", () => {
-    expect(MIN_REAL_CHARACTERS).toBe(10);
-    expect(meetsMinimumSample("user", 9, 9)).toBe(false);
-    expect(meetsMinimumSample("user", 10, 10)).toBe(true);
+  it("reais: 5 personagens distintos", () => {
+    expect(MIN_REAL_CHARACTERS).toBe(5);
+    expect(meetsMinimumSample("user", 4, 4)).toBe(false);
+    expect(meetsMinimumSample("user", 5, 5)).toBe(true);
   });
 
   it("referências: 3 personagens de pelo menos 2 fontes independentes", () => {

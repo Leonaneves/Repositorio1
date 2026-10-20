@@ -127,6 +127,7 @@ export function testUserBuild(
     skillExpertise: [],
     skillChoices: {},
     metamagicOptions: [],
+    speciesLineageId: null,
     invocationIds: [],
     maneuverIds: [],
     savingThrowProficiencies: [],

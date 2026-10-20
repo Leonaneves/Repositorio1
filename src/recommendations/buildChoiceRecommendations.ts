@@ -13,13 +13,16 @@ export type { BuildChoiceKind, BuildChoiceScoreQuery, BuildChoiceScoreRow } from
 
 /**
  * Quantas opções podem ser marcadas por seletor: atributos indicam UM
- * maior e UM menor; Subclasse indica só a mais escolhida (cada classe tem
- * só 4 — marcar 3 não ajudaria a decidir); os demais seguem o limite de 3.
+ * maior, UM 2º maior e UM menor; Subclasse e Linhagem indicam só a mais
+ * escolhida (poucas opções — marcar 3 não ajudaria a decidir); os demais
+ * seguem o limite de 3.
  */
 export const MAX_BUILD_CHOICE_RECOMMENDATIONS: Readonly<Record<BuildChoiceKind, number>> = {
   species: 3,
+  lineage: 1,
   background: 3,
   highestAbility: 1,
+  secondAbility: 1,
   dumpAbility: 1,
   skillChoice: 3,
   subclass: 1,

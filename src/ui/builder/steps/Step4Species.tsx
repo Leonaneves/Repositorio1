@@ -52,6 +52,11 @@ export function Step4Species() {
     .filter((feat) => !(hasConflict && feat.id === character.humanOriginFeatId))
     .map((feat) => feat.id);
   const recommendedSpecies = useBuildChoiceRecommendations({ kind: "species" }, SPECIES_IDS);
+  // Linhagem/Ancestralidade: só a própria espécie (qualquer classe) — "Alto Elfo: escolhido por 3 de cada 10 elfos".
+  const recommendedLineages = useBuildChoiceRecommendations(
+    speciesId && hasSpeciesLineage(speciesId) ? { kind: "lineage" } : null,
+    lineageOptions.map((option) => option.id),
+  );
   const recommendedOriginFeats = useTalentRecommendations(speciesId === "humano" ? HUMAN_ORIGIN_FEAT_OPPORTUNITY : null, eligibleOriginFeatIds);
 
   return (
@@ -78,11 +83,12 @@ export function Step4Species() {
               <option value="">- Selecione -</option>
               {lineageOptions.map((option) => (
                 <option key={option.id} value={option.id}>
-                  {option.name}
+                  {withRecommendedLabel(option.name, recommendedLineages.get(option.id))}
                 </option>
               ))}
             </select>
           </label>
+          <RecommendationReasonsHint reasons={recommendedLineages} nameOf={(id) => lineageOptions.find((option) => option.id === id)?.name ?? id} />
         </fieldset>
       )}
 

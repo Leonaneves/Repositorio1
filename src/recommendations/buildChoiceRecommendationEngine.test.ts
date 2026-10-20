@@ -8,6 +8,7 @@ import type { BuildChoiceScoreQuery } from "./scoring.js";
 const base: BuildChoiceScoreQuery = {
   kind: "background",
   classId: "guerreiro",
+  speciesId: null,
   subclassId: null,
   choiceId: null,
   highestAbility: null,

@@ -279,8 +279,8 @@ describe("Dados reais liberados no recomendador", () => {
     expect(screen.getByLabelText("Por que recomendado").textContent).toBe("★ Recomendações com base em sua classe e nível, sua subclasse e seus atributos.");
   });
 
-  it("com 9, a amostra real é insuficiente e nada é recomendado", async () => {
-    await confirmFighters(9, "resistente");
+  it("com 4, a amostra real é insuficiente e nada é recomendado", async () => {
+    await confirmFighters(4, "resistente");
     const spy = vi.spyOn(repository, "getTalentChoiceScores");
     setCharacter(fighterAtAsi4());
     render(<AsiControl level={4} showUnavailableFeats={false} />);

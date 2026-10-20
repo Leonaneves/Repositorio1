@@ -75,6 +75,7 @@ export function mapCharacterToBuild(character: Character, updatedAt: string = ne
     classId: character.classId,
     subclassId: character.subclassId,
     speciesId: character.speciesId,
+    speciesLineageId: character.speciesLineageId,
     backgroundId: character.backgroundId,
     abilityScores,
     skillProficiencies,

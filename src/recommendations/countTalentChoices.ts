@@ -2,7 +2,7 @@ import { ABILITY_KEYS, type AbilityKey } from "../domain/common.js";
 import type { CharacterBuild } from "../domain/characterBuild.js";
 import { highestAbility } from "../repositories/AnalyticsRepository.js";
 import { deriveOpportunityKind } from "./opportunityKind.js";
-import { CONTEXT_TIERS, factMatchesTier, MIN_REAL_CHARACTERS } from "./policy.js";
+import { CONTEXT_TIERS, factMatchesTier, LEGACY_COUNTS_MIN_REAL_CHARACTERS } from "./policy.js";
 import type { TalentChoiceCountQuery, TalentChoiceCountRow, TalentChoiceFact } from "./types.js";
 
 /**
@@ -52,7 +52,7 @@ export function buildToTalentChoiceFacts(build: CharacterBuild): TalentChoiceFac
  * Contagens por (conjunto, faixa, talento) para a consulta — personagens
  * DISTINTOS (nunca aquisições), amostra e grupos de fontes
  * independentes por (conjunto, faixa). Para dados reais, só devolve as
- * faixas que já atingem `MIN_REAL_CHARACTERS` (mesmo corte de
+ * faixas que já atingem `LEGACY_COUNTS_MIN_REAL_CHARACTERS` (mesmo corte de
  * privacidade da função SQL: contagens reais pequenas nunca saem do
  * repositório). `applyMinimum: false` só para uso interno da pontuação
  * (`scoring.ts`), que nunca devolve as contagens pequenas.
@@ -78,7 +78,7 @@ export function countTalentChoices(
       const poolFacts = matched.filter((fact) => fact.pool === pool);
       const sampleCharacters = new Set(poolFacts.map((fact) => fact.characterKey)).size;
       const sampleGroups = new Set(poolFacts.map((fact) => fact.groupKey)).size;
-      if (applyMinimum && pool === "user" && sampleCharacters < MIN_REAL_CHARACTERS) continue;
+      if (applyMinimum && pool === "user" && sampleCharacters < LEGACY_COUNTS_MIN_REAL_CHARACTERS) continue;
 
       const byTalent = new Map<string, { characters: Set<string>; groups: Set<string> }>();
       for (const fact of poolFacts) {

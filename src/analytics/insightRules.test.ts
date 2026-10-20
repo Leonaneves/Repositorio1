@@ -22,6 +22,7 @@ function build(overrides: Partial<CharacterBuild> = {}): CharacterBuild {
     skillExpertise: [],
     skillChoices: {},
     metamagicOptions: [],
+    speciesLineageId: null,
     invocationIds: [],
     maneuverIds: [],
     savingThrowProficiencies: [],

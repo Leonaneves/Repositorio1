@@ -143,6 +143,8 @@ export interface CharacterBuild {
   classId: ClassId | null;
   subclassId: string | null;
   speciesId: SpeciesId | null;
+  /** Linhagem/Ancestralidade da espécie (`data/speciesLineages.ts`) — `null` sem escolha ou em registros antigos. Base da recomendação de Linhagem. */
+  speciesLineageId: string | null;
   backgroundId: BackgroundId | null;
 
   abilityScores: Record<AbilityKey, number>;

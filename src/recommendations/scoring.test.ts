@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { testAbilities, testBuildId, testUserBuild } from "../references/testFixtures.js";
 import { MAX_BUILD_CHOICE_RECOMMENDATIONS, selectBuildChoiceRecommendations } from "./buildChoiceRecommendations.js";
+import { secondHighestAbility } from "../repositories/AnalyticsRepository.js";
 import { scoreBuildChoices, scoreTalentChoices, SMOOTHING_K, SPECIES_SMOOTHING_K, type BuildChoiceScoreQuery, type BuildChoiceScoreRow } from "./scoring.js";
 import { buildToTalentChoiceFacts } from "./countTalentChoices.js";
 import type { TalentChoiceCountQuery } from "./types.js";
@@ -8,6 +9,7 @@ import type { TalentChoiceCountQuery } from "./types.js";
 const query = (overrides: Partial<BuildChoiceScoreQuery> = {}): BuildChoiceScoreQuery => ({
   kind: "species",
   classId: "guerreiro",
+  speciesId: null,
   subclassId: null,
   choiceId: null,
   highestAbility: null,
@@ -22,11 +24,13 @@ const fighters = (count: number, overrides: (index: number) => Parameters<typeof
 const scoreOf = (rows: BuildChoiceScoreRow[], value: string) => rows.find((row) => row.value === value)?.score;
 
 describe("limites por seletor", () => {
-  it("Espécie/Antecedente/Perícias/Metamagia/Invocações/Manobras: até 3; atributos: 1 maior e 1 menor; Subclasse: 1", () => {
+  it("Espécie/Antecedente/Perícias/Metamagia/Invocações/Manobras: até 3; atributos: 1 maior, 1 2º maior e 1 menor; Subclasse e Linhagem: 1", () => {
     expect(MAX_BUILD_CHOICE_RECOMMENDATIONS).toEqual({
       species: 3,
+      lineage: 1,
       background: 3,
       highestAbility: 1,
+      secondAbility: 1,
       dumpAbility: 1,
       skillChoice: 3,
       subclass: 1,
@@ -38,15 +42,15 @@ describe("limites por seletor", () => {
 });
 
 describe("scoreBuildChoices — a classe é a base", () => {
-  it("9 personagens da classe: nada; 10: fração da classe", () => {
-    expect(scoreBuildChoices(fighters(9, () => ({ speciesId: "anao" })), query())).toEqual([]);
+  it("4 personagens da classe: nada; 5+: fração da classe", () => {
+    expect(scoreBuildChoices(fighters(4, () => ({ speciesId: "anao" })), query())).toEqual([]);
     const rows = scoreBuildChoices(fighters(10, (i) => ({ speciesId: i < 7 ? "anao" : "elfo" })), query());
     expect(scoreOf(rows, "anao")).toBeCloseTo(0.7);
     expect(rows.find((row) => row.value === "anao")).toMatchObject({ classCharacters: 7, classSample: 10 });
   });
 
   it("só a mesma classe; o próprio personagem nunca conta", () => {
-    const builds = [...fighters(10, () => ({ speciesId: "anao" })), testUserBuild(50, "mago", [], { speciesId: "elfo" })];
+    const builds = [...fighters(5, () => ({ speciesId: "anao" })), testUserBuild(50, "mago", [], { speciesId: "elfo" })];
     expect(scoreBuildChoices(builds, query()).map((row) => row.value)).toEqual(["anao"]);
     expect(scoreBuildChoices(builds, query({ excludeCharacterId: testBuildId(1) }))).toEqual([]);
   });
@@ -117,6 +121,37 @@ describe("scoreBuildChoices — escolhas já feitas (coocorrência)", () => {
   });
 });
 
+describe("scoreBuildChoices — Linhagem, 2º maior atributo e Perícias de outras fontes", () => {
+  it("Linhagem: base = a mesma espécie, de qualquer classe", () => {
+    const builds = [
+      ...Array.from({ length: 3 }, (_, i) => testUserBuild(i + 1, "mago", [], { speciesId: "elfo", speciesLineageId: "elfo-alto-elfo" })),
+      ...Array.from({ length: 2 }, (_, i) => testUserBuild(10 + i, "ladino", [], { speciesId: "elfo", speciesLineageId: "elfo-drow" })),
+      testUserBuild(20, "mago", [], { speciesId: "gnomo", speciesLineageId: "gnomo-rocha" }),
+    ];
+    const rows = scoreBuildChoices(builds, query({ kind: "lineage", classId: null, speciesId: "elfo" }));
+    expect(rows.find((row) => row.value === "elfo-alto-elfo")).toMatchObject({ classCharacters: 3, classSample: 5 });
+    expect(scoreOf(rows, "gnomo-rocha")).toBeUndefined();
+  });
+
+  it("2º maior atributo: o maior dos demais, empate pela ordem FOR > DEX > CON > INT > SAB > CAR", () => {
+    const builds = fighters(5, (i) => ({ abilityScores: i < 3 ? testAbilities({ FOR: 15, CON: 14 }) : testAbilities({ DEX: 15 }) }));
+    const rows = scoreBuildChoices(builds, query({ kind: "secondAbility" }));
+    expect(scoreOf(rows, "CON")).toBeCloseTo(0.6);
+    expect(scoreOf(rows, "FOR")).toBeCloseTo(0.4); // DEX 15, resto 10 → 2º = FOR (primeiro dos 10)
+  });
+
+  it("Perícias de espécie/antecedente/talento: base = quem tem a mesma escolha, de qualquer classe", () => {
+    const choiceId = "elfo-sentidos-acucados-escolha";
+    const builds = [
+      ...Array.from({ length: 4 }, (_, i) => testUserBuild(i + 1, "mago", [], { skillChoices: { [choiceId]: ["percepcao"] } })),
+      testUserBuild(9, "ladino", [], { skillChoices: { [choiceId]: ["intuicao"] } }),
+    ];
+    expect(scoreBuildChoices(builds, query({ kind: "skillChoice", choiceId }))).toEqual([]); // só guerreiros: ninguém
+    const rows = scoreBuildChoices(builds, query({ kind: "skillChoice", choiceId, classId: null }));
+    expect(scoreOf(rows, "percepcao")).toBeCloseTo(0.8);
+  });
+});
+
 describe("selectBuildChoiceRecommendations", () => {
   const row = (value: string, score: number, classCharacters = 3): BuildChoiceScoreRow => ({ value, score, classCharacters, classSample: 12 });
 
@@ -174,7 +209,15 @@ describe("scoreTalentChoices — classe/nível → subclasse e atributos", () =>
     expect(rows.find((row) => row.talentId === "sentinela")!.score).toBeLessThan(12 / 15);
   });
 
-  it("menos de 10 personagens reais na base: nada", () => {
-    expect(scoreTalentChoices(facts.slice(0, 9), base)).toEqual([]);
+  it("menos de 5 personagens reais na base: nada", () => {
+    expect(scoreTalentChoices(facts.slice(0, 4), base)).toEqual([]);
+  });
+});
+
+describe("secondHighestAbility", () => {
+  it("ignora o maior e desempata pela ordem FOR > DEX > CON > INT > SAB > CAR", () => {
+    expect(secondHighestAbility(testAbilities({ CAR: 16, SAB: 14 }))).toBe("SAB");
+    expect(secondHighestAbility(testAbilities({ FOR: 15, DEX: 15 }))).toBe("DEX");
+    expect(secondHighestAbility(testAbilities())).toBe("DEX");
   });
 });

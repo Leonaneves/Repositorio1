@@ -8,6 +8,8 @@ import { getAbilityModifier, getEffectiveAbilityScore } from "../../../rules/abi
 import { FeatureChoiceControl } from "../FeatureChoiceControl.js";
 import { AsiControl } from "../AsiControl.js";
 import { AbilityPointAllocator } from "../../components/AbilityPointAllocator.js";
+import { useAbilityRecommendations } from "../../../services/useBuildChoiceRecommendations.js";
+import { AbilityRecommendationsHint } from "../RecommendationReasonsHint.js";
 
 const ABILITY_NAMES: Record<AbilityKey, string> = {
   FOR: "Força",
@@ -48,6 +50,8 @@ export function Step8FeaturesAndTalents() {
   const increaseAsiAbility = useCharacterStore((s) => s.increaseAsiAbility);
   const decreaseAsiAbility = useCharacterStore((s) => s.decreaseAsiAbility);
   const [showUnavailableFeats, setShowUnavailableFeats] = useState(false);
+  // Rótulos de recomendação nos aumentos de ASI: a distribuição GERAL dos jogadores (maior, 2º maior, menor).
+  const abilityRecommendations = useAbilityRecommendations();
 
   const features = getFeaturesAndTalentsStepFeatures(character);
   const unlockedAsiLevels = getUnlockedAsiLevels(character);
@@ -137,7 +141,9 @@ export function Step8FeaturesAndTalents() {
                   ) as Record<AbilityKey, number>}
                   onIncrease={(ability) => increaseAsiAbility(level, ability)}
                   onDecrease={(ability) => decreaseAsiAbility(level, ability)}
+                  tagOf={abilityRecommendations.tagOf}
                 />
+                <AbilityRecommendationsHint recommendations={abilityRecommendations} />
               </section>
             )}
           </div>

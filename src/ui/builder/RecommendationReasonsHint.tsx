@@ -1,5 +1,5 @@
-import { useCharacterStore } from "../../state/characterStore.js";
 import { formatBlendBasis, formatProportionReason, type Recommendations } from "../../recommendations/recommendationReason.js";
+import type { AbilityRecommendations } from "../../services/useBuildChoiceRecommendations.js";
 
 export interface RecommendationReasonsHintProps {
   reasons: Recommendations;
@@ -16,8 +16,7 @@ export interface RecommendationReasonsHintProps {
  * subclasse." Nada é exibido sem recomendação.
  */
 export function RecommendationReasonsHint({ reasons, nameOf }: RecommendationReasonsHintProps) {
-  const classId = useCharacterStore((s) => s.character.classId);
-  if (!classId || reasons.size === 0) return null;
+  if (reasons.size === 0) return null;
   const entries = [...reasons.reasons];
   const [, first] = entries[0];
 
@@ -33,10 +32,16 @@ export function RecommendationReasonsHint({ reasons, nameOf }: RecommendationRea
       {entries.map(([value, reason]) =>
         reason.mode === "proportion" ? (
           <li key={value}>
-            <strong>{nameOf(value)}</strong>: {formatProportionReason(reason.characters, reason.sampleCharacters, reason.source, classId)}
+            <strong>{nameOf(value)}</strong>: {formatProportionReason(reason.characters, reason.sampleCharacters, reason.source, reason.group)}
           </li>
         ) : null,
       )}
     </ul>
   );
+}
+
+/** Uma linha só para as recomendações de atributo (maior, 2º maior e menor usam os mesmos fatores). */
+export function AbilityRecommendationsHint({ recommendations }: { recommendations: AbilityRecommendations }) {
+  const first = [recommendations.highest, recommendations.second, recommendations.dump].find((entry) => entry.size > 0);
+  return first ? <RecommendationReasonsHint reasons={first} nameOf={(value) => value} /> : null;
 }

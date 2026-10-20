@@ -54,6 +54,12 @@ export function lowestAbility(scores: Record<AbilityKey, number>): AbilityKey {
   return ABILITY_PRIORITY_ORDER.reduce((best, current) => (scores[current] < scores[best] ? current : best));
 }
 
+/** 2º maior atributo — o maior dos demais depois de `highestAbility`, mesmo desempate (igual a `character_build_second_ability` no SQL, migration 0009). */
+export function secondHighestAbility(scores: Record<AbilityKey, number>): AbilityKey {
+  const first = highestAbility(scores);
+  return ABILITY_PRIORITY_ORDER.filter((ability) => ability !== first).reduce((best, current) => (scores[current] > scores[best] ? current : best));
+}
+
 export function armorIdToFilterValue(armorId: ArmorId | null): string {
   return armorId ?? "unarmed";
 }

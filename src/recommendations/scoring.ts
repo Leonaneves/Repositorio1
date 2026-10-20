@@ -1,7 +1,7 @@
 import type { AbilityKey } from "../domain/common.js";
 import type { CharacterBuild } from "../domain/characterBuild.js";
-import type { ClassId } from "../domain/ids.js";
-import { highestAbility, lowestAbility } from "../repositories/AnalyticsRepository.js";
+import type { ClassId, SpeciesId } from "../domain/ids.js";
+import { highestAbility, lowestAbility, secondHighestAbility } from "../repositories/AnalyticsRepository.js";
 import { countTalentChoices } from "./countTalentChoices.js";
 import { meetsMinimumSample, MIN_REAL_CHARACTERS } from "./policy.js";
 import type { ContextTier, RecommendationPool, TalentChoiceCountQuery, TalentChoiceFact } from "./types.js";
@@ -15,7 +15,9 @@ import type { ContextTier, RecommendationPool, TalentChoiceCountQuery, TalentCho
  *
  * A CLASSE define a base: a fração de personagens da mesma classe que
  * fizeram cada escolha — só com `MIN_REAL_CHARACTERS` personagens
- * distintos (abaixo disso, nada). Cada fator mais específico REFINA a
+ * distintos (abaixo disso, nada). Exceções de base: Linhagem usa a mesma
+ * ESPÉCIE (qualquer classe); Perícias de espécie/antecedente/talento usam
+ * quem tem a mesma escolha (qualquer classe — `classId: null`). Cada fator mais específico REFINA a
  * base por suavização, em vez de exigir 10 personagens por fator:
  *
  *     refinado(v) = (escolheram_no_contexto(v) + K × base(v)) / (amostra_do_contexto + K)
@@ -31,8 +33,10 @@ export const SPECIES_SMOOTHING_K = 20;
 
 export type BuildChoiceKind =
   | "species"
+  | "lineage"
   | "background"
   | "highestAbility"
+  | "secondAbility"
   | "dumpAbility"
   | "skillChoice"
   | "subclass"
@@ -43,11 +47,14 @@ export type BuildChoiceKind =
 /** Tipos com várias escolhas por personagem, em que as já feitas influenciam as próximas (coocorrência). */
 export const COOCCURRENCE_KINDS: readonly BuildChoiceKind[] = ["metamagic", "invocation", "maneuver"];
 /** Tipos refinados pela subclasse (a Subclasse em si e as Perícias não). */
-export const SUBCLASS_REFINED_KINDS: readonly BuildChoiceKind[] = ["species", "background", "highestAbility", "dumpAbility", "invocation", "maneuver"];
+export const SUBCLASS_REFINED_KINDS: readonly BuildChoiceKind[] = ["species", "background", "highestAbility", "secondAbility", "dumpAbility", "invocation", "maneuver"];
 
 export interface BuildChoiceScoreQuery {
   kind: BuildChoiceKind;
-  classId: ClassId;
+  /** Base: mesma classe. `null` = qualquer classe (Linhagem; Perícias de espécie/antecedente/talento). */
+  classId: ClassId | null;
+  /** Base: mesma espécie (Linhagem). `null` = qualquer espécie. */
+  speciesId: SpeciesId | null;
   /** Subclasse atual (refina os tipos de `SUBCLASS_REFINED_KINDS`). */
   subclassId: string | null;
   /** Só para `skillChoice`: id da `FeatureChoice`. */
@@ -73,10 +80,14 @@ function buildValues(build: CharacterBuild, query: BuildChoiceScoreQuery): strin
   switch (query.kind) {
     case "species":
       return build.speciesId ? [build.speciesId] : [];
+    case "lineage":
+      return build.speciesLineageId ? [build.speciesLineageId] : [];
     case "background":
       return build.backgroundId ? [build.backgroundId] : [];
     case "highestAbility":
       return [highestAbility(build.abilityScores)];
+    case "secondAbility":
+      return [secondHighestAbility(build.abilityScores)];
     case "dumpAbility":
       return [lowestAbility(build.abilityScores)];
     case "skillChoice":
@@ -112,10 +123,15 @@ function smooth(context: ContextCounts, value: string, prior: number, k: number)
   return ((context.counts.get(value) ?? 0) + k * prior) / (context.sample + k);
 }
 
-/** Pontuação de cada opção já escolhida por alguém da classe — `[]` com menos de `MIN_REAL_CHARACTERS` personagens. */
+/** Pontuação de cada opção já escolhida por alguém da base — `[]` com menos de `MIN_REAL_CHARACTERS` personagens. */
 export function scoreBuildChoices(latestBuilds: readonly CharacterBuild[], query: BuildChoiceScoreQuery): BuildChoiceScoreRow[] {
   const entries = latestBuilds
-    .filter((build) => build.classId === query.classId && build.characterId !== query.excludeCharacterId)
+    .filter(
+      (build) =>
+        (query.classId === null || build.classId === query.classId) &&
+        (query.speciesId === null || build.speciesId === query.speciesId) &&
+        build.characterId !== query.excludeCharacterId,
+    )
     .map((build) => ({ build, values: buildValues(build, query) }))
     .filter((entry) => entry.values.length > 0);
 

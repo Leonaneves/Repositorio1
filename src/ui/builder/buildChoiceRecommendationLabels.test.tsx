@@ -4,6 +4,8 @@ import type { CharacterBuild } from "../../domain/characterBuild.js";
 import type { ClassId } from "../../domain/ids.js";
 import { createBlankCharacter, type Character } from "../../domain/character.js";
 import { getBardSkillExpertiseChoiceId } from "../../data/features/bard.js";
+import { ELFO_SENTIDOS_AGUCADOS_CHOICE_ID } from "../../data/features/species.js";
+import type { AbilityKey } from "../../domain/common.js";
 import { getBuildChoiceStatsRepository, InMemoryBuildStore } from "../../repositories/index.js";
 import { clearBuildChoiceRecommendationCache } from "../../recommendations/buildChoiceRecommendationEngine.js";
 import { clearTalentRecommendationCache } from "../../recommendations/talentRecommendationEngine.js";
@@ -77,8 +79,8 @@ describe("Espécie e Antecedente", () => {
     expect(useCharacterStore.getState().character.speciesId).toBeNull();
   });
 
-  it("com 9, nada é recomendado", async () => {
-    await confirm(9, "guerreiro", () => ({ speciesId: "anao" }));
+  it("com 4, nada é recomendado", async () => {
+    await confirm(4, "guerreiro", () => ({ speciesId: "anao" }));
     const spy = vi.spyOn(repository, "getBuildChoiceScores");
     setCharacter(fighter());
     render(<Step4Species />);
@@ -113,7 +115,7 @@ describe("Espécie e Antecedente", () => {
   });
 
   it("o próprio personagem nunca conta para a sua recomendação", async () => {
-    await confirm(10, "guerreiro", () => ({ speciesId: "anao" }));
+    await confirm(5, "guerreiro", () => ({ speciesId: "anao" }));
     const spy = vi.spyOn(repository, "getBuildChoiceScores");
     const character = fighter();
     character.id = testBuildId(1);
@@ -125,14 +127,15 @@ describe("Espécie e Antecedente", () => {
   });
 });
 
-describe("Atributos: 1 maior e 1 menor", () => {
-  it("marca exatamente um atributo maior e um menor (valores base)", async () => {
+describe("Atributos: maior, 2º maior e menor", () => {
+  it("marca exatamente um maior, um 2º maior e um menor (valores base), sem repetir atributo", async () => {
     await confirm(10, "guerreiro", (i) => ({ abilityScores: i < 7 ? testAbilities({ FOR: 15, INT: 8 }) : testAbilities({ DEX: 15, CAR: 8 }) }));
     setCharacter(fighter());
     render(<Step6Abilities />);
     expect(await screen.findByText("Força (★ Recomendado: maior)")).toBeInTheDocument();
+    expect(await screen.findByText("Destreza (★ Recomendado: 2º maior)")).toBeInTheDocument();
     expect(await screen.findByText("Inteligência (★ Recomendado: menor)")).toBeInTheDocument();
-    expect(recommendedTexts()).toHaveLength(2);
+    expect(recommendedTexts()).toHaveLength(3);
     expect(basisText()).toEqual(["★ Recomendações com base em sua classe."]);
   });
 });
@@ -231,5 +234,59 @@ describe("Invocações e Manobras", () => {
     render(<StepManeuvers />);
     expect(await screen.findByText("Ataque Ameaçador (★ Recomendado)")).toBeInTheDocument();
     expect(basisText()).toEqual(["★ Recomendações com base em sua subclasse e as Manobras que você já escolheu."]);
+  });
+});
+
+describe("Linhagem, aumentos de atributo e Perícias por fonte", () => {
+  it("Linhagem: só a própria espécie, de qualquer classe — 'escolhido por X de cada 10 elfos'", async () => {
+    await confirm(5, "mago", (i) => ({ speciesId: "elfo", speciesLineageId: i < 3 ? "elfo-alto-elfo" : "elfo-drow" }));
+    const character = fighter();
+    character.speciesId = "elfo";
+    setCharacter(character);
+    render(<Step4Species />);
+    expect(await screen.findByRole("option", { name: "Alto Elfo (Recomendado)" })).toBeInTheDocument();
+    expect(reasonTexts()).toEqual(["Alto Elfo: escolhido por 6 de cada 10 elfos"]);
+  });
+
+  it("aumentos do Antecedente mostram maior/2º maior/menor da distribuição GERAL (nunca a do Antecedente)", async () => {
+    await confirm(5, "guerreiro", () => ({ abilityScores: testAbilities({ FOR: 15, CON: 14, CAR: 8 }), backgroundId: "sabio" }));
+    const character = fighter();
+    character.backgroundId = "soldado"; // FOR, DEX, CON
+    setCharacter(character);
+    render(<Step6Abilities />);
+    const section = await screen.findByRole("region", { name: "Aumentos de Antecedente" });
+    await within(section).findByText("(★ maior)");
+    expect(within(section).getByText("(★ 2º maior)")).toBeInTheDocument();
+    expect(within(section).queryByText("(★ menor)")).toBeNull(); // CAR não é aumentável pelo Soldado
+  });
+
+  it("talento com aumento de atributo: 1º o atributo de conjuração; sem conjuração, o maior dos outros jogadores", async () => {
+    const choice = { id: "teste-aumento", prompt: "Aumente 1 atributo", effect: { kind: "abilityScoreIncrease" as const, options: ["FOR", "DEX", "CON", "INT", "SAB", "CAR"] as AbilityKey[] } };
+    const wizard = createBlankCharacter("ui-build-choice-wizard");
+    wizard.classId = "mago";
+    setCharacter(wizard);
+    const { unmount } = render(<FeatureChoiceControl choice={choice} />);
+    expect(await screen.findByRole("option", { name: "Inteligência (★ Recomendado)" })).toBeInTheDocument();
+    expect(basisText()).toEqual(["★ Recomendações com base em seu atributo de conjuração."]);
+    unmount();
+
+    await confirm(5, "guerreiro", () => ({ abilityScores: testAbilities({ DEX: 15 }) }));
+    setCharacter(fighter());
+    render(<FeatureChoiceControl choice={choice} />);
+    expect(await screen.findByRole("option", { name: "Destreza (★ Recomendado)" })).toBeInTheDocument();
+    expect(recommendedTexts()).toEqual(["Destreza (★ Recomendado)"]);
+  });
+
+  it("Perícias de espécie: base = outros personagens com a mesma escolha, de qualquer classe", async () => {
+    await confirm(5, "mago", () => ({ skillChoices: { [ELFO_SENTIDOS_AGUCADOS_CHOICE_ID]: ["percepcao"] } }));
+    const character = fighter();
+    character.speciesId = "elfo";
+    setCharacter(character);
+    const choice = getSkillChoiceFeatures(character)
+      .flatMap((feature) => feature.choices ?? [])
+      .find((candidate) => candidate.id === ELFO_SENTIDOS_AGUCADOS_CHOICE_ID)!;
+    render(<FeatureChoiceControl choice={choice} />);
+    expect(await screen.findByText("Percepção (★ Recomendado)")).toBeInTheDocument();
+    expect(basisText()).toEqual(["★ Recomendações com base em outros personagens com Traços de Elfo."]);
   });
 });
