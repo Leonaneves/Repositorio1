@@ -1,5 +1,6 @@
 import { useCharacterStore } from "../../state/characterStore.js";
 import { getArmorClass, getAvailableArmor } from "../../rules/armor.js";
+import { hasArmorTraining, isArmorTrainingGrantedByFeat } from "../../rules/feats.js";
 import { ComputedField } from "../components/ComputedField.js";
 import type { ChoiceInsight } from "../../analytics/types.js";
 import { InsightCard } from "../insights/InsightCard.js";
@@ -55,16 +56,22 @@ export function ArmorSection({ armorPopularity }: ArmorSectionProps) {
 
       <fieldset className="armor-proficiencies">
         <legend>Treinamento</legend>
-        {(Object.keys(PROFICIENCY_LABELS) as (keyof typeof PROFICIENCY_LABELS)[]).map((category) => (
-          <label key={category} className="checkbox-field checkbox-field--compact">
-            <input
-              type="checkbox"
-              checked={character.armor.proficiencies[category]}
-              onChange={(e) => setArmorProficiency(category, e.target.checked)}
-            />
-            <span>{PROFICIENCY_LABELS[category]}</span>
-          </label>
-        ))}
+        {(Object.keys(PROFICIENCY_LABELS) as (keyof typeof PROFICIENCY_LABELS)[]).map((category) => {
+          // Concedido por Talento (Especialista em Armaduras Leves/Médias/Pesadas): marcado e travado —
+          // some sozinho se o talento for removido, sem apagar o que veio de outras origens.
+          const grantedByFeat = isArmorTrainingGrantedByFeat(character, category);
+          return (
+            <label key={category} className="checkbox-field checkbox-field--compact" title={grantedByFeat ? "Concedido por Talento" : undefined}>
+              <input
+                type="checkbox"
+                checked={hasArmorTraining(character, category)}
+                disabled={grantedByFeat}
+                onChange={(e) => setArmorProficiency(category, e.target.checked)}
+              />
+              <span>{PROFICIENCY_LABELS[category]}</span>
+            </label>
+          );
+        })}
       </fieldset>
 
       {armorPopularity && <InsightCard insight={armorPopularity} />}

@@ -4,7 +4,8 @@ import { species } from "../data/species.js";
 import { armors } from "../data/armors.js";
 import { getSpeciesLineageSpeedBonus } from "./speciesLineage.js";
 import { getEpicBoonSpeedBonus } from "./epicBoons.js";
-import { getFeatSpeedBonus } from "./feats.js";
+import { ATLETA_FEAT_ID } from "../data/features/feats.js";
+import { getFeatSpeedBonus, isFeatActive } from "./feats.js";
 
 /**
  * Bônus de deslocamento concedido pela classe.
@@ -105,4 +106,14 @@ export function getRangerClimbSpeed(character: Character): ComputedValue | null 
 export function getRangerSwimSpeed(character: Character): ComputedValue | null {
   if (character.classId !== "patrulheiro" || character.level < 6) return null;
   return getSpeed(character);
+}
+
+/**
+ * Deslocamento de Escalada de qualquer origem: Errante (Patrulheiro 6+)
+ * ou Atleta (Talento Geral) — ambos iguais ao Deslocamento efetivo, então
+ * acompanham qualquer alteração dele; nunca somados entre si. `null` sem
+ * nenhuma dessas características.
+ */
+export function getClimbSpeed(character: Character): ComputedValue | null {
+  return getRangerClimbSpeed(character) ?? (isFeatActive(character, ATLETA_FEAT_ID) ? getSpeed(character) : null);
 }

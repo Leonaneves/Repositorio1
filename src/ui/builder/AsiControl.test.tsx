@@ -23,7 +23,7 @@ describe("AsiControl — seletor de Talento", () => {
     expect(screen.queryByText("Talento")).not.toBeInTheDocument();
   });
 
-  it("em modo 'Talento', mostra as opções do catálogo sem pré-requisito pendente (10 de Origem + 12 Gerais sem pré-requisito extra + 3 de Conjuração)", () => {
+  it("em modo 'Talento', mostra as opções do catálogo sem pré-requisito pendente (10 de Origem + 12 Gerais sem pré-requisito extra + 3 de Conjuração + 5 do lote seguinte sem pré-requisito extra)", () => {
     useCharacterStore.getState().setClass("mago");
     useCharacterStore.getState().setAsiMode(4, "feat");
     render(<AsiControl level={4} showUnavailableFeats={false} />);
@@ -34,8 +34,8 @@ describe("AsiControl — seletor de Talento", () => {
     // pré-requisito de atributo 13+/treinamento de armadura nunca aparecem aqui.
     expect(screen.queryByRole("option", { name: "Sentinela" })).not.toBeInTheDocument();
     // O Mago tem Conjuração: Adepto Elemental, Atirador de Magias e Conjurador de Guerra aparecem.
-    expect(screen.getByRole("option", { name: "Conjurador de Guerra" })).toBeInTheDocument();
-    expect(screen.getAllByRole("option")).toHaveLength(26); // "- Selecione -" + 25 talentos sem pré-requisito pendente
+    expect(screen.getByRole("option", { name: "Conjurador Bélico" })).toBeInTheDocument();
+    expect(screen.getAllByRole("option")).toHaveLength(31); // "- Selecione -" + 30 talentos sem pré-requisito pendente
   });
 
   it("escolher um talento grava o featId no nível de ASI certo", () => {

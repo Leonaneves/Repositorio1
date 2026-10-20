@@ -1,7 +1,9 @@
 import type { Character } from "../domain/character.js";
 import { classes, getClassToolChoiceId } from "../data/classes.js";
 import { tools, toolsById, type ToolCategory, type ToolDefinition } from "../data/tools.js";
+import { CHEF_FEAT_ID, ENVENENADOR_FEAT_ID } from "../data/features/feats.js";
 import { getCharacterFeatures } from "./features.js";
+import { getFeatAcquisitions } from "./feats.js";
 
 /** Ferramentas/Instrumentos do catálogo que pertencem a UMA das categorias informadas (array = "ou", ex.: Monge: Ferramenta de Artesão OU Instrumento Musical). */
 export function getEligibleTools(category: ToolCategory | ToolCategory[]): ToolDefinition[] {
@@ -17,6 +19,12 @@ export function getAutomaticClassTools(character: Character): string[] {
   return Array.isArray(selection) ? selection : [];
 }
 
+/** Ferramenta FIXA (nunca uma escolha) concedida por Talento: Chef → Utensílios de Cozinheiro; Envenenador → Kit de Veneno. */
+export const FEAT_FIXED_TOOLS: Partial<Record<string, string>> = {
+  [CHEF_FEAT_ID]: "utensilios-cozinheiro",
+  [ENVENENADOR_FEAT_ID]: "kit-veneno",
+};
+
 /**
  * Ferramentas concedidas por escolhas de Talento (`toolProficiency` de
  * Artifista/Músico, ou a metade "ferramenta" da reserva combinada
@@ -27,6 +35,10 @@ export function getAutomaticClassTools(character: Character): string[] {
  */
 export function getFeatGrantedTools(character: Character): string[] {
   const result: string[] = [];
+  for (const acquisition of getFeatAcquisitions(character)) {
+    const fixed = FEAT_FIXED_TOOLS[acquisition.featId];
+    if (fixed) result.push(fixed);
+  }
   for (const feature of getCharacterFeatures(character)) {
     if (feature.sourceType !== "feat") continue;
     for (const choice of feature.choices ?? []) {

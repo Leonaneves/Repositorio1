@@ -81,6 +81,7 @@ const TOOL_CATEGORY_LABELS: Record<string, string> = {
   artisanTool: "Ferramenta de Artesão",
   musicalInstrument: "Instrumento Musical",
   thievesTools: "Ferramentas de Ladrão",
+  otherTool: "Outra Ferramenta",
 };
 
 function toolCategoryLabel(category: string | string[]): string {

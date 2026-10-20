@@ -342,15 +342,20 @@ describe("Talentos Gerais — textos literais (fonte \"COMPLETAR TALENTOS GERAIS
 
   it("Adepto Elemental: tipo de dano escolhido (ou [__] enquanto pendente)", () => {
     const character = withAsiTalent("adepto-elemental");
-    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental ([__]): magias ignoram Resistência; 1 no dado de dano conta como 2");
+    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental ([__]): magias ignoram Res; dano 1 vira 2");
     character.featureChoiceSelections["adepto-elemental-tipo-de-dano-asi-4"] = { value: "Frio" };
-    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental (Frio): magias ignoram Resistência; 1 no dado de dano conta como 2");
+    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental (Frio): magias ignoram Res; dano 1 vira 2");
+    // Nome antigo gravado por versões anteriores continua válido e sai com o nome atual.
+    character.featureChoiceSelections["adepto-elemental-tipo-de-dano-asi-4"] = { value: "Trovejante" };
+    expect(getFeatTalentEntries(character)[0].text).toBe("Adepto Elemental (Trovão): magias ignoram Res; dano 1 vira 2");
   });
 
-  it("Atirador de Magias e Conjurador de Guerra: textos literais", () => {
-    expect(getFeatTalentEntries(withAsiTalent("atirador-de-magias"))[0].text).toBe("Atirador de Magias: Atq mágico ignora cobertura 1/2 e 3/4; sem Desv por inimigo a 1,5m; alcance ≥3m +18m");
+  it("Atirador Arcano e Conjurador Bélico (ids mantidos): textos literais", () => {
+    expect(getFeatTalentEntries(withAsiTalent("atirador-de-magias"))[0].text).toBe(
+      "Atirador Arcano: Atq de magia ignora cobertura 1/2 e 3/4, sem Desv por inimigo a 1,5m; alcance de 3m ou mais: +18m",
+    );
     expect(getFeatTalentEntries(withAsiTalent("conjurador-de-guerra"))[0].text).toBe(
-      "Conjurador de Guerra: Vant Salv de Concent; Reação: magia de 1 ação no lugar de Atq de Oport; somático com mãos ocupadas",
+      "Conjurador Bélico: Vant Salv CON para Concent; Reação: troca Atq de Oport por magia de 1 ação só no alvo",
     );
   });
 

@@ -4,10 +4,9 @@ import { TALENT_OPPORTUNITY_KINDS, type TalentOpportunityKind } from "../domain/
 import { BACKGROUND_IDS, CLASS_IDS, SPECIES_IDS, type BackgroundId, type ClassId } from "../domain/ids.js";
 import { classes } from "../data/classes.js";
 import { DADIVA_DA_RECORDACAO_DE_MAGIA_FEAT_ID } from "../data/features/epicBoons.js";
-import { ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID } from "../data/features/feats.js";
 import { subclasses } from "../data/subclasses.js";
 import { hasConjuracaoFeature } from "../rules/epicBoons.js";
-import { BACKGROUND_ORIGIN_FEAT_ID, getGeneralFeatPrerequisite, hasSpellcastingOrPactMagicAt, isFeatRepeatable } from "../rules/feats.js";
+import { BACKGROUND_ORIGIN_FEAT_ID, getFeatArmorTrainingGrants, getGeneralFeatPrerequisite, hasSpellcastingOrPactMagicAt, isFeatRepeatable } from "../rules/feats.js";
 import {
   APPROVED_SYNTHETIC_GENERATION_RULES,
   REFERENCE_FORMAT_VERSION,
@@ -303,10 +302,10 @@ function checkArmorPrerequisites(character: CharacterContext, acquisitions: Norm
     const category = getGeneralFeatPrerequisite(acquisition.talentId)?.armorTraining;
     if (!category) return;
     if (classes[character.classId].armorProficiencies[category]) return;
-    const earlierHeavy =
-      category === "heavy" &&
-      acquisitions.some((other) => other.talentId === ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID && other.level !== null && acquisition.level !== null && other.level < acquisition.level);
-    if (earlierHeavy) return;
+    const grantedEarlier = acquisitions.some(
+      (other) => getFeatArmorTrainingGrants(other.talentId).includes(category) && other.level !== null && acquisition.level !== null && other.level < acquisition.level,
+    );
+    if (grantedEarlier) return;
     issues.insufficient(
       `${character.path}.acquisitions[${index}]`,
       `Pré-requisito de treinamento em armadura (${category}) de "${acquisition.talentId}" não verificável pela classe — pode vir da subclasse.`,

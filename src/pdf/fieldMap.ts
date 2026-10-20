@@ -22,6 +22,7 @@ import {
 } from "../rules/index.js";
 import { getClassToolProficiencyEntries, getClassWeaponProficiencyEntries, getSpeciesTraitEntries, renderAutoTextBlock } from "../rules/proficiencyText.js";
 import { getFeatTalentEntries, getFeatToolProficiencyEntries, getFeatWeaponProficiencyEntries } from "../rules/featTalentEntries.js";
+import { hasArmorTraining } from "../rules/feats.js";
 import { getSkillProficiency } from "../rules/skills.js";
 import { getBarbarianPrintedBlocks } from "../rules/barbarianPrintedFeatures.js";
 import { getBarbarianWeaponMasteryEntries } from "../rules/barbarianWeaponMastery.js";
@@ -379,6 +380,7 @@ const proficiencyTextFields: PdfTextFieldMapping[] = [
           ...getEpicBoonTalentEntries(c),
         ],
         c.talentsNotes,
+        "\n", // caixa Talentos: sem linhas em branco entre talentos
       ),
   },
   { kind: "text", pdfField: "Carac.Classe.1", getValue: (c) => getClassFeaturesColumn(c, 1) },
@@ -498,10 +500,10 @@ const deathSaveCheckboxes: PdfCheckboxFieldMapping[] = [1, 2, 3].flatMap((n) => 
 ]);
 
 const armorTrainingCheckboxes: PdfCheckboxFieldMapping[] = [
-  { kind: "checkbox", pdfField: "PROF.leve", getValue: (c) => c.armor.proficiencies.light },
-  { kind: "checkbox", pdfField: "PROF.med", getValue: (c) => c.armor.proficiencies.medium },
-  { kind: "checkbox", pdfField: "PROF.pesa", getValue: (c) => c.armor.proficiencies.heavy },
-  { kind: "checkbox", pdfField: "PROF.Escudo", getValue: (c) => c.armor.proficiencies.shield },
+  { kind: "checkbox", pdfField: "PROF.leve", getValue: (c) => hasArmorTraining(c, "light") },
+  { kind: "checkbox", pdfField: "PROF.med", getValue: (c) => hasArmorTraining(c, "medium") },
+  { kind: "checkbox", pdfField: "PROF.pesa", getValue: (c) => hasArmorTraining(c, "heavy") },
+  { kind: "checkbox", pdfField: "PROF.Escudo", getValue: (c) => hasArmorTraining(c, "shield") },
   { kind: "checkbox", pdfField: "Escudo", getValue: (c) => c.armor.shield },
 ];
 

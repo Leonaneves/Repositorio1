@@ -195,14 +195,20 @@ export function isSkillGrantedByEpicBoon(character: Character): boolean {
  * abaixo para quando ela também vira Especialização.
  */
 export function isSkillGrantedByMenteAgucadaChoice(character: Character, skill: SkillKey): boolean {
+  return getProficiencyOrExpertiseChoiceIds(character, skill).length > 0;
+}
+
+/** Ids das escolhas `skillProficiencyOrExpertise` (Mente Aguçada, Analítico) que selecionaram `skill`. */
+function getProficiencyOrExpertiseChoiceIds(character: Character, skill: SkillKey): string[] {
+  const ids: string[] = [];
   for (const feature of getCharacterFeatures(character)) {
     if (feature.sourceType !== "feat") continue;
     for (const choice of feature.choices ?? []) {
       if (choice.effect.kind !== "skillProficiencyOrExpertise") continue;
-      if (character.featureChoiceSelections[choice.id]?.value === skill) return true;
+      if (character.featureChoiceSelections[choice.id]?.value === skill) ids.push(choice.id);
     }
   }
-  return false;
+  return ids;
 }
 
 /**
@@ -216,7 +222,11 @@ export function isSkillGrantedByMenteAgucadaChoice(character: Character, skill: 
  * escolhida, degenerando para Especialização sempre).
  */
 export function isSkillGrantedExpertiseByMenteAgucadaChoice(character: Character, skill: SkillKey): boolean {
-  if (!isSkillGrantedByMenteAgucadaChoice(character, skill)) return false;
+  const choiceIds = getProficiencyOrExpertiseChoiceIds(character, skill);
+  if (choiceIds.length === 0) return false;
+  // Duas escolhas desse tipo na MESMA perícia (ex.: Mente Aguçada e Analítico em Investigação): a primeira
+  // dá a proficiência, a segunda a Especialização — nunca circular, porque cada uma só "vê" a outra.
+  if (choiceIds.length > 1) return true;
   return (
     isSkillGrantedByBackground(character, skill) ||
     isSkillGrantedByClassChoice(character, skill) ||

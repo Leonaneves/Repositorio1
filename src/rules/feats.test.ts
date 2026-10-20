@@ -289,15 +289,16 @@ describe("getAvailableFeatsForAsiLevel — exclui talento não-repetível já at
   // Personagem em branco (todos os atributos 10, nenhuma proficiência de armadura), Mago: dos 39
   // do catálogo, os 10 Talentos de Origem (sem pré-requisito) + os 12 Talentos Gerais sem
   // pré-requisito além do nível 4+ + os 3 de Conjuração/Magia de Pacto (o Mago tem Conjuração)
-  // ficam disponíveis (25); os 14 restantes exigem atributo 13+ ou treinamento de armadura que
-  // este personagem não tem — ver `rules/feats.test.ts` abaixo
+  // + os 5 do lote seguinte sem pré-requisito extra (Chef, Combatente Montado, Envenenador,
+  // Esmagador, Especialista em Armaduras Leves) ficam disponíveis (30); os demais exigem atributo
+  // 13+ ou treinamento de armadura que este personagem não tem — ver `rules/feats.test.ts` abaixo
   // ("meetsFeatPrerequisites") para a checagem individual de cada um.
-  it("os 25 sem pré-requisito pendente disponíveis sem nenhuma outra aquisição ativa", () => {
+  it("os 30 sem pré-requisito pendente disponíveis sem nenhuma outra aquisição ativa", () => {
     const character = createBlankCharacter("x");
     character.classId = "mago";
     character.level = 4;
     character.asiSelections = { 4: { kind: "feat", featId: null } };
-    expect(getAvailableFeatsForAsiLevel(character, 4)).toHaveLength(25);
+    expect(getAvailableFeatsForAsiLevel(character, 4)).toHaveLength(30);
   });
 
   it("exclui um talento não-repetível já concedido pelo Antecedente", () => {
@@ -307,7 +308,7 @@ describe("getAvailableFeatsForAsiLevel — exclui talento não-repetível já at
     character.asiSelections = { 4: { kind: "feat", featId: null } };
     const available = getAvailableFeatsForAsiLevel(character, 4).map((f) => f.id);
     expect(available).not.toContain("atacante-selvagem");
-    expect(available).toHaveLength(24);
+    expect(available).toHaveLength(29);
   });
 
   it("nunca exclui o próprio talento já escolhido PARA ESTE nível", () => {
@@ -796,6 +797,6 @@ describe("pré-requisito Conjuração ou Magia de Pacto (Adepto Elemental, Atira
     expect(getElementalAdeptDamageType(character, "asi-4")).toBe("Fogo");
     const second = buildFeatAcquisitionFeature(character, { acquisitionKey: "asi-8", featId: "adepto-elemental" })!;
     const damageChoice = second.choices!.find((choice) => choice.id === getFeatChoiceId("adepto-elemental-tipo-de-dano", "asi-8"))!;
-    expect(damageChoice.effect).toEqual({ kind: "optionPick", options: ["Ácido", "Elétrico", "Frio", "Trovejante"] });
+    expect(damageChoice.effect).toEqual({ kind: "optionPick", options: ["Ácido", "Elétrico", "Frio", "Trovão"] });
   });
 });

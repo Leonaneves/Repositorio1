@@ -282,7 +282,7 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
   }
 
   if (effect.kind === "skillProficiencyOrExpertise") {
-    // Mente Aguçada (fonte §9): escolha ÚNICA entre um conjunto fixo de perícias, que vira
+    // Mente Aguçada/Analítico: escolha ÚNICA entre um conjunto fixo de perícias, que vira
     // Proficiência OU Especialização dependendo do estado ATUAL — revalidado a cada leitura
     // (rules/skills.ts#isSkillGrantedExpertiseByMenteAgucadaChoice), nunca decidido aqui.
     const value = typeof selection?.value === "string" ? selection.value : "";
@@ -296,10 +296,12 @@ export function FeatureChoiceControl({ choice }: FeatureChoiceControlProps) {
             // escolha (nunca circular); para as demais, a proficiência atual já reflete corretamente
             // "o que aconteceria se esta fosse escolhida" (Mente Aguçada ainda não contribui para elas).
             const wouldBeExpertise = skillId === value ? isSkillGrantedExpertiseByMenteAgucadaChoice(character, skillId) : getSkillProficiency(character, skillId);
+            // Já Especialista por outra fonte: escolher aqui não daria benefício algum — nunca oferecida.
+            const alreadyExpert = skillId !== value && getSkillExpertise(character, skillId);
             return (
-              <option key={skillId} value={skillId}>
+              <option key={skillId} value={skillId} disabled={alreadyExpert}>
                 {skills[skillId].name}
-                {wouldBeExpertise ? " (vira Especialização)" : " (concede Proficiência)"}
+                {alreadyExpert ? " (já Especialista)" : wouldBeExpertise ? " (vira Especialização)" : " (concede Proficiência)"}
               </option>
             );
           })}

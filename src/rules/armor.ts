@@ -3,25 +3,19 @@ import type { Character } from "../domain/character.js";
 import { armors, SHIELD_AC_BONUS, type ArmorDefinition } from "../data/armors.js";
 import { MESTRE_EM_ARMADURAS_MEDIAS_FEAT_ID } from "../data/features/feats.js";
 import { getAbilityModifier, getEffectiveAbilityScore } from "./abilities.js";
-import { isFeatActive } from "./feats.js";
+import { hasArmorTraining, isFeatActive } from "./feats.js";
 import { getDefensiveFightingStyleBonus } from "./fightingStyles.js";
 
 /**
- * Armaduras disponíveis para seleção, filtradas pelas proficiências
- * atuais do personagem (marcadas inicialmente pela classe, mas sempre
- * editáveis) — reconstrói a mesma lista dinâmica do script
+ * Armaduras disponíveis para seleção, filtradas pelo treinamento atual
+ * do personagem (`hasArmorTraining`: marcado na ficha — classe, sempre
+ * editável — ou concedido por Talento) — reconstrói a mesma lista dinâmica do script
  * `AtualizarArmaduras` do PDF original. "Sem Armadura" não entra nesta
  * lista: é o valor-sentinela `"unarmed"` de `character.armor.equipped`,
  * sempre disponível.
  */
 export function getAvailableArmor(character: Character): ArmorDefinition[] {
-  const { light, medium, heavy } = character.armor.proficiencies;
-  return Object.values(armors).filter(
-    (armor) =>
-      (armor.category === "light" && light) ||
-      (armor.category === "medium" && medium) ||
-      (armor.category === "heavy" && heavy),
-  );
+  return Object.values(armors).filter((armor) => hasArmorTraining(character, armor.category));
 }
 
 /**

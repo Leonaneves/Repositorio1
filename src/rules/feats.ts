@@ -9,11 +9,22 @@ import { subclassFeatures } from "../data/features/subclasses.js";
 import {
   ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID,
   ADEPTO_ELEMENTAL_FEAT_ID,
+  AGRESSOR_FEAT_ID,
+  AMBIDESTRO_FEAT_ID,
+  ANALITICO_FEAT_ID,
+  ATLETA_FEAT_ID,
+  ATOR_FEAT_ID,
+  CONJURADOR_RITUALISTA_FEAT_ID,
+  CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS,
+  DUELISTA_DEFENSIVO_FEAT_ID,
+  ENVENENADOR_FEAT_ID,
+  ESPECIALISTA_ARMADURAS_LEVES_FEAT_ID,
+  ESPECIALISTA_ARMADURAS_MEDIAS_FEAT_ID,
   ALERTA_FEAT_ID,
   ARTIFISTA_FEAT_ID,
   ATACANTE_SELVAGEM_FEAT_ID,
-  ATIRADOR_DE_MAGIAS_FEAT_ID,
-  CONJURADOR_DE_GUERRA_FEAT_ID,
+  ATIRADOR_ARCANO_FEAT_ID,
+  CONJURADOR_BELICO_FEAT_ID,
   CURANDEIRO_FEAT_ID,
   ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID,
   ESPECIALISTA_BESTA_FEAT_ID,
@@ -42,7 +53,7 @@ import {
   VELOCISTA_FEAT_ID,
   VIGOROSO_FEAT_ID,
 } from "../data/features/feats.js";
-import { getAsiAbilityBonus } from "./asi.js";
+import { getAsiAbilityBonus, isAsiLevelComplete } from "./asi.js";
 import { getAbilityModifier, getEffectiveAbilityScore, getProficiencyBonus } from "./abilities.js";
 import { getMartialArtsDie } from "./classResources.js";
 
@@ -111,16 +122,26 @@ export function isFeatRepeatable(featId: string): boolean {
  * característica Conjuração ou Magia de Pacto da classe/subclasse no
  * nível da aquisição (`hasSpellcastingOrPactMagicAt`).
  */
+export type ArmorTrainingCategory = "light" | "medium" | "heavy" | "shield";
+
 export interface GeneralFeatPrerequisite {
-  armorTraining?: "medium" | "heavy" | "shield";
+  armorTraining?: ArmorTrainingCategory;
   abilityAtLeast13?: AbilityKey[];
   spellcastingOrPactMagic?: true;
 }
 
 const GENERAL_FEAT_PREREQUISITES: Partial<Record<string, GeneralFeatPrerequisite>> = {
   [ADEPTO_ELEMENTAL_FEAT_ID]: { spellcastingOrPactMagic: true },
-  [ATIRADOR_DE_MAGIAS_FEAT_ID]: { spellcastingOrPactMagic: true },
-  [CONJURADOR_DE_GUERRA_FEAT_ID]: { spellcastingOrPactMagic: true },
+  [AGRESSOR_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
+  [AMBIDESTRO_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
+  [ANALITICO_FEAT_ID]: { abilityAtLeast13: ["INT", "SAB"] },
+  [ATLETA_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
+  [ATOR_FEAT_ID]: { abilityAtLeast13: ["CAR"] },
+  [CONJURADOR_RITUALISTA_FEAT_ID]: { abilityAtLeast13: ["INT", "SAB", "CAR"] },
+  [DUELISTA_DEFENSIVO_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
+  [ESPECIALISTA_ARMADURAS_MEDIAS_FEAT_ID]: { armorTraining: "light" },
+  [ATIRADOR_ARCANO_FEAT_ID]: { spellcastingOrPactMagic: true },
+  [CONJURADOR_BELICO_FEAT_ID]: { spellcastingOrPactMagic: true },
   [ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID]: { armorTraining: "medium" },
   [ESPECIALISTA_BESTA_FEAT_ID]: { abilityAtLeast13: ["DEX"] },
   [IMOBILIZADOR_FEAT_ID]: { abilityAtLeast13: ["FOR", "DEX"] },
@@ -198,27 +219,81 @@ export function getAbilityScoreForPrerequisite(character: Character, ability: Ab
 }
 
 /**
+ * Talentos que concedem treinamento com armadura — CALCULADO a partir
+ * das aquisições ativas, nunca gravado em `character.armor.proficiencies`
+ * (que guarda só classe/subclasse/ajuste manual): remover o talento
+ * retira só a concessão dele, preservando treinamento de outras origens.
+ */
+const FEAT_ARMOR_TRAINING: Partial<Record<string, readonly ArmorTrainingCategory[]>> = {
+  [ESPECIALISTA_ARMADURAS_LEVES_FEAT_ID]: ["light", "shield"],
+  [ESPECIALISTA_ARMADURAS_MEDIAS_FEAT_ID]: ["medium"],
+  [ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID]: ["heavy"],
+};
+
+/** Categorias de armadura que um Talento concede — `[]` para os demais (usado também pela validação de referências). */
+export function getFeatArmorTrainingGrants(featId: string): readonly ArmorTrainingCategory[] {
+  return FEAT_ARMOR_TRAINING[featId] ?? [];
+}
+
+/**
+ * Se alguma aquisição de Talento ativa concede `category`. Com
+ * `beforeLevel` definido, só conta o que já existia ANTES desse ponto da
+ * linha do tempo: aquisições de ASI de nível menor (`null` = criação —
+ * Antecedente/Humano, que nunca concedem armadura). Nunca conta
+ * `excludeAcquisitionKey` (a própria aquisição sendo validada).
+ */
+function featGrantsArmorTraining(character: Character, category: ArmorTrainingCategory, beforeLevel?: number | null, excludeAcquisitionKey?: string): boolean {
+  return getFeatAcquisitions(character).some((acquisition) => {
+    if (acquisition.acquisitionKey === excludeAcquisitionKey) return false;
+    if (!(FEAT_ARMOR_TRAINING[acquisition.featId] ?? []).includes(category)) return false;
+    if (beforeLevel === undefined) return true;
+    const level = getAcquisitionAsiLevel(acquisition.acquisitionKey);
+    return level === null || (beforeLevel !== null && level < beforeLevel);
+  });
+}
+
+/**
+ * Treinamento ATUAL com `category`: o marcado na ficha (classe, subclasse
+ * ou ajuste manual) OU concedido por um Talento ativo (Especialista em
+ * Armaduras Leves/Médias/Pesadas). Fonte única para a lista de armaduras
+ * elegíveis, a seção Armadura e os checkboxes PROF.* do PDF.
+ */
+export function hasArmorTraining(character: Character, category: ArmorTrainingCategory): boolean {
+  return character.armor.proficiencies[category] || featGrantsArmorTraining(character, category);
+}
+
+/** Se o treinamento com `category` vem (também) de um Talento ativo — a seção Armadura trava o checkbox nesse caso. */
+export function isArmorTrainingGrantedByFeat(character: Character, category: ArmorTrainingCategory): boolean {
+  return featGrantsArmorTraining(character, category);
+}
+
+/**
  * Treinamento com `category` de armadura, para fins de pré-requisito,
  * NO MOMENTO de `acquisitionLevel` (mesma ordem histórica de
- * `getAbilityScoreForPrerequisite` acima) — só "heavy" tem alguma
- * ambiguidade de ordem: é a ÚNICA categoria concedida por um Talento
- * (Especialista em Armaduras Pesadas), e esse Talento é, ele mesmo, uma
- * aquisição de ASI com nível próprio; "medium"/"shield" nunca vêm de
- * Talento (só classe, sempre desde o nível 1, ou subclasse, sempre
- * disponível a partir do nível 3 — e todo nível de ASI já é ≥4, então
- * nunca ficam ambíguas aqui). Quando o treinamento ATUAL de "heavy" é
- * explicado SÓ por uma aquisição de Especialista em Armaduras Pesadas
- * de nível POSTERIOR a `acquisitionLevel`, essa concessão ainda não
- * "existia" neste ponto da linha do tempo — devolve o que classe/subclasse
- * já explicam independentemente, nunca o Talento futuro. Um ajuste
- * manual do jogador (`setArmorProficiency`, sem origem/nível registrado)
- * nunca é invalidado por esta checagem quando não houver nenhuma
- * aquisição de Especialista em Armaduras Pesadas mais recente para
- * "disputar" a origem do `true` atual.
+ * `getAbilityScoreForPrerequisite` acima): o marcado na ficha mais o
+ * concedido por Talentos de nível ANTERIOR (nunca a própria aquisição,
+ * nunca um Talento posterior — ex.: Especialista em Armaduras Médias no
+ * nível 4 nunca é validado por Especialista em Armaduras Leves do nível
+ * 8). Compatibilidade: personagens antigos podem ter "heavy" gravado na
+ * ficha por Especialista em Armaduras Pesadas (versões anteriores
+ * gravavam a flag); quando esse `true` só é explicado por uma aquisição
+ * desse Talento de nível POSTERIOR, devolve o que classe/subclasse já
+ * explicam, nunca o Talento futuro. Um ajuste manual do jogador nunca é
+ * invalidado quando não houver aquisição mais recente para "disputar" a
+ * origem do `true`.
  */
 function getArmorTrainingForPrerequisite(
   character: Character,
-  category: "medium" | "heavy" | "shield",
+  category: ArmorTrainingCategory,
+  acquisitionLevel: number | null,
+  excludeAcquisitionKey: string,
+): boolean {
+  return getStoredArmorTrainingForPrerequisite(character, category, acquisitionLevel, excludeAcquisitionKey) || featGrantsArmorTraining(character, category, acquisitionLevel, excludeAcquisitionKey);
+}
+
+function getStoredArmorTrainingForPrerequisite(
+  character: Character,
+  category: ArmorTrainingCategory,
   acquisitionLevel: number | null,
   excludeAcquisitionKey: string,
 ): boolean {
@@ -247,7 +322,8 @@ const PREREQUISITE_ABILITY_NAMES: Record<AbilityKey, string> = {
   CAR: "Carisma",
 };
 
-const ARMOR_TRAINING_NAMES: Record<"medium" | "heavy" | "shield", string> = {
+const ARMOR_TRAINING_NAMES: Record<ArmorTrainingCategory, string> = {
+  light: "Armadura Leve",
   medium: "Armadura Média",
   heavy: "Armadura Pesada",
   shield: "Escudo",
@@ -265,7 +341,7 @@ const ARMOR_TRAINING_NAMES: Record<"medium" | "heavy" | "shield", string> = {
  */
 export type FeatIneligibilityReason =
   | { kind: "abilityBelowThreshold"; required: number; abilities: { ability: AbilityKey; available: number }[] }
-  | { kind: "missingArmorTraining"; category: "medium" | "heavy" | "shield" }
+  | { kind: "missingArmorTraining"; category: ArmorTrainingCategory }
   | { kind: "missingSpellcasting" }
   | { kind: "nonRepeatableAlreadyAcquired" };
 
@@ -650,17 +726,40 @@ export function buildFeatAcquisitionFeature(character: Character, acquisition: F
     );
   }
 
+  if (acquisition.featId === CONJURADOR_RITUALISTA_FEAT_ID) {
+    // Uma escolha de magia por ponto de Bônus de Proficiência do nível ATUAL — uma nova aparece sempre
+    // que o BP aumenta; as escolhas já feitas nunca somem (ids estáveis por posição).
+    const instantiated = instantiateFeatAcquisition(base, acquisition.acquisitionKey);
+    const visibleSpellChoiceIds = new Set(
+      CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS.slice(0, getRitualCasterSpellCount(character)).map((baseId) => suffixChoiceId(baseId, acquisition.acquisitionKey)),
+    );
+    const allSpellChoiceIds = new Set(CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS.map((baseId) => suffixChoiceId(baseId, acquisition.acquisitionKey)));
+    return withHumanSpeciesMarker(
+      { ...instantiated, choices: instantiated.choices?.filter((choice) => !allSpellChoiceIds.has(choice.id) || visibleSpellChoiceIds.has(choice.id)) },
+      acquisition.acquisitionKey,
+    );
+  }
+
   if (acquisition.featId === ADEPTO_ELEMENTAL_FEAT_ID) {
     // Repetível, mas cada aquisição domina um tipo de dano diferente — mesmo padrão das listas de Iniciado em Magia.
     const instantiated = instantiateFeatAcquisition(base, acquisition.acquisitionKey);
     const usedTypes = getUsedElementalAdeptDamageTypes(character, acquisition.acquisitionKey);
     const damageChoiceId = suffixChoiceId(ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, acquisition.acquisitionKey);
+    // Personagem salvo com um nome antigo ("Trovejante"): a opção gravada continua válida (impressa como "Trovão").
+    const stored = character.featureChoiceSelections[damageChoiceId]?.value;
+    const legacyOption = typeof stored === "string" && LEGACY_DAMAGE_TYPE_NAMES[stored] ? [stored] : [];
     return withHumanSpeciesMarker(
       {
         ...instantiated,
         choices: instantiated.choices?.map((choice) =>
           choice.id === damageChoiceId && choice.effect.kind === "optionPick"
-            ? { ...choice, effect: { ...choice.effect, options: choice.effect.options.filter((option) => !usedTypes.includes(option)) } }
+            ? {
+                ...choice,
+                effect: {
+                  ...choice.effect,
+                  options: [...choice.effect.options.filter((option) => !usedTypes.includes(option) && !(legacyOption.length > 0 && LEGACY_DAMAGE_TYPE_NAMES[legacyOption[0]] === option)), ...legacyOption],
+                },
+              }
             : choice,
         ),
       },
@@ -671,10 +770,14 @@ export function buildFeatAcquisitionFeature(character: Character, acquisition: F
   return withHumanSpeciesMarker(instantiateFeatAcquisition(base, acquisition.acquisitionKey), acquisition.acquisitionKey);
 }
 
+/** Nomes antigos de tipo de dano gravados por versões anteriores do catálogo → nome atual. */
+const LEGACY_DAMAGE_TYPE_NAMES: Record<string, string> = { Trovejante: "Trovão" };
+
 /** Tipo de dano escolhido por UMA aquisição de Adepto Elemental — `null` enquanto não resolvida. */
 export function getElementalAdeptDamageType(character: Character, acquisitionKey: string): string | null {
   const value = character.featureChoiceSelections[suffixChoiceId(ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, acquisitionKey)]?.value;
-  return typeof value === "string" && value.trim() ? value : null;
+  if (typeof value !== "string" || !value.trim()) return null;
+  return LEGACY_DAMAGE_TYPE_NAMES[value] ?? value;
 }
 
 /** Tipos de dano já dominados por OUTRAS aquisições de Adepto Elemental (nunca a própria `excludeAcquisitionKey`). */
@@ -809,4 +912,51 @@ export function getInspiringLeaderTempHp(character: Character): number | null {
 /** Bônus de Deslocamento de Velocista (fonte §28): +3m fixo — `0` quando o talento não está ativo (soma direta em `rules/speed.ts#getSpeed`, mesmo padrão de `getToughHpBonus`/`getAlertInitiativeBonus`). */
 export function getFeatSpeedBonus(character: Character): number {
   return isFeatActive(character, VELOCISTA_FEAT_ID) ? 3 : 0;
+}
+
+/** Quantidade de magias de Conjurador Ritualista: o Bônus de Proficiência atual. */
+export function getRitualCasterSpellCount(character: Character): number {
+  return getProficiencyBonus(character.level);
+}
+
+/** Magias escolhidas numa aquisição de Conjurador Ritualista (só as visíveis no BP atual), sem repetição. */
+export function getRitualCasterSpells(character: Character, acquisitionKey: string): string[] {
+  const names = CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS.slice(0, getRitualCasterSpellCount(character))
+    .map((baseId) => character.featureChoiceSelections[suffixChoiceId(baseId, acquisitionKey)]?.value)
+    .filter((value): value is string => typeof value === "string" && value.trim() !== "")
+    .map((value) => value.trim());
+  return [...new Set(names)];
+}
+
+/** CD de Imitação de Ator: `8 + mod CAR + BP` — nunca o atributo de conjuração da classe. `null` sem o talento ativo. */
+export function getActorCd(character: Character): number | null {
+  if (!isFeatActive(character, ATOR_FEAT_ID)) return null;
+  return 8 + getAbilityModifier(getEffectiveAbilityScore(character, "CAR")) + getProficiencyBonus(character.level);
+}
+
+/**
+ * CD do veneno de Envenenador: `8 + mod do atributo AUMENTADO NESTA
+ * AQUISIÇÃO (DEX ou INT) + BP` — nunca o maior dos dois automaticamente.
+ * `null` sem o talento ativo ou com a escolha de atributo ainda pendente.
+ */
+export function getPoisonerCd(character: Character): number | null {
+  const acquisition = getFeatAcquisitions(character).find((candidate) => candidate.featId === ENVENENADOR_FEAT_ID);
+  if (!acquisition) return null;
+  const ability = getFeatAbilityIncreaseChoice(character, acquisition);
+  if (!ability) return null;
+  return 8 + getAbilityModifier(getEffectiveAbilityScore(character, ability)) + getProficiencyBonus(character.level);
+}
+
+/** Criaturas alimentadas pela Refeição Satisfatória de Chef: `4 + BP`. */
+export function getChefMealTargets(character: Character): number {
+  return 4 + getProficiencyBonus(character.level);
+}
+
+/**
+ * Quantas vezes "Aumento no Valor de Atributo" já foi escolhido (níveis
+ * de ASI resolvidos como aumento de atributo, não como Talento) — só
+ * para a linha da caixa Talentos; os aumentos em si ficam nos atributos.
+ */
+export function getAbilityScoreImprovementCount(character: Character): number {
+  return Object.values(character.asiSelections).filter((selection) => selection.kind === "abilityIncrease" && isAsiLevelComplete(selection)).length;
 }

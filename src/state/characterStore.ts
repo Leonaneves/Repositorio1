@@ -14,7 +14,6 @@ import { classes } from "../data/classes.js";
 import { ASI_LEVELS_BY_CLASS } from "../data/features/classes.js";
 import { ORDEM_DIVINA_CHOICE_ID } from "../data/features/cleric.js";
 import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
-import { ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID } from "../data/features/feats.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getAvailableArmor } from "../rules/armor.js";
 import { canChooseSubclass, getAvailableSubclasses } from "../rules/subclasses.js";
@@ -231,24 +230,6 @@ function applyDruidOrdemPrimalProficiencies(character: Character): Character {
   return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, medium: true } } };
 }
 
-/**
- * Especialista em Armaduras Pesadas (Talento Geral, fonte "COMPLETAR
- * TALENTOS GERAIS NO BUILDER E NO PDF" §3) concede treinamento com
- * Armadura Pesada automaticamente ao ser escolhido num nível de ASI —
- * mesmíssimo padrão de `applyBardSubclassProficiencies`/
- * `applyClericOrdemDivinaProficiencies`/`applyDruidOrdemPrimalProficiencies`
- * (flag mutável, sempre editável depois em `ArmorSection`; só SOMA a
- * proficiência, nunca remove o que o jogador já tinha marcado
- * manualmente, e nunca é revertida ao trocar o talento escolhido nesse
- * nível — consistente com o fato de nenhuma das 3 concessões de
- * subclasse acima também nunca reverter). Chamada de `setAsiFeat`, não
- * de `setFeatureChoiceSelection` (a escolha aqui é QUAL talento, não uma
- * `FeatureChoice` interna de um talento já ativo).
- */
-function applyFeatArmorProficiencies(character: Character, featId: string | null): Character {
-  if (featId !== ESPECIALISTA_ARMADURAS_PESADAS_FEAT_ID) return character;
-  return { ...character, armor: { ...character.armor, proficiencies: { ...character.armor.proficiencies, heavy: true } } };
-}
 
 /**
  * Hidrata o estado inicial a partir do `localStorage` (fonte
@@ -854,8 +835,9 @@ export const useCharacterStore = create<CharacterStore>((set) => ({
       if (!current || current.kind !== "feat") return state;
       const selection: AsiSelection = { kind: "feat", featId };
       let character = { ...state.character, asiSelections: { ...state.character.asiSelections, [level]: selection } };
-      character = applyFeatArmorProficiencies(character, featId);
-      return { character };
+      // Treinamento com armadura de Talento é calculado (rules/feats.ts#hasArmorTraining), nunca gravado:
+      // trocar/remover o talento só tira a armadura equipada se ela deixar de ser elegível.
+      return { character: clampEquippedArmor(character) };
     }),
   increaseAsiAbility: (level, ability) =>
     set((state) => {

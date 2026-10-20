@@ -1,5 +1,7 @@
+import type { AbilityKey } from "../domain/common.js";
 import type { Character, SpellPreparedEntry } from "../domain/character.js";
 import {
+  CONJURADOR_RITUALISTA_FEAT_ID,
   INICIADO_EM_MAGIA_FEAT_ID,
   MAGIC_INITIATE_CANTRIP_1_CHOICE_BASE_ID,
   MAGIC_INITIATE_CANTRIP_2_CHOICE_BASE_ID,
@@ -11,7 +13,7 @@ import {
   TOCADO_POR_FADAS_FEAT_ID,
   TOCADO_POR_FADAS_SPELL_CHOICE_ID,
 } from "../data/features/feats.js";
-import { getFeatAbilityIncreaseChoice, getFeatAcquisitions, getFeatChoiceId, getMagicInitiateList } from "./feats.js";
+import { getFeatAbilityIncreaseChoice, getFeatAcquisitions, getFeatChoiceId, getMagicInitiateList, getRitualCasterSpells } from "./feats.js";
 
 /**
  * Truques/magias sempre preparados concedidos por Talento, fora do
@@ -38,6 +40,8 @@ import { getFeatAbilityIncreaseChoice, getFeatAcquisitions, getFeatChoiceId, get
  * usado para Iniciado em Magia abaixo, cuja nota também nunca leva
  * marcador).
  */
+const ABILITY_NAMES: Record<AbilityKey, string> = { FOR: "Força", DEX: "Destreza", CON: "Constituição", INT: "Inteligência", SAB: "Sabedoria", CAR: "Carisma" };
+
 export function getFeatAutoPreparedSpells(character: Character): SpellPreparedEntry[] {
   const entries: SpellPreparedEntry[] = [];
 
@@ -66,6 +70,18 @@ export function getFeatAutoPreparedSpells(character: Character): SpellPreparedEn
     if (acquisition.featId === TELEPATICO_FEAT_ID) {
       if (!getFeatAbilityIncreaseChoice(character, acquisition)) continue;
       entries.push({ circle: "", name: "Detectar Pensamentos", castingTime: "", range: "", concentration: false, ritual: false, material: false, notes: "Sempre preparada — Telepático" });
+      continue;
+    }
+
+    if (acquisition.featId === CONJURADOR_RITUALISTA_FEAT_ID) {
+      // BP magias Ritual de 1º círculo (entrada manual — catálogo pendente), com o atributo aumentado por este
+      // talento; o uso de Ritual Rápido ([__]/DL) fica só na caixa Talentos.
+      const ability = getFeatAbilityIncreaseChoice(character, acquisition);
+      if (!ability) continue;
+      const notes = `Sempre preparada — Conjurador Ritualista (${ABILITY_NAMES[ability]})`;
+      for (const name of getRitualCasterSpells(character, acquisition.acquisitionKey)) {
+        entries.push({ circle: "", name, castingTime: "", range: "", concentration: false, ritual: true, material: false, notes });
+      }
       continue;
     }
 

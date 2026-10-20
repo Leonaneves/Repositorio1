@@ -6,6 +6,7 @@ import { ORDEM_PRIMAL_CHOICE_ID } from "../data/features/druid.js";
 import { EARTH_CIRCLE_TERRAIN_CHOICE_ID, ELEMENTAL_AFFINITY_CHOICE_ID } from "../data/features/subclasses.js";
 import { getClassToolChoiceId } from "../data/classes.js";
 import { getEffectiveAbilityScore } from "../rules/abilities.js";
+import { hasArmorTraining } from "../rules/feats.js";
 
 beforeEach(() => {
   useCharacterStore.getState().resetCharacter();
@@ -812,15 +813,36 @@ describe("useCharacterStore — escolhas de feature e talentos gerais escolhidos
     expect(useCharacterStore.getState().character.asiSelections[4]).toEqual({ kind: "abilityIncrease", allocations: {} });
   });
 
-  it("setAsiFeat('especialista-armaduras-pesadas') soma treinamento com Armadura Pesada automaticamente (fonte \"COMPLETAR TALENTOS GERAIS NO BUILDER E NO PDF\" §3)", () => {
+  it("setAsiFeat('especialista-armaduras-pesadas') concede treinamento com Armadura Pesada (calculado, nunca gravado) e trocar o talento retira só essa concessão", () => {
     const store = useCharacterStore.getState();
     store.setClass("mago"); // sem treinamento de armadura pesada por classe
     store.setAsiMode(4, "feat");
-    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false);
+    expect(hasArmorTraining(useCharacterStore.getState().character, "heavy")).toBe(false);
     store.setAsiFeat(4, "especialista-armaduras-pesadas");
-    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(true);
-    // nunca remove outras proficiências já marcadas (só soma).
-    expect(useCharacterStore.getState().character.armor.proficiencies.light).toBe(false);
+    expect(hasArmorTraining(useCharacterStore.getState().character, "heavy")).toBe(true);
+    expect(useCharacterStore.getState().character.armor.proficiencies.heavy).toBe(false); // nunca gravado na ficha
+    expect(hasArmorTraining(useCharacterStore.getState().character, "light")).toBe(false);
+    store.setAsiFeat(4, "resistente");
+    expect(hasArmorTraining(useCharacterStore.getState().character, "heavy")).toBe(false);
+  });
+
+  it("Especialista em Armaduras Leves concede Leve + Escudos; remover preserva o treinamento marcado por outra origem e desequipa só o que deixou de ser elegível", () => {
+    const store = useCharacterStore.getState();
+    store.setClass("mago");
+    store.setArmorProficiency("shield", true); // outra origem (ajuste manual)
+    store.setAsiMode(4, "feat");
+    store.setAsiFeat(4, "especialista-armaduras-leves");
+    let character = useCharacterStore.getState().character;
+    expect(hasArmorTraining(character, "light")).toBe(true);
+    expect(hasArmorTraining(character, "shield")).toBe(true);
+    expect(hasArmorTraining(character, "medium")).toBe(false);
+    store.setArmorEquipped("couro");
+    expect(useCharacterStore.getState().character.armor.equipped).toBe("couro");
+    store.setAsiFeat(4, "resistente");
+    character = useCharacterStore.getState().character;
+    expect(hasArmorTraining(character, "light")).toBe(false);
+    expect(hasArmorTraining(character, "shield")).toBe(true); // origem manual preservada
+    expect(character.armor.equipped).toBe("unarmed");
   });
 
   it("escolher outro talento diferente de Especialista em Armaduras Pesadas nunca soma a proficiência", () => {

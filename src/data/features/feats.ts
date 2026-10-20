@@ -7,9 +7,9 @@ import type { FeatureDefinition } from "../../domain/features.js";
  *    BUILDER E NO PDF") — Alerta, Artifista, Atacante Selvagem,
  *    Curandeiro, Habilidoso, Iniciado em Magia, Músico, Sortudo, Valentão
  *    de Taverna, Vigoroso. Nunca aumentam atributo nem têm pré-requisito.
- * 2. Os 29 Talentos Gerais (26 da fonte "COMPLETAR TALENTOS GERAIS NO
- *    BUILDER E NO PDF" + Adepto Elemental, Atirador de Magias e
- *    Conjurador de Guerra) — só disponíveis em nível de ASI (nunca
+ * 2. Os 42 Talentos Gerais (26 da fonte "COMPLETAR TALENTOS GERAIS NO
+ *    BUILDER E NO PDF" + 16 da fonte "IMPLEMENTAR TALENTOS GERAIS
+ *    RESTANTES NO BUILDER E NO PDF") — só disponíveis em nível de ASI (nunca
  *    concedidos por Antecedente — nenhum dos 16 Antecedentes do projeto
  *    concede um destes), todos exigindo nível de personagem 4+ e concedendo
  *    exatamente 1 escolha de "Aumento de 1 num atributo" (`abilityScoreIncrease`,
@@ -119,16 +119,43 @@ export const TREINAMENTO_COM_ARMAS_MARCIAIS_FEAT_ID = "treinamento-com-armas-mar
 export const VELOCISTA_FEAT_ID = "velocista";
 
 /**
- * Talentos Gerais com pré-requisito "característica Conjuração ou Magia
- * de Pacto" (além do nível 4+) — ver `rules/feats.ts#hasSpellcastingOrPactMagicAt`.
- * Adepto Elemental é repetível, com um tipo de dano diferente a cada
- * aquisição (`rules/feats.ts#buildFeatAcquisitionFeature`).
+ * Lote "IMPLEMENTAR TALENTOS GERAIS RESTANTES NO BUILDER E NO PDF" (de
+ * Adepto Elemental a Especialista em Armaduras Médias). Atirador Arcano
+ * e Conjurador Bélico mantêm os ids com que foram cadastrados primeiro
+ * (`atirador-de-magias`, `conjurador-de-guerra`) — personagens já
+ * salvos continuam válidos. Pré-requisitos em
+ * `rules/feats.ts#GENERAL_FEAT_PREREQUISITES`; Adepto Elemental é
+ * repetível, com um tipo de dano diferente a cada aquisição
+ * (`rules/feats.ts#buildFeatAcquisitionFeature`).
  */
 export const ADEPTO_ELEMENTAL_FEAT_ID = "adepto-elemental";
-export const ATIRADOR_DE_MAGIAS_FEAT_ID = "atirador-de-magias";
-export const CONJURADOR_DE_GUERRA_FEAT_ID = "conjurador-de-guerra";
+export const AGRESSOR_FEAT_ID = "agressor";
+export const AMBIDESTRO_FEAT_ID = "ambidestro";
+export const ANALITICO_FEAT_ID = "analitico";
+export const ATIRADOR_ARCANO_FEAT_ID = "atirador-de-magias";
+export const ATLETA_FEAT_ID = "atleta";
+export const ATOR_FEAT_ID = "ator";
+export const CHEF_FEAT_ID = "chef";
+export const COMBATENTE_MONTADO_FEAT_ID = "combatente-montado";
+export const CONJURADOR_BELICO_FEAT_ID = "conjurador-de-guerra";
+export const CONJURADOR_RITUALISTA_FEAT_ID = "conjurador-ritualista";
+export const DUELISTA_DEFENSIVO_FEAT_ID = "duelista-defensivo";
+export const ENVENENADOR_FEAT_ID = "envenenador";
+export const ESMAGADOR_FEAT_ID = "esmagador";
+export const ESPECIALISTA_ARMADURAS_LEVES_FEAT_ID = "especialista-armaduras-leves";
+export const ESPECIALISTA_ARMADURAS_MEDIAS_FEAT_ID = "especialista-armaduras-medias";
+
 export const ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID = "adepto-elemental-tipo-de-dano";
-export const ADEPTO_ELEMENTAL_DAMAGE_TYPES = ["Ácido", "Elétrico", "Fogo", "Frio", "Trovejante"] as const;
+export const ADEPTO_ELEMENTAL_DAMAGE_TYPES = ["Ácido", "Elétrico", "Frio", "Fogo", "Trovão"] as const;
+export const ANALITICO_SKILL_CHOICE_ID = "analitico-pericia";
+export const ANALITICO_SKILL_OPTIONS = ["intuicao", "investigacao", "percepcao"] as const;
+/**
+ * Conjurador Ritualista: uma escolha de magia por ponto de Bônus de
+ * Proficiência — o catálogo declara o máximo (BP 6, nível 17+) e
+ * `rules/feats.ts#buildFeatAcquisitionFeature` mostra só as BP primeiras
+ * do nível atual (uma nova escolha aparece sempre que o BP aumenta).
+ */
+export const CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS = [1, 2, 3, 4, 5, 6].map((index) => `conjurador-ritualista-magia-${index}`);
 
 /** Ids-BASE das `FeatureChoice` que não seguem a convenção genérica `${featId}-atributo` (ver `rules/feats.ts#getFeatAbilityIncreaseChoiceId`) — escolhas de perícia/magia/nota própria de um talento específico. */
 export const ESPECIALISTA_PERICIA_SKILL_CHOICE_ID = "especialista-pericia-pericia";
@@ -278,7 +305,7 @@ export const generalFeats: FeatureDefinition[] = [
       "Nunca repetível. Aumenta os PV máximos em 2 × nível total do personagem (rules/feats.ts#getToughHpBonus, somado em rules/hp.ts#getMaxHitPoints) — calculado pelo NÍVEL TOTAL, nunca por uma classe específica; ao adquirir em nível superior ao 1º, aplica o bônus completo do nível atual (nunca soma retroativamente aumento por aumento). Nunca tratado como cura, PV Temp ou aumento de Constituição. Remover o talento retira só este bônus, preservando qualquer outra fonte de PV.",
   },
 
-  // ===================== Talentos Gerais (29, nível 4+, só via ASI) =====================
+  // ===================== Talentos Gerais (nível 4+, só via ASI) =====================
 
   {
     id: ADEPTO_ELEMENTAL_FEAT_ID,
@@ -287,31 +314,198 @@ export const generalFeats: FeatureDefinition[] = [
     level: null,
     autoGranted: true,
     summary:
-      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Repetível, com um tipo de dano diferente a cada vez. Escolhe Ácido, Elétrico, Fogo, Frio ou Trovejante: magias que o personagem conjura ignoram Resistência a esse tipo de dano, e, ao jogar o dano de uma magia desse tipo, cada 1 no dado conta como 2. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto (nunca um truque/magia concedido por espécie ou talento). Repetível, sempre com um tipo de dano diferente — cada aquisição mantém o próprio aumento de atributo e o próprio tipo. Escolhe Ácido, Elétrico, Frio, Fogo ou Trovão: magias que o personagem conjura ignoram Resistência a esse tipo de dano (nunca Imunidade); ao jogar o dano de uma magia que cause esse tipo, pode tratar qualquer 1 nos dados de dano como 2 — não é uma nova rolagem, e nunca vale para ataques que não sejam magias. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
     choices: [
-      { id: ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, prompt: "Adepto Elemental — tipo de dano dominado", effect: { kind: "optionPick", options: [...ADEPTO_ELEMENTAL_DAMAGE_TYPES] } },
+      { id: ADEPTO_ELEMENTAL_DAMAGE_CHOICE_BASE_ID, prompt: "Adepto Elemental — tipo de dano (diferente a cada aquisição)", effect: { kind: "optionPick", options: [...ADEPTO_ELEMENTAL_DAMAGE_TYPES] } },
       { id: `${ADEPTO_ELEMENTAL_FEAT_ID}-atributo`, prompt: "Adepto Elemental — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
     ],
   },
   {
-    id: ATIRADOR_DE_MAGIAS_FEAT_ID,
-    name: "Atirador de Magias",
+    id: AGRESSOR_FEAT_ID,
+    name: "Agressor",
     sourceType: "feat",
     level: null,
     autoGranted: true,
     summary:
-      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Nunca repetível. Ataques com magia ignoram Cobertura Parcial (1/2) e de Três Quartos (3/4); estar a 1,5m de um inimigo não impõe Desvantagem nas jogadas de ataque com magia; magia com alcance de 3m ou mais que exija jogada de ataque tem o alcance aumentado em 18m. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
-    choices: [{ id: `${ATIRADOR_DE_MAGIAS_FEAT_ID}-atributo`, prompt: "Atirador de Magias — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } }],
+      "Nível 4+. Pré-requisito: Força ou Destreza 13. Nunca repetível. Corrida Aprimorada: ao executar a ação Correr, o Deslocamento aumenta 3m só para essa ação (nunca o Deslocamento permanente). Ataque de Investida: uma vez em cada um dos próprios turnos, se o personagem se mover pelo menos 3m em linha reta em direção ao alvo imediatamente antes de acertar um ataque corpo a corpo como parte da ação Atacar, escolhe (na hora, nunca uma decisão permanente do Builder): +1d8 no dano desse ataque, ou empurrar o alvo até 3m para longe, se ele for no máximo um tamanho maior que o personagem. Não exige Ação Bônus adicional. +1 em Força ou Destreza, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${AGRESSOR_FEAT_ID}-atributo`, prompt: "Agressor — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } },
+    ],
   },
   {
-    id: CONJURADOR_DE_GUERRA_FEAT_ID,
-    name: "Conjurador de Guerra",
+    id: ANALITICO_FEAT_ID,
+    name: "Analítico",
     sourceType: "feat",
     level: null,
     autoGranted: true,
     summary:
-      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Nunca repetível. Concentração: Vantagem nas Salvaguardas de Constituição para manter Concentração. Magia Reativa: quando uma criatura provoca Ataque de Oportunidade do personagem, ele pode, como Reação, conjurar nela uma magia de tempo de conjuração 1 ação, que tenha só ela como alvo, em vez do ataque. Componentes Somáticos: pode executar os componentes somáticos de magias mesmo com armas ou Escudo nas mãos. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
-    choices: [{ id: `${CONJURADOR_DE_GUERRA_FEAT_ID}-atributo`, prompt: "Conjurador de Guerra — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } }],
+      "Nível 4+. Pré-requisito: Inteligência ou Sabedoria 13. Nunca repetível. Mente Observadora: escolhe Intuição, Investigação ou Percepção (etapa Perícias) — sem proficiência nela por outra fonte, ganha proficiência; já proficiente por outra fonte, ganha Especialização (`skillProficiencyOrExpertise`, revalidado a cada leitura: a própria concessão de Analítico nunca conta como \"já proficiente\"; uma perícia já com Especialização por outra fonte não é oferecida). Pesquisa Rápida: pode executar a ação Procurar como Ação Bônus. +1 em Inteligência ou Sabedoria, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: ANALITICO_SKILL_CHOICE_ID, prompt: "Analítico — Intuição/Investigação/Percepção: proficiência (ou Especialização, se já proficiente por outra fonte)", effect: { kind: "skillProficiencyOrExpertise", options: [...ANALITICO_SKILL_OPTIONS] } },
+      { id: `${ANALITICO_FEAT_ID}-atributo`, prompt: "Analítico — aumente em 1 (máx. 20): Inteligência ou Sabedoria", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB"] } },
+    ],
+  },
+  {
+    id: ATIRADOR_ARCANO_FEAT_ID,
+    name: "Atirador Arcano",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Nunca repetível. Contornar Cobertura: ataques com magia ignoram Cobertura Parcial e Cobertura de Três Quartos. Conjuração à Queima-Roupa: estar a 1,5m de um inimigo não impõe Desvantagem nas jogadas de ataque com magia. Alcance Aumentado: ao conjurar uma magia com alcance de pelo menos 3m que exija jogada de ataque, pode aumentar o alcance dela em 18m — nunca para magias sem jogada de ataque, de toque ou com alcance menor que 3m. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ATIRADOR_ARCANO_FEAT_ID}-atributo`, prompt: "Atirador Arcano — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
+    ],
+  },
+  {
+    id: ATLETA_FEAT_ID,
+    name: "Atleta",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Força ou Destreza 13. Nunca repetível. Velocidade de Escalada: Deslocamento de Escalada igual ao Deslocamento (`rules/speed.ts#getClimbSpeed`, acompanha qualquer alteração do Deslocamento). Levantar-se: levantar-se da condição Caído custa só 1,5m de movimento. Saltar: um Salto em Distância ou em Altura com corrida exige só 1,5m de movimento prévio — nunca aumenta a distância do salto. +1 em Força ou Destreza, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ATLETA_FEAT_ID}-atributo`, prompt: "Atleta — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } },
+    ],
+  },
+  {
+    id: ATOR_FEAT_ID,
+    name: "Ator",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Carisma 13. Nunca repetível. Personificação: disfarçado como uma pessoa real ou fictícia, tem Vantagem nos testes de Carisma (Atuação ou Enganação) para convencer os outros de que é essa pessoa — nunca Vantagem permanente em todos os testes dessas perícias. Imitação: pode imitar sons de outras criaturas, inclusive fala; quem ouve pode perceber que é uma imitação com um teste bem-sucedido de Sabedoria (Intuição) contra CD 8 + mod CAR + Bônus de Proficiência (`rules/feats.ts#getActorCd` — nunca o atributo de conjuração da classe). +1 em Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ATOR_FEAT_ID}-atributo`, prompt: "Ator — aumente em 1 (máx. 20): Carisma", effect: { kind: "abilityScoreIncrease", options: ["CAR"] } },
+    ],
+  },
+  {
+    id: CHEF_FEAT_ID,
+    name: "Chef",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Utensílios de Cozinheiro: proficiência com essa ferramenta (campo de ferramentas — nunca concede o item físico). Refeição Satisfatória: durante um Descanso Curto, com ingredientes e Utensílios de Cozinheiro, pode preparar comida para até 4 + Bônus de Proficiência criaturas; ao fim do descanso, quem comer e gastar ao menos um Dado de Vida recupera 1d8 PV extras (uma vez por criatura nesse descanso, nunca por dado gasto). Guloseimas Revigorantes: com 1 hora de trabalho ou ao terminar um Descanso Longo, com ingredientes e utensílios, pode preparar BP guloseimas, que duram 8 horas; comer uma exige Ação Bônus e concede PV Temporários iguais ao BP do cozinheiro. Guloseimas são itens produzidos durante o jogo — nunca uma reserva de usos por Descanso Longo nem um marcador fixo na ficha. +1 em Constituição ou Sabedoria, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${CHEF_FEAT_ID}-atributo`, prompt: "Chef — aumente em 1 (máx. 20): Constituição ou Sabedoria", effect: { kind: "abilityScoreIncrease", options: ["CON", "SAB"] } },
+    ],
+  },
+  {
+    id: COMBATENTE_MONTADO_FEAT_ID,
+    name: "Combatente Montado",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Enquanto montado: Golpe Montado — Vantagem nas jogadas de ataque contra qualquer criatura desmontada a até 1,5m da montaria que seja pelo menos um tamanho menor que ela (não restrito a ataques corpo a corpo); Pulo Lateral — se a montaria for alvo de um efeito que permite uma Salvaguarda de Destreza para sofrer só metade do dano, ela não sofre dano algum se passar e só metade se falhar (exige estar montado e que nenhum dos dois esteja Incapacitado); Redirecionar Ataque — quando um ataque atinge a montaria, o personagem pode fazer esse ataque atingi-lo no lugar dela, desde que não esteja Incapacitado (sem Reação, Salvaguarda ou teste adicionais). +1 em Força, Destreza ou Sabedoria, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${COMBATENTE_MONTADO_FEAT_ID}-atributo`, prompt: "Combatente Montado — aumente em 1 (máx. 20): Força, Destreza ou Sabedoria", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX", "SAB"] } },
+    ],
+  },
+  {
+    id: CONJURADOR_BELICO_FEAT_ID,
+    name: "Conjurador Bélico",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: característica Conjuração ou Magia de Pacto. Nunca repetível. Concentração: Vantagem nas Salvaguardas de Constituição para manter Concentração (nunca em todas as Salvaguardas de Constituição). Magia Reativa: quando uma criatura provoca um Ataque de Oportunidade do personagem ao sair do alcance dele, ele pode usar a Reação para conjurar nela uma magia em vez de fazer o ataque — a magia precisa ter tempo de conjuração de uma ação e ter só essa criatura como alvo; os custos normais da magia continuam valendo (nunca conjuração gratuita). Componentes Somáticos: pode executar os componentes somáticos de magias mesmo com armas ou Escudo em uma ou ambas as mãos. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${CONJURADOR_BELICO_FEAT_ID}-atributo`, prompt: "Conjurador Bélico — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
+    ],
+  },
+  {
+    id: CONJURADOR_RITUALISTA_FEAT_ID,
+    name: "Conjurador Ritualista",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Inteligência, Sabedoria ou Carisma 13. Nunca repetível. Magias Ritualísticas: escolhe magias diferentes de 1º círculo com o marcador Ritual (sem restrição de lista de classe), em quantidade igual ao Bônus de Proficiência — uma escolha nova aparece sempre que o BP aumenta; ficam sempre preparadas (área de Magias, `rules/featAutoPreparedSpells.ts`), usam o atributo aumentado por este talento como atributo de conjuração (nunca uma escolha independente) e podem ser conjuradas com espaços de magia disponíveis — nunca concedem espaços nem contam no limite de Magias Preparadas da classe. Ritual Rápido: uma vez por Descanso Longo, pode conjurar uma magia Ritual que tenha preparada (não só as deste talento, nem só de 1º círculo) usando o tempo de conjuração normal, sem gastar espaço de magia — um único uso compartilhado. +1 em Inteligência, Sabedoria ou Carisma, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS[0], prompt: "Conjurador Ritualista — magia Ritual de 1º círculo 1 (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo com Ritual" } },
+      { id: CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS[1], prompt: "Conjurador Ritualista — magia Ritual de 1º círculo 2 (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo com Ritual" } },
+      { id: CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS[2], prompt: "Conjurador Ritualista — magia Ritual de 1º círculo 3 (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo com Ritual" } },
+      { id: CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS[3], prompt: "Conjurador Ritualista — magia Ritual de 1º círculo 4 (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo com Ritual" } },
+      { id: CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS[4], prompt: "Conjurador Ritualista — magia Ritual de 1º círculo 5 (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo com Ritual" } },
+      { id: CONJURADOR_RITUALISTA_SPELL_CHOICE_BASE_IDS[5], prompt: "Conjurador Ritualista — magia Ritual de 1º círculo 6 (catálogo de magias pendente — entrada manual)", effect: { kind: "manualText", placeholder: "Nome da magia de 1º círculo com Ritual" } },
+      { id: `${CONJURADOR_RITUALISTA_FEAT_ID}-atributo`, prompt: "Conjurador Ritualista — aumente em 1 (máx. 20): Inteligência, Sabedoria ou Carisma (também o atributo de conjuração das magias deste talento)", effect: { kind: "abilityScoreIncrease", options: ["INT", "SAB", "CAR"] } },
+    ],
+  },
+  {
+    id: DUELISTA_DEFENSIVO_FEAT_ID,
+    name: "Duelista Defensivo",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Destreza 13. Nunca repetível. Aparar: segurando uma arma com a propriedade Acuidade, quando outra criatura o atinge com um ataque corpo a corpo, pode usar a Reação para somar o Bônus de Proficiência à CA contra esse ataque, o que pode fazê-lo errar; o bônus continua valendo contra ataques corpo a corpo até o início do próximo turno do personagem. Nunca aumenta a CA permanentemente nem vale contra ataques à distância; acompanha o BP atual. +1 em Destreza, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${DUELISTA_DEFENSIVO_FEAT_ID}-atributo`, prompt: "Duelista Defensivo — aumente em 1 (máx. 20): Destreza", effect: { kind: "abilityScoreIncrease", options: ["DEX"] } },
+    ],
+  },
+  {
+    id: ENVENENADOR_FEAT_ID,
+    name: "Envenenador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Veneno Potente: jogadas de dano Venenoso do personagem ignoram Resistência a dano Venenoso (nunca Imunidade; não só o veneno deste talento). Preparar Veneno: proficiência com Kit de Veneno (campo de ferramentas); com o kit, 1 hora de trabalho e 50 PO em materiais, fabrica BP doses (sem limite por Descanso Longo). Aplicar uma dose numa arma ou munição exige Ação Bônus; dura 1 minuto ou até causar dano com o item. Ao causar esse dano, o alvo faz Salvaguarda de Constituição contra CD 8 + mod do atributo aumentado por este talento + BP (`rules/feats.ts#getPoisonerCd` — nunca o maior entre DEX e INT automaticamente); se falhar, sofre 2d8 de dano Venenoso e fica Envenenado até o fim do próximo turno de quem aplicou. Doses são consumíveis fabricados durante o jogo — nunca um contador fixo na ficha. +1 em Destreza ou Inteligência, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ENVENENADOR_FEAT_ID}-atributo`, prompt: "Envenenador — aumente em 1 (máx. 20): Destreza ou Inteligência", effect: { kind: "abilityScoreIncrease", options: ["DEX", "INT"] } },
+    ],
+  },
+  {
+    id: ESMAGADOR_FEAT_ID,
+    name: "Esmagador",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Empurrão: uma vez por turno (não só no próprio), ao acertar uma criatura com um ataque que cause dano Contundente, pode movê-la 1,5m para um espaço desocupado, se ela for no máximo um tamanho maior que o personagem — sem Salvaguarda, não necessariamente para longe, não restrito a armas nem a ataques corpo a corpo. Ataque Aprimorado: ao causar um Acerto Crítico com dano Contundente, as jogadas de ataque contra essa criatura (de qualquer atacante) têm Vantagem até o início do próximo turno do personagem. +1 em Força ou Constituição, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ESMAGADOR_FEAT_ID}-atributo`, prompt: "Esmagador — aumente em 1 (máx. 20): Força ou Constituição", effect: { kind: "abilityScoreIncrease", options: ["FOR", "CON"] } },
+    ],
+  },
+  {
+    id: AMBIDESTRO_FEAT_ID,
+    name: "Ambidestro",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: Força ou Destreza 13. Nunca repetível. Combate com Duas Armas Aprimorado: ao executar a ação Atacar no próprio turno atacando com uma arma Leve, pode fazer um ataque adicional como Ação Bônus nesse mesmo turno com uma arma diferente, que deve ser Corpo a Corpo e sem a propriedade Duas Mãos (não precisa ser Leve); não soma o modificador de atributo ao dano desse ataque adicional, a menos que seja negativo (exceções de outras características já cadastradas continuam valendo). Saque Rápido: pode sacar ou guardar duas armas sem a propriedade Duas Mãos quando normalmente poderia sacar ou guardar só uma. +1 em Força ou Destreza, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${AMBIDESTRO_FEAT_ID}-atributo`, prompt: "Ambidestro — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } },
+    ],
+  },
+  {
+    id: ESPECIALISTA_ARMADURAS_LEVES_FEAT_ID,
+    name: "Especialista em Armaduras Leves",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Sem pré-requisito adicional. Nunca repetível. Treinamento com Armaduras Leves e com Escudos (`rules/armor.ts#hasArmorTraining` — campos de proficiência e lista de armaduras elegíveis; nunca equipa armadura nem Escudo, nunca soma CA sem equipamento). Remover o talento retira só esta concessão, preservando treinamento de outras origens. +1 em Força ou Destreza, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ESPECIALISTA_ARMADURAS_LEVES_FEAT_ID}-atributo`, prompt: "Especialista em Armaduras Leves — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } },
+    ],
+  },
+  {
+    id: ESPECIALISTA_ARMADURAS_MEDIAS_FEAT_ID,
+    name: "Especialista em Armaduras Médias",
+    sourceType: "feat",
+    level: null,
+    autoGranted: true,
+    summary:
+      "Nível 4+. Pré-requisito: treinamento com Armadura Leve. Nunca repetível. Treinamento com Armaduras Médias (`rules/armor.ts#hasArmorTraining`) — nunca com Escudos (treinamento com Escudos de outra origem é preservado). Remover o talento retira só esta concessão. +1 em Força ou Destreza, limitado a 20 (`abilityScoreIncrease`).",
+    choices: [
+      { id: `${ESPECIALISTA_ARMADURAS_MEDIAS_FEAT_ID}-atributo`, prompt: "Especialista em Armaduras Médias — aumente em 1 (máx. 20): Força ou Destreza", effect: { kind: "abilityScoreIncrease", options: ["FOR", "DEX"] } },
+    ],
   },
 
   {

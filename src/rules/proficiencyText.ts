@@ -31,9 +31,9 @@ export function getSpeciesTraitEntries(character: Character): AutoTextEntry[] {
 }
 
 /** Junta as entradas automáticas + notas manuais num único texto para exibição (ex.: impressão/exportação). */
-export function renderAutoTextBlock(entries: AutoTextEntry[], manualNotes: string): string {
-  const autoText = entries.map((entry) => entry.text).join("\n\n");
+export function renderAutoTextBlock(entries: AutoTextEntry[], manualNotes: string, separator = "\n\n"): string {
+  const autoText = entries.map((entry) => entry.text).join(separator);
   if (!manualNotes.trim()) return autoText;
   if (!autoText) return manualNotes;
-  return `${autoText}\n\n${manualNotes}`;
+  return `${autoText}${separator}${manualNotes}`;
 }

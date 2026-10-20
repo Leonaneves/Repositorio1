@@ -10,7 +10,7 @@
  * de Artesão", nunca deve aparecer como opção elegível quando a regra
  * só permite Instrumentos Musicais (exemplo explícito da fonte).
  */
-export type ToolCategory = "artisanTool" | "musicalInstrument" | "thievesTools";
+export type ToolCategory = "artisanTool" | "musicalInstrument" | "thievesTools" | "otherTool";
 
 export interface ToolDefinition {
   id: string;
@@ -57,6 +57,10 @@ export const tools: ToolDefinition[] = [
 
   // Ferramentas de Ladrão (thievesTools) — categoria própria, nunca confundida com Ferramenta de Artesão/Instrumento Musical.
   { id: "ferramentas-ladrao", name: "Ferramentas de Ladrão", category: "thievesTools" },
+
+  // Outras ferramentas (otherTool) — concedidas só por regras específicas (ex.: Envenenador), nunca oferecidas
+  // em escolhas restritas a Ferramenta de Artesão/Instrumento Musical/Ferramentas de Ladrão.
+  { id: "kit-veneno", name: "Kit de Veneno", category: "otherTool" },
 ];
 
 export const toolsById: Record<string, ToolDefinition> = Object.fromEntries(tools.map((tool) => [tool.id, tool]));
